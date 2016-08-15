@@ -113,8 +113,7 @@
       <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /Y /S "$(SolutionDir)$(Configuration)\Perception\*.*" "$(USERPROFILE)\Documents\Vireio\Perception\"</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>
@@ -154,8 +153,7 @@
       <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /Y /S "$(SolutionDir)$(Configuration)\Perception\*.*" "$(USERPROFILE)\Documents\Vireio\Perception\"</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>
@@ -199,6 +197,9 @@
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin" md "$(USERPROFILE)\Documents\Vireio\Perception\bin"</Command>
     </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>xcopy /Y /S "$(SolutionDir)$(Configuration)\Perception\*.*" "$(USERPROFILE)\Documents\Vireio\Perception\"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -228,6 +229,9 @@
     <PreLinkEvent>
       <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
     </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>xcopy /Y /S "$(SolutionDir)$(Configuration)\Perception\*.*" "$(USERPROFILE)\Documents\Vireio\Perception\"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="apihijack.cpp" />

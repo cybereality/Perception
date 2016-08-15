@@ -47,6 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<vector>
 #include<sstream>
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
 
@@ -78,17 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
-#define PNT_D3DMATRIX_PLUG_TYPE                     2017
-#define PNT_VECTOR3F_PLUG_TYPE                      2061
-#define PNT_VECTOR4F_PLUG_TYPE                      2063
-#define PPNT_IDIRECT3DINDEXBUFFER9_PLUG_TYPE        3041
-#define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
-#define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
-
-#define NUMBER_OF_DECOMMANDERS                         8
+#define NUMBER_OF_DECOMMANDERS                         11
 
 /**
 * Node Commander Enumeration.
@@ -103,6 +96,19 @@ enum ODM_Decommanders
 	RightTexture9,
 	HMD_Handle,
 	ZoomOut,
+	HUDTexture11,
+	HUDTexture10,
+	HUDTexture9,
+};
+
+/**
+* Oculus layers enumeration.
+***/
+enum OculusLayers
+{
+	OculusLayer_MainEye = 0,
+	OculusLayer_Hud = 1,
+	OculusLayer_Total = 2,      /**< Total # of layers. **/
 };
 
 /**
@@ -254,6 +260,10 @@ private:
 	***/
 	OculusTexture* m_psEyeRenderTexture[2];
 	/**
+	* The Oculus HUD swapchain.
+	***/
+	OculusTexture* m_psEyeRenderTextureHUD;
+	/**
 	* The Oculus render viewport. (for both eyes)
 	***/
 	ovrRecti m_psEyeRenderViewport[2];
@@ -266,9 +276,25 @@ private:
 	***/
 	ID3D11ShaderResourceView** m_ppcTexView11[2];
 	/**
+	* HUD Texture input. (DX11)
+	***/
+	ID3D11ShaderResourceView** m_ppcTexViewHud11;
+	/**
 	* Shared copy of textures.
 	***/
 	ID3D11Texture2D* m_pcTex11Copy[2];
+	/**
+	* Copy texture shared for HUD (created by game device).
+	***/
+	ID3D11Texture2D* m_pcTex11CopyHUD;
+	/**
+	* Shared texture for HUD (created by temporary device 1.1)
+	***/
+	ID3D11Texture2D* m_pcTex11SharedHUD;
+	/**
+	* Shared texture shader resource view for HUD (created by temporary device 1.1)
+	**/
+	ID3D11ShaderResourceView* m_pcTex11SharedHudSRV;
 	/**
 	* Temporary directx 11 device for the oculus sdk.
 	***/
@@ -331,6 +357,30 @@ private:
 	* Zoom out switch.
 	***/
 	BOOL* m_pbZoomOut;
+	/**
+	* Eye render poses.
+	***/
+	ovrPosef asEyeRenderPose[2];
+	/**
+	* Timestamp for last drawn frame.
+	***/
+	double sensorSampleTime;
+	/**
+	* Oculus layers.
+	***/
+	ovrLayerHeader* m_pasLayerList[OculusLayer_Total];
+	/**
+	* Layer primal.
+	***/
+	ovrLayerEyeFov m_sLayerPrimal;
+	/**
+	* Layer HUD.
+	***/
+	ovrLayerQuad m_sLayerHud;
+	/**
+	* True if mirror is to be shown.
+	***/
+	bool m_bShowMirror;
 };
 
 /**

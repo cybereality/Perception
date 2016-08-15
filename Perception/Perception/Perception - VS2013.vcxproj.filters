@@ -22,6 +22,9 @@
     <Filter Include="Shared Headers">
       <UniqueIdentifier>{9a74df77-8ed4-4266-996c-15b314a7e184}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cfg_v4">
+      <UniqueIdentifier>{fbeea005-febb-474a-a39b-5c50743ad4bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -134,5 +137,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\Release\Perception\cfg_v4\profiles.xml">
+      <Filter>cfg_v4</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -51,16 +51,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "OVR_CAPI_D3D.h"
 #include "..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
-#define PNT_D3DMATRIX_PLUG_TYPE                     2017
-#define PNT_VECTOR3F_PLUG_TYPE                      2061
-#define PNT_VECTOR4F_PLUG_TYPE                      2063
-#define PPNT_IDIRECT3DINDEXBUFFER9_PLUG_TYPE        3041
-#define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
-#define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
-
 #define NUMBER_OF_COMMANDERS                          28
 
 #define MATH_FLOAT_PI                (3.1415926f)

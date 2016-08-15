@@ -87,8 +87,11 @@ m_pStereoOutputSurfaceLeft(nullptr),
 m_pStereoOutputSurfaceRight(nullptr),
 m_pcDepthStencilLeft(nullptr),
 m_pcDepthStencilRight(nullptr),
-m_bOculusTinyRoomMesh(false),
-m_asRenderModels()
+m_asRenderModels(),
+m_punTexResolutionHeight(nullptr),
+m_punTexResolutionWidth(nullptr),
+m_pcBackBufferCopy(nullptr),
+m_pcBackBufferCopySR(nullptr)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -137,15 +140,16 @@ m_asRenderModels()
 	m_sCinemaRoomSetup.sColorDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 	m_sCinemaRoomSetup.sLightDirection = D3DXVECTOR4(-0.7f, -0.6f, -0.02f, 1.0f);
 	m_sCinemaRoomSetup.ePixelShaderFX_Screen = VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen::Screen_GeometryDiffuseTexturedMouse;
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB::Wall_FB_Worley01;
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB::Wall_FB_C64Plasma;
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_ToonCloud;
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_Bubbles;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_ToonCloud;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_WaterCaustic;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_Planets;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_Bubbles;
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory;
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01;
 	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
 	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
 	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
+	m_unMouseTickCount = 2000;
 
 	// TODO !! FX COLORS
 
@@ -163,15 +167,16 @@ m_asRenderModels()
 	m_sCinemaRoomSetup.sLightDirection.y = GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.y, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.y", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.sLightDirection.z = GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.z, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.z", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.ePixelShaderFX_Screen = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Screen, "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Screen.b", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Floor[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Floor[0]", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Floor[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Floor[1]", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
+	m_unMouseTickCount = GetIniFileSetting((DWORD)m_unMouseTickCount, "Stereo Cinema", "unMouseTickCount", szFilePathINI, bFileExists);
 }
 
 /**
@@ -208,7 +213,8 @@ VireioCinema::~VireioCinema()
 		SAFE_RELEASE(m_asRenderModels[unI].pcTexture);
 		SAFE_RELEASE(m_asRenderModels[unI].pcEffect);
 	}
-
+	SAFE_RELEASE(m_pcBackBufferCopySR);
+	SAFE_RELEASE(m_pcBackBufferCopy);
 	SAFE_RELEASE(m_pcTex11Draw[0]);
 	SAFE_RELEASE(m_pcTex11Draw[1]);
 	SAFE_RELEASE(m_pcTex11DrawRTV[0]);
@@ -519,9 +525,9 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 			return true;
 	}
 	else
-	if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
-		(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
-		return true;
+		if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
+			(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+			return true;
 
 	return false;
 }
@@ -593,70 +599,70 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		case D3D_9:
 		{
 
-					  // get device 
-					  LPDIRECT3DDEVICE9 pcDevice = nullptr;
-					  bool bReleaseDevice = false;
-					  if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
-					  {
-						  pcDevice = (LPDIRECT3DDEVICE9)pThis;
-					  }
-					  else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
-					  {
-						  LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
-						  if (!pSwapChain)
-						  {
-							  OutputDebugString(L"[CIN] No swapchain !");
-							  return nullptr;
-						  }
-						  pSwapChain->GetDevice(&pcDevice);
-						  bReleaseDevice = true;
-					  }
-					  if (!pcDevice)
-					  {
-						  OutputDebugString(L"[CIN] No device !");
-						  return nullptr;
-					  }
+			// get device 
+			LPDIRECT3DDEVICE9 pcDevice = nullptr;
+			bool bReleaseDevice = false;
+			if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+			{
+				pcDevice = (LPDIRECT3DDEVICE9)pThis;
+			}
+			else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+			{
+				LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
+				if (!pSwapChain)
+				{
+					OutputDebugString(L"[CIN] No swapchain !");
+					return nullptr;
+				}
+				pSwapChain->GetDevice(&pcDevice);
+				bReleaseDevice = true;
+			}
+			if (!pcDevice)
+			{
+				OutputDebugString(L"[CIN] No device !");
+				return nullptr;
+			}
 
-					  if ((m_pVBCinemaTheatre) && (m_pVBCinemaScreen))
-						  // render
-						  RenderD3D9(pcDevice);
-					  else
-						  // ...or init all stuff
-						  InitD3D9(pcDevice);
+			if ((m_pVBCinemaTheatre) && (m_pVBCinemaScreen))
+				// render
+				RenderD3D9(pcDevice);
+			else
+				// ...or init all stuff
+				InitD3D9(pcDevice);
 
 
-					  // release device if provided by swapchain
-					  if (bReleaseDevice) pcDevice->Release();
+			// release device if provided by swapchain
+			if (bReleaseDevice) pcDevice->Release();
 		}
-			break;
+		break;
 		case D3D_10:
 			break;
 		case D3D_11:
 		{
-					   // get device
-					   ID3D11Device* pcDevice = nullptr;
-					   ((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-					   if (pcDevice)
-					   {
-						   // get context
-						   ID3D11DeviceContext* pcContext = nullptr;
-						   pcDevice->GetImmediateContext(&pcContext);
-						   if (pcContext)
-						   {
-							   if (m_asRenderModels.size())
-								   // render
-								   RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
-							   else
-								   // ...or init all stuff
-								   InitD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+			// get device
+			ID3D11Device* pcDevice = nullptr;
+			((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+			if (pcDevice)
+			{
+				// get context
+				ID3D11DeviceContext* pcContext = nullptr;
+				pcDevice->GetImmediateContext(&pcContext);
+				if (pcContext)
+				{
+					if (m_asRenderModels.size())
+						// render
+						RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+					else
+						// ...or init all stuff
+						InitD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
 
-							   pcContext->Release();
-						   }
-						   pcDevice->Release();
-						   return nullptr;
-					   }
+					pcContext->Release();
+				}
+				pcDevice->Release();
+				return nullptr;
+			}
 		}
-			break;
+		break;
 		default:
 			break;
 	}
@@ -764,7 +770,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 		LPD3DXBUFFER pShader;
 
 		// compile and create shader
-		if (SUCCEEDED(D3DXCompileShader(PSSimplest, strlen(PSSimplest), NULL, NULL, "OurFirstPixelShader", "ps_3_0", NULL, &pShader, NULL, &m_ctPCinema)))
+		if (SUCCEEDED(D3DXCompileShader(PSSimplest, (UINT)strlen(PSSimplest), NULL, NULL, "OurFirstPixelShader", "ps_3_0", NULL, &pShader, NULL, &m_ctPCinema)))
 		{
 			OutputDebugString(L"Pixel shader >Textured< compiled!");
 			pcDevice->CreatePixelShader((DWORD*)pShader->GetBufferPointer(), &m_psCinema);
@@ -775,7 +781,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 		LPD3DXBUFFER pShader;
 
 		// compile and create shader
-		if (SUCCEEDED(D3DXCompileShader(PSTexColor, strlen(PSTexColor), NULL, NULL, "TexColorPixelShader", "ps_3_0", NULL, &pShader, NULL, &m_ctPCinemaTheatre)))
+		if (SUCCEEDED(D3DXCompileShader(PSTexColor, (UINT)strlen(PSTexColor), NULL, NULL, "TexColorPixelShader", "ps_3_0", NULL, &pShader, NULL, &m_ctPCinemaTheatre)))
 		{
 			OutputDebugString(L"Pixel shader >Textured+Colored< compiled!");
 			pcDevice->CreatePixelShader((DWORD*)pShader->GetBufferPointer(), &m_psCinemaTheatre);
@@ -788,7 +794,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 		LPD3DXBUFFER pShader;
 
 		// compile and create shader
-		if (SUCCEEDED(D3DXCompileShader(VSSimplest, strlen(VSSimplest), NULL, NULL, "SimplestVertexShader", "vs_1_1", NULL, &pShader, NULL, &m_ctVCinema)))
+		if (SUCCEEDED(D3DXCompileShader(VSSimplest, (UINT)strlen(VSSimplest), NULL, NULL, "SimplestVertexShader", "vs_1_1", NULL, &pShader, NULL, &m_ctVCinema)))
 		{
 			OutputDebugString(L"Vertex shader >Textured< compiled!");
 			pcDevice->CreateVertexShader((DWORD*)pShader->GetBufferPointer(), &m_vsCinema);
@@ -799,21 +805,13 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 		LPD3DXBUFFER pShader;
 
 		// compile and create shader
-		if (SUCCEEDED(D3DXCompileShader(VSTexColor, strlen(VSTexColor), NULL, NULL, "TexColorVertexShader", "vs_1_1", NULL, &pShader, NULL, &m_ctVCinemaTheatre)))
+		if (SUCCEEDED(D3DXCompileShader(VSTexColor, (UINT)strlen(VSTexColor), NULL, NULL, "TexColorVertexShader", "vs_1_1", NULL, &pShader, NULL, &m_ctVCinemaTheatre)))
 		{
 			OutputDebugString(L"Vertex shader >Textured+Colored< compiled!");
 			pcDevice->CreateVertexShader((DWORD*)pShader->GetBufferPointer(), &m_vsCinemaTheatre);
 		}
 	}
-
-	// oculus room created ?
-	if (!m_bOculusTinyRoomMesh)
-	{
-		GenerateOculusRoomTinyTextures();
-		GenerateOculusRoomTinyMesh();
-		m_bOculusTinyRoomMesh = true;
-	}
-
+	
 	// texture created ?
 	if (!m_pTextureCinema)
 	{
@@ -1232,6 +1230,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create render models...
 	if (!m_asRenderModels.size())
 	{
+		// set room size by screen depth (+10cm)
+		float fSizeScale = m_sCinemaRoomSetup.fScreenDepth + 0.1f;
 #pragma region cinema screen
 		if (true/**TODO_ADD_BOOL_HERE**/)
 		{
@@ -1248,7 +1248,9 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
 			// and create the model...
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, m_sCinemaRoomSetup.fScreenWidth / 3.84f, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth), 1920, 1080);
+			float fScale = m_sCinemaRoomSetup.fScreenWidth / 3.84f;
+			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth), 1920, 1080);
 		}
 #pragma endregion
 #pragma region floor top/bottom
@@ -1268,6 +1270,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 
 			// create bottom floor effect by cinema room setup
 			PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+
 			switch (m_sCinemaRoomSetup.ePixelShaderFX_Floor[1])
 			{
 				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Bubbles:
@@ -1285,12 +1288,23 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01:
 					eTechnique = PixelShaderTechnique::Worley01;
 					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Planets:
+					eTechnique = PixelShaderTechnique::Planets;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_HypnoticDisco:
+					eTechnique = PixelShaderTechnique::HypnoticDisco;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_VoronoiSmooth:
+					eTechnique = PixelShaderTechnique::VoronoiSmooth;
+					break;
 			}
 			ID3D11PixelShader* pcEffect = nullptr;
 			CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
 
 			// and create the model... scale here by the screen depth to ensure the screen is always seen
-			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, m_sCinemaRoomSetup.fScreenDepth, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+			float fScale = fSizeScale / 2.0f;
+			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 			// set indices top
 			WORD aunIndices_top[] = { 0, 1, 3, 1, 2, 3 };
@@ -1321,8 +1335,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			ID3D11PixelShader* pcEffect_top = nullptr;
 			CreatePixelShaderEffect(pcDevice, &pcEffect_top, eTechnique_top);
 
-			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, pcEffect_top, asVertices, aunIndices_top, 4, 2, 2.0f, D3DXVECTOR3(0.0f, 4.8f, 0.0f));
+			// and create the model... no more scale here since already scaled by first call
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect_top, asVertices, aunIndices_top, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 4.8f, 0.0f));
 
 		}
 #pragma endregion
@@ -1359,44 +1373,72 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				0, 1, 3,
 				3, 1, 2,
 
-				5, 4, 6,
-				6, 4, 7,
+				1, 0, 2, // 5, 4, 6,
+				2, 0, 3, // 6, 4, 7,
 
-				8, 9, 11,
-				11, 9, 10,
+				0, 1, 3, // 8, 9, 11,
+				3, 1, 2, // 11, 9, 10,
 
-				13, 12, 14,
-				14, 12, 15,
+				1, 0, 2, // 13, 12, 14,
+				2, 0, 3, // 14, 12, 15,
 			};
 
-			// create wall effect by cinema room setup
-			PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
-			switch (m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0])
+			for (UINT unI = 0; unI < 4; unI++)
 			{
-				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_Bubbles:
-					eTechnique = PixelShaderTechnique::Bubbles;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_C64Plasma:
-					eTechnique = PixelShaderTechnique::C64Plasma;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_StringTheory:
-					eTechnique = PixelShaderTechnique::StringTheory;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_ToonCloud:
-					eTechnique = PixelShaderTechnique::ToonCloud;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_WaterCaustic:
-					eTechnique = PixelShaderTechnique::WaterCaustic;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_Worley01:
-					eTechnique = PixelShaderTechnique::Worley01;
-					break;
-			}
-			ID3D11PixelShader* pcEffect = nullptr;
-			CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
+				// get setting
+				int eEffect = 0;
+				switch (unI)
+				{
+					case 0:
+						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0];
+						break;
+					case 1:
+						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1];
+						break;
+					case 2:
+						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0];
+						break;
+					case 3:
+						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1];
+						break;
+				}
 
-			// and create the model... scale here by the screen depth to ensure the screen is always seen
-			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 16, 8, m_sCinemaRoomSetup.fScreenDepth * 2.0f, D3DXVECTOR3(0.0f, 2.4f, 0.0f), 2000, 1200);
+				// create wall effect by cinema room setup
+				PixelShaderTechnique eTechnique = PixelShaderTechnique::Worley01;
+				switch (eEffect)
+				{
+					case CinemaRoomSetup::Wall_Bubbles:
+						eTechnique = PixelShaderTechnique::Bubbles;
+						break;
+					case VireioCinema::CinemaRoomSetup::Wall_Planets:
+						eTechnique = PixelShaderTechnique::Planets;
+						break;
+					case CinemaRoomSetup::Wall_StringTheory:
+						eTechnique = PixelShaderTechnique::StringTheory;
+						break;
+					case CinemaRoomSetup::Wall_ToonCloud:
+						eTechnique = PixelShaderTechnique::ToonCloud;
+						break;
+					case CinemaRoomSetup::Wall_WaterCaustic:
+						eTechnique = PixelShaderTechnique::WaterCaustic;
+						break;
+					case CinemaRoomSetup::Wall_Worley01:
+						eTechnique = PixelShaderTechnique::Worley01;
+					case VireioCinema::CinemaRoomSetup::Wall_VoronoiSmooth:
+						eTechnique = PixelShaderTechnique::VoronoiSmooth;
+						break;
+				}
+				ID3D11PixelShader* pcEffect = nullptr;
+				CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
+
+				// and create the model... scale here by the screen depth to ensure the screen is always seen
+				float fHeight = 600.0f;  // = (4.8f * 1200.0f) / 4.8f;
+				float fWidth = (fSizeScale * 1000.0f) / 4.0f;
+
+				AddRenderModelD3D11(pcDevice, nullptr, pcEffect, &asVertices[unI * 4], &aunIndices[unI * 6], 4, 2,
+					D3DXVECTOR3(fSizeScale, 4.0f, fSizeScale),
+					D3DXVECTOR3(0.0f, 2.4f, 0.0f), (UINT)fWidth, (UINT)fHeight);
+			}
 		}
 #pragma endregion
 	}
@@ -1417,7 +1459,59 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 ***/
 void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain)
 {
-	if ((!m_ppcTex11InputSRV[0]) || (!m_ppcTex11InputSRV[1])) return;
+	ID3D11ShaderResourceView* apcTex11InputSRV[2];
+	if ((!m_ppcTex11InputSRV[0]) || (!m_ppcTex11InputSRV[1]))
+	{
+		// get back buffer
+		ID3D11Texture2D* pcBackBuffer = NULL;
+		pcSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+		if (pcBackBuffer)
+		{
+			if (m_pcBackBufferCopy)
+			{
+				pcContext->CopyResource(m_pcBackBufferCopy, pcBackBuffer);
+			}
+			else
+			{
+				// create back buffer copy texture
+				D3D11_TEXTURE2D_DESC sDesc;
+				pcBackBuffer->GetDesc(&sDesc);
+				sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				if (SUCCEEDED(pcDevice->CreateTexture2D(&sDesc, NULL, &m_pcBackBufferCopy)))
+				{
+					D3D11_SHADER_RESOURCE_VIEW_DESC sDescSR11 = {};
+					sDescSR11.Format = sDesc.Format;
+					sDescSR11.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+					sDescSR11.Texture2D.MipLevels = 1;
+					sDescSR11.Texture2D.MostDetailedMip = 0;
+					if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView(m_pcBackBufferCopy, &sDescSR11, &m_pcBackBufferCopySR)))
+					{
+						OutputDebugString(L"[CIN] Failed to create sr view !");
+						m_pcBackBufferCopy->Release(); m_pcBackBufferCopy = nullptr;
+						pcBackBuffer->Release();
+						return;
+					}
+				}
+			}
+
+			// set left/right mono and instantly release
+			apcTex11InputSRV[0] = m_pcBackBufferCopySR;
+			apcTex11InputSRV[1] = m_pcBackBufferCopySR;
+
+			pcBackBuffer->Release();
+		}
+		else
+		{
+			OutputDebugString(L"[CIN] No back buffer !!");
+			return;
+		}
+	}
+	else
+	{
+		// set stereo input textures
+		apcTex11InputSRV[0] = *m_ppcTex11InputSRV[0];
+		apcTex11InputSRV[1] = *m_ppcTex11InputSRV[1];
+	};
 
 	// get the viewport
 	UINT dwNumViewports = 1;
@@ -1481,24 +1575,43 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
 	}
 
-	// set mouse position
-	RECT sDesktop;
-	HWND pDesktop = GetDesktopWindow();
-	GetWindowRect(pDesktop, &sDesktop);
-	POINT sPoint;
-	GetCursorPos(&sPoint);
-	m_sGeometryConstants.sMouse = D3DXVECTOR4((float)sPoint.x / (float)sDesktop.right, (float)sPoint.y / (float)sDesktop.bottom, 0.0f, 0.0f);
-
 	// Update and set our time
 	static float fTime = 0.0f;
 	static DWORD unTimeStart = 0;
-	DWORD dwTimeCur = GetTickCount();
+	DWORD unTimeCurrent = GetTickCount();
 	if (unTimeStart == 0)
-		unTimeStart = dwTimeCur;
-	fTime = (dwTimeCur - unTimeStart) / 1000.0f;
+		unTimeStart = unTimeCurrent;
+	fTime = (unTimeCurrent - unTimeStart) / 1000.0f;
 	m_sGeometryConstants.fGlobalTime = fTime;
 
-	// Rotate cube around the origin
+	// set mouse position
+	static POINT s_sPointOld;
+	static DWORD s_unTick = 0;
+
+	// get desktop
+	RECT sDesktop;
+	HWND pDesktop = GetDesktopWindow();
+	GetWindowRect(pDesktop, &sDesktop);
+
+	// get current pos
+	POINT sPoint;
+	GetCursorPos(&sPoint);
+
+	// mouse not moved ?
+	if ((sPoint.x == s_sPointOld.x) && (sPoint.y == s_sPointOld.y))
+	{
+		s_unTick += unTimeCurrent;
+	}
+	else s_unTick = 0;
+	s_sPointOld = sPoint;
+
+	// set new pos, if not moved set out of view
+	if (s_unTick > m_unMouseTickCount)
+		m_sGeometryConstants.sMouse = D3DXVECTOR4(1.1f, 1.1f, 0.0f, 0.0f);
+	else
+		m_sGeometryConstants.sMouse = D3DXVECTOR4((float)sPoint.x / (float)sDesktop.right, (float)sPoint.y / (float)sDesktop.bottom, 0.0f, 0.0f);
+
+	// set world identity
 	D3DXMATRIX sWorld;
 	D3DXMatrixIdentity(&sWorld);
 
@@ -1528,7 +1641,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		{
 			// set frame texture left/right if main effect
 			if (!m_asRenderModels[unI].pcEffect)
-				pcContext->PSSetShaderResources(0, 1, m_ppcTex11InputSRV[nEye]);
+				pcContext->PSSetShaderResources(0, 1, &apcTex11InputSRV[nEye]);
 
 			// set WVP matrix, update constant buffer
 			D3DXMATRIX sWorldViewProjection;
@@ -1556,7 +1669,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 /**
 * Creates a simple render model based on mesh data and adds it to the input vector.
 ***/
-void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale, D3DXVECTOR3 sTranslate, UINT32 unWidth, UINT32 unHeight)
+void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, D3DXVECTOR3 sScale, D3DXVECTOR3 sTranslate, UINT32 unWidth, UINT32 unHeight)
 {
 	// create a D3D render model structure
 	RenderModel_D3D11 sRenderModel = {};
@@ -1564,9 +1677,9 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 	for (int i = 0; i < (int)unVertexCount; i++)
 	{
 		// scale and translate
-		asVertices[i].sPosition.x *= fScale;
-		asVertices[i].sPosition.y *= fScale;
-		asVertices[i].sPosition.z *= fScale;
+		asVertices[i].sPosition.x *= sScale.x;
+		asVertices[i].sPosition.y *= sScale.y;
+		asVertices[i].sPosition.z *= sScale.z;
 
 		asVertices[i].sPosition.x += sTranslate.x;
 		asVertices[i].sPosition.y += sTranslate.y;

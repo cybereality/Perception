@@ -362,6 +362,18 @@ private:
 		uint32_t unWidth;
 		uint32_t unHeight;
 	} m_sTargetSize;
+	/**
+	* Keyboard codes assigned to buttons.
+	* 0..2 Controller index.
+	* 0..13 Button index.
+	***/
+	UINT aaunKeys[2][13];
+	/**
+	* True if button is pressed.
+	* 0..2 Controller index.
+	* 0..13 Button index.
+	***/
+	BOOL aabKeys[2][13];
 };
 
 /**

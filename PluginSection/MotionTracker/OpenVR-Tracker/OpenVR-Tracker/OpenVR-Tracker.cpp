@@ -45,6 +45,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 
 /**
+* Number of HTC Vive controller buttons.
+***/
+static const UINT unButtonNo = 13;
+/**
+* Ids of HTC Vive controller buttons.
+***/
+static UINT aunButtonIds[] =
+{
+	vr::k_EButton_System,
+	vr::k_EButton_ApplicationMenu,
+	vr::k_EButton_Grip,
+	vr::k_EButton_DPad_Left,
+	vr::k_EButton_DPad_Up,
+	vr::k_EButton_DPad_Right,
+	vr::k_EButton_DPad_Down,
+	vr::k_EButton_A,
+	vr::k_EButton_Axis0,
+	vr::k_EButton_Axis1,
+	vr::k_EButton_Axis2,
+	vr::k_EButton_Axis3,
+	vr::k_EButton_Axis4
+};
+/**
+* Vireio Enumeration of HTC Vive buttons.
+**/
+enum ViveControllerButtons
+{
+	Index_EButton_System = 0,
+	Index_EButton_ApplicationMenu = 1,
+	Index_EButton_Grip = 2,
+	Index_EButton_DPad_Left = 3,
+	Index_EButton_DPad_Up = 4,
+	Index_EButton_DPad_Right = 5,
+	Index_EButton_DPad_Down = 6,
+	Index_EButton_A = 7,
+	Index_EButton_Axis0 = 8,
+	Index_EButton_Axis1 = 9,
+	Index_EButton_Axis2 = 10,
+	Index_EButton_Axis3 = 11,
+	Index_EButton_Axis4 = 12,
+};
+
+/**
 * Constructor.
 ***/
 OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
@@ -59,6 +102,37 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 	ZeroMemory(&m_sTargetSize, sizeof(OpenVR_Size));
 
 	m_cGameTimer.Reset();
+
+	// set default key codes
+	aaunKeys[0][Index_EButton_System] = GetVkCodeByString("VK_ESCAPE");
+	aaunKeys[0][Index_EButton_ApplicationMenu] = GetVkCodeByString("VK_SHIFT");
+	aaunKeys[0][Index_EButton_Grip] = GetVkCodeByString("VK_ESCAPE");
+	aaunKeys[0][Index_EButton_DPad_Left] = GetVkCodeByString("VK_LEFT");
+	aaunKeys[0][Index_EButton_DPad_Up] = GetVkCodeByString("VK_UP");
+	aaunKeys[0][Index_EButton_DPad_Right] = GetVkCodeByString("VK_RIGHT");
+	aaunKeys[0][Index_EButton_DPad_Down] = GetVkCodeByString("VK_DOWN");
+	aaunKeys[0][Index_EButton_A] = GetVkCodeByString("VK_TAB");
+	aaunKeys[0][Index_EButton_Axis0] = GetVkCodeByString("VK_LBUTTON");
+	aaunKeys[0][Index_EButton_Axis1] = GetVkCodeByString("VK_RBUTTON");
+	aaunKeys[0][Index_EButton_Axis2] = GetVkCodeByString("VK_F4");
+	aaunKeys[0][Index_EButton_Axis3] = GetVkCodeByString("VK_F5");
+	aaunKeys[0][Index_EButton_Axis4] = GetVkCodeByString("VK_F6");
+	aaunKeys[1][Index_EButton_System] = GetVkCodeByString("VK_ESCAPE");
+	aaunKeys[1][Index_EButton_ApplicationMenu] = GetVkCodeByString("VK_RETURN");
+	aaunKeys[1][Index_EButton_Grip] = GetVkCodeByString("VK_E");
+	aaunKeys[1][Index_EButton_DPad_Left] = GetVkCodeByString("VK_A");
+	aaunKeys[1][Index_EButton_DPad_Up] = GetVkCodeByString("VK_W");
+	aaunKeys[1][Index_EButton_DPad_Right] = GetVkCodeByString("VK_D");
+	aaunKeys[1][Index_EButton_DPad_Down] = GetVkCodeByString("VK_S");
+	aaunKeys[1][Index_EButton_A] = GetVkCodeByString("VK_C");
+	aaunKeys[1][Index_EButton_Axis0] = GetVkCodeByString("VK_RETURN");
+	aaunKeys[1][Index_EButton_Axis1] = GetVkCodeByString("VK_SPACE");
+	aaunKeys[1][Index_EButton_Axis2] = GetVkCodeByString("VK_F1");
+	aaunKeys[1][Index_EButton_Axis3] = GetVkCodeByString("VK_F2");
+	aaunKeys[1][Index_EButton_Axis4] = GetVkCodeByString("VK_F3");
+
+	// erase key bool field
+	ZeroMemory(&aabKeys[0][0], sizeof(BOOL) * 2 * 13);
 }
 
 /**
@@ -417,35 +491,61 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		}*/
 
 		// Process SteamVR controller state
+		UINT unControllerIndex = 0;
 		for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
 		{
-			vr::VRControllerState_t state;
-			if (m_pHMD->GetControllerState(unDevice, &state))
+			vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass(unDevice);
+			if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
 			{
-				// m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
-
-				// as a start, simple simulate left mouse button click
-				static bool bLeftMouse = false;
-				if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_SteamVR_Trigger) && state.ulButtonPressed)
+				vr::VRControllerState_t state;
+				if (m_pHMD->GetControllerState(unDevice, &state))
 				{
-					INPUT    Input = { 0 };
-					// left down 
-					Input.type = INPUT_MOUSE;
-					Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-					::SendInput(1, &Input, sizeof(INPUT));
-					bLeftMouse = true;
-				}
-				else
-				if (bLeftMouse)
-				{
+					// loop through controller buttons
+					for (UINT unButtonIx = 0; unButtonIx < unButtonNo; unButtonIx++)
+					{
+						// cast keyboard event
+						if (vr::ButtonMaskFromId((vr::EVRButtonId)aunButtonIds[unButtonIx]) && state.ulButtonPressed)
+						{
+							if (!aabKeys[unControllerIndex][unButtonIx])
+							{
+								aabKeys[unControllerIndex][unButtonIx] = TRUE;
+								keybd_event(aaunKeys[unControllerIndex][unButtonIx], 0, 0, 0);
+							}
+						}
+						else
+							if (aabKeys[unControllerIndex][unButtonIx])
+							{
+								aabKeys[unControllerIndex][unButtonIx] = FALSE;
+								keybd_event(aaunKeys[unControllerIndex][unButtonIx], 0, 0, 0);
+							}
+					}
 
-					// left up
-					INPUT    Input = { 0 };
-					Input.type = INPUT_MOUSE;
-					Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-					::SendInput(1, &Input, sizeof(INPUT));
-					bLeftMouse = false;
+					//// as a start, simple simulate left mouse button click
+					//static bool bLeftMouse = false;
+					//if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_SteamVR_Trigger) && state.ulButtonPressed)
+					//{
+					//	INPUT    Input = { 0 };
+					//	// left down 
+					//	Input.type = INPUT_MOUSE;
+					//	Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+					//	::SendInput(1, &Input, sizeof(INPUT));
+					//	bLeftMouse = true;
+					//}
+					//else
+					//	if (bLeftMouse)
+					//	{
+
+					//		// left up
+					//		INPUT    Input = { 0 };
+					//		Input.type = INPUT_MOUSE;
+					//		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+					//		::SendInput(1, &Input, sizeof(INPUT));
+					//		bLeftMouse = false;
+					//	}
 				}
+
+				// set index to next controller (max 2)
+				unControllerIndex = 1;
 			}
 		}
 

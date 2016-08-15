@@ -5,8 +5,8 @@ Copyright (C) 2012 Andres Hernandez
 File <Vireio_Node_Plugtypes.h> :
 Copyright (C) 2015 Denis Reischl
 
-The enumerations <AQU_PluginFlags> and <NOD_Plugtype> are public enumerations 
-from the Aquilinus repository and permitted to be used for open source 
+The enumerations <AQU_PluginFlags> and <NOD_Plugtype> are public enumerations
+from the Aquilinus repository and permitted to be used for open source
 plugins of any kind.
 Read the Aquilinus documentation for further information.
 
@@ -36,6 +36,118 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdlib.h>
 #include<sstream>
 
+#pragma region ini file helpers
+/**
+* Provides the keyboard code by initialization string.
+***/
+UINT GetVkCodeByString(std::string szCode)
+{
+	// 0...9 or A...Z ??
+	if (szCode.length() == 4)
+	{
+		wchar_t uc = szCode[3];
+		return (UINT)uc;
+	}
+
+	if (szCode == "VK_LBUTTON") return        0x01;
+	if (szCode == "VK_RBUTTON") return        0x02;
+	if (szCode == "VK_CANCEL") return         0x03;
+	if (szCode == "VK_MBUTTON") return        0x04;
+	if (szCode == "VK_XBUTTON1") return       0x05;
+	if (szCode == "VK_XBUTTON2") return       0x06;
+	if (szCode == "VK_BACK") return           0x08;
+	if (szCode == "VK_TAB") return            0x09;
+	if (szCode == "VK_CLEAR") return          0x0C;
+	if (szCode == "VK_RETURN") return         0x0D;
+	if (szCode == "VK_SHIFT") return          0x10;
+	if (szCode == "VK_CONTROL") return        0x11;
+	if (szCode == "VK_MENU") return           0x12;
+	if (szCode == "VK_PAUSE") return          0x13;
+	if (szCode == "VK_CAPITAL") return        0x14;
+	if (szCode == "VK_KANA") return           0x15;
+	if (szCode == "VK_HANGEUL") return        0x15;
+	if (szCode == "VK_HANGUL") return         0x15;
+	if (szCode == "VK_JUNJA") return          0x17;
+	if (szCode == "VK_FINAL") return          0x18;
+	if (szCode == "VK_HANJA") return          0x19;
+	if (szCode == "VK_KANJI") return          0x19;
+	if (szCode == "VK_ESCAPE") return         0x1B;
+	if (szCode == "VK_CONVERT") return        0x1C;
+	if (szCode == "VK_NONCONVERT") return     0x1D;
+	if (szCode == "VK_ACCEPT") return         0x1E;
+	if (szCode == "VK_MODECHANGE") return     0x1F;
+	if (szCode == "VK_SPACE") return          0x20;
+	if (szCode == "VK_PRIOR") return          0x21;
+	if (szCode == "VK_NEXT") return           0x22;
+	if (szCode == "VK_END") return            0x23;
+	if (szCode == "VK_HOME") return           0x24;
+	if (szCode == "VK_LEFT") return           0x25;
+	if (szCode == "VK_UP") return             0x26;
+	if (szCode == "VK_RIGHT") return          0x27;
+	if (szCode == "VK_DOWN") return           0x28;
+	if (szCode == "VK_SELECT") return         0x29;
+	if (szCode == "VK_PRINT") return          0x2A;
+	if (szCode == "VK_EXECUTE") return        0x2B;
+	if (szCode == "VK_SNAPSHOT") return       0x2C;
+	if (szCode == "VK_INSERT") return         0x2D;
+	if (szCode == "VK_DELETE") return         0x2E;
+	if (szCode == "VK_HELP") return           0x2F;
+	if (szCode == "VK_LWIN") return           0x5B;
+	if (szCode == "VK_RWIN") return           0x5C;
+	if (szCode == "VK_APPS") return           0x5D;
+	if (szCode == "VK_SLEEP") return          0x5F;
+	if (szCode == "VK_NUMPAD0") return        0x60;
+	if (szCode == "VK_NUMPAD1") return        0x61;
+	if (szCode == "VK_NUMPAD2") return        0x62;
+	if (szCode == "VK_NUMPAD3") return        0x63;
+	if (szCode == "VK_NUMPAD4") return        0x64;
+	if (szCode == "VK_NUMPAD5") return        0x65;
+	if (szCode == "VK_NUMPAD6") return        0x66;
+	if (szCode == "VK_NUMPAD7") return        0x67;
+	if (szCode == "VK_NUMPAD8") return        0x68;
+	if (szCode == "VK_NUMPAD9") return        0x69;
+	if (szCode == "VK_MULTIPLY") return       0x6A;
+	if (szCode == "VK_ADD") return            0x6B;
+	if (szCode == "VK_SEPARATOR") return      0x6C;
+	if (szCode == "VK_SUBTRACT") return       0x6D;
+	if (szCode == "VK_DECIMAL") return        0x6E;
+	if (szCode == "VK_DIVIDE") return         0x6F;
+	if (szCode == "VK_F1") return             0x70;
+	if (szCode == "VK_F2") return             0x71;
+	if (szCode == "VK_F3") return             0x72;
+	if (szCode == "VK_F4") return             0x73;
+	if (szCode == "VK_F5") return             0x74;
+	if (szCode == "VK_F6") return             0x75;
+	if (szCode == "VK_F7") return             0x76;
+	if (szCode == "VK_F8") return             0x77;
+	if (szCode == "VK_F9") return             0x78;
+	if (szCode == "VK_F10") return            0x79;
+	if (szCode == "VK_F11") return            0x7A;
+	if (szCode == "VK_F12") return            0x7B;
+	if (szCode == "VK_F13") return            0x7C;
+	if (szCode == "VK_F14") return            0x7D;
+	if (szCode == "VK_F15") return            0x7E;
+	if (szCode == "VK_F16") return            0x7F;
+	if (szCode == "VK_F17") return            0x80;
+	if (szCode == "VK_F18") return            0x81;
+	if (szCode == "VK_F19") return            0x82;
+	if (szCode == "VK_F20") return            0x83;
+	if (szCode == "VK_F21") return            0x84;
+	if (szCode == "VK_F22") return            0x85;
+	if (szCode == "VK_F23") return            0x86;
+	if (szCode == "VK_F24") return            0x87;
+	if (szCode == "VK_NUMLOCK") return        0x90;
+	if (szCode == "VK_SCROLL") return         0x91;
+	if (szCode == "VK_LSHIFT") return         0xA0;
+	if (szCode == "VK_RSHIFT") return         0xA1;
+	if (szCode == "VK_LCONTROL") return       0xA2;
+	if (szCode == "VK_RCONTROL") return       0xA3;
+	if (szCode == "VK_LMENU") return          0xA4;
+	if (szCode == "VK_RMENU") return          0xA5;
+
+	return 0x00;
+}
+
 /**
 * Ini file helper.
 ***/
@@ -46,7 +158,7 @@ DWORD GetIniFileSetting(DWORD unDefault, LPCSTR szAppName, LPCSTR szKeyName, LPC
 
 	if (bFileExists)
 	{
-		// fov
+		// get value and write down if default (since maybe not present)
 		std::stringstream sz;
 		sz << unDefault;
 		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
@@ -56,7 +168,7 @@ DWORD GetIniFileSetting(DWORD unDefault, LPCSTR szAppName, LPCSTR szKeyName, LPC
 	}
 	else
 	{
-		// fov
+		// get value and write down if default (since maybe not present)
 		std::stringstream sz;
 		sz << unDefault;
 		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
@@ -76,7 +188,7 @@ float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCS
 
 	if (bFileExists)
 	{
-		// fov
+		// get value and write down if default (since maybe not present)
 		std::stringstream sz;
 		sz << fDefault;
 		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
@@ -86,7 +198,7 @@ float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCS
 	}
 	else
 	{
-		// fov
+		// write down, new file
 		std::stringstream sz;
 		sz << fDefault;
 		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
@@ -95,6 +207,33 @@ float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCS
 
 	return fRet;
 }
+
+/**
+* Ini file helper. Converts string to virtual keyboard code.
+***/
+UINT GetIniFileSettingKeyCode(std::string strDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
+{
+	UINT unRet = 0;
+	char szBuffer[128];
+
+	if (bFileExists)
+	{
+		// get value and write down if default (since maybe not present)
+		GetPrivateProfileStringA(szAppName, szKeyName, strDefault.c_str(), szBuffer, 128, szFileName);
+		std::string str = std::string(szBuffer);
+		if (str == strDefault) WritePrivateProfileStringA(szAppName, szKeyName, strDefault.c_str(), szFileName);
+		unRet = GetVkCodeByString(str);
+	}
+	else
+	{
+		// write down, new file
+		WritePrivateProfileStringA(szAppName, szKeyName, strDefault.c_str(), szFileName);
+		unRet = GetVkCodeByString(strDefault);
+	}
+
+	return unRet;
+}
+#pragma endregion
 
 /**
 * Plugin flags.

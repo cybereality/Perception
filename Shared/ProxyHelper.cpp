@@ -53,7 +53,56 @@ const ProxyConfig defaultConfig;
 
 static void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node, ProxyConfig &config);
 
+/**
+* Simple helper
+***/
+string strToLower(const string& str)
+{
+	string result = str;
+	for (unsigned ii = 0; ii<result.size(); ii++)
+		result[ii] = ::tolower(result[ii]);
+	return result;
+}
 
+/**
+* Simple helper
+***/
+void LoadSetting(xml_node &node, const char *key, std::string *setting)
+{
+	*setting = node.attribute(key).as_string(setting->c_str());
+}
+
+/**
+* Simple helper
+***/
+void LoadSetting(xml_node &node, const char *key, float *setting)
+{
+	*setting = node.attribute(key).as_float(*setting);
+}
+
+/**
+* Simple helper
+***/
+void LoadSetting(xml_node &node, const char *key, int *setting)
+{
+	*setting = node.attribute(key).as_int(*setting);
+}
+
+/**
+* Simple helper
+***/
+void LoadSetting(xml_node &node, const char *key, UINT *setting)
+{
+	*setting = node.attribute(key).as_uint(*setting);
+}
+
+/**
+* Simple helper
+***/
+void LoadSetting(xml_node &node, const char *key, bool *setting)
+{
+	*setting = node.attribute(key).as_bool(*setting);
+}
 
 /**
 * Simple inline helper to erase characters in a string.
@@ -154,14 +203,6 @@ HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, std::string &r
 	return success;
 }
 
-string strToLower(const string& str)
-{
-	string result = str;
-	for(unsigned ii=0; ii<result.size(); ii++)
-		result[ii] = ::tolower(result[ii]);
-	return result;
-}
-
 string getFilenamePart(const string &path)
 {
 	auto lastBackSlash = path.find_last_of("\\");
@@ -215,32 +256,6 @@ static void SaveHotkey(xml_node &node, const char *key, InputBindingRef hotkey)
 	std::string str = Json::FastWriter().write(json);
 	set_attribute(node, key, str.c_str());
 }
-
-void LoadSetting(xml_node &node, const char *key, std::string *setting)
-{
-	*setting = node.attribute(key).as_string(setting->c_str());
-}
-
-void LoadSetting(xml_node &node, const char *key, float *setting)
-{
-	*setting = node.attribute(key).as_float(*setting);
-}
-
-void LoadSetting(xml_node &node, const char *key, int *setting)
-{
-	*setting = node.attribute(key).as_int(*setting);
-}
-
-void LoadSetting(xml_node &node, const char *key, UINT *setting)
-{
-	*setting = node.attribute(key).as_uint(*setting);
-}
-
-void LoadSetting(xml_node &node, const char *key, bool *setting)
-{
-	*setting = node.attribute(key).as_bool(*setting);
-}
-
 
 /**
 * Almost empty constructor.

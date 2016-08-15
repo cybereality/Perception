@@ -116,7 +116,18 @@ m_pcTex11CopyHUD(nullptr)
 
 	m_pbZoomOut = nullptr;
 
-	// TODO !! READ INI FILE SETTINGS
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	DWORD bShowMirror = 0;
+	bShowMirror = GetIniFileSetting(bShowMirror, "Oculus", "bShowMirror", szFilePathINI, bFileExists);
+	if (bShowMirror) m_bShowMirror = true; else m_bShowMirror = false;
 }
 
 /**
@@ -285,8 +296,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		return nullptr;
 	}
 
-	// submit thread id
-	static DWORD unThreadId = 0;
+	// still needed ?
 	static float fAspect = 1.0f;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;

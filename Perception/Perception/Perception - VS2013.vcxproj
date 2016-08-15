@@ -272,6 +272,11 @@
   <ItemGroup>
     <Text Include="..\..\README.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\Release\Perception\cfg_v4\profiles.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

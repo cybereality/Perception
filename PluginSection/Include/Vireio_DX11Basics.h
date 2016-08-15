@@ -1004,7 +1004,7 @@ static const char* PS_TOON_CLOUD =
 "	vec3 CloudColor = vec3(0.18, 0.70, 0.87);\n"
 
 //// Setup:
-//"	vec2 UV = 2.0*(fragCoord.xy - iResolution.xy / 2.0) / min(iResolution.x, iResolution.y);\n" // original code
+//"	vec2 UV = 2.0*(fragCoord.xy - fResolution.xy / 2.0) / min(fResolution.x, fResolution.y);\n" // original code
 "	vec2 UV = -1.0 + 2.0 * Input.vTexcoord;\n"
 "   UV.x *= sResolution.x / sResolution.y;\n"
 
@@ -1114,7 +1114,7 @@ static const char* PS_WORLEY_01 =
 "float4 PS(PS_INPUT Input) : SV_TARGET\n"
 "{\n"
 
-//"	vec2 uv = fragCoord.xy / iResolution.xy;\n" // original code
+//"	vec2 uv = fragCoord.xy / fResolution.xy;\n" // original code
 "	vec2 uv = -1.0 + 2.0 * Input.vTexcoord;\n"
 "   uv.x *= sResolution.x / sResolution.y;\n"
 
@@ -1186,7 +1186,7 @@ static const char* PS_WATER_CAUSTIC =
 "	float time = fGlobalTime * .5 + 23.0;\n"
 
 // uv should be the 0-1 uv of texture...
-// "	vec2 uv = fragCoord.xy / iResolution.xy;\n" // original code
+// "	vec2 uv = fragCoord.xy / fResolution.xy;\n" // original code
 "	vec2 uv = Input.vTexcoord;\n"
 
 "	vec2 p = mod(uv*TAU, TAU) - 250.0;\n"
@@ -1210,7 +1210,481 @@ static const char* PS_WATER_CAUSTIC =
 "   return vec4(colour, 1.0);\n"
 "}\n";
 #pragma endregion
+#pragma region PS_HYPNOTIC_DISCO
+/**
+* Pixel Shader from shadertoy.com
+* "Hypnotic disco" by
+***/
+static const char* PS_HYPNOTIC_DISCO =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// "Hypnotic disco" by 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+// Noise from IQ
+"vec2 hash(vec2 p)\n"
+"{\n"
+"	p = vec2(dot(p, vec2(127.1, 311.7)),\n"
+"		dot(p, vec2(269.5, 183.3)));\n"
+"	return -1.0 + 2.0*fract(sin(p)*43758.5453123);\n"
+"}\n"
+
+"float noise(in vec2 p)\n"
+"{\n"
+"	const float K1 = 0.366025404;\n"
+"	const float K2 = 0.211324865;\n"
+
+"	vec2 i = floor(p + (p.x + p.y)*K1);\n"
+
+"	vec2 a = p - i + (i.x + i.y)*K2;\n"
+"	vec2 o = (a.x>a.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);\n"
+"	vec2 b = a - o + K2;\n"
+"	vec2 c = a - 1.0 + 2.0*K2;\n"
+
+"	vec3 h = max(0.5 - vec3(dot(a, a), dot(b, b), dot(c, c)), 0.0);\n"
+
+"	vec3 n = h*h*h*h*vec3(dot(a, hash(i + 0.0)), dot(b, hash(i + o)), dot(c, hash(i + 1.0)));\n"
+
+"	return dot(n, vec3(70.0, 70.0, 70.0));\n"
+"}\n"
+//
+//// http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
+"vec3 hsv2rgb(vec3 c)\n"
+"{\n"
+"	vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
+"	vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n"
+"	return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n"
+"}\n"
+
+// Adapted from lensflare by Musk 
+"vec3 spotLight(vec2 uv, vec2 pos)\n"
+"{\n"
+"	vec2 main = uv - pos;\n"
+"	vec2 uvd = uv*(length(uv));\n"
+
+"	float ang = atan(main.x / main.y);\n"
+"	float dist = length(main); dist = pow(dist, .1);\n"
+
+"	float f0 = 1.0 / (length(main)*16.0 + 1.0);\n"
+"	f0 = f0 + f0 * (sin(noise(vec2(0., (pos.x + pos.y)*2.2 + ang*4.0 + 5.954)*2.0))*.1 + dist*.1 + .8);\n"
+
+"	float fLength = length(uvd)*.05;\n"
+"	vec3 c = -vec3(fLength, fLength, fLength);\n"
+"	c += vec3(f0, f0, f0);\n"
+"	return c;\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+"	float T = fGlobalTime;\n"
+"	float T2 = 2.*fGlobalTime;\n"
+"	float T3 = 3.*fGlobalTime;\n"
+"	float T_20 = fGlobalTime / 20.;\n"
+//
+// "	vec2 uv = fragCoord.xy / fResolution.xy;\n" <- original code
+"	vec2 uv = Input.vTexcoord;\n"
+"	vec2 q = 2.*uv - 1.;\n"
+"	q.y *= sResolution.y / sResolution.x;\n"
+//
+"	float a = 360. * noise(vec2(0., T_20));\n"
+"	mat2 rotmat = mat2(cos(a), -sin(a), sin(a), cos(a));\n"
+"	q = mul( q, rotmat );\n"
+//
+"	vec3 tint = vec3(fract(a), 1., 1.);\n"
+
+"	const float nbc = 128.;\n"
+"	float st = sin(T_20);\n"
+"	vec2 c = vec2(0., 0.);\n"
+"	vec3 col = vec3(0., 0., 0.);\n"
+"	float inc = 3.14159*cos(0.1*T);\n"
+"	float d = 0.;\n"
+"	for (float i = 0.; i<nbc; i += 1.)\n"
+"	{\n"
+"		c.x = cos(i*inc);\n"
+"		c.y = sin(i*inc);\n"
+"		c *= i / nbc;\n"
+"		d = length(q - c);\n"
+"		tint.y = fract(T2);\n"
+"		tint.z = fract(i / nbc*st + T);\n"
+"		col += clamp(exp(-64.*d), 0., 1.) * hsv2rgb(tint);\n"
+"	}\n"
+// Spots
+"	vec2 pos;\n"
+"	pos.x = sin(T2)*.5;\n"
+"	pos.y = sin(T2*.913)*.5;\n"
+"	vec3 colf = tint * (spotLight(q, pos) + spotLight(q, -pos));\n"
+//
+"	col = clamp(col + colf, 0., 1.);\n"
+"   return vec4(col, 1.0);\n"
+"}\n";
+#pragma endregion
+#pragma region PS_PLANETS
+/**
+* Pixel Shader from shadertoy.com
+
+***/
+static const char* PS_PLANETS =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+"#define MAX_DEPTH 10.0;\n"
+"#define START_PLANET 18.0;\n"
+
+"vec2 Rotate(vec2 pos, float angle) {\n"
+"	return vec2(\n"
+"		pos.x * cos(angle) - pos.y * sin(angle),\n"
+"		pos.x * sin(angle) + pos.y * cos(angle)\n"
+"		);\n"
+"}\n"
+
+"float Cubic(float a, float b, float t) {\n"
+"	float blendFactor = t * t * (3.0 - 2.0 * t);\n"
+"	return mix(a, b, blendFactor);\n"
+"}\n"
+
+"vec3 HueToRgb(float h) {\n"
+"	vec3 rgb = 2.0 - abs(6.0 * h - vec3(3, 2, 4));\n"
+"	rgb.r = 1.0 - rgb.r;\n"
+"	return clamp(rgb, 0.0, 1.0);\n"
+"}\n"
+
+"vec3 HsvToRgb(vec3 hsv) {\n"
+"	vec3 rgb = HueToRgb(hsv.x);\n"
+"	return ((rgb - 1.0) * hsv.y + 1.0) * hsv.z;\n"
+"}\n"
+
+// Gradient noise functions courtesy Inigo Q
+"vec3 hash(vec3 p)\n"
+"{\n"
+"	p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),\n"
+"		dot(p, vec3(269.5, 183.3, 246.1)),\n"
+"		dot(p, vec3(113.5, 271.9, 124.6)));\n"
+
+"	return -1.0 + 2.0*fract(sin(p)*43758.5453123);\n"
+"}\n"
+
+"float noise(in vec3 p)\n"
+"{\n"
+"	vec3 i = floor(p);\n"
+"	vec3 f = fract(p);\n"
+
+"	vec3 u = f*f*(3.0 - 2.0*f);\n"
+
+"	return mix(mix(mix(dot(hash(i + vec3(0.0, 0.0, 0.0)), f - vec3(0.0, 0.0, 0.0)),\n"
+"		dot(hash(i + vec3(1.0, 0.0, 0.0)), f - vec3(1.0, 0.0, 0.0)), u.x),\n"
+"		mix(dot(hash(i + vec3(0.0, 1.0, 0.0)), f - vec3(0.0, 1.0, 0.0)),\n"
+"		dot(hash(i + vec3(1.0, 1.0, 0.0)), f - vec3(1.0, 1.0, 0.0)), u.x), u.y),\n"
+"		mix(mix(dot(hash(i + vec3(0.0, 0.0, 1.0)), f - vec3(0.0, 0.0, 1.0)),\n"
+"		dot(hash(i + vec3(1.0, 0.0, 1.0)), f - vec3(1.0, 0.0, 1.0)), u.x),\n"
+"		mix(dot(hash(i + vec3(0.0, 1.0, 1.0)), f - vec3(0.0, 1.0, 1.0)),\n"
+"		dot(hash(i + vec3(1.0, 1.0, 1.0)), f - vec3(1.0, 1.0, 1.0)), u.x), u.y), u.z);\n"
+"}\n"
+
+"float Rand(vec2 pos) {\n"
+"	return fract(sin(dot(pos.xy, vec2(12.9898, 78.233))) * 43758.5453);\n"
+"}\n"
+
+"float Rand(float pos) {\n"
+"	return Rand(vec2(pos, pos));\n"
+"}\n"
+
+"float SphereDistance(vec3 localPos, float radius) {\n"
+"	return length(localPos) - radius;\n"
+"}\n"
+
+"float SceneDistance(vec3 pos, out float layer) {\n"
+"	if (pos.x < 0.0)\n"
+"	{\n"
+"		return 1.0;\n"
+"	}\n"
+
+"	float planetNumber = floor((pos.x) / 2.0) + START_PLANET;\n"
+
+"	vec3 planetPos = pos;\n"
+"	planetPos.x = mod(planetPos.x, 2.0) - 1.0;\n"
+"	float rotationSpeed = mix(-1.0, 1.0, fract(planetNumber / 2.3));\n"
+"	planetPos.xz = Rotate(planetPos.xz, rotationSpeed * fGlobalTime);\n"
+
+"	float terrainDetail = mix(0.1, 5.5, Rand(planetNumber + 0.16));\n"
+"	float layerHeight = mix(0.005, 0.05, Rand(planetNumber + 0.55));\n"
+"	float layerCount = floor(mix(3.5, 20.5, Rand(planetNumber + 0.36)));\n"
+"	float noiseValue = 0.5 * noise((normalize(planetPos) + planetNumber) * terrainDetail) + 0.5;\n"
+"	layer = floor(noiseValue * layerCount);\n"
+
+"	float baseSize = mix(0.2, 0.4, Rand(planetNumber + 0.28));\n"
+"	float d1 = SphereDistance(planetPos, baseSize + (layer - 1.0) * layerHeight);\n"
+"	float d2 = SphereDistance(planetPos, baseSize + layer * layerHeight);\n"
+
+"	float layerTransition = clamp(fract(noiseValue * layerCount) * 15.0, 0.0, 1.0);\n"
+"	return mix(d1, d2, layerTransition);\n"
+"}\n"
+
+"float SceneDistance(vec3 pos) {\n"
+"	float dummy;\n"
+"	return SceneDistance(pos, dummy);\n"
+"}\n"
+
+"float RayMarch(vec3 startPos, vec3 dir) {\n"
+"	float max_depth = 10.0;\n"
+"	float depth = 0.0;\n"
+"	for (int i = 0; i < 255; i++)\n"
+"	{\n"
+"		vec3 pos = startPos + dir * depth;\n"
+"		float dist = SceneDistance(pos);\n"
+"		if (dist < 0.0001)\n"
+"		{\n"
+"			return depth;\n"
+"		}\n"
+"		depth += 0.6 * dist;\n"
+"		if (depth >= max_depth)\n"
+"		{\n"
+"			return max_depth;\n"
+"		}\n"
+"	}\n"
+"	return max_depth;\n"
+"}\n"
+
+"vec3 SceneNormal(vec3 pos) {\n"
+"	const float DX = 0.001;\n"
+"	const vec3 dx = vec3(DX, 0.0, 0.0);\n"
+"	const vec3 dy = vec3(0.0, DX, 0.0);\n"
+"	const vec3 dz = vec3(0.0, 0.0, DX);\n"
+"	return normalize(vec3(\n"
+"		SceneDistance(pos + dx) - SceneDistance(pos - dx),\n"
+"		SceneDistance(pos + dy) - SceneDistance(pos - dy),\n"
+"		SceneDistance(pos + dz) - SceneDistance(pos - dz)\n"
+"		));\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+"vec4 fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+"vec2 fragCoord = (Input.vTexcoord - 0.4f) * sResolution * 3.0f; \n"
+
+"const float FOV = radians(45.0);\n"
+"vec3 eyePos = vec3(0.5 * fGlobalTime - 1.0, 0.0, -2.0);\n"
+"vec2 xy = (2.0 * fragCoord - sResolution.xy) * 0.5;\n"
+
+"vec3 rayDir = normalize(vec3(xy, 1.0 / tan(0.5 * FOV) * 0.5 * sResolution.y));\n"
+"vec3 lightDir = normalize(vec3(0.5, 0.8, -1.0));\n"
+
+"float depth = RayMarch(eyePos, rayDir);\n"
+"if (depth < 10.0)\n"
+"{\n"
+
+"	vec3 pos = eyePos + rayDir * depth;\n"
+"	float layer;\n"
+"	vec3 normal = SceneNormal(pos);\n"
+"	SceneDistance(pos, layer);\n"
+
+"	float planetNumber = floor((pos.x) / 2.0) + START_PLANET;\n"
+
+"	float baseHue = Rand(planetNumber + 1.72);\n"
+"	float hueStep = mix(0.02, 0.15, pow(Rand(planetNumber + 0.492), 2.0));\n"
+
+"	float baseSat = pow(Rand(planetNumber + 0.195), 0.2);\n"
+"	float satStep = mix(-0.2, 0.2, Rand(planetNumber + 0.777));\n"
+
+"	float baseVal = mix(0.5, 1.0, pow(Rand(planetNumber + 0.888), 0.3));\n"
+"	float valStep = mix(0.0, 0.2, Rand(planetNumber + 0.992));\n"
+
+"	vec3 color = HsvToRgb(\n"
+"		vec3(fract(baseHue + layer * hueStep),\n"
+"		clamp(baseSat + layer * satStep, 0.0, 1.0),\n"
+"		0.3 + 0.7 * fract(baseVal + layer * valStep)));\n"
+"	float diffuse = 2.0 * clamp(dot(lightDir, normal), 0.0, 1.0);\n"
+"	fragColor = vec4(diffuse * color, 1.0) * (1.0 - depth / 10.0);\n"
+"}\n"
+"else\n"
+"{\n"
+"	float gradient = abs(2.0 * (fragCoord.y / sResolution.y) - 1.0);\n"
+"	vec3 skyColor = HsvToRgb(vec3(fract(0.015 * fGlobalTime) + 0.5, 1.0, 0.1 * gradient));\n"
+"	fragColor = vec4(skyColor, 1.0);\n"
+"}\n"
+
+"   return fragColor;\n"
+"}\n";
+#pragma endregion
+#pragma region PS_VORONOI_SMOOTH
+/**
+* Pixel Shader from shadertoy.com
+* Created by inigo quilez - iq/2014
+* License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+
+* Smooth Voronoi - avoiding aliasing, by replacing the usual min() function, which is
+* discontinuous, with a smooth version. That can help preventing some aliasing, and also
+* provides with more artistic control of the final procedural textures/models.
+
+* The parameter w controls the smoothness
+***/
+static const char* PS_VORONOI_SMOOTH =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+"float hash1(float n) { return fract(sin(n)*43758.5453); }\n"
+"vec2  hash2(vec2  p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p)*43758.5453); }\n"
+
+"vec4 voronoi(in vec2 x, float w)\n"
+"{\n"
+"	vec2 n = floor(x);\n"
+"	vec2 f = fract(x);\n"
+
+"	vec4 m = vec4(8.0, 0.0, 0.0, 0.0);\n"
+"	for (int j = -2; j <= 2; j++)\n"
+"		for (int i = -2; i <= 2; i++)\n"
+"		{\n"
+"			vec2 g = vec2(float(i), float(j));\n"
+"			vec2 o = hash2(n + g);\n"
+
+			// animate
+"			o = 0.5 + 0.5*sin(fGlobalTime + 6.2831*o);\n"
+
+			// distance to cell		
+"			float d = length(g - f + o);\n"
+
+			// do the smoth min for colors and distances		
+"			vec3 col = 0.5 + 0.5*sin(hash1(dot(n + g, vec2(7.0, 113.0)))*2.5 + 3.5 + vec3(2.0, 3.0, 0.0));\n"
+"			float h = smoothstep(0.0, 1.0, 0.5 + 0.5*(m.x - d) / w);\n"
+
+"			m.x = mix(m.x, d, h) - h*(1.0 - h)*w / (1.0 + 3.0*w);\n" // distance
+"			m.yzw = mix(m.yzw, col, h) - h*(1.0 - h)*w / (1.0 + 3.0*w);\n" // color
+"		}\n"
+
+"	return m;\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+// "	vec2 p = fragCoord.xy / sResolution.yy;\n" <-- original code
+"	vec2 p = -8.0 + 16.0 * Input.vTexcoord;\n"
+
+"	float k = 2.0 + 70.0 * pow(0.5 + 0.5*sin(0.25*6.2831*fGlobalTime), 4.0);\n"
+"	k = 0.5 - 0.5*cos(0.25*6.2831*fGlobalTime);\n"
+"	vec4 c = voronoi(6.0*p, k);\n"
+
+"	vec3 col = c.yzw;\n"
+
+"	col *= 1.0 - 0.8*c.x*step(p.y, 0.33);\n"
+"	col *= mix(c.x, 1.0, step(p.y, 0.66));\n"
+
+"	col *= smoothstep(0.005, 0.007, abs(p.y - 0.33));\n"
+"	col *= smoothstep(0.005, 0.007, abs(p.y - 0.66));\n"
+
+"   return vec4(col, 1.0);\n"
+"}\n";
+#pragma endregion
 #pragma endregion
 
 /**
@@ -1232,6 +1706,9 @@ enum PixelShaderTechnique
 	ToonCloud,                     /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
 	Worley01,                      /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
 	WaterCaustic,                  /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+	HypnoticDisco,                 /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
+	Planets,                       /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
+	VoronoiSmooth,                 /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
 };
 
 /**
@@ -1409,6 +1886,15 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 		case WaterCaustic:
 			hr = D3DX10CompileFromMemory(PS_WATER_CAUSTIC, strlen(PS_WATER_CAUSTIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
+		case HypnoticDisco:
+			hr = D3DX10CompileFromMemory(PS_HYPNOTIC_DISCO, strlen(PS_HYPNOTIC_DISCO), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case Planets:
+			hr = D3DX10CompileFromMemory(PS_PLANETS, strlen(PS_PLANETS), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case VoronoiSmooth:
+			hr = D3DX10CompileFromMemory(PS_VORONOI_SMOOTH, strlen(PS_VORONOI_SMOOTH), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
 		default:
 			return E_INVALIDARG;
 			break;
@@ -1448,7 +1934,7 @@ HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	};
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(TexturedVertex)* 6;
+	bd.ByteWidth = sizeof(TexturedVertex) * 6;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;

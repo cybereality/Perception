@@ -41,6 +41,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "osvrClientKit.lib")
 #pragma comment(lib, "osvrRenderManager.lib")
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <d3d11_1.h>
 #pragma comment(lib, "d3d11.lib")
 
@@ -77,7 +80,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_UINT_PLUG_TYPE                           112
 
 #define NUMBER_OF_COMMANDERS                           0
-#define NUMBER_OF_DECOMMANDERS                         7
+#define NUMBER_OF_DECOMMANDERS                         11
 
 /**
 * Node Commander Enumeration.
@@ -97,6 +100,10 @@ enum OSVR_Decommanders
 	LeftTexture9,
 	RightTexture9,
 	ZoomOut,
+	ProjectionLeft,
+	ProjectionRight,
+	TargetWidth,
+	TargetHeight,
 };
 
 /**
@@ -226,6 +233,20 @@ private:
 	* Zoom out switch.
 	***/
 	static BOOL* m_pbZoomOut;
+	/**
+	* Projection pointers left/right.
+	***/
+	static D3DMATRIX* m_psProjection[2];
+	/**
+	* Texture resolution width.
+	* Each stereo output texture will have this width.
+	***/
+	static UINT32* m_punTexResolutionWidth;
+	/**
+	* Texture resolution Height.
+	* Each stereo output texture will have this height.
+	***/
+	static UINT32* m_punTexResolutionHeight;
 };
 
 /**

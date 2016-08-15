@@ -60,6 +60,9 @@ OSVR_DirectModeMethods OSVR_DirectMode::m_eMethod;
 ID3D11Device* OSVR_DirectMode::m_pcGameDevice;
 ID3D11DeviceContext* OSVR_DirectMode::m_pcGameDeviceContext;
 BOOL* OSVR_DirectMode::m_pbZoomOut;
+D3DMATRIX* OSVR_DirectMode::m_psProjection[2];
+UINT32* OSVR_DirectMode::m_punTexResolutionWidth;
+UINT32* OSVR_DirectMode::m_punTexResolutionHeight;
 #pragma endregion
 
 /**
@@ -86,8 +89,25 @@ m_bHotkeySwitch(false)
 	m_pcGameDevice = nullptr;
 	m_pcGameDeviceContext = nullptr;
 	m_pbZoomOut = nullptr;
+	m_psProjection[0] = nullptr;
+	m_psProjection[1] = nullptr;
+	m_punTexResolutionHeight = nullptr;
+	m_punTexResolutionWidth = nullptr;
 
 	m_eMethod = OSVR_DirectModeMethods::OSVR_D3D11_own_Device;
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	m_eMethod = (OSVR_DirectModeMethods)GetIniFileSetting((DWORD)m_eMethod, "OSVR", "eMethod", szFilePathINI, bFileExists);
+	DWORD bUseHotkeyF11 = 0;
+	bUseHotkeyF11 = GetIniFileSetting(bUseHotkeyF11, "OSVR", "bUseHotkeyF11", szFilePathINI, bFileExists);
+	if (bUseHotkeyF11 == 0) m_bHotkeySwitch = true;
 }
 
 /**
@@ -157,11 +177,17 @@ LPWSTR OSVR_DirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Right Texture";
 		case OSVR_Decommanders::ZoomOut:
 			return L"Zoom Out";
+		case OSVR_Decommanders::ProjectionLeft:
+			return L"Projection Left";
+		case OSVR_Decommanders::ProjectionRight:
+			return L"Projection Right";
+		case OSVR_Decommanders::TargetWidth:
+			return L"Target Width";
+		case OSVR_Decommanders::TargetHeight:
+			return L"Target Height";
 	}
 
 	return L"x";
-
-	return L"";
 }
 
 /**
@@ -177,6 +203,12 @@ DWORD OSVR_DirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 		case OSVR_Decommanders::ZoomOut:
 			return NOD_Plugtype::AQU_BOOL;
+		case OSVR_Decommanders::ProjectionLeft:
+		case OSVR_Decommanders::ProjectionRight:
+			return NOD_Plugtype::AQU_D3DMATRIX;
+		case OSVR_Decommanders::TargetWidth:
+		case OSVR_Decommanders::TargetHeight:
+			return NOD_Plugtype::AQU_UINT;
 	}
 
 	return 0;
@@ -197,6 +229,18 @@ void OSVR_DirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case OSVR_Decommanders::ZoomOut:
 			m_pbZoomOut = (BOOL*)pData;
+			break;
+		case OSVR_Decommanders::ProjectionLeft:
+			m_psProjection[0] = (D3DMATRIX*)pData;
+			break;
+		case OSVR_Decommanders::ProjectionRight:
+			m_psProjection[1] = (D3DMATRIX*)pData;
+			break;
+		case OSVR_Decommanders::TargetWidth:
+			m_punTexResolutionWidth = (UINT32*)pData;
+			break;
+		case OSVR_Decommanders::TargetHeight:
+			m_punTexResolutionHeight = (UINT32*)pData;
 			break;
 	}
 }
@@ -252,36 +296,36 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			case OSVR_D3D10_own_Device:
 			case OSVR_D3D9_own_Device:
 			{
-										 // get game device + context
-										 if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_own_Device)
-										 {
-											 if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &m_pcGameDevice, &m_pcGameDeviceContext)))
-											 {
-												 OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
-												 return nullptr;
-											 }
-											 m_pcGameDevice->Release();
-											 m_pcGameDeviceContext->Release();
-										 }
+				// get game device + context
+				if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_own_Device)
+				{
+					if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &m_pcGameDevice, &m_pcGameDeviceContext)))
+					{
+						OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+						return nullptr;
+					}
+					m_pcGameDevice->Release();
+					m_pcGameDeviceContext->Release();
+				}
 
-										 // Be sure to get D3D11 and have set
-										 // D3D11_CREATE_DEVICE_BGRA_SUPPORT in the device/context
-										 D3D_FEATURE_LEVEL acceptibleAPI = D3D_FEATURE_LEVEL_11_0;
-										 D3D_FEATURE_LEVEL foundAPI;
-										 auto hr =
-											 D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-											 D3D11_CREATE_DEVICE_BGRA_SUPPORT, &acceptibleAPI, 1,
-											 D3D11_SDK_VERSION, &m_pcDevice, &foundAPI, &m_pcDeviceContext);
-										 if (FAILED(hr))
-										 {
-											 OutputDebugString(L"Could not create D3D11 device and context");
-											 return nullptr;
-										 }
-										 pcDevice = m_pcDevice;
-										 pcContext = m_pcDeviceContext;
+				// Be sure to get D3D11 and have set
+				// D3D11_CREATE_DEVICE_BGRA_SUPPORT in the device/context
+				D3D_FEATURE_LEVEL acceptibleAPI = D3D_FEATURE_LEVEL_11_0;
+				D3D_FEATURE_LEVEL foundAPI;
+				auto hr =
+					D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+					D3D11_CREATE_DEVICE_BGRA_SUPPORT, &acceptibleAPI, 1,
+					D3D11_SDK_VERSION, &m_pcDevice, &foundAPI, &m_pcDeviceContext);
+				if (FAILED(hr))
+				{
+					OutputDebugString(L"Could not create D3D11 device and context");
+					return nullptr;
+				}
+				pcDevice = m_pcDevice;
+				pcContext = m_pcDeviceContext;
 
 			}
-				break;
+			break;
 			default:
 				break;
 		}
@@ -308,10 +352,12 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		if ((m_pcRenderManager == nullptr) || (!m_pcRenderManager->doingOkay()))
 		{
 			// Error
-			OutputDebugString(L"OSVR-DirectMode: [Error] No Render Manager available !");
+			OutputDebugString(L"[OSVR] No render manager available !");
 		}
 		else
 		{
+			OutputDebugString(L"[OSVR] Set callback methods. ");
+
 			// Set callback to handle setting up rendering in a display
 			m_pcRenderManager->SetDisplayCallback((osvr::renderkit::DisplayCallback)&OSVR_DirectMode::SetupDisplay);
 
@@ -322,11 +368,11 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			osvr::renderkit::RenderManager::OpenResults ret = m_pcRenderManager->OpenDisplay();
 			if (ret.status == osvr::renderkit::RenderManager::OpenStatus::FAILURE)
 			{
-				OutputDebugString(L"Could not open display");
+				OutputDebugString(L"[OSVR] Could not open display");
 			}
 			if (ret.library.D3D11 == nullptr)
 			{
-				OutputDebugString(L"Attempted to run a Direct3D11 program with a config file that specified a different renderling library.");
+				OutputDebugString(L"[OSVR] Attempted to run a Direct3D11 program with a config file that specified a different renderling library.");
 			}
 
 			// Do a call to get the information we need to construct our
@@ -346,7 +392,7 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			sSampDesc.MinLOD = 0;
 			sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 			if (FAILED(asRenderInfo[0].library.D3D11->device->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
-				OutputDebugString(L"Failed to create Sampler State.");
+				OutputDebugString(L"[OSVR] Failed to create Sampler State.");
 		}
 	}
 	else
@@ -362,7 +408,7 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			case OSVR_D3D11_use_Game_Device:
 				if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
 				{
-					OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+					OutputDebugString(L"[OSVR] Failed to get d3d11 device + context");
 					// release frame texture+view
 					if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
 					if (pcContext) { pcContext->Release(); pcContext = nullptr; }
@@ -396,7 +442,7 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 		if (!m_pcRenderManager->Render())
 		{
-			OutputDebugString(L"Render() returned false, maybe because it was asked to quit");
+			OutputDebugString(L"[OSVR] Render() returned false, maybe because it was asked to quit");
 		}
 
 		// apply state block, if game device is used
@@ -417,6 +463,9 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 ***/
 void OSVR_DirectMode::SetupDisplay(void* userData, osvr::renderkit::GraphicsLibrary cLibrary, osvr::renderkit::RenderBuffer cBuffers)
 {
+	static UINT32 nRenderTargetWidth = 0;
+	static UINT32 nRenderTargetHeight = 0;
+
 	// Make sure our pointers are filled in correctly.  The config file selects
 	// the graphics library to use, and may not match our needs.
 	if (cLibrary.D3D11 == nullptr)
@@ -440,6 +489,33 @@ void OSVR_DirectMode::SetupDisplay(void* userData, osvr::renderkit::GraphicsLibr
 	FLOAT colorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	pcContext->ClearRenderTargetView(renderTargetView, colorRgba);
 	pcContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	// render target widht/height ?
+	if ((!nRenderTargetWidth) || (!nRenderTargetHeight))
+	{
+		// get only if requested by connected node
+		if ((m_punTexResolutionHeight) && (m_punTexResolutionWidth))
+		{
+			ID3D11Texture2D* pcTexture = nullptr;
+			if (renderTargetView)
+				renderTargetView->GetResource((ID3D11Resource**)&pcTexture);
+			if (pcTexture)
+			{
+				// get render target texture description
+				D3D11_TEXTURE2D_DESC sDesc;
+				pcTexture->GetDesc(&sDesc);
+
+				// set width/height 
+				nRenderTargetWidth = sDesc.Width;
+				nRenderTargetHeight = sDesc.Height;
+				*m_punTexResolutionWidth = nRenderTargetWidth;
+				*m_punTexResolutionHeight = nRenderTargetHeight;
+
+				// relase the texture
+				pcTexture->Release();
+			}
+		}
+	}
 }
 
 /**
@@ -464,6 +540,18 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		return;
 	}
 
+	// set projection matrix if node is connected
+	if (m_psProjection[nEye])
+	{
+		D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)m_psProjection[nEye], 
+			(float)sProjection.left, 
+			(float)sProjection.right, 
+			(float)sProjection.bottom, 
+			(float)sProjection.top, 
+			(float)sProjection.nearClip, 
+			(float)sProjection.farClip);
+	}
+
 	// auto pcContext = cLibrary.D3D11->context;
 	auto pcDevice = cLibrary.D3D11->device;
 	auto pcContext = cLibrary.D3D11->context;
@@ -483,7 +571,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	// create pixel shader... 
 	if (!m_pcPixelShader11)
 	{
-		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenGammaCorrection)))
+		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 			bAllCreated = false;
 	}
 	// Create vertex buffer
@@ -504,7 +592,6 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		bAllCreated = false;
 	}
 
-
 	if ((bAllCreated) && (m_sStereoTextureViews.m_ppcTexView11[nEye]))
 	{
 		// Set the input layout
@@ -515,33 +602,9 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		UINT offset = 0;
 		pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
-		// get orthographic matrix from projection and normalize it by its width (since we use a fullscreen shader here)
-		float afProjectionD3D[16];
-		osvr::renderkit::OSVR_Projection_to_D3D(afProjectionD3D, sProjection);
-		D3DXMATRIX sProj(afProjectionD3D);
-
-		// due to the aspect ratio (90° horizontal, 90° vertical) of the HDK we adjust the screen by 
-		// the height, not by the width... in this case we need to set a higher FOV by following formular:
-		// V = 2 * arctan( tan(H / 2) * aspectratio ) - so we get V 90° and H 121°
-		sProj.m[0][0] = sProj.m[0][0] * fAspect; // < incorporate game screen aspect ratio;
-		sProj.m[0][1] = 0.0f;
-		sProj.m[0][3] = sProj.m[0][2];
-		sProj.m[0][2] = 0.0f;
-
-		sProj.m[1][0] = 0.0f;
-		sProj.m[1][1] = sProj.m[1][1];
-		sProj.m[1][3] = sProj.m[1][2];
-		sProj.m[1][2] = 0.0f;
-
-		sProj.m[2][0] = 0.0f;
-		sProj.m[2][1] = 0.0f;
-		sProj.m[2][2] = 1.0f; // 1.0f here... fullscreen shader !
-		sProj.m[2][3] = 0.0f;
-
-		sProj.m[3][0] = 0.0f;
-		sProj.m[3][1] = 0.0f;
-		sProj.m[3][2] = 0.0f;
-		sProj.m[3][3] = 1.0f;
+		// get identity matrix here... we render fullscreen
+		D3DXMATRIX sProj;
+		D3DXMatrixIdentity(&sProj);
 
 		// zoom out ?
 		if (m_pbZoomOut)

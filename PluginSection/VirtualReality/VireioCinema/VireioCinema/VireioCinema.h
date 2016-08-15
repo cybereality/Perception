@@ -158,7 +158,7 @@ private:
 	void RenderD3D9(LPDIRECT3DDEVICE9 pcDevice);
 	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
-	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale = 1.0f, D3DXVECTOR3 sTranslate = D3DXVECTOR3(), UINT32 unWidth = 1024, UINT32 unHeight = 1024);
+	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, D3DXVECTOR3 sScale = D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3 sTranslate = D3DXVECTOR3(), UINT32 unWidth = 1024, UINT32 unHeight = 1024);
 	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
 
 #pragma region VireioCinema D3D9 private fields
@@ -260,6 +260,14 @@ private:
 	* Input texture SR views left/right.
 	***/
 	ID3D11ShaderResourceView** m_ppcTex11InputSRV[2];
+	/**
+	* Back buffer copy texture for mono cinema screen.
+	***/
+	ID3D11Texture2D* m_pcBackBufferCopy;
+	/**
+	* Back buffer copy texture SRV for mono cinema screen.
+	***/
+	ID3D11ShaderResourceView* m_pcBackBufferCopySR;
 	/**
 	* The 3D vertex shader for the openVR models.
 	***/
@@ -372,10 +380,9 @@ private:
 	***/
 	float m_fAspectRatio;
 	/**
-	* True if Oculus Tiny Room mesh created.
-	* ( to be deleted... )
+	* Max tick count to show mouse when not moved.
 	***/
-	bool m_bOculusTinyRoomMesh;
+	UINT m_unMouseTickCount;
 	/**
 	* Cinema room setup structure.
 	***/
@@ -390,46 +397,40 @@ private:
 			Screen_GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, draws mouse laser pointer **/
 		} ePixelShaderFX_Screen;
 
-		enum PixelShaderFX_Wall_FB
+		enum PixelShaderFX_Wall
 		{
-			Wall_FB_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
-			Wall_FB_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
-			Wall_FB_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
-			Wall_FB_ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
-			Wall_FB_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
-			Wall_FB_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
-		} ePixelShaderFX_Wall_FB[2];
+			Wall_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+			Wall_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+			Wall_ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
+			Wall_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+			Wall_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+			Wall_Planets,                   /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
+			Wall_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+		} ePixelShaderFX_Wall_FB[2], ePixelShaderFX_Wall_LR[2];
 
-		enum PixelShaderFX_Wall_LR
-		{
-			Wall_LR_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
-			Wall_LR_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
-			Wall_LR_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
-			Wall_LR_ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
-			Wall_LR_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
-			Wall_LR_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
-		} ePixelShaderFX_Wall_LR[2];
+			enum PixelShaderFX_Floor
+			{
+				Floor_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+				Floor_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+				Floor_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+				Floor_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+				Floor_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+				Floor_Planets,                   /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
+				Floor_HypnoticDisco,             /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
+				Floor_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+			} ePixelShaderFX_Floor[2];
 
-		enum PixelShaderFX_Floor
-		{
-			Floor_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
-			Floor_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
-			Floor_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
-			Floor_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
-			Floor_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
-		} ePixelShaderFX_Floor[2];
+				struct PixelShaderFX_Colors
+				{
+					D3DXCOLOR sColorFX[8];               /**< Colors to be used by a shader effect **/
+				} sColors_Screen;                        /**< Colors to be used by the screen effect **/
+				PixelShaderFX_Colors sColors_Wall_FB[2]; /**< Colors to be used by the wall (front+back) effects **/
+				PixelShaderFX_Colors sColors_Wall_LR[2]; /**< Colors to be used by the wall (left+right) effects **/
+				PixelShaderFX_Colors sColors_Floor[2];   /**< Colors to be used by the floor (top+bottom) effects **/
 
-		struct PixelShaderFX_Colors
-		{
-			D3DXCOLOR sColorFX[8];               /**< Colors to be used by a shader effect **/
-		} sColors_Screen;                        /**< Colors to be used by the screen effect **/
-		PixelShaderFX_Colors sColors_Wall_FB[2]; /**< Colors to be used by the wall (front+back) effects **/
-		PixelShaderFX_Colors sColors_Wall_LR[2]; /**< Colors to be used by the wall (left+right) effects **/
-		PixelShaderFX_Colors sColors_Floor[2];   /**< Colors to be used by the floor (top+bottom) effects **/
-
-		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
-		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
-		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+				float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
+				float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
+				float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
 	} m_sCinemaRoomSetup;
 };
 

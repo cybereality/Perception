@@ -72,7 +72,9 @@ m_hHMD(nullptr),
 m_phHMD(nullptr),
 m_phHMD_Tracker(nullptr),
 m_bHotkeySwitch(false),
-m_pbZoomOut(nullptr)
+m_pbZoomOut(nullptr),
+m_ppcTexViewHud11(nullptr),
+m_pcTex11CopyHUD(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -90,6 +92,29 @@ m_pbZoomOut(nullptr)
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
 	m_pcSamplerState = nullptr;
+
+	m_bInit = false;
+	m_phHMD = nullptr;
+	sensorSampleTime = 0.0;
+	m_bShowMirror = false;
+
+	m_psEyeRenderTexture[0] = nullptr;
+	m_psEyeRenderTexture[1] = nullptr;
+	m_psEyeRenderTextureHUD = nullptr;
+
+	m_pbZoomOut = nullptr;
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	DWORD bShowMirror = 0;
+	bShowMirror = GetIniFileSetting(bShowMirror, "LibOVR", "bShowMirror", szFilePathINI, bFileExists);
+	if (bShowMirror) m_bShowMirror = true; else m_bShowMirror = false;
 }
 
 /**
@@ -171,6 +196,12 @@ LPWSTR OculusDirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"HMD Handle";
 		case ODM_Decommanders::ZoomOut:
 			return L"Zoom Out";
+		case HUDTexture11:
+			return L"HUD Texture DX11";
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 
 	return L"x";
@@ -191,6 +222,12 @@ DWORD OculusDirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_HANDLE;
 		case ODM_Decommanders::ZoomOut:
 			return NOD_Plugtype::AQU_BOOL;
+		case HUDTexture11:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 
 	return 0;
@@ -215,6 +252,13 @@ void OculusDirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ODM_Decommanders::ZoomOut:
 			m_pbZoomOut = (BOOL*)pData;
 			break;
+		case HUDTexture11:
+			m_ppcTexViewHud11 = (ID3D11ShaderResourceView**)pData;
+			break;
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 }
 
@@ -232,6 +276,15 @@ bool OculusDirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int
 ***/
 void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// always skip more frames than the oculus tracker to ensure initialization is done
+	static UINT unFrameSkip = 200 + 10;
+	if (unFrameSkip > 0)
+	{
+		unFrameSkip--;
+		return nullptr;
+	}
+
+	// still needed ?
 	static float fAspect = 1.0f;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
@@ -400,6 +453,19 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			pcBackBuffer->Release();
 		}
 
+		// create HUD oculus texture swapchain
+		m_psEyeRenderTextureHUD = new OculusTexture();
+		if (!m_psEyeRenderTextureHUD->Init(m_pcDeviceTemporary, *m_phHMD, sDescBackBuffer.Width, sDescBackBuffer.Height))
+		{
+			OutputDebugString(L"OculusDirectMode: Failed to create HUD texture.");
+			m_bInit = true;
+
+			pcSwapChain->Release();
+			pcDevice->Release();
+			pcContext->Release();
+			return nullptr;
+		}
+
 		// Create a mirror to see on the monitor.
 		D3D11_TEXTURE2D_DESC sTd = {};
 		sTd.ArraySize = 1;
@@ -411,11 +477,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		sTd.MipLevels = 1;
 		sTd.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
 		m_pcDeviceTemporary->CreateTexture2D(&sTd, nullptr, &m_pcMirrorTextureD3D11HMD);
-		/*ovrResult result = ovr_CreateMirrorTextureD3D11(*m_phHMD, m_pcDeviceTemporary, &sTd, 0, &m_pcMirrorTexture);
-		if (!OVR_SUCCESS(result))
-		{
-		OutputDebugString(L"OculusDirectMode: Failed to create mirror texture.");
-		}*/
 		ovrMirrorTextureDesc sMirrorDesc = {};
 		sMirrorDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 		sMirrorDesc.Width = (UINT)sDescBackBuffer.Width;
@@ -458,6 +519,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	{
 #pragma region Render
 
+		// secondary hud active ? copy in case
+		if ((m_pbZoomOut) && (m_ppcTexViewHud11))
+		{
+			if ((*m_pbZoomOut) && (*m_ppcTexViewHud11))
+			{
+				// get the resource
+				ID3D11Resource* pcResource = nullptr;
+				(*m_ppcTexViewHud11)->GetResource(&pcResource);
+				if (pcResource)
+				{
+					// copy the hud
+					pcContext->CopyResource(m_pcTex11CopyHUD, pcResource);
+					pcResource->Release();
+				}
+			}
+		}
+
 		// get eye render pose and other fields
 		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeOffset, m_psEyeRenderDesc[1].HmdToEyeOffset };
 		ovrPosef         asEyeRenderPose[2];
@@ -470,9 +548,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		// render
 		for (int eye = 0; eye < 2; eye++)
 		{
-			//// Increment to use next texture, just before writing
-			//m_psEyeRenderTexture[eye]->AdvanceToNextTexture();
-
 			// set viewport
 			D3D11_VIEWPORT sD3Dvp;
 			sD3Dvp.Width = (float)m_psEyeRenderViewport[eye].Size.w;
@@ -505,6 +580,51 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					{
 						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
 						break;
+					}
+
+					// create the HUD texture, shared + view
+					if (!m_pcTex11CopyHUD)
+					{
+						if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTex11CopyHUD)))
+						{
+							OutputDebugString(L"StereoSplitterDX10 : Failed to create HUD copy texture !");
+							break;
+						}
+
+						// get shared handle
+						IDXGIResource* pcDXGIResource(NULL);
+						m_pcTex11CopyHUD->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+						HANDLE sharedHandle;
+						if (pcDXGIResource)
+						{
+							pcDXGIResource->GetSharedHandle(&sharedHandle);
+							pcDXGIResource->Release();
+						}
+						else OutputDebugString(L"Failed to query IDXGIResource.");
+
+						// open the shared handle with the temporary device
+						ID3D11Resource* pcResourceShared = nullptr;
+						m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+						if (pcResourceShared)
+						{
+							pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcTex11SharedHUD));
+							pcResourceShared->Release();
+						}
+						else OutputDebugString(L"Could not open shared resource.");
+
+						// create shader resource view
+						if (m_pcTex11SharedHUD)
+						{
+							D3D11_SHADER_RESOURCE_VIEW_DESC sDescSRV;
+							ZeroMemory(&sDescSRV, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+							sDescSRV.Format = sDesc.Format;
+							sDescSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+							sDescSRV.Texture2D.MostDetailedMip = 0;
+							sDescSRV.Texture2D.MipLevels = 1;
+							if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(m_pcTex11SharedHUD, &sDescSRV, &m_pcTex11SharedHudSRV)))
+								OutputDebugString(L"Failed to create shader resource view.");
+						}
+						else OutputDebugString(L"No Texture available.");
 					}
 
 					// aspect ratio
@@ -616,88 +736,41 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						UINT offset = 0;
 						m_pcContextTemporary->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
-						// following code is partially from the Oculus SDK (0.8)
+						//// Measured DK2 Field of View :
+						////
+						//// LENS - CAMERA DISTANCE   0MM  5MM  10MM 15MM 20MM 25MM
+						//// LEFT HORIZONTAL FOV      49°  48°  47°  45°  38°  34°
+						//// RIGHT HORIZONTAL FOV     47°	 47°  46°  44°	37°  33°
+						//// TOTAL HORIZONTAL FOV     96°	 95°  93°  89°	75°  67°
+						//// VERTICAL FOV             107° 106° 104° 99°	76°  66°
+						//// The Rift DK2’s FoV is maximal at 0mm lens - camera distance, 
+						//// i.e., when the user’s eyeball touches the lens.This is generally 
+						//// not achievable, and the minimum eye relief configurable in the 
+						//// SDK is 8mm, with an effective binocular FoV of 94° x 105°.
 
-						// get HMD render scale and offset
-						float projXScale = 2.0f / (m_psEyeRenderDesc[eye].Fov.LeftTan + m_psEyeRenderDesc[eye].Fov.RightTan);
-						float projXOffset = (m_psEyeRenderDesc[eye].Fov.LeftTan - m_psEyeRenderDesc[eye].Fov.RightTan) * projXScale * 0.5f;
-						float projYScale = 2.0f / (m_psEyeRenderDesc[eye].Fov.UpTan + m_psEyeRenderDesc[eye].Fov.DownTan);
-						float projYOffset = (m_psEyeRenderDesc[eye].Fov.UpTan - m_psEyeRenderDesc[eye].Fov.DownTan) * projYScale * 0.5f;
+						//// Measured CV1 Field of View :
+						////
+						//// LENS - CAMERA DISTANCE	0MM   5MM   10MM  15MM  20MM  25MM
+						//// LEFT HORIZONTAL FOV      35°   36°   37°   37°   35°   30°
+						//// RIGHT HORIZONTAL FOV     43°   45°   47°   47°   44°   39°
+						//// TOTAL HORIZONTAL FOV     78°   81°   84°   84°   79°   69°
+						//// VERTICAL FOV             84°   89°   93°   86°   78°   69°
+						//// As in Vive DK1 / Pre, the maximal FoV is achieved at some distance 
+						//// from the lens, in this case 12mm. Taking the left / right FoV value 
+						//// differences as accurate, the total binocular FoV at that lens - camera 
+						//// distance is 94° x 93°.
 
-						// get identity matrix, set offset and scale
+						//// Measurements posted on <Doc-Ok.org>.
+
+						//// so we assume a FoV of 90° x 100° (DK2) and 84° x 93° (CV1), that is ~12 mm lens-eye 
+						//// distance
+						//// due to this aspect ratio of the DK2/CV1 we adjust the screen by the height
+						//// in this case we need to set a higher FOV by following formular:
+						//// V = 2 * arctan( tan(H / 2) * aspectratio ) 
+						//// so we get V 90° and H 121° (DK2) and V 84° and H 116° (CV1)
+
+						// get identity matrix, this is a fullscreen copy
 						OVR::Matrix4f sProj = OVR::Matrix4f::Identity();
-						float handednessScale = 1.0f;
-						sProj.M[0][0] = projXScale;
-						sProj.M[0][2] = handednessScale * projXOffset;
-						sProj.M[1][1] = projYScale;
-						sProj.M[1][2] = handednessScale * -projYOffset;
-						sProj.M[3][2] = handednessScale;
-
-						// make matrix orthographical, first set IPD
-						float interpupillaryDistance = 0.064f; // TODO !! connect IPD from configuration
-
-						// Measured DK2 Field of View :
-						//
-						// LENS - CAMERA DISTANCE   0MM  5MM  10MM 15MM 20MM 25MM
-						// LEFT HORIZONTAL FOV      49°  48°  47°  45°  38°  34°
-						// RIGHT HORIZONTAL FOV     47°	 47°  46°  44°	37°  33°
-						// TOTAL HORIZONTAL FOV     96°	 95°  93°  89°	75°  67°
-						// VERTICAL FOV             107° 106° 104° 99°	76°  66°
-						// The Rift DK2’s FoV is maximal at 0mm lens - camera distance, 
-						// i.e., when the user’s eyeball touches the lens.This is generally 
-						// not achievable, and the minimum eye relief configurable in the 
-						// SDK is 8mm, with an effective binocular FoV of 94° x 105°.
-
-						// Measured CV1 Field of View :
-						//
-						// LENS - CAMERA DISTANCE	0MM   5MM   10MM  15MM  20MM  25MM
-						// LEFT HORIZONTAL FOV      35°   36°   37°   37°   35°   30°
-						// RIGHT HORIZONTAL FOV     43°   45°   47°   47°   44°   39°
-						// TOTAL HORIZONTAL FOV     78°   81°   84°   84°   79°   69°
-						// VERTICAL FOV             84°   89°   93°   86°   78°   69°
-						// As in Vive DK1 / Pre, the maximal FoV is achieved at some distance 
-						// from the lens, in this case 12mm. Taking the left / right FoV value 
-						// differences as accurate, the total binocular FoV at that lens - camera 
-						// distance is 94° x 93°.
-
-						// Measurements posted on <Doc-Ok.org>.
-
-						// Vireio Perception FOV recommandation: (based on Kreylos data)
-						// Resolution (1920x1080)
-						// DK2 : V 105° H 133°
-						// CV1 : V  94° H 124°
-
-						sProj.M[0][0] = sProj.M[0][0] * fAspect; // < incorporate game screen aspect ratio;
-						sProj.M[0][1] = 0.0f;
-						sProj.M[0][3] = sProj.M[0][2];
-						sProj.M[0][2] = 0.0f;
-
-						sProj.M[1][0] = 0.0f;
-						sProj.M[1][1] = sProj.M[1][1];
-						sProj.M[1][3] = sProj.M[1][2];
-						sProj.M[1][2] = 0.0f;
-
-						sProj.M[2][0] = 0.0f;
-						sProj.M[2][1] = 0.0f;
-						sProj.M[2][2] = 1.0f; // 1.0f here... fullscreen shader !
-						sProj.M[2][3] = 0.0f;
-
-						sProj.M[3][0] = 0.0f;
-						sProj.M[3][1] = 0.0f;
-						sProj.M[3][2] = 0.0f;
-						sProj.M[3][3] = 1.0f;
-
-
-
-						// zoom out ?
-						if (m_pbZoomOut)
-						{
-							if (*m_pbZoomOut)
-							{
-								sProj.M[0][0] /= 2.0f;
-								sProj.M[1][1] /= 2.0f;
-							}
-						}
 
 						// Set constant buffer, first update it... scale and translate the left and right image
 						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
@@ -716,6 +789,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 						// Render a triangle
 						m_pcContextTemporary->Draw(6, 0);
+
+						// render hud ? only once
+						if ((m_pbZoomOut) && (eye))
+						{
+							if (*m_pbZoomOut)
+							{
+								// render by copy recource
+								ID3D11RenderTargetView* pcRTV = m_psEyeRenderTextureHUD->GetRTV();
+								ID3D11Texture2D* pcTex = nullptr;
+								pcRTV->GetResource((ID3D11Resource**)&pcTex);
+								if (pcTex)
+								{
+									m_pcContextTemporary->CopyResource(pcTex, m_pcTex11SharedHUD);
+									pcTex->Release();
+								}
+							}
+						}
 					}
 				}
 
@@ -740,8 +830,48 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			ld.SensorSampleTime = sensorSampleTime;
 		}
 
-		ovrLayerHeader* psLayers = &ld.Header;
-		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &psLayers, 1);
+		m_pasLayerList[OculusLayers::OculusLayer_MainEye] = &m_sLayerPrimal.Header;
+
+		// next, our HUD layer
+		float fMenuHudDistance = 500.0f;
+		OVR::Recti sHudRenderedSize;
+		sHudRenderedSize.w = 1920;
+		sHudRenderedSize.h = 1080;
+		sHudRenderedSize.x = 0;
+		sHudRenderedSize.y = 0;
+		ovrPosef sMenuPose;
+
+		sMenuPose.Orientation = OVR::Quatf();
+		sMenuPose.Position = OVR::Vector3f(0.0f, 0.0f, -fMenuHudDistance);
+
+		// Assign HudLayer data.
+		ZeroMemory(&m_sLayerHud, sizeof(ovrLayerQuad));
+		m_sLayerHud.Header.Type = ovrLayerType_Quad;
+		m_sLayerHud.Header.Flags = 0;
+		m_sLayerHud.QuadPoseCenter = sMenuPose;
+		m_sLayerHud.QuadSize = OVR::Vector2f((float)sHudRenderedSize.w, (float)sHudRenderedSize.h);
+		m_sLayerHud.ColorTexture = m_psEyeRenderTextureHUD->TextureChain;
+		m_sLayerHud.Viewport = (ovrRecti)sHudRenderedSize;
+
+		// Grow the cliprect slightly to get a nicely-filtered edge.
+		m_sLayerHud.Viewport.Pos.x -= 1;
+		m_sLayerHud.Viewport.Pos.y -= 1;
+		m_sLayerHud.Viewport.Size.w += 2;
+		m_sLayerHud.Viewport.Size.h += 2;
+
+		// IncrementSwapTextureSetIndex ( HudLayer.ColorTexture ) was done above when it was rendered.
+		m_pasLayerList[OculusLayers::OculusLayer_Hud] = &m_sLayerHud.Header;
+
+		// and submit
+		UINT unLayerNumber = 1;
+		if (m_pbZoomOut)
+		{
+			if (*m_pbZoomOut)
+			{
+				unLayerNumber = 2;
+			}
+		}
+		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, 1);
 
 		// copy the mirror texture to the shared texture
 		ID3D11Texture2D* tex = nullptr;
@@ -750,15 +880,18 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		tex->Release();
 
 		// Render mirror
-		ID3D11Texture2D* pcBackBuffer = nullptr;
-		pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
-		if (pcBackBuffer)
+		if (m_bShowMirror)
 		{
-			pcContext->CopyResource(pcBackBuffer, m_pcMirrorTextureD3D11);
-			pcBackBuffer->Release();
+			ID3D11Texture2D* pcBackBuffer = nullptr;
+			pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
+			if (pcBackBuffer)
+			{
+				pcContext->CopyResource(pcBackBuffer, m_pcMirrorTextureD3D11);
+				pcBackBuffer->Release();
+			}
+			else
+				OutputDebugString(L"No Back Buffer");
 		}
-		else
-			OutputDebugString(L"No Back Buffer");
 
 		if (!m_pcMirrorTextureD3D11) OutputDebugString(L"No mirror texture!");
 #pragma endregion

@@ -127,35 +127,35 @@ HBITMAP Vireio_GUI::GetGUI(bool bForceRedraw, bool bDarkenButtons, bool bUpperRi
 
 			// loop through controls for this page, draw them
 			if (m_asPages.size())
-			for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
-			{
-				// render control depending on type
-				switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
+				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 				{
-					case StaticListBox:
-						DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
-						break;
-					case ListBox:
-						DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
-						break;
-					case SpinControl:
-						DrawSpinControl(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
-						break;
-					case EditLine:
-						break;
-					case Button:
-						DrawButton(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
-						break;
-					case Switch:
-						DrawSwitch(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
-						break;
-					case FloatInput:
-						DrawFloat(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
-						break;
-					default:
-						break;
+					// render control depending on type
+					switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
+					{
+						case StaticListBox:
+							DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
+							break;
+						case ListBox:
+							DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
+							break;
+						case SpinControl:
+							DrawSpinControl(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
+							break;
+						case EditLine:
+							break;
+						case Button:
+							DrawButton(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
+							break;
+						case Switch:
+							DrawSwitch(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
+							break;
+						case FloatInput:
+							DrawFloat(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+							break;
+						default:
+							break;
+					}
 				}
-			}
 
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont);
@@ -251,74 +251,74 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl, bool bDark
 
 	// loop through entries
 	if (sControl.m_sStaticListBox.m_paszEntries)
-	for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
-	{
-		// text within borders ?
-		if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
+		for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
 		{
-			// if selection, invert colors and draw rectangle
-			if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+			// text within borders ?
+			if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
 			{
-				RECT sRect;
-				SetRect(&sRect, psPos->x, nY, psPos->x + psSize->cx - 1, nY + m_dwFontSize);
-				HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
-				FillRect(hdc, &sRect, hBrush);
-				DeleteObject(hBrush);
+				// if selection, invert colors and draw rectangle
+				if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+				{
+					RECT sRect;
+					SetRect(&sRect, psPos->x, nY, psPos->x + psSize->cx - 1, nY + m_dwFontSize);
+					HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
+					FillRect(hdc, &sRect, hBrush);
+					DeleteObject(hBrush);
 
-				SetTextColor(hdc, m_dwColorBack);
-				SetBkColor(hdc, m_dwColorFront);
-			}
+					SetTextColor(hdc, m_dwColorBack);
+					SetBkColor(hdc, m_dwColorFront);
+				}
 
-			// output the list entry text - firt draw rims
-			if (bUpperRim)
-			{
-				COLORREF dwColorFront = GetTextColor(hdc);
-				COLORREF dwColorBack = GetBkColor(hdc);
-				BYTE nR = (GetRValue(dwColorFront) >> 1) + (GetRValue(dwColorBack) >> 1);
-				BYTE nG = (GetGValue(dwColorFront) >> 1) + (GetGValue(dwColorBack) >> 1);
-				BYTE nB = (GetBValue(dwColorFront) >> 1) + (GetBValue(dwColorBack) >> 1);
-				COLORREF dwColorTmp = RGB(nR, nG, nB);
-				SetTextColor(hdc, dwColorTmp);
+				// output the list entry text - firt draw rims
+				if (bUpperRim)
+				{
+					COLORREF dwColorFront = GetTextColor(hdc);
+					COLORREF dwColorBack = GetBkColor(hdc);
+					BYTE nR = (GetRValue(dwColorFront) >> 1) + (GetRValue(dwColorBack) >> 1);
+					BYTE nG = (GetGValue(dwColorFront) >> 1) + (GetGValue(dwColorBack) >> 1);
+					BYTE nB = (GetBValue(dwColorFront) >> 1) + (GetBValue(dwColorBack) >> 1);
+					COLORREF dwColorTmp = RGB(nR, nG, nB);
+					SetTextColor(hdc, dwColorTmp);
+					TextOutW(hdc,
+						psPos->x - 1,
+						nY - 1,
+						((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+						(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+					SetTextColor(hdc, dwColorFront);
+				}
+				if (bLowerRim)
+				{
+					COLORREF dwColorFront = GetTextColor(hdc);
+					COLORREF dwColorBack = GetBkColor(hdc);
+					BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
+					BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
+					BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
+					COLORREF dwColorTmp = RGB(nR, nG, nB);
+					SetTextColor(hdc, dwColorTmp);
+					TextOutW(hdc,
+						psPos->x + 2,
+						nY + 2,
+						((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+						(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+					SetTextColor(hdc, dwColorFront);
+				}
 				TextOutW(hdc,
-					psPos->x - 1,
-					nY - 1,
+					psPos->x,
+					nY,
 					((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
 					(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
-				SetTextColor(hdc, dwColorFront);
-			}
-			if (bLowerRim)
-			{
-				COLORREF dwColorFront = GetTextColor(hdc);
-				COLORREF dwColorBack = GetBkColor(hdc);
-				BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
-				BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
-				BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
-				COLORREF dwColorTmp = RGB(nR, nG, nB);
-				SetTextColor(hdc, dwColorTmp);
-				TextOutW(hdc,
-					psPos->x + 2,
-					nY + 2,
-					((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
-					(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
-				SetTextColor(hdc, dwColorFront);
-			}
-			TextOutW(hdc,
-				psPos->x,
-				nY,
-				((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
-				(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
 
-			// and invert back
-			if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
-			{
-				SetTextColor(hdc, m_dwColorFront);
-				SetBkColor(hdc, m_dwColorBack);
+				// and invert back
+				if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+				{
+					SetTextColor(hdc, m_dwColorFront);
+					SetBkColor(hdc, m_dwColorBack);
+				}
 			}
+
+			// next line
+			nY += (int)m_dwFontSize;
 		}
-
-		// next line
-		nY += (int)m_dwFontSize;
-	}
 
 	// draw an empty field at the bottom of the list
 	RECT sRect;
@@ -469,9 +469,9 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl, bool bDarken
 	asPoints[0].x = (psPos->x + psSize->cx) - (m_dwFontSize >> 1);
 	asPoints[0].y = psPos->y + (m_dwFontSize >> 3);
 	asPoints[1].x = (psPos->x + psSize->cx) - ((m_dwFontSize >> 3) * 7);
-	asPoints[1].y = psPos->y + ((m_dwFontSize >> 5) * 20);
+	asPoints[1].y = psPos->y + (DWORD)(((float)m_dwFontSize / 32.0f) * 20.0f);
 	asPoints[2].x = (psPos->x + psSize->cx) - (m_dwFontSize >> 3);
-	asPoints[2].y = psPos->y + ((m_dwFontSize >> 5) * 20);
+	asPoints[2].y = psPos->y + (DWORD)(((float)m_dwFontSize / 32.0f) * 20.0f);
 	SelectObject(hdc, GetStockObject(DC_PEN));
 	SelectObject(hdc, GetStockObject(DC_BRUSH));
 	sRect.bottom -= psSize->cy >> 1;
@@ -488,8 +488,8 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl, bool bDarken
 	if (sControl.m_sSpinControl.m_dwCurrentSelection > 0)
 		Polygon(hdc, asPoints, 3);
 	asPoints[0].y = (psPos->y + psSize->cy) - (m_dwFontSize >> 3);
-	asPoints[1].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 20);
-	asPoints[2].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 20);
+	asPoints[1].y = (psPos->y + psSize->cy) - (DWORD)(((float)m_dwFontSize / 32.0f) * 20.0f);
+	asPoints[2].y = (psPos->y + psSize->cy) - (DWORD)(((float)m_dwFontSize / 32.0f) * 20.0f);
 	sRect.bottom += psSize->cy >> 1;
 	sRect.top += psSize->cy >> 1;
 	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords) && (bDarkenButtons))
@@ -843,9 +843,9 @@ void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
 }
 
 /**
-* Get the current selection index from a selectable list box.
-* @param dwControlId The identifier of the control, must be a static or non-static list box.
-* @returns The current selection of the list box.
+* Get the current selection index from a control.
+* @param dwControlId The identifier of the control.
+* @returns The current selection.
 ***/
 INT Vireio_GUI::GetCurrentSelection(UINT dwControlId)
 {
@@ -853,11 +853,30 @@ INT Vireio_GUI::GetCurrentSelection(UINT dwControlId)
 	UINT dwPage = dwControlId >> 16;
 	UINT dwIndex = dwControlId & 65535;
 
-	// return -1 (== no selection) if not list box or static list box
-	if ((m_asPages[dwPage].m_asControls[dwIndex].m_eControlType != Vireio_Control_Type::ListBox) && (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType != Vireio_Control_Type::StaticListBox))
-		return -1;
+	// which type ?
+	switch (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType)
+	{
+		case StaticListBox:
+		case ListBox:
+			return m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_nCurrentSelection;
+			break;
+		case SpinControl:
+			return (INT)m_asPages[dwPage].m_asControls[dwIndex].m_sSpinControl.m_dwCurrentSelection;
+			break;
+		case EditLine:
+			break;
+		case Button:
+			break;
+		case Switch:
+			break;
+		case FloatInput:
+			break;
+		default:
+			break;
+	}
 
-	return m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_nCurrentSelection;
+	// return -1 (== no selection)
+	return -1;
 }
 
 /**
@@ -940,197 +959,197 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 				}
 				// loop through active controls for this page
 				else
-				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
-				{
-					// get position and size pointers
-					POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
-					SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
-
-					// get the rectangle of the control (+ font size to the right)
-					RECT sRect;
-					SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx + m_dwFontSize, psPos->y + psSize->cy);
-					if (InRect(sRect, m_sMouseCoords))
+					for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 					{
-						// set to pressed only if within borders without font size
-						if (m_sMouseCoords.x < psPos->x + psSize->cx)
+						// get position and size pointers
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+
+						// get the rectangle of the control (+ font size to the right)
+						RECT sRect;
+						SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx + m_dwFontSize, psPos->y + psSize->cy);
+						if (InRect(sRect, m_sMouseCoords))
 						{
-							// set event to "pressed"
-							sRet.eType = Vireio_GUI_Event_Type::Pressed;
-							sRet.dwIndexOfPage = m_dwCurrentPage;
-							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
-						}
-#pragma region List Box
-						// is this a control with a side- scrollbar ?
-						if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
-						{
-							// within borders ? list box selectable ?
-							if ((m_sMouseCoords.x < psPos->x + psSize->cx) && (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_bSelectable))
+							// set to pressed only if within borders without font size
+							if (m_sMouseCoords.x < psPos->x + psSize->cx)
 							{
-								// get y position
-								float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
-
-								// set new selection, deselect if current selection is chosen
-								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection == ((INT)fYPos / m_dwFontSize))
-									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
-								else
-									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
-									(INT)fYPos / m_dwFontSize;
-
-								// clamp
-								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection >= (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size())
-									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+								// set event to "pressed"
+								sRet.eType = Vireio_GUI_Event_Type::Pressed;
+								sRet.dwIndexOfPage = m_dwCurrentPage;
+								sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
 							}
-
-							// get position and size pointers, full text size
-							UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
-							if (dwFullTextSizeY > (UINT)psSize->cy)
+#pragma region List Box
+							// is this a control with a side- scrollbar ?
+							if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
 							{
-								// get max scrollbar y position
-								float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
-
-								// get scroll bar size
-								float fBarSizeY;
-								INT nBarSizeY;
-								fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
-								nBarSizeY = (INT)UINT(fBarSizeY);
-
-								// and postion
-								float fBarPosY;
-								INT nBarPosY;
-								fBarPosY = (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY / fMaxScrollBarY) * ((float)psSize->cy - fBarSizeY);
-								nBarPosY = (INT)UINT(fBarPosY);
-
-								// get scroll bar rectangle and test mouse position
-								sRect.top = (LONG)psPos->y + (LONG)nBarPosY;
-								sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
-								sRect.left = (LONG)psPos->x + psSize->cx;
-								sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
-								if (InRect(sRect, m_sMouseCoords))
+								// within borders ? list box selectable ?
+								if ((m_sMouseCoords.x < psPos->x + psSize->cx) && (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_bSelectable))
 								{
-									// set control to active, control action to ScrollBar and mouse bound bool
-									m_dwActiveControl = dwI;
-									m_bMouseBoundToControl = true;
-									m_eActiveControlAction = Vireio_Control_Action::ScrollBar;
+									// get y position
+									float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
 
-									// set old mouse coords and backup the scroll bar position
-									sMouseCoordsOld.x = m_sMouseCoords.x;
-									sMouseCoordsOld.y = m_sMouseCoords.y;
-									fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+									// set new selection, deselect if current selection is chosen
+									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection == ((INT)fYPos / m_dwFontSize))
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+									else
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
+										(INT)fYPos / m_dwFontSize;
+
+									// clamp
+									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection >= (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size())
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+								}
+
+								// get position and size pointers, full text size
+								UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
+								if (dwFullTextSizeY > (UINT)psSize->cy)
+								{
+									// get max scrollbar y position
+									float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
+
+									// get scroll bar size
+									float fBarSizeY;
+									INT nBarSizeY;
+									fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
+									nBarSizeY = (INT)UINT(fBarSizeY);
+
+									// and postion
+									float fBarPosY;
+									INT nBarPosY;
+									fBarPosY = (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY / fMaxScrollBarY) * ((float)psSize->cy - fBarSizeY);
+									nBarPosY = (INT)UINT(fBarPosY);
+
+									// get scroll bar rectangle and test mouse position
+									sRect.top = (LONG)psPos->y + (LONG)nBarPosY;
+									sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
+									sRect.left = (LONG)psPos->x + psSize->cx;
+									sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
+									if (InRect(sRect, m_sMouseCoords))
+									{
+										// set control to active, control action to ScrollBar and mouse bound bool
+										m_dwActiveControl = dwI;
+										m_bMouseBoundToControl = true;
+										m_eActiveControlAction = Vireio_Control_Action::ScrollBar;
+
+										// set old mouse coords and backup the scroll bar position
+										sMouseCoordsOld.x = m_sMouseCoords.x;
+										sMouseCoordsOld.y = m_sMouseCoords.y;
+										fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+									}
 								}
 							}
-						}
 #pragma endregion
 #pragma region Spin Control
-						// is this a control with a side- scrollbar ?
-						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::SpinControl)
-						{
-							// get the rectangle of the up/down arrows
-							SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-							if (InRect(sRect, m_sMouseCoords))
+							// is this a control with a side- scrollbar ?
+							else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::SpinControl)
 							{
-								// set control to active, control action to SpinControlArrows and mouse bound bool
-								m_dwActiveControl = dwI;
-								m_bMouseBoundToControl = true;
-								m_eActiveControlAction = Vireio_Control_Action::SpinControlArrows;
+								// get the rectangle of the up/down arrows
+								SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+								if (InRect(sRect, m_sMouseCoords))
+								{
+									// set control to active, control action to SpinControlArrows and mouse bound bool
+									m_dwActiveControl = dwI;
+									m_bMouseBoundToControl = true;
+									m_eActiveControlAction = Vireio_Control_Action::SpinControlArrows;
 
-								// update selection
-								if (m_sMouseCoords.y < psPos->y + (psSize->cy >> 1))
-								{
-									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection > 0)
+									// update selection
+									if (m_sMouseCoords.y < psPos->y + (psSize->cy >> 1))
 									{
-										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection--;
-										sRet.eType = Vireio_GUI_Event_Type::ChangedToPrevious;
-										sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection > 0)
+										{
+											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection--;
+											sRet.eType = Vireio_GUI_Event_Type::ChangedToPrevious;
+											sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+										}
 									}
-								}
-								else
-								{
-									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection < (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_paszEntries->size() - 1))
+									else
 									{
-										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
-										sRet.eType = Vireio_GUI_Event_Type::ChangedToNext;
-										sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection < (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_paszEntries->size() - 1))
+										{
+											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
+											sRet.eType = Vireio_GUI_Event_Type::ChangedToNext;
+											sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+										}
 									}
+									sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
 								}
-								sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
 							}
-						}
 #pragma endregion
 #pragma region Button
-						// is this a button?
-						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Button)
-						{
-							// set this control active
-							m_dwActiveControl = dwI;
-							m_bMouseBoundToControl = true;
-							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sButton.m_bPressed = true;
-						}
+							// is this a button?
+							else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Button)
+							{
+								// set this control active
+								m_dwActiveControl = dwI;
+								m_bMouseBoundToControl = true;
+								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sButton.m_bPressed = true;
+							}
 #pragma endregion
 #pragma region Switch
-						// is this a switch?
-						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Switch)
-						{
-							// set this control active
-							m_dwActiveControl = dwI;
-							m_bMouseBoundToControl = true;
-							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue =
-								!m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
-							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bPressed = true;
+							// is this a switch?
+							else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Switch)
+							{
+								// set this control active
+								m_dwActiveControl = dwI;
+								m_bMouseBoundToControl = true;
+								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue =
+									!m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
+								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bPressed = true;
 
-							// set return value
-							sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
-							sRet.bNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
-						}
+								// set return value
+								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+								sRet.bNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
+							}
 #pragma endregion
 #pragma region Float
-						// is this a float control ?
-						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::FloatInput)
-						{
-							if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize >> 2)))
+							// is this a float control ?
+							else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::FloatInput)
 							{
-								// upper arrows... get index of arrow
-								int nArrowIndex = (int)(m_sMouseCoords.x - psPos->x) / (int)m_dwFontSize;
-								if (nArrowIndex < 0) nArrowIndex = 0;
-								if (nArrowIndex > 11) nArrowIndex = 11;
+								if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize >> 2)))
+								{
+									// upper arrows... get index of arrow
+									int nArrowIndex = (int)(m_sMouseCoords.x - psPos->x) / (int)m_dwFontSize;
+									if (nArrowIndex < 0) nArrowIndex = 0;
+									if (nArrowIndex > 11) nArrowIndex = 11;
 
-								// get incrementer divisor
-								float fIncrementerDivisor = 1.0f;
-								if (nArrowIndex > 0) fIncrementerDivisor = pow(10.0f, (float)nArrowIndex);
-								float fIncrementer = 100000.0f / fIncrementerDivisor;
+									// get incrementer divisor
+									float fIncrementerDivisor = 1.0f;
+									if (nArrowIndex > 0) fIncrementerDivisor = pow(10.0f, (float)nArrowIndex);
+									float fIncrementer = 100000.0f / fIncrementerDivisor;
 
-								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue += fIncrementer;
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue += fIncrementer;
 
-								// set return value
-								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
-								sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
+									// set return value
+									sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+									sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
 
+								}
+								else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2)))
+								{
+									// numbers output... TODO !! LOCK/UNLOCK the number
+								}
+								else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1)))
+								{
+									// lower arrows... get index of arrow
+									int nArrowIndex = (int)(m_sMouseCoords.x - psPos->x) / (int)m_dwFontSize;
+									if (nArrowIndex < 0) nArrowIndex = 0;
+									if (nArrowIndex > 11) nArrowIndex = 11;
+
+									// get decrementer divisor
+									float fDecrementerDivisor = 1.0f;
+									if (nArrowIndex > 0) fDecrementerDivisor = pow(10.0f, (float)nArrowIndex);
+									float fDecrementer = 100000.0f / fDecrementerDivisor;
+
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue -= fDecrementer;
+
+									// set return value
+									sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+									sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
+								}
 							}
-							else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2)))
-							{
-								// numbers output... TODO !! LOCK/UNLOCK the number
-							}
-							else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1)))
-							{
-								// lower arrows... get index of arrow
-								int nArrowIndex = (int)(m_sMouseCoords.x - psPos->x) / (int)m_dwFontSize;
-								if (nArrowIndex < 0) nArrowIndex = 0;
-								if (nArrowIndex > 11) nArrowIndex = 11;
-
-								// get decrementer divisor
-								float fDecrementerDivisor = 1.0f;
-								if (nArrowIndex > 0) fDecrementerDivisor = pow(10.0f, (float)nArrowIndex);
-								float fDecrementer = 100000.0f / fDecrementerDivisor;
-
-								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue -= fDecrementer;
-
-								// set return value
-								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
-								sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
-							}
-						}
 #pragma endregion
+						}
 					}
-				}
 			}
 			// update control
 			m_bControlUpdate = true;
@@ -1165,33 +1184,33 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 						break;
 					case ScrollBar:
 					{
-									  // get y difference
-									  INT nYDiff = (INT)m_sMouseCoords.y - (INT)sMouseCoordsOld.y;
+						// get y difference
+						INT nYDiff = (INT)m_sMouseCoords.y - (INT)sMouseCoordsOld.y;
 
-									  // get control position and size
-									  POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sPosition;
-									  SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sSize;
-									  UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_paszEntries->size() * m_dwFontSize;
+						// get control position and size
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sSize;
+						UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_paszEntries->size() * m_dwFontSize;
 
-									  // get scroll bar size
-									  float fBarSizeY;
-									  fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
+						// get scroll bar size
+						float fBarSizeY;
+						fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
 
-									  // get the maximum scroll bar position in pixel
-									  float fMaxScrollBarYInPix = (float)psSize->cy - fBarSizeY;
-									  float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
+						// get the maximum scroll bar position in pixel
+						float fMaxScrollBarYInPix = (float)psSize->cy - fBarSizeY;
+						float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
 
-									  // set new scroll bar position
-									  m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fScrollBarPosYBackup + (float)nYDiff * (fMaxScrollBarY / fMaxScrollBarYInPix);
+						// set new scroll bar position
+						m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fScrollBarPosYBackup + (float)nYDiff * (fMaxScrollBarY / fMaxScrollBarYInPix);
 
-									  // and clamp
-									  if (m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY < 0.0f) m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = 0.0f;
-									  if (m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY > fMaxScrollBarY) m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fMaxScrollBarY;
+						// and clamp
+						if (m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY < 0.0f) m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = 0.0f;
+						if (m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY > fMaxScrollBarY) m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fMaxScrollBarY;
 
-									  // update control
-									  m_bControlUpdate = true;
+						// update control
+						m_bControlUpdate = true;
 					}
-						break;
+					break;
 					default:
 						break;
 				}

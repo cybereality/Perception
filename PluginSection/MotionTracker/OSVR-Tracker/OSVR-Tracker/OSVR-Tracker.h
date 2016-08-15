@@ -295,6 +295,10 @@ private:
 		uint32_t unWidth;
 		uint32_t unHeight;
 	} m_sTargetSize;
+	/**
+	* Key code for hotkey >Sync HMD Yaw<.
+	***/
+	UINT m_nHotkeySync;
 };
 
 /**

@@ -58,6 +58,7 @@ m_hFont(nullptr)
 	m_afPositionOrigin[0] = 0.0f;
 	m_afPositionOrigin[1] = 1.7f; /**< Default y tracking origin : 1.7 meters **/
 	m_afPositionOrigin[2] = 0.0f;
+	m_nHotkeySync = VK_BACK;      /**< Actually we don't need that here ! **/
 
 	// locate or create the INI file
 	char szFilePathINI[1024];
@@ -70,6 +71,7 @@ m_hFont(nullptr)
 	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "OSVR", "afPositionOrigin[0]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "OSVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "OSVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
+	m_nHotkeySync = GetIniFileSettingKeyCode("VK_BACK", "OSVR", "nHotkeySync", szFilePathINI, bFileExists);
 
 	m_cGameTimer.Reset();
 }
@@ -373,10 +375,6 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		// get client interface
 		osvrClientGetInterface(m_psOSVR_ClientContext, "/me/head", &m_psOSVR_ClientInterface);
 
-		// set render target size to 1200x1200... OSVR direct mode node will override this setting eventually
-		m_sTargetSize.unWidth = 1200;
-		m_sTargetSize.unHeight = 1200;
-		
 		// get the projection matrix for each eye, OSVR direct mode node will override this setting eventually
 		for (UINT unEye = 0; unEye < 2; unEye++)
 		{
@@ -453,6 +451,10 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 			// PITCH = atan2(2.0 * (x * y + w * z), w * w + x * x - y * y - z * z);
 			// ROLL = atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z);
 
+			// prevent from yaw prediction overturn
+			float fYawChange = abs(afEulerOld[1] - m_afEuler[1]);
+			if (fYawChange > 3.14f) afEulerOld[1] = m_afEuler[1];
+
 			// get euler velocity + acceleration
 			float afEulerAcceleration[3];
 			for (UINT unI = 0; unI < 3; unI++)
@@ -469,7 +471,17 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 			{
 				// compute predicted euler
 				m_afEulerPredicted[unI] = (0.5f * afEulerAcceleration[unI] * ((float)m_cGameTimer.DeltaTime() * (float)m_cGameTimer.DeltaTime())) + (m_afEulerVelocity[unI] * (float)m_cGameTimer.DeltaTime()) + m_afEuler[unI];
-			}		
+			}
+
+			// resync yaw ?
+			static float s_fYawOrigin = 0.0f;
+			if (GetAsyncKeyState(m_nHotkeySync))
+			{
+				s_fYawOrigin = -m_afEulerPredicted[1];
+			}
+
+			// sync yaw to origin
+			m_afEulerPredicted[1] += s_fYawOrigin;
 
 			// set position TODO !! TEST ORIGIN SETTINGS USING POSITIONAL TRACKING
 			m_afPosition[0] = (float)m_sState.translation.data[0] - m_afPositionOrigin[0];
@@ -490,14 +502,18 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 #ifdef _DEBUG
 			// output debug data
 			std::wstringstream szPose;
-			szPose << L"Got POSE state: Position = ("
+			/*szPose << L"Got POSE state: Position = ("
 				<< m_sState.translation.data[0] << L", "
 				<< m_sState.translation.data[1] << L", "
 				<< m_sState.translation.data[2] << L"), orientation = ("
 				<< osvrQuatGetW(&(m_sState.rotation)) << L", "
 				<< osvrQuatGetX(&(m_sState.rotation)) << L", "
 				<< osvrQuatGetY(&(m_sState.rotation)) << L", "
-				<< osvrQuatGetZ(&(m_sState.rotation)) << L")";
+				<< osvrQuatGetZ(&(m_sState.rotation)) << L")";*/
+			szPose << L"Got POSE state: Rotation = ("
+				<< m_afEulerPredicted[0] << L", "
+				<< m_afEulerPredicted[1] << L", "
+				<< -m_afEulerPredicted[2] << L")";
 			OutputDebugString(szPose.str().c_str());
 #endif
 		}
