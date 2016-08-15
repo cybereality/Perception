@@ -316,7 +316,7 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 			(m_aaunKeys[unI][unJ] == VK_LMENU))
 			m_aabKeyExtended[unI][unJ] = TRUE;
 		else
-			m_aabKeyExtended[unI][unJ] = TRUE;
+			m_aabKeyExtended[unI][unJ] = FALSE;
 	}
 }
 
@@ -692,42 +692,17 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (vr::ButtonMaskFromId((vr::EVRButtonId)aunButtonIds[unButtonIx]) & state.ulButtonPressed)
 						{
 							if (!m_aabKeys[unControllerIndex][unButtonIx])
-							{
-								m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-								if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-									mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-								else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-									mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-								else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-									mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-								else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-									keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-								else
-									keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-							}
+								MapButtonDown(unControllerIndex, unButtonIx);
 						}
 						else
 						if (m_aabKeys[unControllerIndex][unButtonIx])
-						{
-							m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-							if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-								mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-							else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-								mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-							else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-								mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-							else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-								keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-							else
-								keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-						}
+							MapButtonUp(unControllerIndex, unButtonIx);
 					}
 
 					// loop throug axis
 					for (UINT unAxisIx = 0; unAxisIx < 5; unAxisIx++)
 					{
+#pragma region axis below/above pressed
 						// is the axis button pressed ?
 						if (vr::ButtonMaskFromId((vr::EVRButtonId)(unAxisIx + (UINT)vr::EVRButtonId::k_EButton_Axis0)) & state.ulButtonPressed)
 						{
@@ -740,40 +715,14 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_X;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_X;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							if (state.rAxis[unAxisIx].x > fAxisScope)
@@ -781,40 +730,14 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_X;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_X;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							// y ?
@@ -823,40 +746,14 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_Y;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_Y;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							if (state.rAxis[unAxisIx].y > fAxisScope)
@@ -864,42 +761,18 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_Y;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_Y;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 						}
+#pragma endregion
+#pragma region axis below/above touched
 						// or is it touched ?
 						else if (vr::ButtonMaskFromId((vr::EVRButtonId)(unAxisIx + (UINT)vr::EVRButtonId::k_EButton_Axis0)) & state.ulButtonTouched)
 						{
@@ -912,40 +785,14 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							if (state.rAxis[unAxisIx].x > fAxisScope)
@@ -953,40 +800,14 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_X;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_X;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							// y ?
@@ -995,40 +816,14 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Y;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no below event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Y;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							if (state.rAxis[unAxisIx].y > fAxisScope)
@@ -1036,42 +831,18 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Y;
 								if (!m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-									else m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
-
-									if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
-								}
+									MapButtonDown(unControllerIndex, unButtonIx);
 							}
 							else
 							{
 								// no above event
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Y;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 						}
+#pragma endregion
+#pragma region release buttons
 						else
 						{
 							for (UINT unXY_BA = 0; unXY_BA < 4; unXY_BA++)
@@ -1079,20 +850,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// not touched or pressed, release all buttons if pressed
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X + unXY_BA;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 							for (UINT unXY_BA = 0; unXY_BA < 4; unXY_BA++)
@@ -1100,23 +858,11 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// not touched or pressed, release all buttons if pressed
 								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_X + unXY_BA;
 								if (m_aabKeys[unControllerIndex][unButtonIx])
-								{
-									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
-
-									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
-										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
-										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
-										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-									else
-										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
-								}
+									MapButtonUp(unControllerIndex, unButtonIx);
 							}
 
 						}
+#pragma endregion
 					}
 				}
 

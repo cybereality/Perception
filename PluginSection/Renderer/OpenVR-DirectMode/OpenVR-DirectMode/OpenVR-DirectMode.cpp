@@ -1033,7 +1033,13 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 									GetWindowRect(pDesktop, &sDesktop);
 									float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
 									float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
+									
 									SetCursorPos((int)fXPos, (int)fYPos);
+									
+									// hardware emulation (if ever needed)
+									/*POINT sPoint;
+									GetCursorPos(&sPoint);
+									mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);*/
 								}
 							}
 

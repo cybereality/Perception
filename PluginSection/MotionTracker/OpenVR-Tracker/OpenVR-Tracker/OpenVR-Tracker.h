@@ -303,6 +303,36 @@ public:
 private:
 	/*** OpenVR_Tracker private methods ***/
 	void ProcessVREvent(const vr::VREvent_t & event);
+	void MapButtonDown(UINT unControllerIx, UINT unButtonIx)
+	{
+		m_aabKeys[unControllerIx][unButtonIx] = TRUE;
+		
+		if (m_aaunKeys[unControllerIx][unButtonIx] == VK_LBUTTON)
+			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_MBUTTON)
+			mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_RBUTTON)
+			mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+		else if (m_aabKeyExtended[unControllerIx][unButtonIx])
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+		else
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+	}
+	void MapButtonUp(UINT unControllerIx, UINT unButtonIx)
+	{
+		m_aabKeys[unControllerIx][unButtonIx] = FALSE;
+
+		if (m_aaunKeys[unControllerIx][unButtonIx] == VK_LBUTTON)
+			mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_MBUTTON)
+			mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_RBUTTON)
+			mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+		else if (m_aabKeyExtended[unControllerIx][unButtonIx])
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+		else
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+	}
 
 	/**
 	* OpenVR system.
