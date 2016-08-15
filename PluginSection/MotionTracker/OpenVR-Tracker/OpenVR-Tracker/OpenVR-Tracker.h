@@ -41,6 +41,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<sstream>
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <openvr.h>
 #pragma comment(lib, "openvr_api.lib")
 
@@ -365,15 +368,27 @@ private:
 	/**
 	* Keyboard codes assigned to buttons.
 	* 0..2 Controller index.
-	* 0..13 Button index.
+	* 0..53 Button index.
 	***/
-	UINT aaunKeys[2][13];
+	UINT m_aaunKeys[2][53];
 	/**
 	* True if button is pressed.
 	* 0..2 Controller index.
-	* 0..13 Button index.
+	* 0..53 Button index.
 	***/
-	BOOL aabKeys[2][13];
+	BOOL m_aabKeys[2][53];
+	/**
+	* True if button is an extended key.
+	* 0..2 Controller index.
+	* 0..53 Button index.
+	***/
+	BOOL m_aabKeyExtended[2][53];
+	/**
+	* Inner scope (no button) user setting structure for any axis pressed / not pressed.
+	* 0..2 Controller index.
+	* 0..5 Axis index.
+	***/
+	float m_aafAxisInnerScope[2][5];
 };
 
 /**

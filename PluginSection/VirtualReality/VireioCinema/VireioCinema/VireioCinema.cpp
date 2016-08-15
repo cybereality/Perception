@@ -1598,12 +1598,14 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	GetCursorPos(&sPoint);
 
 	// mouse not moved ?
+	static DWORD unTimeLastFrame = 0;
 	if ((sPoint.x == s_sPointOld.x) && (sPoint.y == s_sPointOld.y))
 	{
-		s_unTick += unTimeCurrent;
+		s_unTick += unTimeCurrent - unTimeLastFrame;
 	}
 	else s_unTick = 0;
 	s_sPointOld = sPoint;
+	unTimeLastFrame = unTimeCurrent;
 
 	// set new pos, if not moved set out of view
 	if (s_unTick > m_unMouseTickCount)

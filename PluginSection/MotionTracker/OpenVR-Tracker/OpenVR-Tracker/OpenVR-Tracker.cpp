@@ -85,6 +85,46 @@ enum ViveControllerButtons
 	Index_EButton_Axis2 = 10,
 	Index_EButton_Axis3 = 11,
 	Index_EButton_Axis4 = 12,
+	Index_EButton_Axis0_Below_X = 13,
+	Index_EButton_Axis0_Above_X,
+	Index_EButton_Axis0_Below_Y,
+	Index_EButton_Axis0_Above_Y,
+	Index_EButton_Axis1_Below_X,
+	Index_EButton_Axis1_Above_X,
+	Index_EButton_Axis1_Below_Y,
+	Index_EButton_Axis1_Above_Y,
+	Index_EButton_Axis2_Below_X,
+	Index_EButton_Axis2_Above_X,
+	Index_EButton_Axis2_Below_Y,
+	Index_EButton_Axis2_Above_Y,
+	Index_EButton_Axis3_Below_X,
+	Index_EButton_Axis3_Above_X,
+	Index_EButton_Axis3_Below_Y,
+	Index_EButton_Axis3_Above_Y,
+	Index_EButton_Axis4_Below_X,
+	Index_EButton_Axis4_Above_X,
+	Index_EButton_Axis4_Below_Y,
+	Index_EButton_Axis4_Above_Y,
+	Index_EButton_Axis0_Below_Pressed_X,
+	Index_EButton_Axis0_Above_Pressed_X,
+	Index_EButton_Axis0_Below_Pressed_Y,
+	Index_EButton_Axis0_Above_Pressed_Y,
+	Index_EButton_Axis1_Below_Pressed_X,
+	Index_EButton_Axis1_Above_Pressed_X,
+	Index_EButton_Axis1_Below_Pressed_Y,
+	Index_EButton_Axis1_Above_Pressed_Y,
+	Index_EButton_Axis2_Below_Pressed_X,
+	Index_EButton_Axis2_Above_Pressed_X,
+	Index_EButton_Axis2_Below_Pressed_Y,
+	Index_EButton_Axis2_Above_Pressed_Y,
+	Index_EButton_Axis3_Below_Pressed_X,
+	Index_EButton_Axis3_Above_Pressed_X,
+	Index_EButton_Axis3_Below_Pressed_Y,
+	Index_EButton_Axis3_Above_Pressed_Y,
+	Index_EButton_Axis4_Below_Pressed_X,
+	Index_EButton_Axis4_Above_Pressed_X,
+	Index_EButton_Axis4_Below_Pressed_Y,
+	Index_EButton_Axis4_Above_Pressed_Y = 52,
 };
 
 /**
@@ -103,36 +143,181 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 
 	m_cGameTimer.Reset();
 
+	std::string astrVKCodes[] = { "VK_ESCAPE", "VK_SHIFT", "VK_ESCAPE", "X", "X", "X", "X", "VK_TAB", "VK_RBUTTON", "VK_LBUTTON", "VK_F4", "VK_F5", "VK_F6", // << Keys controller 0
+		"VK_LEFT", "VK_RIGHT", "VK_DOWN", "VK_UP", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                           // << Keys controller 0 axis 
+		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                                  // << Keys controller 0 axis pressed
+		"VK_ESCAPE", "VK_RETURN", "VK_E", "X", "X", "X", "X", "VK_C", "VK_RETURN", "VK_SPACE", "VK_F1", "VK_F2", "VK_F3",                                    // << Keys controller 1
+		"VK_A", "VK_D", "VK_S", "VK_W", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                      // << Keys controller 1 axis
+		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" };                                                // << Keys controller 1 axis pressed
+
+	// set inner scope
+	for (UINT unI = 0; unI < 5; unI++)
+	{
+		m_aafAxisInnerScope[0][unI] = 0.8f;
+		m_aafAxisInnerScope[1][unI] = 0.8f;
+	}
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
 	// set default key codes
-	aaunKeys[0][Index_EButton_System] = GetVkCodeByString("VK_ESCAPE");
-	aaunKeys[0][Index_EButton_ApplicationMenu] = GetVkCodeByString("VK_SHIFT");
-	aaunKeys[0][Index_EButton_Grip] = GetVkCodeByString("VK_ESCAPE");
-	aaunKeys[0][Index_EButton_DPad_Left] = GetVkCodeByString("VK_LEFT");
-	aaunKeys[0][Index_EButton_DPad_Up] = GetVkCodeByString("VK_UP");
-	aaunKeys[0][Index_EButton_DPad_Right] = GetVkCodeByString("VK_RIGHT");
-	aaunKeys[0][Index_EButton_DPad_Down] = GetVkCodeByString("VK_DOWN");
-	aaunKeys[0][Index_EButton_A] = GetVkCodeByString("VK_TAB");
-	aaunKeys[0][Index_EButton_Axis0] = GetVkCodeByString("VK_LBUTTON");
-	aaunKeys[0][Index_EButton_Axis1] = GetVkCodeByString("VK_RBUTTON");
-	aaunKeys[0][Index_EButton_Axis2] = GetVkCodeByString("VK_F4");
-	aaunKeys[0][Index_EButton_Axis3] = GetVkCodeByString("VK_F5");
-	aaunKeys[0][Index_EButton_Axis4] = GetVkCodeByString("VK_F6");
-	aaunKeys[1][Index_EButton_System] = GetVkCodeByString("VK_ESCAPE");
-	aaunKeys[1][Index_EButton_ApplicationMenu] = GetVkCodeByString("VK_RETURN");
-	aaunKeys[1][Index_EButton_Grip] = GetVkCodeByString("VK_E");
-	aaunKeys[1][Index_EButton_DPad_Left] = GetVkCodeByString("VK_A");
-	aaunKeys[1][Index_EButton_DPad_Up] = GetVkCodeByString("VK_W");
-	aaunKeys[1][Index_EButton_DPad_Right] = GetVkCodeByString("VK_D");
-	aaunKeys[1][Index_EButton_DPad_Down] = GetVkCodeByString("VK_S");
-	aaunKeys[1][Index_EButton_A] = GetVkCodeByString("VK_C");
-	aaunKeys[1][Index_EButton_Axis0] = GetVkCodeByString("VK_RETURN");
-	aaunKeys[1][Index_EButton_Axis1] = GetVkCodeByString("VK_SPACE");
-	aaunKeys[1][Index_EButton_Axis2] = GetVkCodeByString("VK_F1");
-	aaunKeys[1][Index_EButton_Axis3] = GetVkCodeByString("VK_F2");
-	aaunKeys[1][Index_EButton_Axis4] = GetVkCodeByString("VK_F3");
+	m_aaunKeys[0][Index_EButton_System] = GetIniFileSettingKeyCode(astrVKCodes[0], "OpenVR", "aaunKeys[0][Index_EButton_System]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_ApplicationMenu] = GetIniFileSettingKeyCode(astrVKCodes[1], "OpenVR", "aaunKeys[0][Index_EButton_ApplicationMenu]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Grip] = GetIniFileSettingKeyCode(astrVKCodes[2], "OpenVR", "aaunKeys[0][Index_EButton_Grip]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Left] = GetIniFileSettingKeyCode(astrVKCodes[3], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Left]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Up] = GetIniFileSettingKeyCode(astrVKCodes[4], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Up]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Right] = GetIniFileSettingKeyCode(astrVKCodes[5], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Right]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Down] = GetIniFileSettingKeyCode(astrVKCodes[6], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Down]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_A] = GetIniFileSettingKeyCode(astrVKCodes[7], "OpenVR", "aaunKeys[0][Index_EButton_A]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0] = GetIniFileSettingKeyCode(astrVKCodes[8], "OpenVR", "aaunKeys[0][Index_EButton_Axis0]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1] = GetIniFileSettingKeyCode(astrVKCodes[9], "OpenVR", "aaunKeys[0][Index_EButton_Axis1]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2] = GetIniFileSettingKeyCode(astrVKCodes[10], "OpenVR", "aaunKeys[0][Index_EButton_Axis2]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3] = GetIniFileSettingKeyCode(astrVKCodes[11], "OpenVR", "aaunKeys[0][Index_EButton_Axis3]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4] = GetIniFileSettingKeyCode(astrVKCodes[12], "OpenVR", "aaunKeys[0][Index_EButton_Axis4]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[0][Index_EButton_Axis0_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[13], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[14], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[15], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[16], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[17], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[18], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[19], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[20], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[21], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[22], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[23], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[24], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[25], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[26], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[27], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[28], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[29], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[30], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[31], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[32], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_Y]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[0][Index_EButton_Axis0_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[33], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[34], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[35], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[36], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[37], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[38], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[39], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[40], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[41], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[42], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[43], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[44], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[45], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[46], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[47], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[48], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[49], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[50], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[51], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[52], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_Pressed_Y]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[1][Index_EButton_System] = GetIniFileSettingKeyCode(astrVKCodes[53], "OpenVR", "aaunKeys[1][Index_EButton_System]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_ApplicationMenu] = GetIniFileSettingKeyCode(astrVKCodes[54], "OpenVR", "aaunKeys[1][Index_EButton_ApplicationMenu]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Grip] = GetIniFileSettingKeyCode(astrVKCodes[55], "OpenVR", "aaunKeys[1][Index_EButton_Grip]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Left] = GetIniFileSettingKeyCode(astrVKCodes[56], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Left]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Up] = GetIniFileSettingKeyCode(astrVKCodes[57], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Up]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Right] = GetIniFileSettingKeyCode(astrVKCodes[58], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Right]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Down] = GetIniFileSettingKeyCode(astrVKCodes[59], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Down]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_A] = GetIniFileSettingKeyCode(astrVKCodes[60], "OpenVR", "aaunKeys[1][Index_EButton_A]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0] = GetIniFileSettingKeyCode(astrVKCodes[61], "OpenVR", "aaunKeys[1][Index_EButton_Axis0]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1] = GetIniFileSettingKeyCode(astrVKCodes[62], "OpenVR", "aaunKeys[1][Index_EButton_Axis1]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2] = GetIniFileSettingKeyCode(astrVKCodes[63], "OpenVR", "aaunKeys[1][Index_EButton_Axis2]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3] = GetIniFileSettingKeyCode(astrVKCodes[64], "OpenVR", "aaunKeys[1][Index_EButton_Axis3]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4] = GetIniFileSettingKeyCode(astrVKCodes[65], "OpenVR", "aaunKeys[1][Index_EButton_Axis4]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[1][Index_EButton_Axis0_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[66], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[67], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[68], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[69], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[70], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[71], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[72], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[73], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[74], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[75], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[76], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[77], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[78], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[79], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[80], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[81], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[82], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[83], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[84], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[85], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Y]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[1][Index_EButton_Axis0_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[86], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[87], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[88], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[89], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[90], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[91], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[92], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[93], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[94], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[95], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[96], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[97], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[98], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[99], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[100], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[101], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[102], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[103], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[104], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[105], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Pressed_Y]", szFilePathINI, bFileExists);
+
+	m_aafAxisInnerScope[0][0] = GetIniFileSetting(m_aafAxisInnerScope[0][0], "OpenVR", "aafAxisInnerScope[0][0]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[0][1] = GetIniFileSetting(m_aafAxisInnerScope[0][1], "OpenVR", "aafAxisInnerScope[0][1]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[0][2] = GetIniFileSetting(m_aafAxisInnerScope[0][2], "OpenVR", "aafAxisInnerScope[0][2]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[0][3] = GetIniFileSetting(m_aafAxisInnerScope[0][3], "OpenVR", "aafAxisInnerScope[0][3]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[0][4] = GetIniFileSetting(m_aafAxisInnerScope[0][4], "OpenVR", "aafAxisInnerScope[0][4]", szFilePathINI, bFileExists);
+
+	m_aafAxisInnerScope[1][0] = GetIniFileSetting(m_aafAxisInnerScope[1][0], "OpenVR", "aafAxisInnerScope[1][0]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[1][1] = GetIniFileSetting(m_aafAxisInnerScope[1][1], "OpenVR", "aafAxisInnerScope[1][1]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[1][2] = GetIniFileSetting(m_aafAxisInnerScope[1][2], "OpenVR", "aafAxisInnerScope[1][2]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[1][3] = GetIniFileSetting(m_aafAxisInnerScope[1][3], "OpenVR", "aafAxisInnerScope[1][3]", szFilePathINI, bFileExists);
+	m_aafAxisInnerScope[1][4] = GetIniFileSetting(m_aafAxisInnerScope[1][4], "OpenVR", "aafAxisInnerScope[1][4]", szFilePathINI, bFileExists);
 
 	// erase key bool field
-	ZeroMemory(&aabKeys[0][0], sizeof(BOOL) * 2 * 13);
+	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL)* 2 * 13);
+
+	// extended keys set ?
+	for (UINT unI = 0; unI < 2; unI++)
+	for (UINT unJ = 0; unJ < 53; unJ++)
+	{
+		if ((m_aaunKeys[unI][unJ] == VK_UP) ||
+			(m_aaunKeys[unI][unJ] == VK_DOWN) ||
+			(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_UP) ||
+			(m_aaunKeys[unI][unJ] == VK_SHIFT) ||
+			(m_aaunKeys[unI][unJ] == VK_CONTROL) ||
+			(m_aaunKeys[unI][unJ] == VK_BACK) ||
+			(m_aaunKeys[unI][unJ] == VK_INSERT) ||
+			(m_aaunKeys[unI][unJ] == VK_DELETE) ||
+			(m_aaunKeys[unI][unJ] == VK_HOME) ||
+			(m_aaunKeys[unI][unJ] == VK_END) ||
+			(m_aaunKeys[unI][unJ] == VK_MBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_RBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_LCONTROL) ||
+			(m_aaunKeys[unI][unJ] == VK_RCONTROL) ||
+			(m_aaunKeys[unI][unJ] == VK_RMENU) ||
+			(m_aaunKeys[unI][unJ] == VK_LMENU))
+			m_aabKeyExtended[unI][unJ] = TRUE;
+		else
+			m_aabKeyExtended[unI][unJ] = TRUE;
+	}
 }
 
 /**
@@ -504,44 +689,435 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					for (UINT unButtonIx = 0; unButtonIx < unButtonNo; unButtonIx++)
 					{
 						// cast keyboard event
-						if (vr::ButtonMaskFromId((vr::EVRButtonId)aunButtonIds[unButtonIx]) && state.ulButtonPressed)
+						if (vr::ButtonMaskFromId((vr::EVRButtonId)aunButtonIds[unButtonIx]) & state.ulButtonPressed)
 						{
-							if (!aabKeys[unControllerIndex][unButtonIx])
+							if (!m_aabKeys[unControllerIndex][unButtonIx])
 							{
-								aabKeys[unControllerIndex][unButtonIx] = TRUE;
-								keybd_event(aaunKeys[unControllerIndex][unButtonIx], 0, 0, 0);
+								m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+								if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+									mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+								else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+									mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+								else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+									mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+								else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+									keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+								else
+									keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
 							}
 						}
 						else
-							if (aabKeys[unControllerIndex][unButtonIx])
-							{
-								aabKeys[unControllerIndex][unButtonIx] = FALSE;
-								keybd_event(aaunKeys[unControllerIndex][unButtonIx], 0, 0, 0);
-							}
+						if (m_aabKeys[unControllerIndex][unButtonIx])
+						{
+							m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+							if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+								mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+							else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+								mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+							else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+								mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+							else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+								keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+							else
+								keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+						}
 					}
 
-					//// as a start, simple simulate left mouse button click
-					//static bool bLeftMouse = false;
-					//if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_SteamVR_Trigger) && state.ulButtonPressed)
-					//{
-					//	INPUT    Input = { 0 };
-					//	// left down 
-					//	Input.type = INPUT_MOUSE;
-					//	Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-					//	::SendInput(1, &Input, sizeof(INPUT));
-					//	bLeftMouse = true;
-					//}
-					//else
-					//	if (bLeftMouse)
-					//	{
+					// loop throug axis
+					for (UINT unAxisIx = 0; unAxisIx < 5; unAxisIx++)
+					{
+						// is the axis button pressed ?
+						if (vr::ButtonMaskFromId((vr::EVRButtonId)(unAxisIx + (UINT)vr::EVRButtonId::k_EButton_Axis0)) & state.ulButtonPressed)
+						{
+							// take half of the full scope here
+							float fAxisScope = m_aafAxisInnerScope[unControllerIndex][unAxisIx] / 2.0f;
 
-					//		// left up
-					//		INPUT    Input = { 0 };
-					//		Input.type = INPUT_MOUSE;
-					//		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-					//		::SendInput(1, &Input, sizeof(INPUT));
-					//		bLeftMouse = false;
-					//	}
+							// x ?
+							if (state.rAxis[unAxisIx].x < -fAxisScope)
+							{
+								// below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_X;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_X;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							if (state.rAxis[unAxisIx].x > fAxisScope)
+							{
+								// above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_X;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_X;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							// y ?
+							if (state.rAxis[unAxisIx].y < -fAxisScope)
+							{
+								// below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_Y;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_Y;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							if (state.rAxis[unAxisIx].y > fAxisScope)
+							{
+								// above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_Y;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Pressed_Y;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+						}
+						// or is it touched ?
+						else if (vr::ButtonMaskFromId((vr::EVRButtonId)(unAxisIx + (UINT)vr::EVRButtonId::k_EButton_Axis0)) & state.ulButtonTouched)
+						{
+							// take half of the full scope here
+							float fAxisScope = m_aafAxisInnerScope[unControllerIndex][unAxisIx] / 2.0f;
+
+							// x ?
+							if (state.rAxis[unAxisIx].x < -fAxisScope)
+							{
+								// below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							if (state.rAxis[unAxisIx].x > fAxisScope)
+							{
+								// above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_X;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_X;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							// y ?
+							if (state.rAxis[unAxisIx].y < -fAxisScope)
+							{
+								// below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Y;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no below event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Y;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							if (state.rAxis[unAxisIx].y > fAxisScope)
+							{
+								// above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Y;
+								if (!m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+									else m_aabKeys[unControllerIndex][unButtonIx] = TRUE;
+
+									if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+								}
+							}
+							else
+							{
+								// no above event
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Above_Y;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+						}
+						else
+						{
+							for (UINT unXY_BA = 0; unXY_BA < 4; unXY_BA++)
+							{
+								// not touched or pressed, release all buttons if pressed
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X + unXY_BA;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+							for (UINT unXY_BA = 0; unXY_BA < 4; unXY_BA++)
+							{
+								// not touched or pressed, release all buttons if pressed
+								UINT unButtonIx = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_Pressed_X + unXY_BA;
+								if (m_aabKeys[unControllerIndex][unButtonIx])
+								{
+									m_aabKeys[unControllerIndex][unButtonIx] = FALSE;
+
+									if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_LBUTTON)
+										mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_MBUTTON)
+										mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+									else if (m_aaunKeys[unControllerIndex][unButtonIx] == VK_RBUTTON)
+										mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+									else if (m_aabKeyExtended[unControllerIndex][unButtonIx])
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+									else
+										keybd_event(m_aaunKeys[unControllerIndex][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIndex][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+								}
+							}
+
+						}
+					}
 				}
 
 				// set index to next controller (max 2)

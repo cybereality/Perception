@@ -48,7 +48,8 @@ UINT GetVkCodeByString(std::string szCode)
 		wchar_t uc = szCode[3];
 		return (UINT)uc;
 	}
-
+	
+	if (szCode == "X") return                 0x00;
 	if (szCode == "VK_LBUTTON") return        0x01;
 	if (szCode == "VK_RBUTTON") return        0x02;
 	if (szCode == "VK_CANCEL") return         0x03;
