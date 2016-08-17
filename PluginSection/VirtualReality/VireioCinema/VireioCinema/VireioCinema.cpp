@@ -142,7 +142,7 @@ m_pcBackBufferCopySR(nullptr)
 	m_sCinemaRoomSetup.ePixelShaderFX_Screen = VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen::Screen_GeometryDiffuseTexturedMouse;
 	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_ToonCloud;
 	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_WaterCaustic;
-	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_Planets;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_VoronoiSmooth;
 	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_Bubbles;
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory;
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01;

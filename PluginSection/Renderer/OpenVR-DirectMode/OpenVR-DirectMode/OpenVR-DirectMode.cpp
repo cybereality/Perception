@@ -207,7 +207,7 @@ m_bRenderModelsCreated(false)
 	// set default ini settings
 	m_fAspectRatio = 1920.0f / 1080.0f;
 	m_bForceInterleavedReprojection = false;
-	m_unSleepTime = 10;
+	m_unSleepTime = 0;
 
 	// set first matrices.. 
 	D3DXMatrixIdentity(&m_sView);
@@ -973,6 +973,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						}
 
 						// loop through available render models, render
+						bool bMouseCursorSet = false;
 						for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
 						{
 							// set texture and buffers
@@ -985,7 +986,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
 
 							// set mouse cursor for first controller device
-							if (unI == 2)
+							vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass((vr::TrackedDeviceIndex_t)unI+1);
+							if ((eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller) && (!bMouseCursorSet))
 							{
 								// get pose matrix
 								UINT unIndex = (UINT)m_asRenderModels[unI].unTrackedDeviceIndex;
@@ -1035,11 +1037,12 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 									float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
 									
 									SetCursorPos((int)fXPos, (int)fYPos);
-									
-									// hardware emulation (if ever needed)
-									/*POINT sPoint;
-									GetCursorPos(&sPoint);
-									mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);*/
+									bMouseCursorSet = true;
+																		
+									// hardware emulation... if ever needed
+									// POINT sPoint;
+									// GetCursorPos(&sPoint);
+									// mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);
 								}
 							}
 
@@ -1276,6 +1279,9 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			else
 				OutputDebugString(L"OpenVR: Current process has NOT the scene focus.");
 		}
+
+		// call post present handoff for better performance here
+		vr::VRCompositor()->PostPresentHandoff();
 	}
 
 	// release d3d11 device + context... 

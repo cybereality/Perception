@@ -209,17 +209,14 @@ private:
 	***/
 	static DWORD WINAPI SubmitFramesConstantly(void* Param)
 	{
-		// optimize openvr for 1080p, draw space at top and bottom black (1200p)
-		/*const static float fVMin = -(((1200.0f - 1080.0f) / 2.0f) / 1080.0f);
-		const static float fVMax = 1.0f + (((1200.0f - 1080.0f) / 2.0f) / 1080.0f);*/
-
+		// constantly submit the latest frame
 		while (true)
 		{
 			if (m_ppHMD)
 			{
 				if (*m_ppHMD)
 				{
-					if ((m_bInit) && (vr::VRCompositor()->CanRenderScene()) && (!vr::VROverlay()->IsDashboardVisible()))
+					if (m_bInit)
 					{
 						// left + right
 						for (int nEye = 0; nEye < 2; nEye++)
@@ -227,26 +224,11 @@ private:
 							// fill openvr texture struct
 							vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
 
-							//// adjust aspect ratio ... TODO !! CORRECTIONS ON CINEMA NODE
-							//vr::VRTextureBounds_t sBounds;
-							//if (nEye == (int)vr::Eye_Left)
-							//{
-							//	sBounds.uMin = m_fHorizontalRatioCorrectionLeft + m_fHorizontalOffsetCorrectionLeft;
-							//	sBounds.uMax = 1.0f - m_fHorizontalRatioCorrectionLeft + m_fHorizontalOffsetCorrectionLeft;
-							//}
-							//else
-							//{
-							//	sBounds.uMin = m_fHorizontalRatioCorrectionRight + m_fHorizontalOffsetCorrectionRight;
-							//	sBounds.uMax = 1.0f - m_fHorizontalRatioCorrectionRight + m_fHorizontalOffsetCorrectionRight;
-							//}
-							//sBounds.vMin = fVMin;
-							//sBounds.vMax = fVMax;
-
 							// submit left texture
-							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture);// , &sBounds);
+							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture);
 						}
 
-						// sleep for 10 milliseconds (default) to ensure frame is submitted ~90 times per second (for reprojection 20ms -> 45fps)
+						// sleep if needed (0 milliseconds = default)
 						Sleep(m_unSleepTime);
 						vr::VRCompositor()->ForceInterleavedReprojectionOn(m_bForceInterleavedReprojection);
 					}
