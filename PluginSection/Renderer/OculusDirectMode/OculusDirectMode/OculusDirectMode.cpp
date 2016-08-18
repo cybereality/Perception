@@ -816,18 +816,18 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			m_psEyeRenderTexture[eye]->Commit();
 		}
 
-		// Initialize our single full screen Fov layer.
-		ovrLayerEyeFov ld = {};
-		ld.Header.Type = ovrLayerType_EyeFov;
-		ld.Header.Flags = 0;
+		// init our layers, first our full screen Fov layer.
+		ZeroMemory(&m_sLayerPrimal, sizeof(ovrLayerQuad));
+		m_sLayerPrimal.Header.Type = ovrLayerType_EyeFov;
+		m_sLayerPrimal.Header.Flags = 0;
 
 		for (int eye = 0; eye < 2; ++eye)
 		{
-			ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureChain;
-			ld.Viewport[eye] = m_psEyeRenderViewport[eye];
-			ld.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
-			ld.RenderPose[eye] = asEyeRenderPose[eye];
-			ld.SensorSampleTime = sensorSampleTime;
+			m_sLayerPrimal.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureChain;
+			m_sLayerPrimal.Viewport[eye] = m_psEyeRenderViewport[eye];
+			m_sLayerPrimal.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
+			m_sLayerPrimal.RenderPose[eye] = asEyeRenderPose[eye];
+			m_sLayerPrimal.SensorSampleTime = sensorSampleTime;
 		}
 
 		m_pasLayerList[OculusLayers::OculusLayer_MainEye] = &m_sLayerPrimal.Header;
@@ -871,7 +871,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				unLayerNumber = 2;
 			}
 		}
-		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, 1);
+		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, unLayerNumber);
 
 		// copy the mirror texture to the shared texture
 		ID3D11Texture2D* tex = nullptr;
