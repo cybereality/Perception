@@ -91,7 +91,8 @@ m_asRenderModels(),
 m_punTexResolutionHeight(nullptr),
 m_punTexResolutionWidth(nullptr),
 m_pcBackBufferCopy(nullptr),
-m_pcBackBufferCopySR(nullptr)
+m_pcBackBufferCopySR(nullptr),
+m_pcRS(nullptr)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -213,6 +214,7 @@ VireioCinema::~VireioCinema()
 		SAFE_RELEASE(m_asRenderModels[unI].pcTexture);
 		SAFE_RELEASE(m_asRenderModels[unI].pcEffect);
 	}
+	SAFE_RELEASE(m_pcRS);
 	SAFE_RELEASE(m_pcBackBufferCopySR);
 	SAFE_RELEASE(m_pcBackBufferCopy);
 	SAFE_RELEASE(m_pcTex11Draw[0]);
@@ -525,9 +527,9 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 			return true;
 	}
 	else
-		if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
-			(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
-			return true;
+	if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
+		(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+		return true;
 
 	return false;
 }
@@ -599,70 +601,70 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		case D3D_9:
 		{
 
-			// get device 
-			LPDIRECT3DDEVICE9 pcDevice = nullptr;
-			bool bReleaseDevice = false;
-			if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
-			{
-				pcDevice = (LPDIRECT3DDEVICE9)pThis;
-			}
-			else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
-			{
-				LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
-				if (!pSwapChain)
-				{
-					OutputDebugString(L"[CIN] No swapchain !");
-					return nullptr;
-				}
-				pSwapChain->GetDevice(&pcDevice);
-				bReleaseDevice = true;
-			}
-			if (!pcDevice)
-			{
-				OutputDebugString(L"[CIN] No device !");
-				return nullptr;
-			}
+					  // get device 
+					  LPDIRECT3DDEVICE9 pcDevice = nullptr;
+					  bool bReleaseDevice = false;
+					  if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+					  {
+						  pcDevice = (LPDIRECT3DDEVICE9)pThis;
+					  }
+					  else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+					  {
+						  LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
+						  if (!pSwapChain)
+						  {
+							  OutputDebugString(L"[CIN] No swapchain !");
+							  return nullptr;
+						  }
+						  pSwapChain->GetDevice(&pcDevice);
+						  bReleaseDevice = true;
+					  }
+					  if (!pcDevice)
+					  {
+						  OutputDebugString(L"[CIN] No device !");
+						  return nullptr;
+					  }
 
-			if ((m_pVBCinemaTheatre) && (m_pVBCinemaScreen))
-				// render
-				RenderD3D9(pcDevice);
-			else
-				// ...or init all stuff
-				InitD3D9(pcDevice);
+					  if ((m_pVBCinemaTheatre) && (m_pVBCinemaScreen))
+						  // render
+						  RenderD3D9(pcDevice);
+					  else
+						  // ...or init all stuff
+						  InitD3D9(pcDevice);
 
 
-			// release device if provided by swapchain
-			if (bReleaseDevice) pcDevice->Release();
+					  // release device if provided by swapchain
+					  if (bReleaseDevice) pcDevice->Release();
 		}
-		break;
+			break;
 		case D3D_10:
 			break;
 		case D3D_11:
 		{
-			// get device
-			ID3D11Device* pcDevice = nullptr;
-			((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-			if (pcDevice)
-			{
-				// get context
-				ID3D11DeviceContext* pcContext = nullptr;
-				pcDevice->GetImmediateContext(&pcContext);
-				if (pcContext)
-				{
-					if (m_asRenderModels.size())
-						// render
-						RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
-					else
-						// ...or init all stuff
-						InitD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+					   // get device
+					   ID3D11Device* pcDevice = nullptr;
+					   ((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+					   if (pcDevice)
+					   {
+						   // get context
+						   ID3D11DeviceContext* pcContext = nullptr;
+						   pcDevice->GetImmediateContext(&pcContext);
+						   if (pcContext)
+						   {
+							   if (m_asRenderModels.size())
+								   // render
+								   RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+							   else
+								   // ...or init all stuff
+								   InitD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
 
-					pcContext->Release();
-				}
-				pcDevice->Release();
-				return nullptr;
-			}
+							   pcContext->Release();
+						   }
+						   pcDevice->Release();
+						   return nullptr;
+					   }
 		}
-		break;
+			break;
 		default:
 			break;
 	}
@@ -811,7 +813,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 			pcDevice->CreateVertexShader((DWORD*)pShader->GetBufferPointer(), &m_vsCinemaTheatre);
 		}
 	}
-	
+
 	// texture created ?
 	if (!m_pTextureCinema)
 	{
@@ -1525,6 +1527,25 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	// clear all states, set targets
 	ClearContextState(pcContext);
 
+	// set or create a default rasterizer state here
+	if (!m_pcRS)
+	{
+		D3D11_RASTERIZER_DESC sDesc;
+		sDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+		sDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+		sDesc.FrontCounterClockwise = FALSE;
+		sDesc.DepthBias = 0;
+		sDesc.SlopeScaledDepthBias = 0.0f;
+		sDesc.DepthBiasClamp = 0.0f;
+		sDesc.DepthClipEnable = TRUE;
+		sDesc.ScissorEnable = FALSE;
+		sDesc.MultisampleEnable = FALSE;
+		sDesc.AntialiasedLineEnable = FALSE;
+
+		pcDevice->CreateRasterizerState(&sDesc, &m_pcRS);
+	}
+	pcContext->RSSetState(m_pcRS);
+
 	// set render target viewport
 	D3D11_VIEWPORT sViewport = {};
 	sViewport.Width = (FLOAT)(*m_punTexResolutionWidth);
@@ -1569,8 +1590,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		// TODO !! CREATE VIEW MATRIX HERE BASED ON CONNECTED EULER AND POSITION
 
 		// no view matrix connected, create basic lookat matrix
-		D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 1.8f, -3.0f);
-		D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.5f, 0.0f);
+		D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 1.8f, 0.0f);
+		D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.5f, 1.0f);
 		D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 		D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
 	}

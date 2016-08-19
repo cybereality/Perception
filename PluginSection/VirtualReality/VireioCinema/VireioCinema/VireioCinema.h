@@ -316,6 +316,10 @@ private:
 	* Vector of all models to render.
 	***/
 	std::vector<RenderModel_D3D11> m_asRenderModels;
+	/**
+	* Default rasterizer state.
+	***/
+	ID3D11RasterizerState* m_pcRS;
 #pragma endregion
 	/**
 	* Yaw angle pointer.
