@@ -1515,11 +1515,6 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		apcTex11InputSRV[1] = *m_ppcTex11InputSRV[1];
 	};
 
-	// get the viewport
-	UINT dwNumViewports = 1;
-	D3D11_VIEWPORT psViewport[16];
-	pcContext->RSGetViewports(&dwNumViewports, psViewport);
-
 	// backup all states
 	D3DX11_STATE_BLOCK sStateBlock;
 	CreateStateblock(pcContext, &sStateBlock);
@@ -1551,7 +1546,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	sViewport.Width = (FLOAT)(*m_punTexResolutionWidth);
 	sViewport.Height = (FLOAT)(*m_punTexResolutionHeight);
 	sViewport.MaxDepth = 1.0f;
-	pcContext->RSSetViewports(dwNumViewports, &sViewport);
+	pcContext->RSSetViewports(1, &sViewport);
 
 	// Set the input layout, buffers, sampler
 	pcContext->IASetInputLayout(m_pcVLGeometry11);
