@@ -1824,7 +1824,7 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 		float fAspectScreen = (float)sDesktop.right / (float)sDesktop.bottom;
 
 		// get normalized aspect
-		sAspectNormalized.x = fAspectScreen / fAspectTarget;
+		sAspectNormalized.x = fAspectScreen * fAspectTarget;
 		sAspectNormalized.y = 1.0f;
 		D3DXVec2Normalize(&sAspectNormalized, &sAspectNormalized);
 
