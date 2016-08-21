@@ -92,7 +92,8 @@ m_punTexResolutionHeight(nullptr),
 m_punTexResolutionWidth(nullptr),
 m_pcBackBufferCopy(nullptr),
 m_pcBackBufferCopySR(nullptr),
-m_pcRS(nullptr)
+m_pcRS(nullptr),
+m_pbImmersiveMode(nullptr)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -114,9 +115,18 @@ m_pcRS(nullptr)
 	m_pcTex11DrawSRV[1] = nullptr;
 	m_ppcTex11InputSRV[0] = nullptr;
 	m_ppcTex11InputSRV[1] = nullptr;
+	m_apcTex11InputSRV[0] = nullptr;
+	m_apcTex11InputSRV[1] = nullptr;
 	m_psView = nullptr;
 	m_psProjection[0] = nullptr;
 	m_psProjection[1] = nullptr;
+
+	m_pcVertexShader11 = nullptr;
+	m_pcPixelShader11 = nullptr;
+	m_pcVertexLayout11 = nullptr;
+	m_pcVertexBuffer11 = nullptr;
+	m_pcConstantBufferDirect11 = nullptr;
+	m_pcSamplerState = nullptr;
 
 	D3DXMatrixIdentity(&m_sView);
 	D3DXMatrixIdentity(&m_sToEye[0]);
@@ -150,6 +160,8 @@ m_pcRS(nullptr)
 	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
 	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
 	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
+	m_sCinemaRoomSetup.bPerformanceMode = FALSE;
+	m_sCinemaRoomSetup.bImmersiveMode = FALSE;
 	m_unMouseTickCount = 2000;
 
 	// TODO !! FX COLORS
@@ -177,7 +189,10 @@ m_pcRS(nullptr)
 	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.bPerformanceMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.bImmersiveMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
 	m_unMouseTickCount = GetIniFileSetting((DWORD)m_unMouseTickCount, "Stereo Cinema", "unMouseTickCount", szFilePathINI, bFileExists);
+
 }
 
 /**
@@ -231,6 +246,12 @@ VireioCinema::~VireioCinema()
 	SAFE_RELEASE(m_pcVLGeometry11);
 	SAFE_RELEASE(m_pcVSGeometry11);
 	SAFE_RELEASE(m_pcPSGeometry11);
+	SAFE_RELEASE(m_pcVertexShader11);
+	SAFE_RELEASE(m_pcPixelShader11);
+	SAFE_RELEASE(m_pcVertexLayout11);
+	SAFE_RELEASE(m_pcVertexBuffer11);
+	SAFE_RELEASE(m_pcConstantBufferDirect11);
+	SAFE_RELEASE(m_pcSamplerState);
 }
 
 /**
@@ -344,6 +365,8 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Projection Left";
 		case ProjectionRight:
 			return L"Projection Right";
+		case ImmersiveMode:
+			return L"Immersive Mode";
 	}
 
 	return L"x";
@@ -411,6 +434,8 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 		case ProjectionLeft:
 		case ProjectionRight:
 			return NOD_Plugtype::AQU_D3DMATRIX;
+		case ImmersiveMode:
+			return NOD_Plugtype::AQU_BOOL;
 	}
 
 	return 0;
@@ -506,6 +531,9 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ProjectionRight:
 			m_psProjection[1] = (D3DMATRIX*)pData;
 			break;
+		case ImmersiveMode:
+			m_pbImmersiveMode = (BOOL*)pData;
+			break;
 	}
 }
 
@@ -560,6 +588,8 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	if (m_pfPositionX) m_sPositionVector.x = *m_pfPositionX;
 	if (m_pfPositionY) m_sPositionVector.y = *m_pfPositionY;
 	if (m_pfPositionZ) m_sPositionVector.z = *m_pfPositionZ;
+
+	if (m_pbImmersiveMode) m_sCinemaRoomSetup.bImmersiveMode = *m_pbImmersiveMode;
 
 	// render cinema for specified D3D version
 	switch (eD3DVersion)
@@ -1461,7 +1491,6 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 ***/
 void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain)
 {
-	ID3D11ShaderResourceView* apcTex11InputSRV[2];
 	if ((!m_ppcTex11InputSRV[0]) || (!m_ppcTex11InputSRV[1]))
 	{
 		// get back buffer
@@ -1497,8 +1526,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			}
 
 			// set left/right mono and instantly release
-			apcTex11InputSRV[0] = m_pcBackBufferCopySR;
-			apcTex11InputSRV[1] = m_pcBackBufferCopySR;
+			m_apcTex11InputSRV[0] = m_pcBackBufferCopySR;
+			m_apcTex11InputSRV[1] = m_pcBackBufferCopySR;
 
 			pcBackBuffer->Release();
 		}
@@ -1511,8 +1540,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	else
 	{
 		// set stereo input textures
-		apcTex11InputSRV[0] = *m_ppcTex11InputSRV[0];
-		apcTex11InputSRV[1] = *m_ppcTex11InputSRV[1];
+		m_apcTex11InputSRV[0] = *m_ppcTex11InputSRV[0];
+		m_apcTex11InputSRV[1] = *m_ppcTex11InputSRV[1];
 	};
 
 	// backup all states
@@ -1547,6 +1576,17 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	sViewport.Height = (FLOAT)(*m_punTexResolutionHeight);
 	sViewport.MaxDepth = 1.0f;
 	pcContext->RSSetViewports(1, &sViewport);
+
+	// immersive mode ? render fullscreen
+	if (m_sCinemaRoomSetup.bImmersiveMode)
+	{
+		RenderFullscreenD3D11(pcDevice, pcContext, pcSwapchain);
+
+		// set back device
+		ApplyStateblock(pcContext, &sStateBlock);
+
+		return;
+	}
 
 	// Set the input layout, buffers, sampler
 	pcContext->IASetInputLayout(m_pcVLGeometry11);
@@ -1633,8 +1673,12 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	D3DXMATRIX sWorld;
 	D3DXMatrixIdentity(&sWorld);
 
+	// performance mode ?
+	UINT unRenderModelsNo = (UINT)m_asRenderModels.size();
+	if (m_sCinemaRoomSetup.bPerformanceMode) unRenderModelsNo = 1;
+
 	// loop through available render models, render
-	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
+	for (UINT unI = 0; unI < (UINT)unRenderModelsNo; unI++)
 	{
 		// set model buffers
 		pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
@@ -1659,7 +1703,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		{
 			// set frame texture left/right if main effect
 			if (!m_asRenderModels[unI].pcEffect)
-				pcContext->PSSetShaderResources(0, 1, &apcTex11InputSRV[nEye]);
+				pcContext->PSSetShaderResources(0, 1, &m_apcTex11InputSRV[nEye]);
 
 			// set WVP matrix, update constant buffer
 			D3DXMATRIX sWorldViewProjection;
@@ -1682,6 +1726,149 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// set back device
 	ApplyStateblock(pcContext, &sStateBlock);
+}
+
+/**
+* Renders the
+***/
+void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain)
+{
+	// create all bool
+	bool bAllCreated = true;
+
+	// create vertex shader fullscreen
+	if (!m_pcVertexShader11)
+	{
+		if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+		{
+			bAllCreated = false;
+		}
+	}
+	// create pixel shader fullscreen
+	if (!m_pcPixelShader11)
+	{
+		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+			bAllCreated = false;
+	}
+	// Create vertex buffer fullscreen
+	if (!m_pcVertexBuffer11)
+	{
+		if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
+			bAllCreated = false;
+	}
+	// create constant buffer fullscreen
+	if (!m_pcConstantBufferDirect11)
+	{
+		if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
+			bAllCreated = false;
+	}
+	// sampler ?
+	if (!m_pcSamplerState)
+	{
+		// Create the sampler state
+		D3D11_SAMPLER_DESC sSampDesc;
+		ZeroMemory(&sSampDesc, sizeof(sSampDesc));
+		sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sSampDesc.MinLOD = 0;
+		sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		if (FAILED(pcDevice->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
+		{
+			OutputDebugString(L"[OSVR] Failed to create Sampler State.");
+			bAllCreated = false;
+		}
+	}
+
+	// Set the input layout, buffers, sampler
+	pcContext->IASetInputLayout(m_pcVertexLayout11);
+	UINT stride = sizeof(TexturedVertex);
+	UINT offset = 0;
+	pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+	pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+	pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+	// Set primitive topology
+	pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// set shaders
+	pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
+	pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
+
+	// aspect correction
+	static D3DXVECTOR2 sAspectNormalized = D3DXVECTOR2();
+	if (sAspectNormalized.x == 0.0f)
+	{
+		// get target aspect ratio
+		D3DXVECTOR2 sTarget;
+		if (m_punTexResolutionWidth)
+			sTarget.x = (FLOAT)(*m_punTexResolutionWidth);
+		else
+			sTarget.x = 1.0f;
+		if (m_punTexResolutionHeight)
+			sTarget.y = (FLOAT)(*m_punTexResolutionHeight);
+		else
+			sTarget.y = 1.0f;
+		float fAspectTarget = sTarget.y / sTarget.x;
+
+		// get desktop aspect ratio
+		RECT sDesktop;
+		HWND pDesktop = GetDesktopWindow();
+		GetWindowRect(pDesktop, &sDesktop);
+		float fAspectScreen = (float)sDesktop.right / (float)sDesktop.bottom;
+
+		// get normalized aspect
+		sAspectNormalized.x = fAspectScreen / fAspectTarget;
+		sAspectNormalized.y = 1.0f;
+		D3DXVec2Normalize(&sAspectNormalized, &sAspectNormalized);
+
+		// get a 1:1 ratio to the target
+		D3DXVECTOR2 sOneNormalized = D3DXVECTOR2(1.0f, 1.0f);
+		D3DXVec2Normalize(&sOneNormalized, &sOneNormalized);
+		sAspectNormalized.x /= sOneNormalized.x;
+		sAspectNormalized.y /= sOneNormalized.y;
+	}
+
+	// left + right
+	for (int nEye = 0; nEye < 2; nEye++)
+	{
+		// get a matrix here
+		D3DXMATRIX sProj;
+
+		// get a vector with ipd and virtual screen distance
+		D3DXVECTOR4 sVector;
+		if (nEye) sVector = D3DXVECTOR4(-0.032f, 0, 0.1f, 0); else sVector = D3DXVECTOR4(0.032f, 0, 0.1f, 0);
+
+		// projection matrices connected ?
+		if (m_psProjection[nEye])
+		{
+			// get projection for this eye
+			sProj = (*(m_psProjection[nEye]));
+
+			// translate the vector by the eye matrix
+			D3DXVec4Transform(&sVector, &sVector, &sProj);
+		}
+
+		// scale both x+y by normalized aspect translate on x axis for each eye
+		D3DXMatrixIdentity(&sProj);
+		sProj.m[0][0] = sAspectNormalized.x;
+		sProj.m[1][1] = sAspectNormalized.y;
+		sProj.m[0][3] = sVector.x;
+
+		// update constant buffer
+		pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+
+		// set frame texture left/right
+		pcContext->PSSetShaderResources(0, 1, &m_apcTex11InputSRV[nEye]);
+
+		// set render target
+		pcContext->OMSetRenderTargets(1, &m_pcTex11DrawRTV[nEye], nullptr);
+
+		// Render a triangle
+		pcContext->Draw(6, 0);
+	}
 }
 
 /**

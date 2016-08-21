@@ -79,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        22
+#define NUMBER_OF_DECOMMANDERS                        23
 
 /**
 * Node Commander Enumeration.
@@ -122,7 +122,8 @@ enum VRC_Decommanders
 	ResolutionWidth,
 	ResolutionHeight,
 	ProjectionLeft,
-	ProjectionRight
+	ProjectionRight,
+	ImmersiveMode,
 };
 
 /**
@@ -158,6 +159,7 @@ private:
 	void RenderD3D9(LPDIRECT3DDEVICE9 pcDevice);
 	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
+	void RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, D3DXVECTOR3 sScale = D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3 sTranslate = D3DXVECTOR3(), UINT32 unWidth = 1024, UINT32 unHeight = 1024);
 	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
 
@@ -269,6 +271,31 @@ private:
 	***/
 	ID3D11ShaderResourceView* m_pcBackBufferCopySR;
 	/**
+	* The 2D vertex shader.
+	***/
+	ID3D11VertexShader* m_pcVertexShader11;
+	/**
+	* The 2D pixel shader.
+	***/
+	ID3D11PixelShader* m_pcPixelShader11;
+	/**
+	* The 2D vertex layout.
+	***/
+	ID3D11InputLayout* m_pcVertexLayout11;
+	/**
+	* The 2D vertex buffer.
+	***/
+	ID3D11Buffer* m_pcVertexBuffer11;
+	/**
+	* The constant buffer for the vertex shader matrix.
+	* Contains only ProjView matrix.
+	***/
+	ID3D11Buffer* m_pcConstantBufferDirect11;
+	/**
+	* Basic sampler state.
+	***/
+	ID3D11SamplerState* m_pcSamplerState;
+	/**
 	* The 3D vertex shader for the openVR models.
 	***/
 	ID3D11VertexShader* m_pcVSGeometry11;
@@ -320,6 +347,10 @@ private:
 	* Default rasterizer state.
 	***/
 	ID3D11RasterizerState* m_pcRS;
+	/**
+	* Shader resource view placeholders left/right.
+	***/
+	ID3D11ShaderResourceView* m_apcTex11InputSRV[2];
 #pragma endregion
 	/**
 	* Yaw angle pointer.
@@ -412,30 +443,37 @@ private:
 			Wall_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
 		} ePixelShaderFX_Wall_FB[2], ePixelShaderFX_Wall_LR[2];
 
-			enum PixelShaderFX_Floor
-			{
-				Floor_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
-				Floor_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
-				Floor_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
-				Floor_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
-				Floor_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
-				Floor_Planets,                   /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
-				Floor_HypnoticDisco,             /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
-				Floor_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
-			} ePixelShaderFX_Floor[2];
+		enum PixelShaderFX_Floor
+		{
+			Floor_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+			Floor_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+			Floor_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+			Floor_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+			Floor_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+			Floor_Planets,                   /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
+			Floor_HypnoticDisco,             /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
+			Floor_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+		} ePixelShaderFX_Floor[2];
 
-				struct PixelShaderFX_Colors
-				{
-					D3DXCOLOR sColorFX[8];               /**< Colors to be used by a shader effect **/
-				} sColors_Screen;                        /**< Colors to be used by the screen effect **/
-				PixelShaderFX_Colors sColors_Wall_FB[2]; /**< Colors to be used by the wall (front+back) effects **/
-				PixelShaderFX_Colors sColors_Wall_LR[2]; /**< Colors to be used by the wall (left+right) effects **/
-				PixelShaderFX_Colors sColors_Floor[2];   /**< Colors to be used by the floor (top+bottom) effects **/
+		struct PixelShaderFX_Colors
+		{
+			D3DXCOLOR sColorFX[8];               /**< Colors to be used by a shader effect **/
+		} sColors_Screen;                        /**< Colors to be used by the screen effect **/
+		PixelShaderFX_Colors sColors_Wall_FB[2]; /**< Colors to be used by the wall (front+back) effects **/
+		PixelShaderFX_Colors sColors_Wall_LR[2]; /**< Colors to be used by the wall (left+right) effects **/
+		PixelShaderFX_Colors sColors_Floor[2];   /**< Colors to be used by the floor (top+bottom) effects **/
 
-				float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
-				float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
-				float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
+		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
+		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+
+		BOOL bPerformanceMode;     /**< True if performance mode is on ***/
+		BOOL bImmersiveMode;       /**< True if full immersive mode is on ***/
 	} m_sCinemaRoomSetup;
+	/**
+	* Pointer to bool for immersive mode.
+	***/
+	BOOL* m_pbImmersiveMode;
 };
 
 /**

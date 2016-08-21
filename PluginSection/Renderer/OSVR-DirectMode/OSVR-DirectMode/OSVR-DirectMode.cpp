@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"OSVR-DirectMode.h"
 
+#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
 
@@ -115,8 +116,12 @@ m_bHotkeySwitch(false)
 ***/
 OSVR_DirectMode::~OSVR_DirectMode()
 {
-	if (m_pcVertexShader11) m_pcVertexShader11->Release();
-	if (m_pcPixelShader11) m_pcPixelShader11->Release();
+	SAFE_RELEASE(m_pcVertexShader11);
+	SAFE_RELEASE(m_pcPixelShader11);
+	SAFE_RELEASE(m_pcVertexLayout11);
+	SAFE_RELEASE(m_pcVertexBuffer11);
+	SAFE_RELEASE(m_pcConstantBufferDirect11);
+	SAFE_RELEASE(m_pcSamplerState);
 }
 
 /**
@@ -296,36 +301,36 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			case OSVR_D3D10_own_Device:
 			case OSVR_D3D9_own_Device:
 			{
-				// get game device + context
-				if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_own_Device)
-				{
-					if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &m_pcGameDevice, &m_pcGameDeviceContext)))
-					{
-						OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
-						return nullptr;
-					}
-					m_pcGameDevice->Release();
-					m_pcGameDeviceContext->Release();
-				}
+										 // get game device + context
+										 if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_own_Device)
+										 {
+											 if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &m_pcGameDevice, &m_pcGameDeviceContext)))
+											 {
+												 OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+												 return nullptr;
+											 }
+											 m_pcGameDevice->Release();
+											 m_pcGameDeviceContext->Release();
+										 }
 
-				// Be sure to get D3D11 and have set
-				// D3D11_CREATE_DEVICE_BGRA_SUPPORT in the device/context
-				D3D_FEATURE_LEVEL acceptibleAPI = D3D_FEATURE_LEVEL_11_0;
-				D3D_FEATURE_LEVEL foundAPI;
-				auto hr =
-					D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-					D3D11_CREATE_DEVICE_BGRA_SUPPORT, &acceptibleAPI, 1,
-					D3D11_SDK_VERSION, &m_pcDevice, &foundAPI, &m_pcDeviceContext);
-				if (FAILED(hr))
-				{
-					OutputDebugString(L"Could not create D3D11 device and context");
-					return nullptr;
-				}
-				pcDevice = m_pcDevice;
-				pcContext = m_pcDeviceContext;
+										 // Be sure to get D3D11 and have set
+										 // D3D11_CREATE_DEVICE_BGRA_SUPPORT in the device/context
+										 D3D_FEATURE_LEVEL acceptibleAPI = D3D_FEATURE_LEVEL_11_0;
+										 D3D_FEATURE_LEVEL foundAPI;
+										 auto hr =
+											 D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+											 D3D11_CREATE_DEVICE_BGRA_SUPPORT, &acceptibleAPI, 1,
+											 D3D11_SDK_VERSION, &m_pcDevice, &foundAPI, &m_pcDeviceContext);
+										 if (FAILED(hr))
+										 {
+											 OutputDebugString(L"Could not create D3D11 device and context");
+											 return nullptr;
+										 }
+										 pcDevice = m_pcDevice;
+										 pcContext = m_pcDeviceContext;
 
 			}
-			break;
+				break;
 			default:
 				break;
 		}
@@ -543,12 +548,12 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	// set projection matrix if node is connected
 	if (m_psProjection[nEye])
 	{
-		D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)m_psProjection[nEye], 
-			(float)sProjection.left, 
-			(float)sProjection.right, 
-			(float)sProjection.bottom, 
-			(float)sProjection.top, 
-			(float)sProjection.nearClip, 
+		D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)m_psProjection[nEye],
+			(float)sProjection.left,
+			(float)sProjection.right,
+			(float)sProjection.bottom,
+			(float)sProjection.top,
+			(float)sProjection.nearClip,
 			(float)sProjection.farClip);
 	}
 
