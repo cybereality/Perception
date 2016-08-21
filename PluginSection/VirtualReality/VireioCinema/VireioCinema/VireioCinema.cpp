@@ -163,6 +163,8 @@ m_pbImmersiveMode(nullptr)
 	m_sCinemaRoomSetup.bPerformanceMode = FALSE;
 	m_sCinemaRoomSetup.bImmersiveMode = FALSE;
 	m_unMouseTickCount = 2000;
+	m_sImmersiveFullscreenSettings.fIPD = 0.064f;
+	m_sImmersiveFullscreenSettings.fVSD = 0.05f;
 
 	// TODO !! FX COLORS
 
@@ -192,6 +194,8 @@ m_pbImmersiveMode(nullptr)
 	m_sCinemaRoomSetup.bPerformanceMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bImmersiveMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
 	m_unMouseTickCount = GetIniFileSetting((DWORD)m_unMouseTickCount, "Stereo Cinema", "unMouseTickCount", szFilePathINI, bFileExists);
+	m_sImmersiveFullscreenSettings.fIPD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
+	m_sImmersiveFullscreenSettings.fVSD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fVSD, "Stereo Presenter", "fVSD", szFilePathINI, bFileExists);
 
 }
 
@@ -1839,7 +1843,7 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 
 		// get a vector with ipd and virtual screen distance
 		D3DXVECTOR4 sVector;
-		if (nEye) sVector = D3DXVECTOR4(-0.032f, 0, 0.1f, 0); else sVector = D3DXVECTOR4(0.032f, 0, 0.1f, 0);
+		if (nEye) sVector = D3DXVECTOR4(-(m_sImmersiveFullscreenSettings.fIPD / 2.0f), 0, m_sImmersiveFullscreenSettings.fVSD, 0); else sVector = D3DXVECTOR4(m_sImmersiveFullscreenSettings.fIPD / 2.0f, 0, m_sImmersiveFullscreenSettings.fVSD, 0);
 
 		// projection matrices connected ?
 		if (m_psProjection[nEye])

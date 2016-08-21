@@ -471,6 +471,14 @@ private:
 		BOOL bImmersiveMode;       /**< True if full immersive mode is on ***/
 	} m_sCinemaRoomSetup;
 	/**
+	* User settings for immersive fullscreen rendering.
+	***/
+	struct ImmersiveFullscreenSettings
+	{
+		float fIPD;                    /**< Interpupillary distance, to be read from Stereo Presenter node **/
+		float fVSD;                    /**< Virtual screen distance, to be read from Stereo Presenter node **/
+	} m_sImmersiveFullscreenSettings;
+	/**
 	* Pointer to bool for immersive mode.
 	***/
 	BOOL* m_pbImmersiveMode;
