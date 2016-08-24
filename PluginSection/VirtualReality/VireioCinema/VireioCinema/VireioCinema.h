@@ -271,27 +271,6 @@ private:
 	***/
 	ID3D11ShaderResourceView* m_pcBackBufferCopySR;
 	/**
-	* The 2D vertex shader.
-	***/
-	ID3D11VertexShader* m_pcVertexShader11;
-	/**
-	* The 2D pixel shader.
-	***/
-	ID3D11PixelShader* m_pcPixelShader11;
-	/**
-	* The 2D vertex layout.
-	***/
-	ID3D11InputLayout* m_pcVertexLayout11;
-	/**
-	* The 2D vertex buffer.
-	***/
-	ID3D11Buffer* m_pcVertexBuffer11;
-	/**
-	* The constant buffer for the vertex shader matrix.
-	* Contains only ProjView matrix.
-	***/
-	ID3D11Buffer* m_pcConstantBufferDirect11;
-	/**
 	* Basic sampler state.
 	***/
 	ID3D11SamplerState* m_pcSamplerState;
