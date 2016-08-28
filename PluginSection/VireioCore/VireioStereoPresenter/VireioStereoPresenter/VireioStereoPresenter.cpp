@@ -172,8 +172,8 @@ m_bMenu(false)
 	m_unFoV = 99;
 	m_unFoVADS = 99;
 
-	ZeroMemory(&m_apfFloatInput[0], sizeof(float*) * 16);
-	ZeroMemory(&m_apnIntInput[0], sizeof(int*) * 16);
+	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
+	ZeroMemory(&m_apnIntInput[0], sizeof(int*)* 16);
 
 }
 
@@ -642,71 +642,101 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 		}
 		else
-			if (GetAsyncKeyState(VK_F2))
+		if (GetAsyncKeyState(VK_F2))
+		{
+			if (bReleased)
 			{
-				if (bReleased)
-				{
-					// fov ads
-					m_unFoVADS++;
-					if (m_unFoVADS >= unFoVADSSettings)
-						m_unFoVADS = 0;
-					m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
-					bReleased = false;
+				// fov ads
+				m_unFoVADS++;
+				if (m_unFoVADS >= unFoVADSSettings)
+					m_unFoVADS = 0;
+				m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
+				bReleased = false;
 
-					// read or create the INI file
-					char szFilePathINI[1024];
-					GetCurrentDirectoryA(1024, szFilePathINI);
-					strcat_s(szFilePathINI, "\\VireioPerception.ini");
+				// read or create the INI file
+				char szFilePathINI[1024];
+				GetCurrentDirectoryA(1024, szFilePathINI);
+				strcat_s(szFilePathINI, "\\VireioPerception.ini");
 
-					// fov aiming down sights
-					std::stringstream sz;
-					sz << m_sUserSettings.fFoVADS;
-					WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
-				}
+				// fov aiming down sights
+				std::stringstream sz;
+				sz << m_sUserSettings.fFoVADS;
+				WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
 			}
-			else
-				if (GetAsyncKeyState(VK_F12))
-				{
-					m_bHotkeySwitch = true;
-				}
-				else
-					if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
-					{
-						m_bMenuHotkeySwitch = true;
-					}
-					else
-						if (m_bMenuHotkeySwitch)
-						{
-							m_bMenu = !m_bMenu;
-							m_bMenuHotkeySwitch = false;
-						}
-						else
-							if (m_bHotkeySwitch)
-							{
-								if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
-								m_bHotkeySwitch = false;
-							}
-							else
-								bReleased = true;
+		}
+		else
+		if (GetAsyncKeyState(VK_F12))
+		{
+			m_bHotkeySwitch = true;
+		}
+		else
+		if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
+		{
+			m_bMenuHotkeySwitch = true;
+		}
+		else
+		if (m_bMenuHotkeySwitch)
+		{
+			m_bMenu = !m_bMenu;
+			m_bMenuHotkeySwitch = false;
+		}
+		else
+		if (m_bHotkeySwitch)
+		{
+			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
+			m_bHotkeySwitch = false;
+		}
+		else
+			bReleased = true;
 
 		// handle controller
 		if (bControllerAttached)
 		{
+			if (m_apnIntInput[0])
+			{
+				if (*m_apnIntInput[0] > 0) (*m_apnIntInput[0])++;
+
+				static bool bWasPressed = false;
+				if (GetAsyncKeyState(VK_BACK))
+				{
+					if (!bWasPressed)
+					{
+						if ((*m_apnIntInput[0] == 0))
+						{
+							(*m_apnIntInput[0]) = TRUE;
+							m_bZoomOut = TRUE;
+						}
+						else
+						{
+							*m_apnIntInput[0] = FALSE;
+							m_bZoomOut = FALSE;
+						}
+
+						bWasPressed = true;
+					}
+				}
+				else
+				{
+					bWasPressed = false;
+				}
+			}
+
+			static bool bWasPressed = false;
 			if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)
 			{
-				if (m_apnIntInput[0])
+				if ((m_apnIntInput[1]) && (!bWasPressed))
 				{
-					(*m_apnIntInput[0])++;
+					if (*m_apnIntInput[1] == 0)
+						*m_apnIntInput[1] = TRUE;
+					else
+						*m_apnIntInput[1] = FALSE;
+
+					bWasPressed = true;
 				}
-				m_bZoomOut = TRUE;
 			}
 			else
 			{
-				if (m_apnIntInput[0])
-				{
-					*m_apnIntInput[0] = FALSE;
-				}
-				m_bZoomOut = FALSE;
+				bWasPressed = false;
 			}
 
 			if (m_apfFloatInput[0])
@@ -728,21 +758,55 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 		else
 		{
-			if (GetAsyncKeyState(VK_MBUTTON))
+			// handle keyboard
+			if (m_apnIntInput[0])
 			{
-				if (m_apnIntInput[0])
+				if (*m_apnIntInput[0] > 0) (*m_apnIntInput[0])++;
+
+				static bool bWasPressed = false;
+				if (GetAsyncKeyState(VK_BACK))
 				{
-					(*m_apnIntInput[0])++;
+					if (!bWasPressed)
+					{
+						if ((*m_apnIntInput[0] == 0))
+						{
+							(*m_apnIntInput[0]) = TRUE;
+							m_bZoomOut = TRUE;
+						}
+						else
+						{
+							*m_apnIntInput[0] = FALSE;
+							m_bZoomOut = FALSE;
+						}
+
+						bWasPressed = true;
+					}
 				}
-				m_bZoomOut = TRUE;
+				else
+				{
+					bWasPressed = false;
+				}
 			}
-			else
+
+			if (m_apnIntInput[1])
 			{
-				if (m_apnIntInput[0])
+				static bool bWasPressed = false;
+				if (GetAsyncKeyState(VK_BACK))
 				{
-					*m_apnIntInput[0] = FALSE;
+					if (!bWasPressed)
+					{
+						if (*m_apnIntInput[1] == 0)
+							*m_apnIntInput[1] = TRUE;
+						else
+							*m_apnIntInput[1] = FALSE;
+
+						bWasPressed = true;
+					}
 				}
-				m_bZoomOut = FALSE;
+				else
+				{
+					bWasPressed = false;
+				}
 			}
 
 			if (m_apfFloatInput[0])
@@ -1010,7 +1074,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				D3D11_BUFFER_DESC bd;
 				ZeroMemory(&bd, sizeof(bd));
 				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(TexturedNormalVertex) * 24;
+				bd.ByteWidth = sizeof(TexturedNormalVertex)* 24;
 				bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 				bd.CPUAccessFlags = 0;
 				D3D11_SUBRESOURCE_DATA InitData;
@@ -1047,7 +1111,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				D3D11_BUFFER_DESC bd;
 				ZeroMemory(&bd, sizeof(bd));
 				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(WORD) * 36;
+				bd.ByteWidth = sizeof(WORD)* 36;
 				bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 				bd.CPUAccessFlags = 0;
 				D3D11_SUBRESOURCE_DATA InitData;
@@ -1204,7 +1268,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						// Render a triangle
 						pcContext->Draw(6, 0);
 					}
-					
+
 					if (false)
 					{
 						// test draw... TODO !!

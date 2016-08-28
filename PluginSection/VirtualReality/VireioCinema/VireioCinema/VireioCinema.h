@@ -79,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        23
+#define NUMBER_OF_DECOMMANDERS                        24
 
 /**
 * Node Commander Enumeration.
@@ -124,6 +124,7 @@ enum VRC_Decommanders
 	ProjectionLeft,
 	ProjectionRight,
 	ImmersiveMode,
+	PerformanceMode,
 };
 
 /**
@@ -461,6 +462,10 @@ private:
 	* Pointer to bool for immersive mode.
 	***/
 	BOOL* m_pbImmersiveMode;
+	/**
+	* Pointer to bool for performance mode.
+	***/
+	BOOL* m_pbPerformanceMode;
 };
 
 /**

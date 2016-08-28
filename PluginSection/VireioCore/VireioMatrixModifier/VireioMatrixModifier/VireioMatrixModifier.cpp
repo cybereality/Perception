@@ -1867,6 +1867,16 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							}
 							m_bSwitchRenderTarget = false;
 						}
+
+						if (bOldHudCount < m_bHudOperation)
+						{
+							// new frame, clear secondary render target view
+							const float fColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
+
+							bOldHudCount = m_bHudOperation;
+						}
+
 						if (m_bHudOperation)
 						{
 							if (!m_pcSecondaryRenderTarget11)
@@ -1928,7 +1938,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									m_bSwitchRenderTarget = true;
 
 									// set secondary render target
-									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
+									if (m_eCurrentRenderingSide == RenderPosition::Left)
+										((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+									else
+										((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
 								}
 							}
 
@@ -1941,15 +1954,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
 							}
 						}
-						else bOldHudCount = 0;
-						if ((bOldHudCount < m_bHudOperation) && (m_bSwitchRenderTarget))
-						{
-							// new frame, clear secondary render target view
-							const float fColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
-
-							bOldHudCount = m_bHudOperation;
-						}
+						else bOldHudCount = m_bHudOperation;
 
 						// currently chosen ?
 						if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
@@ -2032,47 +2037,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									// end search;
 									dwI = (UINT)m_adwVShaderHashCodes.size();
 								}
-							}
-						}
-
-						// TODO !! DELETE !! PRELIMINARY HOTKEYS !!
-						if (true)
-						{
-							if (GetAsyncKeyState(VK_F5))
-							{
-								m_sGameConfiguration.fWorldScaleFactor *= 0.9999f;
-
-								// update view transform
-								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-								m_pcShaderViewAdjustment->ComputeViewTransforms();
-							}
-							if (GetAsyncKeyState(VK_F6))
-							{
-								m_sGameConfiguration.fWorldScaleFactor *= 1.0001f;
-
-								// update view transform
-								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-								m_pcShaderViewAdjustment->ComputeViewTransforms();
-							}
-							if (GetAsyncKeyState(VK_F7))
-							{
-								m_sGameConfiguration.fConvergence *= 0.9999f;
-
-								// update view transform
-								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-								m_pcShaderViewAdjustment->ComputeViewTransforms();
-							}
-							if (GetAsyncKeyState(VK_F8))
-							{
-								m_sGameConfiguration.fConvergence *= 1.0001f;
-
-								// update view transform
-								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-								m_pcShaderViewAdjustment->ComputeViewTransforms();
 							}
 						}
 					}

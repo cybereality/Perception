@@ -93,7 +93,8 @@ m_punTexResolutionWidth(nullptr),
 m_pcBackBufferCopy(nullptr),
 m_pcBackBufferCopySR(nullptr),
 m_pcRS(nullptr),
-m_pbImmersiveMode(nullptr)
+m_pbImmersiveMode(nullptr),
+m_pbPerformanceMode(nullptr)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -360,6 +361,8 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Projection Right";
 		case ImmersiveMode:
 			return L"Immersive Mode";
+		case PerformanceMode:
+			return L"Performance Mode";
 	}
 
 	return L"x";
@@ -428,7 +431,8 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 		case ProjectionRight:
 			return NOD_Plugtype::AQU_D3DMATRIX;
 		case ImmersiveMode:
-			return NOD_Plugtype::AQU_BOOL;
+		case PerformanceMode:
+			return NOD_Plugtype::AQU_INT;
 	}
 
 	return 0;
@@ -527,6 +531,9 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ImmersiveMode:
 			m_pbImmersiveMode = (BOOL*)pData;
 			break;
+		case PerformanceMode:
+			m_pbPerformanceMode = (BOOL*)pData;
+			break;
 	}
 }
 
@@ -583,6 +590,7 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	if (m_pfPositionZ) m_sPositionVector.z = *m_pfPositionZ;
 
 	if (m_pbImmersiveMode) m_sCinemaRoomSetup.bImmersiveMode = *m_pbImmersiveMode;
+	if (m_pbPerformanceMode) m_sCinemaRoomSetup.bPerformanceMode = *m_pbPerformanceMode;
 
 	// render cinema for specified D3D version
 	switch (eD3DVersion)
@@ -1290,7 +1298,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 
 			// create the model for immersive mode
 			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f), 1920, 1080);
-			
+
 			// and create the model for the gaming room
 			float fScale = m_sCinemaRoomSetup.fScreenWidth / 3.84f;
 			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
@@ -1686,7 +1694,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// performance mode ?
 	UINT unRenderModelsNo = (UINT)m_asRenderModels.size();
-	if (m_sCinemaRoomSetup.bPerformanceMode) unRenderModelsNo = 1;
+	if (m_sCinemaRoomSetup.bPerformanceMode) unRenderModelsNo = 2;
 
 	// buffer data
 	UINT stride = sizeof(TexturedNormalVertex);
@@ -1770,7 +1778,7 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 
 		// create view matrix
 		D3DXMATRIX sView;
-		D3DXMatrixTranslation(&sView, -m_sToEye[nEye](3,0), 0.0f, m_sImmersiveFullscreenSettings.fVSD);
+		D3DXMatrixTranslation(&sView, -m_sToEye[nEye](3, 0), 0.0f, m_sImmersiveFullscreenSettings.fVSD);
 
 		// set WVP matrix, update constant buffer
 		D3DXMATRIX sWorldViewProjection;
