@@ -437,6 +437,10 @@ private:
 	***/
 	ID3D11Buffer* m_pcConstantBufferGeometry;
 	/**
+	* Default rasterizer state.
+	***/
+	ID3D11RasterizerState* m_pcRS;
+	/**
 	* Current view matrix.
 	***/
 	D3DXMATRIX m_sView;

@@ -165,6 +165,7 @@ m_pcVSGeometry11(nullptr),
 m_pcVLGeometry11(nullptr),
 m_pcPSGeometry11(nullptr),
 m_pcSampler11(nullptr),
+m_pcRS(nullptr),
 m_pcConstantBufferGeometry(nullptr),
 m_asRenderModels(),
 m_bRenderModelsCreated(false)
@@ -325,6 +326,7 @@ OpenVR_DirectMode::~OpenVR_DirectMode()
 		SAFE_RELEASE(m_asRenderModels[unI].pcTexture);
 	}
 
+	SAFE_RELEASE(m_pcRS);
 	SAFE_RELEASE(m_pcSampler11);
 	SAFE_RELEASE(m_pcConstantBufferGeometry);
 	SAFE_RELEASE(m_pcDSVGeometry11[0]);
@@ -691,6 +693,25 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						// clear all states, set targets
 						ClearContextState(pcContext);
+
+						// set or create a default rasterizer state here
+						if (!m_pcRS)
+						{
+							D3D11_RASTERIZER_DESC sDesc;
+							sDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+							sDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+							sDesc.FrontCounterClockwise = FALSE;
+							sDesc.DepthBias = 0;
+							sDesc.SlopeScaledDepthBias = 0.0f;
+							sDesc.DepthBiasClamp = 0.0f;
+							sDesc.DepthClipEnable = TRUE;
+							sDesc.ScissorEnable = FALSE;
+							sDesc.MultisampleEnable = FALSE;
+							sDesc.AntialiasedLineEnable = FALSE;
+
+							pcDevice->CreateRasterizerState(&sDesc, &m_pcRS);
+						}
+						pcContext->RSSetState(m_pcRS);
 
 						// set viewport by render target size
 						uint32_t unWidth, unHeight;

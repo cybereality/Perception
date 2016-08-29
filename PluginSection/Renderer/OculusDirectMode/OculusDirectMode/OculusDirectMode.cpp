@@ -104,6 +104,8 @@ m_pcTex11CopyHUD(nullptr)
 
 	m_pbZoomOut = nullptr;
 
+	m_ePerfHudMode = ovrPerfHudMode::ovrPerfHud_Off;
+
 	// locate or create the INI file
 	char szFilePathINI[1024];
 	GetCurrentDirectoryA(1024, szFilePathINI);
@@ -115,6 +117,7 @@ m_pcTex11CopyHUD(nullptr)
 	DWORD bShowMirror = 0;
 	bShowMirror = GetIniFileSetting(bShowMirror, "LibOVR", "bShowMirror", szFilePathINI, bFileExists);
 	if (bShowMirror) m_bShowMirror = true; else m_bShowMirror = false;
+	m_ePerfHudMode = (ovrPerfHudMode)GetIniFileSetting((DWORD)m_ePerfHudMode, "LibOVR", "ePerfHudMode", szFilePathINI, bFileExists);
 }
 
 /**
@@ -511,6 +514,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		// Setup VR components, filling out description
 		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(*m_phHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
 		m_psEyeRenderDesc[1] = ovr_GetRenderDesc(*m_phHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
+
+		// set chosen performance hud option
+		ovr_SetInt(*m_phHMD, OVR_PERF_HUD_MODE, (int)m_ePerfHudMode);
 
 		m_bInit = true;
 #pragma endregion

@@ -378,6 +378,10 @@ private:
 	***/
 	ovrLayerQuad m_sLayerHud;
 	/**
+	* Performance HUD mode.
+	***/
+	ovrPerfHudMode m_ePerfHudMode;
+	/**
 	* True if mirror is to be shown.
 	***/
 	bool m_bShowMirror;
