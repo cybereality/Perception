@@ -135,10 +135,8 @@ void ViewAdjustment::Load(Vireio_GameConfiguration& cfg)
 ***/
 void ViewAdjustment::Save(Vireio_GameConfiguration& cfg)
 {
-	cfg.fConvergence = convergence;
-
-	//worldscale and ipd are not normally edited;
-	cfg.fIPD = ipd;
+	// for Vireio v4 we export the whole configuration
+	memcpy(&cfg, config, sizeof(Vireio_GameConfiguration));
 }
 #else
 /**

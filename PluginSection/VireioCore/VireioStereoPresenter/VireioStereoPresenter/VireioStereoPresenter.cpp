@@ -82,91 +82,29 @@ m_bMenu(false)
 	m_pfPosition[1] = nullptr;
 	m_pfPosition[2] = nullptr;
 
+	// set defaults
+	m_sUserSettings.fFoV = 121.0f;
+	m_sUserSettings.fFoVADS = 121.0f;
+	m_sUserSettings.fIPD = 0.064f;
+	m_sUserSettings.fWorldScale = -1.44f;
+	m_sUserSettings.fConvergence = 3.0f;
+	m_sUserSettings.bConvergence = 1;
+
 	// read or create the INI file
 	char szFilePathINI[1024];
 	GetCurrentDirectoryA(1024, szFilePathINI);
 	strcat_s(szFilePathINI, "\\VireioPerception.ini");
-	if (PathFileExistsA(szFilePathINI))
-	{
-		char szBuffer[128];
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
 
-		// fov
-		m_sUserSettings.fFoV = 121.0f;
-		std::stringstream sz;
-		sz << m_sUserSettings.fFoV;
-		DWORD unCount = GetPrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szBuffer, 128, szFilePathINI);
-		sz = std::stringstream(szBuffer);
-		sz >> m_sUserSettings.fFoV;
-		if (m_sUserSettings.fFoV == 121.0f) WritePrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szFilePathINI);
-
-		// fov aiming down sights
-		m_sUserSettings.fFoVADS = 121.0f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fFoVADS;
-		unCount = GetPrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szBuffer, 128, szFilePathINI);
-		sz = std::stringstream(szBuffer);
-		sz >> m_sUserSettings.fFoVADS;
-		if (m_sUserSettings.fFoVADS == 121.0f) WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
-
-		// ipd
-		m_sUserSettings.fIPD = 0.064f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fIPD;
-		unCount = GetPrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szBuffer, 128, szFilePathINI);
-		sz = std::stringstream(szBuffer);
-		sz >> m_sUserSettings.fIPD;
-		if (m_sUserSettings.fIPD == 0.064f) WritePrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szFilePathINI);
-
-		// separation
-		m_sUserSettings.fWorldScale = -1.44f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fWorldScale;
-		unCount = GetPrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szBuffer, 128, szFilePathINI);
-		sz = std::stringstream(szBuffer);
-		sz >> m_sUserSettings.fWorldScale;
-		if (m_sUserSettings.fWorldScale == -1.44f) WritePrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szFilePathINI);
-
-		// convergence
-		m_sUserSettings.fConvergence = 3.0f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fConvergence;
-		unCount = GetPrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szBuffer, 128, szFilePathINI);
-		sz = std::stringstream(szBuffer);
-		sz >> m_sUserSettings.fConvergence;
-		if (m_sUserSettings.fConvergence == 3.0f) WritePrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szFilePathINI);
-	}
-	else
-	{
-		// fov
-		m_sUserSettings.fFoV = 121.0f;
-		std::stringstream sz;
-		sz << m_sUserSettings.fFoV;
-		WritePrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szFilePathINI);
-
-		// fov aiming down sights
-		m_sUserSettings.fFoVADS = 136.0f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fFoVADS;
-		WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
-
-		// ipd
-		m_sUserSettings.fIPD = 0.064f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fIPD;
-		WritePrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szFilePathINI);
-
-		// separation
-		m_sUserSettings.fWorldScale = -1.44f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fWorldScale;
-		WritePrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szFilePathINI);
-
-		// convergence
-		m_sUserSettings.fConvergence = 3.0f;
-		sz = std::stringstream();
-		sz << m_sUserSettings.fConvergence;
-		WritePrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szFilePathINI);
-	}
+	// read settings
+	m_sUserSettings.fFoV = GetIniFileSetting(m_sUserSettings.fFoV, "Stereo Presenter", "fFoV", szFilePathINI, bFileExists);
+	m_sUserSettings.fFoVADS = GetIniFileSetting(m_sUserSettings.fFoVADS, "Stereo Presenter", "fFoVADS", szFilePathINI, bFileExists);
+	m_sUserSettings.fIPD = GetIniFileSetting(m_sUserSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
+	m_sUserSettings.fWorldScale = GetIniFileSetting(m_sUserSettings.fWorldScale, "Stereo Presenter", "fWorldScale", szFilePathINI, bFileExists);
+	m_sUserSettings.fConvergence = GetIniFileSetting(m_sUserSettings.fConvergence, "Stereo Presenter", "fConvergence", szFilePathINI, bFileExists);
+	BOOL bConvergence = GetIniFileSetting((DWORD)m_sUserSettings.bConvergence, "Stereo Presenter", "bConvergence", szFilePathINI, bFileExists);
+	if (bConvergence) m_sUserSettings.bConvergence = 1; else m_sUserSettings.bConvergence = 0;
 
 	// meanwhile we set them both to 99 (=uninitialized)
 	m_unFoV = 99;
@@ -572,23 +510,61 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 
+	// immersive mode ?
+	bool bImmersiveMode = true;
+	if (m_apnIntInput[1])
+	{
+		if (*m_apnIntInput[1] == 0)
+			bImmersiveMode = false;
+	}
+
 	// update view adjustment class for user settings and tracking
+	static bool s_bConfigLoaded = false;
 	if (m_ppcShaderViewAdjustment)
 	{
 		if (*m_ppcShaderViewAdjustment)
 		{
+			// did we initialize the game configurations for immersive and cinema mode ?
+			if (!s_bConfigLoaded)
+			{
+				// note that we only override IPD here !!
+				(*m_ppcShaderViewAdjustment).get()->Save(m_sGameConfigurationDefault);
+				m_sGameConfigurationDefault.fIPD = m_sUserSettings.fIPD;
+
+				// copy default to user configuration and set all fields
+				memcpy(&m_sGameConfigurationUser, &m_sGameConfigurationDefault, sizeof(Vireio_GameConfiguration));
+				m_sGameConfigurationUser.fPFOV = m_sUserSettings.fFoV;
+				m_sGameConfigurationUser.fWorldScaleFactor = m_sUserSettings.fWorldScale;
+				m_sGameConfigurationUser.fConvergence = m_sUserSettings.fConvergence;
+				m_sGameConfigurationUser.bConvergenceEnabled = m_sUserSettings.bConvergence;
+
+				// set default for immersive mode, user for cinema mode
+				if (bImmersiveMode)
+					(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationDefault);
+				else
+					(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationUser);
+
+				s_bConfigLoaded = true;
+			}
+
 			// update roll, update view transforms
 			if (m_pfEuler[2])
-				(*m_ppcShaderViewAdjustment).get()->UpdateRoll(-(*m_pfEuler[2]));
-
+			{
+				// update roll only for immersive mode
+				if (bImmersiveMode)
+					(*m_ppcShaderViewAdjustment).get()->UpdateRoll(-(*m_pfEuler[2]));
+				else
+					(*m_ppcShaderViewAdjustment).get()->UpdateRoll(0.0f);
+			}
 
 			// update position
-			if (/*m_pfEuler[0] &&
-				m_pfEuler[1] &&*/
-				m_pfEuler[2] &&
-				/*m_pfPosition[0] &&*/
-				m_pfPosition[1]
-				/*m_pfPosition[2]*/)
+			if (bImmersiveMode &&
+				/*m_pfEuler[0] &&
+					m_pfEuler[1] &&*/
+					m_pfEuler[2] &&
+					/*m_pfPosition[0] &&*/
+					m_pfPosition[1]
+					/*m_pfPosition[2]*/)
 			{
 				// optimized for 1.75 meters eye height
 				float fY = *m_pfPosition[1] - 1.75f;
@@ -600,6 +576,8 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					-fY,
 					0.0f);//*m_pfPosition[2]);
 			}
+			else
+				(*m_ppcShaderViewAdjustment).get()->UpdatePosition(0.0f, 0.0f, 0.0f);
 
 			(*m_ppcShaderViewAdjustment).get()->ComputeViewTransforms();
 		}
@@ -727,9 +705,21 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if ((m_apnIntInput[1]) && (!bWasPressed))
 				{
 					if (*m_apnIntInput[1] == 0)
+					{
 						*m_apnIntInput[1] = TRUE;
+
+						// set default for immersive mode
+						if (m_ppcShaderViewAdjustment)
+							(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationDefault);
+					}
 					else
+					{
 						*m_apnIntInput[1] = FALSE;
+
+						// set user for cinema mode
+						if (m_ppcShaderViewAdjustment)
+							(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationUser);
+					}
 
 					bWasPressed = true;
 				}
@@ -796,9 +786,21 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					if (!bWasPressed)
 					{
 						if (*m_apnIntInput[1] == 0)
+						{
 							*m_apnIntInput[1] = TRUE;
+
+							// set default for immersive mode
+							if (m_ppcShaderViewAdjustment)
+								(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationDefault);
+						}
 						else
+						{
 							*m_apnIntInput[1] = FALSE;
+
+							// set user for cinema mode
+							if (m_ppcShaderViewAdjustment)
+								(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationUser);
+						}
 
 						bWasPressed = true;
 					}

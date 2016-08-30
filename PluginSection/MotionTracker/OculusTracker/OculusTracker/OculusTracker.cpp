@@ -91,7 +91,12 @@ m_hHMD(nullptr)
 ***/
 OculusTracker::~OculusTracker()
 {
-	if (m_hHMD) ovr_Destroy(m_hHMD);
+	if (m_hHMD)
+	{
+		// set performance hud to zero
+		ovr_SetInt(m_hHMD, OVR_PERF_HUD_MODE, 0);
+		ovr_Destroy(m_hHMD);
+	}
 	ovr_Shutdown();
 	if (m_hBitmapControl) CloseHandle(m_hBitmapControl);
 	if (m_hFont) CloseHandle(m_hFont);
@@ -477,7 +482,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 	{
 		/*// Start the sensor which informs of the Rift's pose and motion   .... obsolete for SDK 1.3.x ??
 		ovr_ConfigureTracking(m_hHMD, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection |
-			ovrTrackingCap_Position, 0);*/
+		ovrTrackingCap_Position, 0);*/
 
 		// get the current tracking state
 		ovrTrackingState sTrackingState = ovr_GetTrackingState(m_hHMD, ovr_GetTimeInSeconds(), false);
@@ -500,7 +505,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 
 			// get angles
 			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fEuler[1], &m_fEuler[0], &m_fEuler[2]);
-			
+
 			// quick fix here...
 			m_fEuler[1] *= -1.0f;
 			m_fEuler[0] *= -1.0f;

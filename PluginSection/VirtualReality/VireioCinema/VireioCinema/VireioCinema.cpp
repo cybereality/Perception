@@ -580,6 +580,8 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		D3D_11,
 	} eD3DVersion = D3D_Undefined;
 
+
+
 	// get data
 	if (m_pfPitch) m_fPitch = *m_pfPitch;
 	if (m_pfYaw) m_fYaw = *m_pfYaw;
@@ -589,8 +591,20 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	if (m_pfPositionY) m_sPositionVector.y = *m_pfPositionY;
 	if (m_pfPositionZ) m_sPositionVector.z = *m_pfPositionZ;
 
-	if (m_pbImmersiveMode) m_sCinemaRoomSetup.bImmersiveMode = *m_pbImmersiveMode;
-	if (m_pbPerformanceMode) m_sCinemaRoomSetup.bPerformanceMode = *m_pbPerformanceMode;
+	// modes initialized ?
+	static bool s_bModeInit = false;
+	if (!s_bModeInit)
+	{
+		// ensure the default ini values are set
+		if (m_pbImmersiveMode) *m_pbImmersiveMode = m_sCinemaRoomSetup.bImmersiveMode;
+		if (m_pbPerformanceMode) *m_pbPerformanceMode = m_sCinemaRoomSetup.bPerformanceMode;
+		s_bModeInit = true;
+	}
+	else
+	{
+		if (m_pbImmersiveMode) m_sCinemaRoomSetup.bImmersiveMode = *m_pbImmersiveMode;
+		if (m_pbPerformanceMode) m_sCinemaRoomSetup.bPerformanceMode = *m_pbPerformanceMode;
+	}
 
 	// render cinema for specified D3D version
 	switch (eD3DVersion)

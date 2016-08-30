@@ -357,6 +357,7 @@ private:
 		float fIPD;          /**< Interpupillary distance. ***/
 		float fWorldScale;   /**< Game separation setting. ***/
 		float fConvergence;  /**< Game convergence setting. ***/
+		bool  bConvergence;  /**< True if convergence enabled. ***/
 	} m_sUserSettings;
 	/**
 	* Chosen FoV setting. 
@@ -366,6 +367,16 @@ private:
 	* Chosen FoV setting (ADS).
 	***/
 	UINT m_unFoVADS;
+	/**
+	* Default game configuration. (=immersive mode settings)
+	* Only IPD will be overridden here by user setting.
+	***/
+	Vireio_GameConfiguration m_sGameConfigurationDefault;
+	/**
+	* User game configuration. (=cinema mode settings)
+	* Contains UserSettings data.
+	***/
+	Vireio_GameConfiguration m_sGameConfigurationUser;
 
 };
 
