@@ -86,14 +86,14 @@
   <profile game_name="Tomb Raider" game_exe="TombRaider.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Batman: Arkham City" game_exe="BatmanAC.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Mad Max" game_exe="MadMax.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
-  <profile game_name="TotalWar: Rome 2" game_exe="Rome2.exe" cpu_architecture="32bit" dx_version="11" profile_path="..\\game_profiles\\HMD\\Win32\\Stereo\\TotalWar_Rome2_Cinema_Win32.aqup" image_url="" />
+  <profile game_name="TotalWar: Rome 2" game_exe="Rome2.exe" cpu_architecture="32bit" dx_version="11" profile_path="..\\game_profiles\\HMD\\Win32\\Stereo\\TotalWar_Rome2.aqup" image_url="" />
   <profile game_name="Tropico 5 (Steam)" game_exe="Tropico5Steam.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Trials Fusion" game_exe="trials_fusion.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Trials Evolution" game_exe="trialsFMX.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Middle-earth: Shadow of Mordor" game_exe="ShadowOfMordor.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
   <profile game_name="Cities: Skylines" game_exe="Cities.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
   <profile game_name="BioShockInfinite" game_exe="BioShockInfinite.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
-  <profile game_name="Fallout 4" game_exe="Fallout4.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
+  <profile game_name="Fallout 4" game_exe="Fallout4.exe" cpu_architecture="64bit" dx_version="11" profile_path="..\\game_profiles\\HMD\\x64\\FullImmersive\\Fallout4.aqup" image_url="" />
   <profile game_name="Just Cause 3" game_exe="JustCause3.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
   <profile game_name="King Arthur II - The Role-playing Wargame" game_exe="KingArthurII.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Lords Of The Fallen" game_exe="LordsOfTheFallen.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
