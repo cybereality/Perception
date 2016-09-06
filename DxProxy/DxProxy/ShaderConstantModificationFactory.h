@@ -61,6 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixRollNegativeConvergence.h"
 #include "MatrixShadowFix1.h"
 #include "MatrixShadowFix2.h"
+#include "MatrixShadowFix3.h"
 #include "MatrixTransformShadowFix1.h"
 #include "MatrixTransformToRotation.h"
 #pragma endregion
@@ -244,7 +245,7 @@ public:
 				return std::make_shared<MatrixShadowFix2>(mod, adjustmentMatrices, transpose);
 				break;
 			case ShaderConstantModificationFactory::MatShadowFix3:
-				return std::make_shared<MatrixShadowFix1>(mod, adjustmentMatrices, transpose); // RESERVED
+				return std::make_shared<MatrixShadowFix3>(mod, adjustmentMatrices, transpose);
 				break;
 			case ShaderConstantModificationFactory::MatShadowFix4:
 				return std::make_shared<MatrixShadowFix1>(mod, adjustmentMatrices, transpose); // RESERVED

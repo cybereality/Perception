@@ -325,7 +325,10 @@ struct Vireio_Map_Data
 enum Vireio_Supported_Shaders
 {
 	VertexShader,
-	PixelShader
+	PixelShader,
+	GeometryShader,
+	HullShader,
+	DomainShader
 };
 #elif defined(VIREIO_D3D9)
 /**
@@ -788,8 +791,8 @@ private:
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 	/*** MatrixModifier private methods ***/
-	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*> &apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer *const*ppcConstantBuffers);
-	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex);
+	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*> &apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer *const*ppcConstantBuffers, Vireio_Supported_Shaders eShaderType);
+	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex, Vireio_Supported_Shaders eShaderType);
 	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
 #endif
 	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);

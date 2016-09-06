@@ -188,6 +188,7 @@
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnly.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyHalf.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyNegative.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix3.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixTransformToRotation.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix1.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix2.h" />
