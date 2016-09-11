@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIXSHADOWFIX3_H_INCLUDED
 /**
 * @file MatrixShadowFix2.h
-* Special form of MatrixTransformToRotation, applys only if in(0,0) < 0,0f.
+* Game specific shader rule. Only applies transform if m[3][3] < -10.0f or > 10.0f and m[0][1] > 1.0f.
 */
 
 #include "d3d9.h"
@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 
 /**
-* Special form of MatrixTransformToRotation.
+* Game specific shader rule. Only applies transform if m[3][3] < -10.0f or > 10.0f and m[0][1] > 1.0f.
 */
 class MatrixShadowFix3 : public ShaderMatrixModification
 {
@@ -68,7 +68,7 @@ public:
 		sz << in(0, 0) << ":" << in(0, 1) << ":" << in(0, 2) << ":" << in(0, 3) << ":" << in(1, 0) << ":" << in(1, 1) << ":" << in(1, 2) << ":" << in(1, 3) << in(2, 0) << ":" << in(2, 1) << ":" << in(2, 2) << ":" << in(2, 3) << ":" << in(3, 0) << ":" << in(3, 1) << ":" << in(3, 2) << ":" << in(3, 3);
 		OutputDebugStringA(sz.str().c_str());*/
 
-		if (in(0, 1) != 3.0f)// || (in(0,0) == -1.0f))
+		if (((in(3, 3) > -10.0f) && (in(3, 3) < 10.0f)) || (in(1, 0) > 1.0f))
 		{
 			outLeft = in;
 			outright = in;
@@ -76,18 +76,7 @@ public:
 		}
 		else
 		{
-			std::stringstream sz;
-			sz << in(0, 0) << ":" << in(0, 1) << ":" << in(0, 2) << ":" << in(0, 3) << ":" << in(1, 0) << ":" << in(1, 1) << ":" << in(1, 2) << ":" << in(1, 3) << in(2, 0) << ":" << in(2, 1) << ":" << in(2, 2) << ":" << in(2, 3) << ":" << in(3, 0) << ":" << in(3, 1) << ":" << in(3, 2) << ":" << in(3, 3);
-			OutputDebugStringA(sz.str().c_str());
-
-			// ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
-			D3DXMATRIX sMatrixL, sMatrixR;
-			D3DXMatrixTranslation(&sMatrixL, -0.01f, 0.0f, 0.0f);
-			D3DXMatrixTranslation(&sMatrixR, 0.01f, 0.0f, 0.0f);
-			outLeft = in * sMatrixL;
-			outright = in * sMatrixR;
-
-			//D3DXMatrixIdentity(&outLeft);
+			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
 		}
 	};
 };
