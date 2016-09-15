@@ -406,6 +406,7 @@ private:
 		D3DXCOLOR sColorAmbient;
 		D3DXCOLOR sColorDiffuse;
 		D3DXVECTOR4 sLightDirection;
+		float fGamma;
 
 		enum PixelShaderFX_Screen
 		{

@@ -157,6 +157,7 @@ m_pbPerformanceMode(nullptr)
 	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
 	m_sCinemaRoomSetup.bPerformanceMode = FALSE;
 	m_sCinemaRoomSetup.bImmersiveMode = FALSE;
+	m_sCinemaRoomSetup.fGamma = 1.0f;
 	m_unMouseTickCount = 2000;
 	m_sImmersiveFullscreenSettings.fIPD = 0.064f;
 	m_sImmersiveFullscreenSettings.fVSD = 0.8f; /**< default : the immersive mode screen is 0.8 meters away from eye ***/
@@ -188,6 +189,7 @@ m_pbPerformanceMode(nullptr)
 	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bPerformanceMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bImmersiveMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fGamma = GetIniFileSetting(m_sCinemaRoomSetup.fGamma, "Stereo Cinema", "sCinemaRoomSetup.fGamma", szFilePathINI, bFileExists);
 	m_unMouseTickCount = GetIniFileSetting((DWORD)m_unMouseTickCount, "Stereo Cinema", "unMouseTickCount", szFilePathINI, bFileExists);
 	m_sImmersiveFullscreenSettings.fIPD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
 	m_sImmersiveFullscreenSettings.fVSD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fVSD, "Stereo Presenter", "fVSD", szFilePathINI, bFileExists);
@@ -1514,6 +1516,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	m_sGeometryConstants.sLightDir = sLightDir;
 	m_sGeometryConstants.sLightAmbient = m_sCinemaRoomSetup.sColorAmbient;
 	m_sGeometryConstants.sLightDiffuse = m_sCinemaRoomSetup.sColorDiffuse;
+	m_sGeometryConstants.fGamma = m_sCinemaRoomSetup.fGamma;
 
 	// for aspect ratio based fx we set a 1.0 ratio here
 	m_sGeometryConstants.sResolution.x = 1024.0f;

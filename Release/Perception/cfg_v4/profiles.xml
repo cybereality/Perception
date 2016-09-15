@@ -96,7 +96,7 @@
   <profile game_name="Fallout 4" game_exe="Fallout4.exe" cpu_architecture="64bit" dx_version="11" profile_path="..\\game_profiles\\HMD\\x64\\FullImmersive\\Fallout4.aqup" image_url="" />
   <profile game_name="Just Cause 3" game_exe="JustCause3.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
   <profile game_name="King Arthur II - The Role-playing Wargame" game_exe="KingArthurII.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
-  <profile game_name="Lords Of The Fallen" game_exe="LordsOfTheFallen.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
+  <profile game_name="Lords Of The Fallen" game_exe="LordsOfTheFallen.exe" cpu_architecture="64bit" dx_version="11" image_url="" profile_path="..\\\game_profiles\\HMD\\x64\\Stereo\\LordsOfTheFallen.aqup" />
   <profile game_name="Metal Gear Solid V: The Phantom Pain" game_exe="mgsvtpp.exe" cpu_architecture="64bit" dx_version="11" image_url="" />
   <profile game_name="Civilization V (DX11)" game_exe="CivilizationV_DX11.exe" cpu_architecture="32bit" dx_version="11" image_url="" time_delay="10000" />
   <profile game_name="Banished (DX11)" game_exe="Application-steam-x32.exe" cpu_architecture="32bit" dx_version="11" image_url="" time_delay="20" />

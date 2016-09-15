@@ -101,8 +101,10 @@ struct GeometryConstantBuffer
 	D3DXVECTOR3 sResolution;           /**< viewport resolution (in pixels) **/
 	float       fGlobalTime;           /**< shader playback time (in seconds) **/
 	D3DXVECTOR4 sMouse;                /**< mouse pixel coords. xy: current (if MLB down), zw: click **/
+	float       fGamma;                /**< Gamma correction value **/
+	float       fReserved[3];          /**< Reserved data to ensure right buffer size **/
 
-	D3DXCOLOR sColorFX[8];             /**< Colors to be used by a shader effect **/
+	D3DXCOLOR   sColorFX[8];           /**< Colors to be used by a shader effect **/
 };
 #pragma endregion
 #pragma region vertex shader
@@ -300,6 +302,9 @@ static const char* PS3D =
 "float     fGlobalTime;\n"           // shader playback time (in seconds)
 "float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
 
+// gamma correction
+"float     fGamma;\n"                // Gamma correction value 
+
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
 "SamplerState g_samLinear : register(s0);\n"
@@ -317,10 +322,10 @@ static const char* PS3D =
 "{\n"
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
-"	float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
-"	fLighting = max(fLighting, sLightAmbient);\n"
+"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, sLightAmbient);\n"
 
-"	return vDiffuse * fLighting;\n"
+"	return vDiffuse * vLighting;\n"
 "}\n";
 #pragma endregion
 #pragma region PS3D_MOUSE
@@ -346,6 +351,9 @@ static const char* PS3D_MOUSE =
 "float3    sResolution;\n"           // viewport resolution (in pixels)
 "float     fGlobalTime;\n"           // shader playback time (in seconds)
 "float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// gamma correction
+"float     fGamma;\n"                // Gamma correction value 
 
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
@@ -373,8 +381,8 @@ static const char* PS3D_MOUSE =
 "{\n"
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
-"	float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
-"	fLighting = max(fLighting, sLightAmbient);\n"
+"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, sLightAmbient);\n"
 
 "   float fMouseX = abs(Input.vTexcoord.x - sMouse.x);\n"
 "   float fMouseY = abs(Input.vTexcoord.y - sMouse.y);\n"
@@ -389,7 +397,7 @@ static const char* PS3D_MOUSE =
 "   if (glowIntensity > 0.0)\n"
 "   { return lerp(vDiffuse, glowColor, glowIntensity); } }\n"
 
-"	return vDiffuse * fLighting;\n"
+"   return pow (vDiffuse * vLighting, fGamma);\n"
 "}\n";
 #pragma endregion
 #pragma region PS3D_FABRIC
@@ -441,10 +449,10 @@ static const char* PS3D_FABRIC =
 // get texel
 "float4 diffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord) * (fp.x + fp.y + noisy.x);\n"
 
-"float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
-"fLighting = max(fLighting, sLightAmbient);\n"
+"float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"vLighting = max(vLighting, sLightAmbient);\n"
 
-"return diffuse * fLighting;\n"
+"return diffuse * vLighting;\n"
 
 "}\n";
 #pragma endregion
@@ -513,11 +521,11 @@ static const char* PS3D_BUMP =
 // color + lighting
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
-"	float4 fLighting = saturate(dot(sLightDir, vNormal)) * 2.0;\n"
-"   float4 fLightingNormal = saturate(dot(sLightDir, Input.vNormal));\n"
-"	fLighting = max(fLighting, fLightingNormal);\n"
+"	float4 vLighting = saturate(dot(sLightDir, vNormal)) * 2.0;\n"
+"   float4 vLightingNormal = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, vLightingNormal);\n"
 
-"	return vDiffuse * fLighting;\n"
+"	return vDiffuse * vLighting;\n"
 
 "}\n";
 #pragma endregion
@@ -1697,7 +1705,7 @@ enum PixelShaderTechnique
 	DistortSimple,                 /**< TexturedVertex **/
 	FullscreenGammaCorrection,     /**< TexturedVertex **/
 	GeometryDiffuseTextured,       /**< TexturedNormalVertex : simple lighting **/
-	GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, draws mouse laser pointer **/
+	GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, gamma correction, draws mouse laser pointer **/
 	Fabric,                        /**< TexturedNormalVertex : fabric effect **/
 	BumpComputeNormal,             /**< TexturedNormalVertex : bump mapping, computes per pixel normals **/
 	StringTheory,                  /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/

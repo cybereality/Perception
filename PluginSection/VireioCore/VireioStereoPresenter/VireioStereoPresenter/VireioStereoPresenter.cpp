@@ -517,6 +517,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		if (*m_apnIntInput[1] == 0)
 			bImmersiveMode = false;
 	}
+	else bImmersiveMode = false;
 
 	// update view adjustment class for user settings and tracking
 	static bool s_bConfigLoaded = false;
