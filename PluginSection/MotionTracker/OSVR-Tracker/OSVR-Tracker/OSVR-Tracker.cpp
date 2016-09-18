@@ -214,6 +214,12 @@ HBITMAP OSVR_Tracker::GetControl()
 			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 
+			TextOut(hdcImage, 650, nY, L"View", 4); nY += 64;
+			TextOut(hdcImage, 650, nY, L"ProjectionLeft", 14); nY += 64;
+			TextOut(hdcImage, 650, nY, L"ProjectionRight", 15); nY += 64;
+			TextOut(hdcImage, 650, nY, L"TargetWidth", 11); nY += 64;
+			TextOut(hdcImage, 650, nY, L"TargetHeight", 12); nY += 64;
+
 			// Restore the original font.
 			SelectObject(hdcImage, hOldFont);
 		}
