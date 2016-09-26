@@ -557,9 +557,19 @@ public:
 								m_pcActualVertexShader->GetDevice(&pcDevice);
 								if (pcDevice)
 								{
+									// get current shader
+									IDirect3DVertexShader9* pcShaderOld = nullptr;
+									pcDevice->GetVertexShader(&pcShaderOld);
+
+									// set new shader and get data
+									pcDevice->SetVertexShader(pcShaderOld);
 									pcDevice->GetVertexShaderConstantF(pConstantDesc[j].RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, pConstantDesc[j].RegisterCount);
 									pcDevice->GetVertexShaderConstantF(pConstantDesc[j].RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, pConstantDesc[j].RegisterCount);
+									pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
 									pcDevice->Release();
+
+									// set back vertex shader
+									if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); } else pcDevice->SetVertexShader(nullptr);
 								}
 
 								m_asConstantRuleIndices.push_back(sConstantRuleIndex);
@@ -584,7 +594,7 @@ public:
 			return D3DERR_INVALIDCALL;
 
 		// Set proxy registers
-		std::copy(pfConstantData, pfConstantData + (VECTOR_LENGTH * unVector4fCount), m_afRegisters.begin() + RegisterIndex(unStartRegister));
+		memcpy(&m_afRegisters[unStartRegister], pfConstantData, unVector4fCount * 4 * sizeof(float));
 
 		// modification present for this index ?
 		if ((m_aunRegisterModificationIndex[unStartRegister] < (UINT)m_asConstantRuleIndices.size()) && (unVector4fCount == 4))
@@ -592,9 +602,8 @@ public:
 			// apply to left and right data
 			unIndex = m_aunRegisterModificationIndex[unStartRegister];
 			bModified = true;
-			// m_asConstantRuleIndices[unIndex].
 
-			D3DXMATRIX tempMatrix(pfConstantData);
+			D3DXMATRIX tempMatrix(&m_afRegisters[unStartRegister]);
 			{
 				// matrix to be transposed ?
 				if (true)
@@ -604,12 +613,14 @@ public:
 
 				D3DXMATRIX tempLeft;
 				D3DXMATRIX tempRight;
-				D3DXMATRIX rollMatrix;
-				D3DXMatrixRotationZ(&rollMatrix, 0.3f);
+				D3DXMATRIX rollMatrixLeft;
+				D3DXMATRIX rollMatrixRight;
+				D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
+				D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);
 
 				// do modification
-				tempLeft = tempMatrix * rollMatrix;
-				tempRight = tempMatrix * rollMatrix;
+				tempLeft = tempMatrix * rollMatrixLeft;
+				tempRight = tempMatrix * rollMatrixRight;
 
 				// transpose back
 				if (true)
@@ -622,7 +633,7 @@ public:
 				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
 			}
 		}
-		else if (unVector4fCount > 4)
+		else
 		{
 			UINT unInd = 0;
 
@@ -631,12 +642,11 @@ public:
 			while (it != m_asConstantRuleIndices.end())
 			{
 				// register in range ?
-				if (((*it).m_dwConstantRuleRegister >= unStartRegister) && ((*it).m_dwConstantRuleRegister <= (unStartRegister + unVector4fCount - (*it).m_dwConstantRuleRegisterCount)))
+				if ((unStartRegister < ((*it).m_dwConstantRuleRegister + (*it).m_dwConstantRuleRegisterCount)) && ((unStartRegister + unVector4fCount) > (*it).m_dwConstantRuleRegister))
 				{
 					// apply to left and right data
 					bModified = true;
 					unIndex = unInd;
-					// m_asConstantRuleIndices[unIndex].
 
 					D3DXMATRIX tempMatrix(&m_afRegisters[(*it).m_dwConstantRuleRegister]);
 					{
@@ -648,12 +658,14 @@ public:
 
 						D3DXMATRIX tempLeft;
 						D3DXMATRIX tempRight;
-						D3DXMATRIX rollMatrix;
-						D3DXMatrixRotationZ(&rollMatrix, 0.3f);
+						D3DXMATRIX rollMatrixLeft;
+						D3DXMATRIX rollMatrixRight;
+						D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
+						D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);
 
 						// do modification
-						tempLeft = tempMatrix * rollMatrix;
-						tempRight = tempMatrix * rollMatrix;
+						tempLeft = tempMatrix * rollMatrixLeft;
+						tempRight = tempMatrix * rollMatrixRight;
 
 						// transpose back
 						if (true)
@@ -669,7 +681,6 @@ public:
 				it++; unInd++;
 			}
 		}
-
 
 		return D3D_OK;
 	}
@@ -963,7 +974,7 @@ private:
 	{
 		BYTE m_pchBuffer10Left[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 		BYTE m_pchBuffer11Left[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-};
+	};
 	/**
 	* Constant Buffer private data buffer right eye.
 	***/
@@ -1353,7 +1364,7 @@ private:
 	***/
 	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
 #endif
-	};
+};
 
 /**
 * Exported Constructor Method.
