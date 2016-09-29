@@ -2544,6 +2544,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// set constant rule indices pointer for stereo splitter
 						m_pasVSConstantRuleIndices = &m_pcActiveVertexShader->m_asConstantRuleIndices;
 
+						// replace call, set actual shader
+						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
+
 						// set modified constants
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
 						{
@@ -2555,9 +2558,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_pasVSConstantRuleIndices->size(); nI++)
 								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF((*m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_pasVSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
 						}
-
-						// replace call, set actual shader
-						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
 					}
 
 					// method replaced, immediately return
@@ -2711,12 +2711,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							if (m_eCurrentRenderingSide == RenderPosition::Left)
 							{
 								nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
-								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataLeft, 4);
+								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_dwConstantRuleRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataLeft, 4);
 							}
 							else
 							{
 								nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
-								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataRight, 4);
+								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_dwConstantRuleRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataRight, 4);
 							}
 
 							// method replaced, immediately return
