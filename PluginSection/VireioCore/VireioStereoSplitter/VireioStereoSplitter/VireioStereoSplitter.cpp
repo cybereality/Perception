@@ -1089,109 +1089,132 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 
 	if (pcSurfaceTwin)
 	{
-		// no release here, DX9 has no private interfaces
+		// no release here, DX9 does not increment the counter
 		return pcSurfaceTwin;
 	}
 	else
 	{
-		// get description
-		D3DSURFACE_DESC sDesc;
-		pcSurface->GetDesc(&sDesc);
+		// try to get the container
+		IDirect3DBaseTexture9* pcTexture = nullptr;
+		pcSurface->GetContainer(__uuidof(IDirect3DTexture9), (void**)&pcTexture);
+		if (!pcTexture)
+			pcSurface->GetContainer(__uuidof(IDirect3DCubeTexture9), (void**)&pcTexture);
 
-		// should we duplicate ?
-		//if ((sDesc.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-		//{
-		//	if (!ShouldDuplicateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/))
-		//		return nullptr;
-		//}
-		//else
-		//{
-		//	if (!ShouldDuplicateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/, (pcSurface == m_apcActiveRenderTargets[0])))
-		//		return nullptr;
-		//}
-
-		// get target pointers, both tex + surface
-		LPDIRECT3DTEXTURE9 pcStereoTwinTexture = nullptr;
-		LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
-
-		switch (sDesc.Type)
+		// is this a texture level surface ?
+		if (pcTexture)
 		{
-			case D3DRESOURCETYPE::D3DRTYPE_SURFACE:
-				// depth stencil ??
-				if ((sDesc.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				{
-					// discard must be false since we switch the stencil surfaces for every draw call
-					if (FAILED(pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
-					{
-						OutputDebugString(L"VireioStereoSplitter : Failed to create depth stencil surface.");
-#ifdef _DEBUGTHIS
-						wchar_t buf[32];
-						wsprintf(buf, L"desc.Width %u", sDesc.Width); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
-#endif
-					}
-				}
-				else
-				if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
-				{
-					if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, true, &pcStereoTwinSurface, NULL)))
-					{
-						OutputDebugString(L"VireioStereoSplitter : Failed to create render target.");
-#ifdef _DEBUGTHIS
-						wchar_t buf[32];
-						wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
-						wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
-#endif
-						pcStereoTwinSurface = nullptr;
-					}
-				}
-				break;
-			case D3DRESOURCETYPE::D3DRTYPE_TEXTURE:
-			{
-													  if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, 1, sDesc.Usage, sDesc.Format, D3DPOOL_DEFAULT, &pcStereoTwinTexture, NULL)))
-													  {
-														  OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
-#ifdef _DEBUGTHIS							
-														  wchar_t buf[32];
-														  wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
-														  wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
-														  wsprintf(buf, L"sDesc.Usage %u", sDesc.Usage); OutputDebugString(buf);
-														  wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
-#endif
-														  pcStereoTwinTexture = nullptr;
-													  }
-													  else
-														  pcStereoTwinTexture->GetSurfaceLevel(0, &pcStereoTwinSurface);
-			}
-				break;
-			default:
-				OutputDebugString(L"[STS] Surface not processed !");
-				// TODO !! HANDLE CUBE + VOLUME TEX
-				break;
+			// create the stereo texture
+			IDirect3DBaseTexture9* pcTextureTwin = nullptr;
+			CreateStereoTexture(pcDevice, pcTexture, &pcTextureTwin);
+
+			// try to get the twin after creating the stereo texture
+			DWORD unSize = sizeof(pcSurfaceTwin);
+			pcSurface->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)&pcSurfaceTwin, &unSize);
+
+			// and return the twin
+			if (pcSurfaceTwin) return pcSurfaceTwin; else return nullptr;
 		}
-
-		// update resource and set private data
-		if (pcStereoTwinSurface)
+		else
 		{
-			// update the surface
-			pcDevice->UpdateSurface(pcSurface, nullptr, pcStereoTwinSurface, nullptr);
+			// get description
+			D3DSURFACE_DESC sDesc;
+			pcSurface->GetDesc(&sDesc);
 
-			// set private data
-			if (pcStereoTwinTexture)
+			// should we duplicate ?
+			//if ((sDesc.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+			//{
+			//	if (!ShouldDuplicateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/))
+			//		return nullptr;
+			//}
+			//else
+			//{
+			//	if (!ShouldDuplicateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/, (pcSurface == m_apcActiveRenderTargets[0])))
+			//		return nullptr;
+			//}
+
+			// get target pointers, both tex + surface
+			LPDIRECT3DTEXTURE9 pcStereoTwinTexture = nullptr;
+			LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
+
+			/*	switch (sDesc.Type)
+				{
+				case D3DRESOURCETYPE::D3DRTYPE_SURFACE:*/
+			// depth stencil ??
+			if ((sDesc.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 			{
+				// discard must be false since we switch the stencil surfaces for every draw call
+				if (FAILED(pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
+				{
+					OutputDebugString(L"VireioStereoSplitter : Failed to create depth stencil surface.");
+#ifdef _DEBUGTHIS
+					wchar_t buf[32];
+					wsprintf(buf, L"desc.Width %u", sDesc.Width); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
+#endif
+				}
+			}
+			else
+			if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
+			{
+				if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, true, &pcStereoTwinSurface, NULL)))
+				{
+					OutputDebugString(L"VireioStereoSplitter : Failed to create render target.");
+#ifdef _DEBUGTHIS
+					wchar_t buf[32];
+					wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
+					wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
+#endif
+					pcStereoTwinSurface = nullptr;
+				}
+			}
+			//					break;
+			//				case D3DRESOURCETYPE::D3DRTYPE_TEXTURE:
+			//				{
+			//														  if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, 1, sDesc.Usage, sDesc.Format, D3DPOOL_DEFAULT, &pcStereoTwinTexture, NULL)))
+			//														  {
+			//															  OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+			//#ifdef _DEBUGTHIS							
+			//															  wchar_t buf[32];
+			//															  wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
+			//															  wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
+			//															  wsprintf(buf, L"sDesc.Usage %u", sDesc.Usage); OutputDebugString(buf);
+			//															  wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
+			//#endif
+			//															  pcStereoTwinTexture = nullptr;
+			//														  }
+			//														  else
+			//															  pcStereoTwinTexture->GetSurfaceLevel(0, &pcStereoTwinSurface);
+			//				}
+			//					break;
+			//				default:
+			//					OutputDebugString(L"[STS] Surface not processed !");
+			//					// TODO !! HANDLE CUBE + VOLUME TEX
+			//					break;
+			//			}
+
+			// update resource and set private data
+			if (pcStereoTwinSurface)
+			{
+				// update the surface
+				pcDevice->UpdateSurface(pcSurface, nullptr, pcStereoTwinSurface, nullptr);
+
+				// set private data
+				/*if (pcStereoTwinTexture)
+				{
 				pcStereoTwinSurface->SetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)pcStereoTwinTexture, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
-			}
-			pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcStereoTwinSurface, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+				}*/
+				pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcStereoTwinSurface, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
 
-			return pcStereoTwinSurface;
+				return pcStereoTwinSurface;
+			}
+			else OutputDebugString(L"[STS] No surface !!");
 		}
-		else OutputDebugString(L"[STS] No surface !!");
 	}
 
 	return nullptr;
@@ -1204,31 +1227,52 @@ IDirect3DBaseTexture9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevi
 {
 	if (!pcTexture) return nullptr;
 
+	// get private data texture twin
+	IDirect3DBaseTexture9* pcTextureTwin = nullptr;
+	DWORD unSize = sizeof(pcTextureTwin);
+	pcTexture->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)&pcTextureTwin, &unSize);
+
+	// has a twin already ?
+	if (pcTextureTwin)
+	{
+		// no release here, DX9 does not increment the counter
+		return pcTextureTwin;
+	}
+	else
+	{
+		if (bDuplicate)
+		{
+			// create the twin and return
+			CreateStereoTexture(pcDevice, pcTexture, &pcTextureTwin);
+			if (pcTextureTwin) return pcTextureTwin; else return nullptr;
+		}
+	}
+
 	// TODO !! set as private data !
 
 	// get the surface
-	IDirect3DSurface9* pcSurface = nullptr;
+	/*IDirect3DSurface9* pcSurface = nullptr;
 	D3DRESOURCETYPE type = pcTexture->GetType();
 	switch (type)
 	{
-		case D3DRTYPE_TEXTURE:
-		{
-								 IDirect3DTexture9* pcDerivedTexture = static_cast<IDirect3DTexture9*> (pcTexture);
-								 pcDerivedTexture->GetSurfaceLevel(0, &pcSurface);
-								 break;
-		}
-		case D3DRTYPE_VOLUMETEXTURE:
-		{
-									   IDirect3DVolumeTexture9* pcDerivedTexture = static_cast<IDirect3DVolumeTexture9*> (pcTexture);
-									   // TODO !! handle volume textures
-									   return nullptr;
-		}
-		case D3DRTYPE_CUBETEXTURE:
-		{
-									 IDirect3DCubeTexture9* pcDerivedTexture = static_cast<IDirect3DCubeTexture9*> (pcTexture);
-									 pcDerivedTexture->GetCubeMapSurface(D3DCUBEMAP_FACES::D3DCUBEMAP_FACE_POSITIVE_X, 0, &pcSurface);
-									 break;
-		}
+	case D3DRTYPE_TEXTURE:
+	{
+	IDirect3DTexture9* pcDerivedTexture = static_cast<IDirect3DTexture9*> (pcTexture);
+	pcDerivedTexture->GetSurfaceLevel(0, &pcSurface);
+	break;
+	}
+	case D3DRTYPE_VOLUMETEXTURE:
+	{
+	IDirect3DVolumeTexture9* pcDerivedTexture = static_cast<IDirect3DVolumeTexture9*> (pcTexture);
+	// TODO !! handle volume textures
+	return nullptr;
+	}
+	case D3DRTYPE_CUBETEXTURE:
+	{
+	IDirect3DCubeTexture9* pcDerivedTexture = static_cast<IDirect3DCubeTexture9*> (pcTexture);
+	pcDerivedTexture->GetCubeMapSurface(D3DCUBEMAP_FACES::D3DCUBEMAP_FACE_POSITIVE_X, 0, &pcSurface);
+	break;
+	}
 	}
 
 	if (!pcSurface) { OutputDebugString(L"[STS] Can't get surface from texture"); return nullptr; }
@@ -1240,69 +1284,69 @@ IDirect3DBaseTexture9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevi
 
 	if (pcSurfaceTwin)
 	{
-		// no release here, DX9 has no private interfaces
-		IDirect3DBaseTexture9* pcTextureTwin = nullptr;
-		unSize = sizeof(pcTextureTwin);
-		pcSurfaceTwin->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)&pcTextureTwin, &unSize);
-		if (!pcTextureTwin)
-		{
-			// get target pointers, create tex, release surface here
-			LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
-			CreateStereoTexture(pcDevice, pcTexture, pcSurface, &pcTextureTwin, &pcStereoTwinSurface);
+	// no release here, DX9 has no private interfaces
+	IDirect3DBaseTexture9* pcTextureTwin = nullptr;
+	unSize = sizeof(pcTextureTwin);
+	pcSurfaceTwin->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)&pcTextureTwin, &unSize);
+	if (!pcTextureTwin)
+	{
+	// get target pointers, create tex, release surface here
+	LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
+	CreateStereoTexture(pcDevice, pcTexture, pcSurface, &pcTextureTwin, &pcStereoTwinSurface);
 
-			// update and set as private data
-			if (pcTextureTwin)
-			{
-				// update the texture
-				pcDevice->UpdateTexture(pcTexture, pcTextureTwin);
+	// update and set as private data
+	if (pcTextureTwin)
+	{
+	// update the texture
+	pcDevice->UpdateTexture(pcTexture, pcTextureTwin);
 
-				if (pcStereoTwinSurface)
-				{
-					// set new surface twin
-					pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcStereoTwinSurface, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
-					// set texture to twin
-					pcStereoTwinSurface->SetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)pcTextureTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
-					// release old surface twin
-					if (pcSurfaceTwin) pcSurfaceTwin->Release();
-				}
-				else
-				{
-					OutputDebugString(L"[STS] : Created a texture without a surface !");
-					pcTextureTwin->Release();
-				}
-			}
-		}
-		pcSurface->Release();
-		return pcTextureTwin;
+	if (pcStereoTwinSurface)
+	{
+	// set new surface twin
+	pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcStereoTwinSurface, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+	// set texture to twin
+	pcStereoTwinSurface->SetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)pcTextureTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+	// release old surface twin
+	if (pcSurfaceTwin) pcSurfaceTwin->Release();
 	}
 	else
 	{
-		if (bDuplicate)
-		{
-			// get target pointers, create both tex + surface
-			LPDIRECT3DBASETEXTURE9 pcStereoTwinTexture = nullptr;
-			LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
-			CreateStereoTexture(pcDevice, pcTexture, pcSurface, &pcStereoTwinTexture, &pcStereoTwinSurface);
-
-			// set private data, add to stored surfaces
-			if (pcStereoTwinSurface)
-			{
-				// update the surface
-				pcDevice->UpdateSurface(pcSurface, nullptr, pcStereoTwinSurface, nullptr);
-
-				// set texture to twin
-				if (pcStereoTwinTexture)
-					pcStereoTwinSurface->SetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)pcStereoTwinTexture, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
-				// set new surface twin
-				pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcStereoTwinSurface, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
-
-				pcSurface->Release();
-				return pcStereoTwinTexture;
-			}
-		}
+	OutputDebugString(L"[STS] : Created a texture without a surface !");
+	pcTextureTwin->Release();
 	}
+	}
+	}
+	pcSurface->Release();
+	return pcTextureTwin;
+	}
+	else
+	{
+	if (bDuplicate)
+	{
+	// get target pointers, create both tex + surface
+	LPDIRECT3DBASETEXTURE9 pcStereoTwinTexture = nullptr;
+	LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
+	CreateStereoTexture(pcDevice, pcTexture, pcSurface, &pcStereoTwinTexture, &pcStereoTwinSurface);
+
+	// set private data, add to stored surfaces
+	if (pcStereoTwinSurface)
+	{
+	// update the surface
+	pcDevice->UpdateSurface(pcSurface, nullptr, pcStereoTwinSurface, nullptr);
+
+	// set texture to twin
+	if (pcStereoTwinTexture)
+	pcStereoTwinSurface->SetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)pcStereoTwinTexture, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+	// set new surface twin
+	pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcStereoTwinSurface, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
 
 	pcSurface->Release();
+	return pcStereoTwinTexture;
+	}
+	}
+	}
+
+	pcSurface->Release();*/
 	return nullptr;
 }
 
@@ -1373,6 +1417,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		}
 	}
 
+#define DRAW_INDICATORS
 #ifdef DRAW_INDICATORS
 	if (eSide == RenderPosition::Left)
 	{
@@ -1444,11 +1489,11 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 /**
 * Creates a texture by surface description and returns both texture and surface level zero.
 ***/
-void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, IDirect3DSurface9* pcSurface, IDirect3DBaseTexture9** ppcStereoTwinTexture, IDirect3DSurface9** ppcStereoTwinSurface)
+void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, IDirect3DBaseTexture9** ppcStereoTwinTexture)
 {
-	// get description
-	D3DSURFACE_DESC sDesc;
-	pcSurface->GetDesc(&sDesc);
+	//// get description
+	//D3DSURFACE_DESC sDesc;
+	//pcSurface->GetDesc(&sDesc);
 
 	// should we douplicate ?
 	/*if (!ShouldDuplicateTexture(sDesc.Width, sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool))
@@ -1458,29 +1503,67 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 	switch (eType)
 	{
 		case D3DRTYPE_TEXTURE:
-			if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DTexture9**)ppcStereoTwinTexture, NULL)))
-			{
-				OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
-#ifdef _DEBUGTHIS							
-				wchar_t buf[32];
-				wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
-				wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
-				wsprintf(buf, L"sDesc.Usage %u", sDesc.Usage); OutputDebugString(buf);
-				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
-#endif
-				*ppcStereoTwinTexture = nullptr;
-			}
-			else
-			{
-				// update the texture
-				pcDevice->UpdateTexture(pcTexture, *ppcStereoTwinTexture);
+		{
+								 // get first level
+								 IDirect3DSurface9* pcSurface = nullptr;
+								 ((IDirect3DTexture9*)pcTexture)->GetSurfaceLevel(0, &pcSurface);
+								 if (pcSurface)
+								 {
+									 // get description
+									 D3DSURFACE_DESC sDesc = {};
+									 pcSurface->GetDesc(&sDesc);
+									 pcSurface->Release();
 
-				// get surface
-				(*(IDirect3DTexture9**)ppcStereoTwinTexture)->GetSurfaceLevel(0, ppcStereoTwinSurface);
-			}
+									 // create the texture
+									 if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DTexture9**)ppcStereoTwinTexture, NULL)))
+									 {
+										 OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+#ifdef _DEBUGTHIS							
+										 wchar_t buf[32];
+										 wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
+										 wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
+										 wsprintf(buf, L"sDesc.Usage %u", sDesc.Usage); OutputDebugString(buf);
+										 wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
+#endif
+										 *ppcStereoTwinTexture = nullptr;
+									 }
+									 else
+									 {
+										 // update the texture
+										 pcDevice->UpdateTexture(pcTexture, *ppcStereoTwinTexture);
+
+										 // set twin as private data interface
+										 IDirect3DTexture9* pcTextureTwin = (IDirect3DTexture9*)*ppcStereoTwinTexture;
+										 pcTexture->SetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, (void*)pcTextureTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+
+										 // loop throug all levels, set stereo twin
+										 for (DWORD unI = 0; unI < pcTexture->GetLevelCount(); unI++)
+										 {
+											 // get current level
+											 pcSurface = nullptr;
+											 ((IDirect3DTexture9*)pcTexture)->GetSurfaceLevel(0, &pcSurface);
+											 if (pcSurface)
+											 {
+												 // get level from twin
+												 IDirect3DSurface9* pcSurfaceTwin = nullptr;
+												 pcTextureTwin->GetSurfaceLevel(unI, &pcSurfaceTwin);
+												 if (pcSurfaceTwin)
+												 {
+													 // set as private interface
+													 pcSurface->SetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, (void*)pcSurfaceTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+												 }
+												 pcSurface->Release();
+											 }
+
+										 }
+									 }
+								 }
+		}
 			break;
 		case D3DRTYPE_VOLUMETEXTURE:
+			// TODO !! VOLUME TEXTURE !!
 		case D3DRTYPE_CUBETEXTURE:
+			// TODO !! CUBE TEXTURE
 		default:
 			break;
 	}
