@@ -61,6 +61,12 @@ const GUID PDID_ID3D11VertexShader_Vireio_Data = { 0x3bffbfc5, 0x7baa, 0x4534, {
 
 /*** Vireio Stereo Splitter GUIDs ***/
 
+// PDIID_IDirect3DSurface9_Stereo_Twin : 06cd4137-8d81-44d7-91ea-0c465ff447a1
+const GUID PDIID_IDirect3DSurface9_Stereo_Twin = { 0x06cd4137, 0x8d81, 0x44d7, { 0x91, 0xea, 0x0c, 0x46, 0x5f, 0xf4, 0x47, 0xa1 } };
+
+// PDIID_IDirect3DBaseTexture9_Stereo_Twin : 577f3f5e-7ed2-4341-828b-c9fa38907549
+const GUID PDIID_IDirect3DBaseTexture9_Stereo_Twin = { 0x577f3f5e, 0x7ed2, 0x4341, { 0x82, 0x8b, 0xc9, 0xfa, 0x38, 0x90, 0x75, 0x49 } };
+
 // PDIID_ID3D11TextureXD_Stereo_Twin : 65fbac52-33fe-4ece-8756-6a11675c42dc
 const GUID PDIID_ID3D11TextureXD_Stereo_Twin = { 0x65fbac52, 0x33fe, 0x4ece, { 0x87, 0x56, 0x6a, 0x11, 0x67, 0x5c, 0x42, 0xdc } };
 
