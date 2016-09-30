@@ -76,9 +76,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 #define D3D9_SIMULTANEAOUS_TEXTURE_COUNT                16
 /**
-* Maximum simultaneous render targets ? 4 ? TODO get maximum !!
+* Maximum simultaneous render targets ?
 ***/
-#define D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT            4
+#define D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT            D3D_FL9_3_SIMULTANEOUS_RENDER_TARGET_COUNT 
 
 /**
 * Node Commander Enumeration.

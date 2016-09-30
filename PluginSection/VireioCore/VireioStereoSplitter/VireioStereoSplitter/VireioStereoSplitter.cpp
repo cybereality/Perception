@@ -1377,7 +1377,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 										 {
 											 // get current level
 											 pcSurface = nullptr;
-											 ((IDirect3DTexture9*)pcTexture)->GetSurfaceLevel(0, &pcSurface);
+											 ((IDirect3DTexture9*)pcTexture)->GetSurfaceLevel(unI, &pcSurface);
 											 if (pcSurface)
 											 {
 												 // get level from twin
@@ -1399,7 +1399,65 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 		case D3DRTYPE_VOLUMETEXTURE:
 			// TODO !! VOLUME TEXTURE !!
 		case D3DRTYPE_CUBETEXTURE:
-			// TODO !! CUBE TEXTURE
+		{
+									 // get first level
+									 IDirect3DSurface9* pcSurface = nullptr;
+									 ((IDirect3DCubeTexture9*)pcTexture)->GetCubeMapSurface(D3DCUBEMAP_FACES::D3DCUBEMAP_FACE_POSITIVE_X, 0, &pcSurface);
+									 if (pcSurface)
+									 {
+										 // get description
+										 D3DSURFACE_DESC sDesc = {};
+										 pcSurface->GetDesc(&sDesc);
+										 pcSurface->Release();
+
+										 // create the texture
+										 if (FAILED(pcDevice->CreateCubeTexture((UINT)sDesc.Width, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DCubeTexture9**)ppcStereoTwinTexture, NULL)))
+										 {
+											 OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+#ifdef _DEBUGTHIS							
+											 wchar_t buf[32];
+											 wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
+											 wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
+											 wsprintf(buf, L"sDesc.Usage %u", sDesc.Usage); OutputDebugString(buf);
+											 wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
+#endif
+											 *ppcStereoTwinTexture = nullptr;
+										 }
+										 else
+										 {
+											 // update the texture
+											 pcDevice->UpdateTexture(pcTexture, *ppcStereoTwinTexture);
+
+											 // set twin as private data interface
+											 IDirect3DTexture9* pcTextureTwin = (IDirect3DTexture9*)*ppcStereoTwinTexture;
+											 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)pcTextureTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+
+											 // loop throug all levels, set stereo twin
+											 for (DWORD unI = 0; unI < pcTexture->GetLevelCount(); unI++)
+											 {
+												 // loop throug all facetypes
+												 for (UINT unFaceType = 0; unFaceType < 6; unFaceType++)
+												 {
+													 // get current level
+													 pcSurface = nullptr;
+													 ((IDirect3DCubeTexture9*)pcTexture)->GetCubeMapSurface((D3DCUBEMAP_FACES)unFaceType, unI, &pcSurface);
+													 if (pcSurface)
+													 {
+														 // get level from twin
+														 IDirect3DSurface9* pcSurfaceTwin = nullptr;
+														 pcTextureTwin->GetSurfaceLevel(unI, &pcSurfaceTwin);
+														 if (pcSurfaceTwin)
+														 {
+															 // set as private interface
+															 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcSurfaceTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+														 }
+														 pcSurface->Release();
+													 }
+												 }
+											 }
+										 }
+									 }
+		}
 		default:
 			break;
 	}
