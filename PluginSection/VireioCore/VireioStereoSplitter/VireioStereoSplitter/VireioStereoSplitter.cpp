@@ -69,6 +69,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH              115 
 #define METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH               116
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT                   3
+#define	METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA        4
+#define	METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER             5
 #define METHOD_IDIRECT3DSTATEBLOCK9_APPLY                    5
 
 /**
@@ -532,7 +534,9 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
 		{
-			if (nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT) return true;
+			if ((nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT) ||
+				(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER) ||
+				(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA)) return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSTATEBLOCK9)
 		{
@@ -869,6 +873,24 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			switch (eD3DMethod)
 			{
 				case METHOD_IDIRECT3DSWAPCHAIN9_PRESENT:
+				{
+														   // get the device and call present
+														   IDirect3DDevice9* pcDevice = nullptr;
+														   if (pcDevice)
+														   {
+															   ((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
+															   Present(pcDevice);
+															   pcDevice->Release();
+														   }
+				}
+					return nullptr;
+				case METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER:
+					// ensure left drawing side here
+					SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+					return nullptr;
+				case METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA:
+					// ensure left drawing side here
+					SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 					return nullptr;
 			}
 			return nullptr;
