@@ -49,7 +49,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
-#define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39 
+#define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39
+#define METHOD_IDIRECT3DDEVICE9_BEGINSCENE                  41
+#define METHOD_IDIRECT3DDEVICE9_ENDSCENE                    42
 #define METHOD_IDIRECT3DDEVICE9_CLEAR                       43
 #define METHOD_IDIRECT3DDEVICE9_SETTEXTURE                  65
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE               81
@@ -528,6 +530,8 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETTEXTURE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_RESET) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_BEGINSCENE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH))
 				return true;
@@ -568,6 +572,20 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   Present((LPDIRECT3DDEVICE9)pThis);
 												   return nullptr;
 #pragma endregion
+#pragma region BeginScene
+											   case METHOD_IDIRECT3DDEVICE9_BEGINSCENE:
+												   // ensure left drawing side here
+												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   return nullptr;
+#pragma endregion 
+#pragma region EndScene
+											   case METHOD_IDIRECT3DDEVICE9_ENDSCENE:
+												   // ensure left drawing side here
+												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+												   nHr = ((IDirect3DDevice9*)pThis)->EndScene();
+												   return (void*)&nHr;
+#pragma endregion 
 #pragma region SetRenderTarget
 											   case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
 												   if (m_bPresent)
@@ -930,7 +948,7 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 
 		if (m_pcActiveBackBufferSurface[1])
 		{
-			// create textures... (if not created) 
+			// create textures... (if not created)
 			if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1]))
 			{
 				D3DSURFACE_DESC sDesc = D3DSURFACE_DESC();
@@ -1282,7 +1300,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		}
 	}
 
-#define DRAW_INDICATORS
+	//#define DRAW_INDICATORS
 #ifdef DRAW_INDICATORS
 	if (eSide == RenderPosition::Left)
 	{
