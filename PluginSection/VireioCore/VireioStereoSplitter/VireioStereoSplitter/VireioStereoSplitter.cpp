@@ -936,6 +936,40 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 	if (m_eCurrentRenderingSide == RenderPosition::Right)
 		SetDrawingSide(pcDevice, RenderPosition::Left);
 
+	// initialize ?
+	if (!m_bPresent)
+	{
+		// get active render targets
+		for (DWORD unI = 0; unI < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; unI++)
+		{
+			// get render target index
+			IDirect3DSurface9* pcTarget = nullptr;
+			pcDevice->GetRenderTarget(unI, &pcTarget);
+
+			// set active and release
+			if (pcTarget)
+			{
+				m_apcActiveRenderTargets[unI] = pcTarget;
+				m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT + unI] = VerifyPrivateDataInterfaces(pcDevice, pcTarget);
+				pcTarget->Release();
+			}
+		}
+
+		// get depth stencil
+		IDirect3DSurface9* pcDepthStencil = nullptr;
+		pcDevice->GetDepthStencilSurface(&pcDepthStencil);
+
+		// set active and release
+		if (pcDepthStencil)
+		{
+			m_pcActiveDepthStencilSurface[0] = pcDepthStencil;
+			m_pcActiveDepthStencilSurface[1] = VerifyPrivateDataInterfaces(pcDevice, pcDepthStencil);
+			pcDepthStencil->Release();
+		}
+
+		// TODO !! INIT ACTIVE TEXTURES
+	}
+
 	// finally, provide pointers to the left and right render target - get back buffer... TODO !! HANDLE CHANGED
 	if (!m_pcActiveBackBufferSurface[0])
 		pcDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &m_pcActiveBackBufferSurface[0]);
