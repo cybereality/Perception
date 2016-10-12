@@ -1461,6 +1461,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 												 {
 													 // set as private interface
 													 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcSurfaceTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+													 pcSurfaceTwin->Release();
 												 }
 												 pcSurface->Release();
 											 }
@@ -1472,6 +1473,8 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 			break;
 		case D3DRTYPE_VOLUMETEXTURE:
 			// TODO !! VOLUME TEXTURE !!
+			OutputDebugString(L"VOLUMETEXTURE... TODO !!");
+			break;
 		case D3DRTYPE_CUBETEXTURE:
 		{
 									 // get first level
@@ -1503,7 +1506,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 											 pcDevice->UpdateTexture(pcTexture, *ppcStereoTwinTexture);
 
 											 // set twin as private data interface
-											 IDirect3DTexture9* pcTextureTwin = (IDirect3DTexture9*)*ppcStereoTwinTexture;
+											 IDirect3DCubeTexture9* pcTextureTwin = (IDirect3DCubeTexture9*)*ppcStereoTwinTexture;
 											 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)pcTextureTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
 
 											 // loop throug all levels, set stereo twin
@@ -1519,11 +1522,12 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 													 {
 														 // get level from twin
 														 IDirect3DSurface9* pcSurfaceTwin = nullptr;
-														 pcTextureTwin->GetSurfaceLevel(unI, &pcSurfaceTwin);
+														 pcTextureTwin->GetCubeMapSurface((D3DCUBEMAP_FACES)unFaceType, unI, &pcSurface);
 														 if (pcSurfaceTwin)
 														 {
 															 // set as private interface
 															 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcSurfaceTwin, sizeof(IUnknown*), D3DSPD_IUNKNOWN);
+															 pcSurfaceTwin->Release();
 														 }
 														 pcSurface->Release();
 													 }
