@@ -1262,6 +1262,32 @@ IDirect3DBaseTexture9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevi
 			CreateStereoTexture(pcDevice, pcTexture, &pcTextureTwin);
 			if (pcTextureTwin) return pcTextureTwin; else return nullptr;
 		}
+		else
+		{
+			// duplicate if depth stencil or render target
+			if (pcTexture->GetType() == D3DRESOURCETYPE::D3DRTYPE_TEXTURE)
+			{
+				// get surface level 0
+				IDirect3DSurface9* pcSurface = nullptr;
+				((IDirect3DTexture9*)pcTexture)->GetSurfaceLevel(0, &pcSurface);
+				if (pcSurface)
+				{
+					// get description
+					D3DSURFACE_DESC sDesc = {};
+					pcSurface->GetDesc(&sDesc);
+					pcSurface->Release();
+
+					// is depth buffer or render target ?
+					if ((sDesc.Usage & D3DUSAGE_DEPTHSTENCIL) || (sDesc.Usage & D3DUSAGE_RENDERTARGET))
+					{
+						// create the twin and return
+						CreateStereoTexture(pcDevice, pcTexture, &pcTextureTwin);
+						if (pcTextureTwin) return pcTextureTwin; else return nullptr;
+					}
+				}
+			}
+
+		}
 	}
 
 	return nullptr;
@@ -1522,7 +1548,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 													 {
 														 // get level from twin
 														 IDirect3DSurface9* pcSurfaceTwin = nullptr;
-														 pcTextureTwin->GetCubeMapSurface((D3DCUBEMAP_FACES)unFaceType, unI, &pcSurface);
+														 pcTextureTwin->GetCubeMapSurface((D3DCUBEMAP_FACES)unFaceType, unI, &pcSurfaceTwin);
 														 if (pcSurfaceTwin)
 														 {
 															 // set as private interface
