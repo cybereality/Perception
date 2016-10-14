@@ -906,13 +906,49 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (!m_punValue) return nullptr;
 												   else
 												   {
+													   // catch D3DRS_POINT for "Resolve Z-Buffer" operation... read "Advanced-DX9-Capabilities-for-ATI-Radeon-Cards_v2.pdf" for more info
 													   if (*m_peState == D3DRENDERSTATETYPE::D3DRS_POINTSIZE)
 													   {
-														   OutputDebugString(L"D3DRS_POINTSIZE");
+														   // the value 0x3f800000 seems to be also a resolve z buffer request
+														   // - it is send by Skyrim on AMD cards
+														   // however, the following code works to do it
 														   DWORD unValue = *m_punValue;
-														   DEBUG_UINT(unValue);
-														   DEBUG_HEX(unValue);
-														   if (unValue == 0x3f800000) OutputDebugString(L"Resolve ?");
+														   if ((unValue == 0x3f800000) || (unValue == RESZ_CODE))
+														   {
+															   // Perform a dummy draw call to ensure texture sampler 0 is set before the
+															   // resolve is triggered
+															   // Vertex declaration and shaders may need to me adjusted to ensure no debug
+															   // error message is produced
+															   D3DXVECTOR3 vDummyPoint(0.0f, 0.0f, 0.0f);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZENABLE, FALSE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+															   ((IDirect3DDevice9*)pThis)->DrawPrimitiveUP(D3DPT_POINTLIST, 1, vDummyPoint, sizeof(D3DXVECTOR3));
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZENABLE, TRUE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_COLORWRITEENABLE, 0x0F);
+
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, RESZ_CODE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, 0);
+
+															   // switch the drawing side before the second resolve is done
+															   if (m_eCurrentRenderingSide == RenderPosition::Left)
+																   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
+															   else if (m_eCurrentRenderingSide == RenderPosition::Right)
+																   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+
+															   // do the same procedure for the second target
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZENABLE, FALSE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+															   ((IDirect3DDevice9*)pThis)->DrawPrimitiveUP(D3DPT_POINTLIST, 1, vDummyPoint, sizeof(D3DXVECTOR3));
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZENABLE, TRUE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_COLORWRITEENABLE, 0x0F);
+
+															   /*((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, RESZ_CODE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, 0);*/
+														   }
 													   }
 												   }
 												   return nullptr;

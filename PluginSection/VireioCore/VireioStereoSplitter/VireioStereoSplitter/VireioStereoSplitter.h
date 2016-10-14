@@ -53,10 +53,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
-#define FOURCC_INTZ ((D3DFORMAT)(MAKEFOURCC('I','N','T','Z')))
-#define FOURCC_RAWZ ((D3DFORMAT)(MAKEFOURCC('R','A','W','Z')))
-#define ATI_FOURCC_DF16 ((D3DFORMAT)(MAKEFOURCC('D','F','1','6')))
-#define ATI_FOURCC_DF24 ((D3DFORMAT)(MAKEFOURCC('D','F','2','4')))
+#define D3DFMT_ATI1N ((D3DFORMAT)MAKEFOURCC('A','T','I','1'))
+#define D3DFMT_ATI2N ((D3DFORMAT)MAKEFOURCC('A','T','I','2'))
+#define D3DFMT_AYUV ((D3DFORMAT)MAKEFOURCC('A','Y','U','V'))
+#define D3DFMT_DF16 ((D3DFORMAT)MAKEFOURCC('D','F','1','6'))
+#define D3DFMT_DF24 ((D3DFORMAT)MAKEFOURCC('D','F','2','4'))
+#define D3DFMT_INTZ ((D3DFORMAT)MAKEFOURCC('I','N','T','Z'))
+#define D3DFMT_NULL ((D3DFORMAT)MAKEFOURCC('N','U','L','L'))
+#define D3DFMT_NV12 ((D3DFORMAT)MAKEFOURCC('N','V','1','2'))
+#define D3DFMT_YV12 ((D3DFORMAT)MAKEFOURCC('Y','V','1','2'))
+#define D3DFMT_RAWZ ((D3DFORMAT)MAKEFOURCC('R','A','W','Z'))
+#define D3DFMT_RESZ ((D3DFORMAT)MAKEFOURCC('R','E','S','Z'))
+#define RESZ_CODE 0x7fa05000
 
 #define NUMBER_OF_COMMANDERS                           2
 #define NUMBER_OF_DECOMMANDERS                        24
