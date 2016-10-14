@@ -53,23 +53,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
-#define	FLOAT_PLUG_TYPE                                4
-#define INT_PLUG_TYPE                                  7 
-#define UINT_PLUG_TYPE                                12
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
-#define PNT_VOID_PLUG_TYPE                           114
-#define	D3DCOLOR_PLUG_TYPE                          1004
-#define D3DFORMAT_PLUG_TYPE                         1011
-#define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
-#define PNT_D3DRECT_PLUG_TYPE                       2024
-#define PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE         2038
-#define PNT_IDIRECT3DSURFACE9_PLUG_TYPE             2046
-#define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
+#define FOURCC_INTZ ((D3DFORMAT)(MAKEFOURCC('I','N','T','Z')))
+#define FOURCC_RAWZ ((D3DFORMAT)(MAKEFOURCC('R','A','W','Z')))
+#define ATI_FOURCC_DF16 ((D3DFORMAT)(MAKEFOURCC('D','F','1','6')))
+#define ATI_FOURCC_DF24 ((D3DFORMAT)(MAKEFOURCC('D','F','2','4')))
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        22
+#define NUMBER_OF_DECOMMANDERS                        24
 
 /**
 * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15}
@@ -116,6 +106,8 @@ enum STS_Decommanders
 	peDrawingSide,                /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	pasVShaderConstantIndices,    /**< The constant rule indices for the actual vertex shader. ***/
 	pasPShaderConstantIndices,    /**< The constant rule indices for the actual pixel shader. ***/
+	State,                        /**< ->SetRenderState() State ***/
+	Value,                        /**< ->SetRenderState() Value ***/
 };
 
 /**
@@ -199,6 +191,8 @@ private:
 	RenderPosition*         m_peDrawingSide;                     /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices; /**< Pointer to the constant rule indices for the current vertex shader ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices; /**< Pointer to the constant rule indices for the current pixel shader ***/
+	D3DRENDERSTATETYPE*     m_peState;                           /**< ->SetRenderState() State ***/
+	DWORD*                  m_punValue;                          /**< ->SetRenderState() Value ***/
 
 	/**
 	* Active stored render target views.

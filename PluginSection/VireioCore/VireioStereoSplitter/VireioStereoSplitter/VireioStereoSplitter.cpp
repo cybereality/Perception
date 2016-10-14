@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_COLORFILL                   35 
 #define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET             38 
 #define METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE      40 
+#define METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE              57
 #define METHOD_IDIRECT3DDEVICE9_GETTEXTURE                  64 
 #define METHOD_IDIRECT3DDEVICE9_RESET                       16
 #define METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH              115 
@@ -237,6 +238,8 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"peDrawingSide", 15); nY += 64;
 			TextOut(hdcImage, 50, nY, L"asVShaderConstantIndices", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"asPShaderConstantIndices", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"State", 5); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Value", 5); nY += 64;
 
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
@@ -334,6 +337,10 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"pasVShaderConstantIndices";
 		case pasPShaderConstantIndices:
 			return L"pasPShaderConstantIndices";
+		case State:
+			return L"State";
+		case Value:
+			return L"Value";
 		default:
 			break;
 	}
@@ -346,7 +353,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 ***/
 DWORD StereoSplitter::GetCommanderType(DWORD unCommanderIndex)
 {
-	return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
+	return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
 }
 
 /**
@@ -357,15 +364,15 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 	switch ((STS_Decommanders)unDecommanderIndex)
 	{
 		case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
-			return UINT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_UINT;
 		case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
-			return PNT_IDIRECT3DSURFACE9_PLUG_TYPE;
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
 		case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
-			return PNT_IDIRECT3DSURFACE9_PLUG_TYPE;
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
 		case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
-			return UINT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_UINT;
 		case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
-			return PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE;
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DBASETEXTURE9;
 		case pSourceSurface:
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
 		case pSourceRect:
@@ -400,6 +407,10 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_VOID;
 		case pasPShaderConstantIndices:
 			return NOD_Plugtype::AQU_VOID;
+		case State:
+			return NOD_Plugtype::AQU_D3DRENDERSTATETYPE;
+		case Value:
+			return NOD_Plugtype::AQU_UINT;
 		default:
 			break;
 	}
@@ -496,6 +507,12 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pasPShaderConstantIndices:
 			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
+		case State:
+			m_peState = (D3DRENDERSTATETYPE*)pData;
+			break;
+		case Value:
+			m_punValue = (DWORD*)pData;
+			break;
 		default:
 			break;
 	}
@@ -533,7 +550,8 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_BEGINSCENE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH))
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
@@ -882,6 +900,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   // TODO !!
 												   return nullptr;
 #pragma endregion 
+#pragma region SetRenderState
+											   case METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE:
+												   if (!m_peState) return nullptr;
+												   if (!m_punValue) return nullptr;
+												   else
+												   {
+													   if (*m_peState == D3DRENDERSTATETYPE::D3DRS_POINTSIZE)
+													   {
+														   OutputDebugString(L"D3DRS_POINTSIZE");
+														   DWORD unValue = *m_punValue;
+														   DEBUG_UINT(unValue);
+														   DEBUG_HEX(unValue);
+														   if (unValue == 0x3f800000) OutputDebugString(L"Resolve ?");
+													   }
+												   }
+												   return nullptr;
+#pragma endregion
 										   }
 										   return nullptr;
 		}
