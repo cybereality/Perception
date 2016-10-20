@@ -353,7 +353,7 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pcShader)
 	return unHash;
 }
 /**
-*
+* Managed proxy shader class.
 */
 class IDirect3DManagedStereoShader9 : public IDirect3DVertexShader9
 {
@@ -538,11 +538,7 @@ public:
 										break;
 								}
 								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
-#endif // DEBUG
-
-								// Create StereoShaderConstant<float> and add to result
-								// result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
-
+#endif 
 								// set register index
 								m_aunRegisterModificationIndex[pConstantDesc[j].RegisterIndex] = (UINT)m_asConstantRuleIndices.size();
 
@@ -603,34 +599,37 @@ public:
 			unIndex = m_aunRegisterModificationIndex[unStartRegister];
 			bModified = true;
 
-			D3DXMATRIX tempMatrix(&m_afRegisters[unStartRegister]);
+			// get the matrix
+			D3DXMATRIX sMatrix(&m_afRegisters[unStartRegister]);
 			{
 				// matrix to be transposed ?
 				if (true)
 				{
-					D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+					D3DXMatrixTranspose(&sMatrix, &sMatrix);
 				}
 
-				D3DXMATRIX tempLeft;
+				D3DXMATRIX sMatrixLeft, sMatrixRight;
+				/*D3DXMATRIX tempLeft;
 				D3DXMATRIX tempRight;
 				D3DXMATRIX rollMatrixLeft;
 				D3DXMATRIX rollMatrixRight;
 				D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
-				D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);
+				D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);*/
 
 				// do modification
-				tempLeft = tempMatrix * rollMatrixLeft;
-				tempRight = tempMatrix * rollMatrixRight;
+				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+				/*tempLeft = sMatrix * rollMatrixLeft;
+				tempRight = sMatrix * rollMatrixRight;*/
 
 				// transpose back
 				if (true)
 				{
-					D3DXMatrixTranspose(&tempLeft, &tempLeft);
-					D3DXMatrixTranspose(&tempRight, &tempRight);
+					D3DXMatrixTranspose(&sMatrixLeft, &sMatrixLeft);
+					D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
 				}
 
-				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)tempLeft;
-				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
+				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
+				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
 			}
 		}
 		else
@@ -648,35 +647,68 @@ public:
 					bModified = true;
 					unIndex = unInd;
 
-					D3DXMATRIX tempMatrix(&m_afRegisters[(*it).m_dwConstantRuleRegister]);
+					// get the matrix
+					D3DXMATRIX sMatrix(&m_afRegisters[unStartRegister]);
 					{
 						// matrix to be transposed ?
 						if (true)
 						{
-							D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+							D3DXMatrixTranspose(&sMatrix, &sMatrix);
 						}
 
-						D3DXMATRIX tempLeft;
+						D3DXMATRIX sMatrixLeft, sMatrixRight;
+						/*D3DXMATRIX tempLeft;
 						D3DXMATRIX tempRight;
 						D3DXMATRIX rollMatrixLeft;
 						D3DXMATRIX rollMatrixRight;
 						D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
-						D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);
+						D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);*/
 
 						// do modification
-						tempLeft = tempMatrix * rollMatrixLeft;
-						tempRight = tempMatrix * rollMatrixRight;
+						((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+						/*tempLeft = sMatrix * rollMatrixLeft;
+						tempRight = sMatrix * rollMatrixRight;*/
 
 						// transpose back
 						if (true)
 						{
-							D3DXMatrixTranspose(&tempLeft, &tempLeft);
-							D3DXMatrixTranspose(&tempRight, &tempRight);
+							D3DXMatrixTranspose(&sMatrixLeft, &sMatrixLeft);
+							D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
 						}
 
-						m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)tempLeft;
-						m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
+						m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
+						m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
 					}
+
+					//D3DXMATRIX tempMatrix(&m_afRegisters[(*it).m_dwConstantRuleRegister]);
+					//{
+					//	// matrix to be transposed ?
+					//	if (true)
+					//	{
+					//		D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+					//	}
+
+					//	D3DXMATRIX tempLeft;
+					//	D3DXMATRIX tempRight;
+					//	D3DXMATRIX rollMatrixLeft;
+					//	D3DXMATRIX rollMatrixRight;
+					//	D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
+					//	D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);
+
+					//	// do modification
+					//	tempLeft = tempMatrix * rollMatrixLeft;
+					//	tempRight = tempMatrix * rollMatrixRight;
+
+					//	// transpose back
+					//	if (true)
+					//	{
+					//		D3DXMatrixTranspose(&tempLeft, &tempLeft);
+					//		D3DXMatrixTranspose(&tempRight, &tempRight);
+					//	}
+
+					//	m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)tempLeft;
+					//	m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
+					//}
 				}
 				it++; unInd++;
 			}

@@ -329,16 +329,51 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 		<rule constantName = "WorldViewProj" partialName = "true" id = "3" constantType = "MatrixR" modToApply = "7" startReg = "128" transpose = "true" / >
 		<rule constantName = "WorldViewProj" partialName = "true" id = "4" constantType = "MatrixR" modToApply = "7" startReg = "180" transpose = "true" / >
 		<rule constantName = "ModelViewProj" partialName = "true" id = "5" constantType = "MatrixR" modToApply = "7" startReg = "0" transpose = "true" / >*/
-	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
-	m_asConstantRules.push_back(sRule);
-	Vireio_Constant_Modification_Rule sRule1 = Vireio_Constant_Modification_Rule("mvp", 0, 0, 0, true, true, false, false, true, 4, 0, true);
-	m_asConstantRules.push_back(sRule1);
-	Vireio_Constant_Modification_Rule sRule2 = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 128, true, true, false, false, true, 4, 0, true);
-	m_asConstantRules.push_back(sRule2);
-	Vireio_Constant_Modification_Rule sRule3 = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 0, true);
-	m_asConstantRules.push_back(sRule3);
-	Vireio_Constant_Modification_Rule sRule4 = Vireio_Constant_Modification_Rule("ModelViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
-	m_asConstantRules.push_back(sRule4);
+	{
+		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
+		if (sRule.m_dwRegisterCount == 1)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+		else if (sRule.m_dwRegisterCount == 4)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+		else sRule.m_pcModification = nullptr;
+		m_asConstantRules.push_back(sRule);
+	}
+	{
+		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("mvp", 0, 0, 0, true, true, false, false, true, 4, 0, true);
+		if (sRule.m_dwRegisterCount == 1)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+		else if (sRule.m_dwRegisterCount == 4)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+		else sRule.m_pcModification = nullptr;
+		m_asConstantRules.push_back(sRule);
+	}
+	{
+		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 128, true, true, false, false, true, 4, 0, true);
+		if (sRule.m_dwRegisterCount == 1)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+		else if (sRule.m_dwRegisterCount == 4)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+		else sRule.m_pcModification = nullptr;
+		m_asConstantRules.push_back(sRule);
+	}
+	{
+		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 0, true);
+		if (sRule.m_dwRegisterCount == 1)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+		else if (sRule.m_dwRegisterCount == 4)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+		else sRule.m_pcModification = nullptr;
+		m_asConstantRules.push_back(sRule);
+	}
+	{
+		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("ModelViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
+		if (sRule.m_dwRegisterCount == 1)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+		else if (sRule.m_dwRegisterCount == 4)
+			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+		else sRule.m_pcModification = nullptr;
+		m_asConstantRules.push_back(sRule);
+	}
 
 #endif
 }
@@ -622,6 +657,9 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
 	}
+
+	// TO BE DELETED !!
+	// m_sGameConfiguration.fWorldScaleFactor = -20.0f;
 
 	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
@@ -2059,8 +2097,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						/*for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
 						if (m_apcPSActiveConstantBuffers11[dwIndex])
 						{
-							// verify buffer
-							VerifyConstantBuffer(m_apcPSActiveConstantBuffers11[dwIndex], dwIndex);
+						// verify buffer
+						VerifyConstantBuffer(m_apcPSActiveConstantBuffers11[dwIndex], dwIndex);
 						}*/
 
 						// currently chosen ?
