@@ -928,7 +928,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZENABLE, TRUE);
 															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_COLORWRITEENABLE, 0x0F);
 
-															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, RESZ_CODE);
+															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, unValue);
 															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, 0);
 
 															   // switch the drawing side before the second resolve is done
@@ -945,9 +945,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_ZENABLE, TRUE);
 															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_COLORWRITEENABLE, 0x0F);
-
-															   /*((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, RESZ_CODE);
-															   ((IDirect3DDevice9*)pThis)->SetRenderState(D3DRS_POINTSIZE, 0);*/
 														   }
 													   }
 												   }

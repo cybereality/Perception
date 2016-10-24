@@ -2577,7 +2577,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					else
 					{
 						// set new active shader
-						m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9*>(*m_ppcShader_Vertex);
+						m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*>(*m_ppcShader_Vertex);
 
 						// set constant rule indices pointer for stereo splitter
 						m_pasVSConstantRuleIndices = &m_pcActiveVertexShader->m_asConstantRuleIndices;
@@ -2817,7 +2817,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						if (SUCCEEDED(nHr))
 						{
-							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules);
+							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules);
 						}
 						else
 						{

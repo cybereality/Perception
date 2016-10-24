@@ -354,12 +354,14 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pcShader)
 }
 /**
 * Managed proxy shader class.
+* Contains left and right shader constants.
 */
-class IDirect3DManagedStereoShader9 : public IDirect3DVertexShader9
+template <class T = float>
+class IDirect3DManagedStereoShader9 : public T //T
 {
 public:
-	IDirect3DManagedStereoShader9(IDirect3DVertexShader9* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules) :
-		m_pcActualVertexShader(pcActualVertexShader),
+	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules) :
+		m_pcVertexShader(pcActualVertexShader),
 		m_pcOwningDevice(pcOwningDevice),
 		m_pasConstantRules(pasConstantRules),
 		m_unRefCount(1)
@@ -385,7 +387,7 @@ public:
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
-		return m_pcActualVertexShader->QueryInterface(riid, ppv);
+		return m_pcVertexShader->QueryInterface(riid, ppv);
 	}
 	virtual ULONG   WINAPI AddRef()
 	{
@@ -402,7 +404,11 @@ public:
 		return m_unRefCount;
 	}
 
-	/*** IDirect3DVertexShader9 methods ***/
+	/*** IDirect3DXShader9 methods ***/
+
+	/**
+	* IDirect3DXShader9->GetDevice() call.
+	***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppcDevice)
 	{
 		if (!m_pcOwningDevice)
@@ -414,12 +420,19 @@ public:
 			return D3D_OK;
 		}
 	}
+	/**
+	* IDirect3DXShader9->GetFunction() call.
+	***/
 	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *punSizeOfData)
 	{
-		return m_pcActualVertexShader->GetFunction(pDate, punSizeOfData);
+		return m_pcVertexShader->GetFunction(pDate, punSizeOfData);
 	}
 
 	/*** IDirect3DManagedStereoShader9 methods ***/
+
+	/**
+	* Inits the shader rules based on the constant table of the shader.
+	***/
 	void InitShaderRules()
 	{
 		// @see ShaderModificationRepository::GetModifiedConstantsF from Vireio < v3
@@ -446,9 +459,9 @@ public:
 		BYTE *pData = NULL;
 		UINT pSizeOfData;
 
-		m_pcActualVertexShader->GetFunction(NULL, &pSizeOfData);
+		m_pcVertexShader->GetFunction(NULL, &pSizeOfData);
 		pData = new BYTE[pSizeOfData];
-		m_pcActualVertexShader->GetFunction(pData, &pSizeOfData);
+		m_pcVertexShader->GetFunction(pData, &pSizeOfData);
 
 		// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
 		LPD3DXCONSTANTTABLE pConstantTable = NULL;
@@ -456,11 +469,13 @@ public:
 
 		if (pConstantTable)
 		{
+			// get constant table description
 			D3DXCONSTANTTABLE_DESC pDesc;
 			pConstantTable->GetDesc(&pDesc);
 
 			D3DXCONSTANT_DESC pConstantDesc[64];
 
+			// loop throught constants
 			for (UINT i = 0; i < pDesc.Constants; i++)
 			{
 				D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
@@ -550,11 +565,11 @@ public:
 
 								// init data.. TODO !! INIT DATA MODIFIED
 								IDirect3DDevice9* pcDevice = nullptr;
-								m_pcActualVertexShader->GetDevice(&pcDevice);
+								m_pcVertexShader->GetDevice(&pcDevice);
 								if (pcDevice)
 								{
 									// get current shader
-									IDirect3DVertexShader9* pcShaderOld = nullptr;
+									T* pcShaderOld = nullptr;
 									pcDevice->GetVertexShader(&pcShaderOld);
 
 									// set new shader and get data
@@ -565,7 +580,8 @@ public:
 									pcDevice->Release();
 
 									// set back vertex shader
-									if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); } else pcDevice->SetVertexShader(nullptr);
+									if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); }
+									else pcDevice->SetVertexShader(nullptr);
 								}
 
 								m_asConstantRuleIndices.push_back(sConstantRuleIndex);
@@ -584,6 +600,9 @@ public:
 		if (pConstantTable) pConstantTable->Release();
 		if (pData) delete[] pData;
 	}
+	/**
+	* Override IDirect3DDevice9->SetShaderConstantF() here.
+	***/
 	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, UINT& unIndex)
 	{
 		if ((unStartRegister >= m_unMaxShaderConstantRegs) || ((unStartRegister + unVector4fCount) >= m_unMaxShaderConstantRegs))
@@ -608,18 +627,9 @@ public:
 					D3DXMatrixTranspose(&sMatrix, &sMatrix);
 				}
 
-				D3DXMATRIX sMatrixLeft, sMatrixRight;
-				/*D3DXMATRIX tempLeft;
-				D3DXMATRIX tempRight;
-				D3DXMATRIX rollMatrixLeft;
-				D3DXMATRIX rollMatrixRight;
-				D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
-				D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);*/
-
 				// do modification
+				D3DXMATRIX sMatrixLeft, sMatrixRight;
 				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
-				/*tempLeft = sMatrix * rollMatrixLeft;
-				tempRight = sMatrix * rollMatrixRight;*/
 
 				// transpose back
 				if (true)
@@ -641,7 +651,7 @@ public:
 			while (it != m_asConstantRuleIndices.end())
 			{
 				// register in range ?
-				if ((unStartRegister < ((*it).m_dwConstantRuleRegister + (*it).m_dwConstantRuleRegisterCount)) && ((unStartRegister + unVector4fCount) > (*it).m_dwConstantRuleRegister))
+				if ((unStartRegister < ((*it).m_dwConstantRuleRegister + (*it).m_dwConstantRuleRegisterCount)) && ((unStartRegister + unVector4fCount) >(*it).m_dwConstantRuleRegister))
 				{
 					// apply to left and right data
 					bModified = true;
@@ -656,18 +666,9 @@ public:
 							D3DXMatrixTranspose(&sMatrix, &sMatrix);
 						}
 
-						D3DXMATRIX sMatrixLeft, sMatrixRight;
-						/*D3DXMATRIX tempLeft;
-						D3DXMATRIX tempRight;
-						D3DXMATRIX rollMatrixLeft;
-						D3DXMATRIX rollMatrixRight;
-						D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
-						D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);*/
-
 						// do modification
+						D3DXMATRIX sMatrixLeft, sMatrixRight;
 						((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
-						/*tempLeft = sMatrix * rollMatrixLeft;
-						tempRight = sMatrix * rollMatrixRight;*/
 
 						// transpose back
 						if (true)
@@ -679,36 +680,6 @@ public:
 						m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
 						m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
 					}
-
-					//D3DXMATRIX tempMatrix(&m_afRegisters[(*it).m_dwConstantRuleRegister]);
-					//{
-					//	// matrix to be transposed ?
-					//	if (true)
-					//	{
-					//		D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
-					//	}
-
-					//	D3DXMATRIX tempLeft;
-					//	D3DXMATRIX tempRight;
-					//	D3DXMATRIX rollMatrixLeft;
-					//	D3DXMATRIX rollMatrixRight;
-					//	D3DXMatrixRotationZ(&rollMatrixLeft, 0.3f);
-					//	D3DXMatrixRotationZ(&rollMatrixRight, -0.5f);
-
-					//	// do modification
-					//	tempLeft = tempMatrix * rollMatrixLeft;
-					//	tempRight = tempMatrix * rollMatrixRight;
-
-					//	// transpose back
-					//	if (true)
-					//	{
-					//		D3DXMatrixTranspose(&tempLeft, &tempLeft);
-					//		D3DXMatrixTranspose(&tempRight, &tempRight);
-					//	}
-
-					//	m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)tempLeft;
-					//	m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
-					//}
 				}
 				it++; unInd++;
 			}
@@ -716,6 +687,9 @@ public:
 
 		return D3D_OK;
 	}
+	/**
+	* Override IDirect3DDevice9->GetShaderConstantF() here.
+	***/
 	HRESULT GetShaderConstantF(UINT unStartRegister, float* pfConstantData, UINT unVector4fCount)
 	{
 		if ((StartRegister >= m_unMaxShaderConstantRegs) || ((StartRegister + Vector4fCount) >= m_unMaxShaderConstantRegs))
@@ -725,8 +699,14 @@ public:
 
 		return D3D_OK;
 	}
+	/**
+	* @returns: The hash code of the shader.
+	***/
 	uint32_t GetShaderHash() { return m_unShaderHash; }
-	IDirect3DVertexShader9* GetActualShader() { return m_pcActualVertexShader; }
+	/**
+	* @returns: The actual shader.
+	***/
+	T* GetActualShader() { return m_pcVertexShader; }
 
 	/**
 	* The indices of the shader rules assigned to that shader.
@@ -738,7 +718,7 @@ protected:
 	/**
 	* The actual vertex shader embedded.
 	***/
-	IDirect3DVertexShader9* const m_pcActualVertexShader;
+	T* const m_pcVertexShader;
 	/**
 	* Pointer to the D3D device that owns the shader.
 	***/
@@ -1066,7 +1046,7 @@ private:
 	/**
 	* The active vertex shader.
 	***/
-	IDirect3DManagedStereoShader9* m_pcActiveVertexShader;
+	IDirect3DManagedStereoShader9<IDirect3DVertexShader9>* m_pcActiveVertexShader;
 	/**
 	* The indices of the shader rules assigned to the active vertex shader.
 	***/

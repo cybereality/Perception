@@ -177,30 +177,30 @@ private:
 	/**
 	* Input pointers.
 	***/
-	DWORD*                  m_punRenderTargetIndex;              /**< ->SetRenderTarget() render target index ***/
-	IDirect3DSurface9**     m_ppcRenderTarget;                   /**< ->SetRenderTarget() render target ***/
-	IDirect3DSurface9**     m_ppcNewZStencil;                    /**< ->SetDepthStencilSurface() stencil surface ***/
-	DWORD*                  m_punSampler;                        /**< ->SetTexture() sampler index **/
-	IDirect3DTexture9**     m_ppcTexture;                        /**< ->SetTexture() texture pointer ***/
-	IDirect3DSurface9**     m_ppSourceSurface;                   /**< ->UpdateSurface() source surface ***/
-	RECT**                  m_ppcSourceRect;                     /**< ->UpdateSurface() source rectangle ***/
-	IDirect3DSurface9**     m_ppcDestinationSurface;             /**< ->UpdateSurface() destination surface ***/
-	POINT**                 m_ppsDestPoint;                      /**< ->UpdateSurface() destination point ***/
-	IDirect3DBaseTexture9** m_ppcSourceTexture;                  /**< ->UpdateTexture() source texture ***/
-	IDirect3DBaseTexture9** m_ppcDestinationTexture;             /**< ->UpdateTexture() destination texture ***/
-	IDirect3DSurface9**     m_ppcSurface;                        /**< ->ColorFill() surface pointer ***/
-	RECT**                  m_ppsRect;                           /**< ->ColorFill() destination rectangle ***/
-	D3DCOLOR*               m_punColor;                          /**< ->ColorFill() destination color ***/
-	IDirect3DSurface9**     m_ppcSourceSurface_StretchRect;      /**< ->StretchRect() source surface ***/
-	RECT**                  m_ppcSourceRect_StretchRect;         /**< ->StretchRect() source rectangle ***/
-	IDirect3DSurface9**     m_ppcDestSurface_StretchRect;        /**< ->StretchRect() destination surface ***/
-	RECT**                  m_ppcDestRect_StretchRect;           /**< ->StretchRect() destination rectangle ***/
-	D3DTEXTUREFILTERTYPE*   m_peFilter_StretchRect;              /**< ->StretchRect() filter ***/
-	RenderPosition*         m_peDrawingSide;                     /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
+	DWORD*                  m_punRenderTargetIndex;                            /**< ->SetRenderTarget() render target index ***/
+	IDirect3DSurface9**     m_ppcRenderTarget;                                 /**< ->SetRenderTarget() render target ***/
+	IDirect3DSurface9**     m_ppcNewZStencil;                                  /**< ->SetDepthStencilSurface() stencil surface ***/
+	DWORD*                  m_punSampler;                                      /**< ->SetTexture() sampler index **/
+	IDirect3DTexture9**     m_ppcTexture;                                      /**< ->SetTexture() texture pointer ***/
+	IDirect3DSurface9**     m_ppSourceSurface;                                 /**< ->UpdateSurface() source surface ***/
+	RECT**                  m_ppcSourceRect;                                   /**< ->UpdateSurface() source rectangle ***/
+	IDirect3DSurface9**     m_ppcDestinationSurface;                           /**< ->UpdateSurface() destination surface ***/
+	POINT**                 m_ppsDestPoint;                                    /**< ->UpdateSurface() destination point ***/
+	IDirect3DBaseTexture9** m_ppcSourceTexture;                                /**< ->UpdateTexture() source texture ***/
+	IDirect3DBaseTexture9** m_ppcDestinationTexture;                           /**< ->UpdateTexture() destination texture ***/
+	IDirect3DSurface9**     m_ppcSurface;                                      /**< ->ColorFill() surface pointer ***/
+	RECT**                  m_ppsRect;                                         /**< ->ColorFill() destination rectangle ***/
+	D3DCOLOR*               m_punColor;                                        /**< ->ColorFill() destination color ***/
+	IDirect3DSurface9**     m_ppcSourceSurface_StretchRect;                    /**< ->StretchRect() source surface ***/
+	RECT**                  m_ppcSourceRect_StretchRect;                       /**< ->StretchRect() source rectangle ***/
+	IDirect3DSurface9**     m_ppcDestSurface_StretchRect;                      /**< ->StretchRect() destination surface ***/
+	RECT**                  m_ppcDestRect_StretchRect;                         /**< ->StretchRect() destination rectangle ***/
+	D3DTEXTUREFILTERTYPE*   m_peFilter_StretchRect;                            /**< ->StretchRect() filter ***/
+	RenderPosition*         m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices; /**< Pointer to the constant rule indices for the current vertex shader ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices; /**< Pointer to the constant rule indices for the current pixel shader ***/
-	D3DRENDERSTATETYPE*     m_peState;                           /**< ->SetRenderState() State ***/
-	DWORD*                  m_punValue;                          /**< ->SetRenderState() Value ***/
+	D3DRENDERSTATETYPE*     m_peState;                                         /**< ->SetRenderState() State ***/
+	DWORD*                  m_punValue;                                        /**< ->SetRenderState() Value ***/
 
 	/**
 	* Active stored render target views.
