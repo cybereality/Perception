@@ -334,26 +334,14 @@ enum Vireio_Supported_Shaders
 };
 #elif defined(VIREIO_D3D9)
 /**
-* Simple helper to get the hash of a shader.
-* @param pShader The input vertex shader.
-* @return The hash code of the shader.
+* Structure only used for shader specific rules.
+* Contains hash code and rule index.
 ***/
-uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pcShader)
+struct Vireio_Hash_Rule_Index
 {
-	if (!pcShader) return 0;
-
-	BYTE* pnData = NULL;
-	UINT punSizeOfData;
-	pcShader->GetFunction(NULL, &punSizeOfData);
-
-	pnData = new BYTE[punSizeOfData];
-	pcShader->GetFunction(pnData, &punSizeOfData);
-
-	uint32_t unHash = 0;
-	MurmurHash3_x86_32(pnData, punSizeOfData, VIREIO_SEED, &unHash);
-	delete[] pnData;
-	return unHash;
-}
+	UINT unHash;
+	UINT unRuleIndex;
+};
 /**
 * Managed proxy shader class.
 * Contains left and right shader constants.
@@ -362,11 +350,11 @@ template <class T = float>
 class IDirect3DManagedStereoShader9 : public T
 {
 public:
-	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules, std::vector<UINT>* pasGeneralIndices, std::map<UINT, UINT>* pasShaderIndices) :
-		m_pcVertexShader(pcActualVertexShader),
+	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules, std::vector<UINT>* paunGeneralIndices, std::vector<Vireio_Hash_Rule_Index>* pasShaderIndices) :
+		m_pcActualShader(pcActualVertexShader),
 		m_pcOwningDevice(pcOwningDevice),
 		m_pasConstantRules(pasConstantRules),
-		m_pasGeneralIndices(pasGeneralIndices),
+		m_paunGeneralIndices(paunGeneralIndices),
 		m_pasShaderIndices(pasShaderIndices),
 		m_unRefCount(1)
 	{
@@ -391,7 +379,7 @@ public:
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
-		return m_pcVertexShader->QueryInterface(riid, ppv);
+		return m_pcActualShader->QueryInterface(riid, ppv);
 	}
 	virtual ULONG   WINAPI AddRef()
 	{
@@ -429,7 +417,7 @@ public:
 	***/
 	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *punSizeOfData)
 	{
-		return m_pcVertexShader->GetFunction(pDate, punSizeOfData);
+		return m_pcActualShader->GetFunction(pDate, punSizeOfData);
 	}
 
 	/*** IDirect3DManagedStereoShader9 methods ***/
@@ -447,25 +435,13 @@ public:
 		// clear register indices to max int
 		FillMemory(m_aunRegisterModificationIndex, MAX_DX9_CONSTANT_REGISTERS * sizeof(UINT), 0xFF);
 
-		/*if (m_shaderSpecificModificationRuleIDs.count(hash) == 1)
-		{
-
-		// There are specific modification rules to use with this shader
-		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
-		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end())
-		{
-		rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
-		++itRules;
-		}
-		}*/
-
 		// get shader function
 		BYTE *pData = NULL;
 		UINT pSizeOfData;
 
-		m_pcVertexShader->GetFunction(NULL, &pSizeOfData);
+		m_pcActualShader->GetFunction(NULL, &pSizeOfData);
 		pData = new BYTE[pSizeOfData];
-		m_pcVertexShader->GetFunction(pData, &pSizeOfData);
+		m_pcActualShader->GetFunction(pData, &pSizeOfData);
 
 		// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
 		LPD3DXCONSTANTTABLE pConstantTable = NULL;
@@ -480,9 +456,9 @@ public:
 			D3DXCONSTANT_DESC pConstantDesc[64];
 
 			// loop throught constants
-			for (UINT i = 0; i < pDesc.Constants; i++)
+			for (UINT unI = 0; unI < pDesc.Constants; unI++)
 			{
-				D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
+				D3DXHANDLE handle = pConstantTable->GetConstant(NULL, unI);
 				if (handle == NULL) continue;
 
 				UINT unConstantNum = 64;
@@ -493,21 +469,36 @@ public:
 					unConstantNum = 63;
 				}
 
-				for (UINT j = 0; j < unConstantNum; j++)
+				for (UINT unJ = 0; unJ < unConstantNum; unJ++)
 				{
 					// register count 1 (= vector) and 4 (= matrix) supported
-					if (((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1))
-						|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)))
+					if (((pConstantDesc[unJ].Class == D3DXPC_VECTOR) && (pConstantDesc[unJ].RegisterCount == 1))
+						|| (((pConstantDesc[unJ].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[unJ].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[unJ].RegisterCount == 4)))
 					{
-						// Check if any rules match this constant
-						UINT unIndex = 0;
-						auto itRules = (*m_pasConstantRules).begin();
-						while (itRules != (*m_pasConstantRules).end())
+						// Check if any rules match this constant, first check shader specific indices
+						bool bShaderSpecificRulePresent = false;
+						for (UINT unK = 0; unK < (UINT)(*m_pasShaderIndices).size(); unK++)
 						{
-							// compare rule->description, break in case of success
-							if (SUCCEEDED(VerifyConstantDescriptionForRule(&(*itRules), &(pConstantDesc[j]), unIndex))) break;
+							// same hash code ?
+							if ((*m_pasShaderIndices)[unK].unHash == m_unShaderHash)
+							{
+								// compare rule->description, break in case of success
+								if (SUCCEEDED(VerifyConstantDescriptionForRule(&((*m_pasConstantRules)[(*m_pasShaderIndices)[unK].unRuleIndex]), &(pConstantDesc[unJ]), (*m_pasShaderIndices)[unK].unRuleIndex)))
+								{
+									bShaderSpecificRulePresent = true;
+									break;
+								}
+							}
+						}
 
-							++itRules; ++unIndex;
+						// now check general indices if no shader specific rule got applied
+						if (!bShaderSpecificRulePresent)
+						{
+							for (UINT unK = 0; unK < (UINT)(*m_paunGeneralIndices).size(); unK++)
+							{
+								// compare rule->description, break in case of success
+								if (SUCCEEDED(VerifyConstantDescriptionForRule(&((*m_pasConstantRules)[(*m_paunGeneralIndices)[unK]]), &(pConstantDesc[unJ]), (*m_paunGeneralIndices)[unK]))) break;
+							}
 						}
 					}
 				}
@@ -623,7 +614,7 @@ public:
 	/**
 	* @returns: The actual shader.
 	***/
-	T* GetActualShader() { return m_pcVertexShader; }
+	T* GetActualShader() { return m_pcActualShader; }
 
 	/**
 	* The indices of the shader rules assigned to that shader.
@@ -635,7 +626,7 @@ protected:
 	/**
 	* The actual vertex shader embedded.
 	***/
-	T* const m_pcVertexShader;
+	T* const m_pcActualShader;
 	/**
 	* Pointer to the D3D device that owns the shader.
 	***/
@@ -667,17 +658,38 @@ protected:
 	/**
 	* Pointer to all general rule indices.
 	***/
-	std::vector<UINT>* m_pasGeneralIndices;
+	std::vector<UINT>* m_paunGeneralIndices;
 	/**
 	* Pointer to all shader specfic rule indices.
 	***/
-	std::map<UINT, UINT>* m_pasShaderIndices;
+	std::vector<Vireio_Hash_Rule_Index>* m_pasShaderIndices;
 	/**
 	* Index of modification for the specified register.
 	***/
 	UINT m_aunRegisterModificationIndex[MAX_DX9_CONSTANT_REGISTERS];
 
 private:
+	/**
+	* Simple helper to get the hash of a shader.
+	* @param pShader The input vertex shader.
+	* @return The hash code of the shader.
+	***/
+	uint32_t ShaderHash(T* pcShader)
+	{
+		if (!pcShader) return 0;
+
+		BYTE* pnData = NULL;
+		UINT punSizeOfData;
+		pcShader->GetFunction(NULL, &punSizeOfData);
+
+		pnData = new BYTE[punSizeOfData];
+		pcShader->GetFunction(pnData, &punSizeOfData);
+
+		uint32_t unHash = 0;
+		MurmurHash3_x86_32(pnData, punSizeOfData, VIREIO_SEED, &unHash);
+		delete[] pnData;
+		return unHash;
+	}
 	/**
 	* Compares a constant description and a shader rule, if succeedes it adds the index to the shader constant rule indices.
 	***/
@@ -746,23 +758,23 @@ private:
 
 			// init data.. TODO !! INIT DATA MODIFIED
 			IDirect3DDevice9* pcDevice = nullptr;
-			m_pcVertexShader->GetDevice(&pcDevice);
+			m_pcActualShader->GetDevice(&pcDevice);
 			if (pcDevice)
 			{
 				// get current shader
 				T* pcShaderOld = nullptr;
-				pcDevice->GetVertexShader(&pcShaderOld);
+				/*pcDevice->GetVertexShader(&pcShaderOld);
 
 				// set new shader and get data
 				pcDevice->SetVertexShader(pcShaderOld);
 				pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
 				pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
-				pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
+				pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);*/
 				pcDevice->Release();
 
 				// set back vertex shader
-				if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); }
-				else pcDevice->SetVertexShader(nullptr);
+				/*if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); }
+				else pcDevice->SetVertexShader(nullptr);*/
 			}
 
 			m_asConstantRuleIndices.push_back(sConstantRuleIndex);
@@ -1064,6 +1076,10 @@ private:
 	***/
 	IDirect3DManagedStereoShader9<IDirect3DVertexShader9>* m_pcActiveVertexShader;
 	/**
+	* The active pixel shader.
+	***/
+	IDirect3DManagedStereoShader9<IDirect3DPixelShader9>* m_pcActivePixelShader;
+	/**
 	* The indices of the shader rules assigned to the active vertex shader.
 	***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasVSConstantRuleIndices;
@@ -1071,6 +1087,10 @@ private:
 	* The indices of the shader rules assigned to the active pixel shader.
 	***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasPSConstantRuleIndices;
+	/**
+	* Shader-specific constant rule indices array.
+	***/
+	std::vector<Vireio_Hash_Rule_Index> m_asShaderSpecificRuleIndices;
 	/**
 	* True if view transform is set via SetTransform().
 	* @see SetTransform()
@@ -1120,10 +1140,6 @@ private:
 	* Starts with "1" and increases for every newly added shader rule.
 	***/
 	UINT m_dwConstantRulesUpdateCounter;
-	/**
-	* Shader-specific constant rule indices array.
-	***/
-	std::map<UINT, UINT> m_aunShaderSpecificRuleIndices;
 	/**
 	* Indices for constant buffer addressed shader rules.
 	***/

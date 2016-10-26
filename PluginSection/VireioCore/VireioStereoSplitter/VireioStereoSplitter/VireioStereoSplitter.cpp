@@ -1493,6 +1493,24 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			}
 		}
 	}
+	// now pixel shader
+	if (m_ppasPSConstantRuleIndices)
+	{
+		if (*m_ppasPSConstantRuleIndices)
+		{
+			std::vector<Vireio_Constant_Rule_Index_DX9>* pasIndices = *m_ppasPSConstantRuleIndices;
+			if (eSide == RenderPosition::Left)
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasIndices->size(); nI++)
+					pcDevice->SetVertexShaderConstantF((*pasIndices)[nI].m_dwConstantRuleRegister, (*pasIndices)[nI].m_afConstantDataLeft, (*pasIndices)[nI].m_dwConstantRuleRegisterCount);
+			}
+			else
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasIndices->size(); nI++)
+					pcDevice->SetVertexShaderConstantF((*pasIndices)[nI].m_dwConstantRuleRegister, (*pasIndices)[nI].m_afConstantDataRight, (*pasIndices)[nI].m_dwConstantRuleRegisterCount);
+			}
+		}
+	}
 
 	return true;
 }
