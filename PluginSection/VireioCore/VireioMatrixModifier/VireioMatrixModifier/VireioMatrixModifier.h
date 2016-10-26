@@ -98,7 +98,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NUMBER_OF_COMMANDERS                           3
 #define NUMBER_OF_DECOMMANDERS                        20
 #define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  2000     
+#define GUI_HEIGHT                                  5000     
 #define VECTOR_LENGTH 4                                                      /**< One shader register has 4 float values. ***/
 #define MAX_DX9_CONSTANT_REGISTERS                   224                     /**< Maximum shader registers for DX9 ***/
 #define RegisterIndex(x) (x * VECTOR_LENGTH)                                 /**< Simple helper to access shader register. ***/
@@ -357,7 +357,7 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pcShader)
 * Contains left and right shader constants.
 */
 template <class T = float>
-class IDirect3DManagedStereoShader9 : public T //T
+class IDirect3DManagedStereoShader9 : public T
 {
 public:
 	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules) :
@@ -969,12 +969,7 @@ private:
 	* The number of frames the constant buffers are to be verified.
 	* Set to zero to optimize StereoSplitter->SetDrawingSide()
 	***/
-	UINT m_dwVerifyConstantBuffers;
-	/**
-	* The constant rules update counter.
-	* Starts with "1" and increases for every newly added shader rule.
-	***/
-	UINT m_dwConstantRulesUpdateCounter;
+	UINT m_dwVerifyConstantBuffers;	
 	/**
 	* Current chosen shader type.
 	***/
@@ -1100,6 +1095,11 @@ private:
 	***/
 	std::vector<UINT> m_adwGlobalConstantRuleIndices;
 	/**
+	* The constant rules update counter.
+	* Starts with "1" and increases for every newly added shader rule.
+	***/
+	UINT m_dwConstantRulesUpdateCounter;
+	/**
 	* Shader-specific constant rule indices array.
 	***/
 	std::vector<Vireio_Shader_Constant_Rule_Index> m_asShaderSpecificRuleIndices;
@@ -1204,13 +1204,8 @@ private:
 		UINT m_dwRuleData;                          /**< [List] Data output for the chosen rule **/
 		UINT m_dwGeneralIndices;                    /**< [List] All general indices **/
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		UINT m_dwFetchedShaderHashcodes;            /**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/
-
 		UINT m_dwConstantName;                      /**< [Switch] Shader constant name **/
 		UINT m_dwPartialName;                       /**< [Switch] Shader constant partial name **/
-		UINT m_dwBufferIndex;                       /**< [Switch] Buffer index **/
-		UINT m_dwBufferSize;                        /**< [Switch] Buffer size **/
 		UINT m_dwStartRegIndex;                     /**< [Switch] Start register index **/
 
 		UINT m_dwRegisterCount;                     /**< [Spin] Register count **/
@@ -1221,8 +1216,14 @@ private:
 		UINT m_dwDeleteLatest;                      /**< [Button] Delete latest rule **/
 		UINT m_dwAddGeneral;                        /**< [Button] Add to general indices **/
 		UINT m_dwDeleteGeneral;                     /**< [Button] Delete chosen general index **/
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		UINT m_dwFetchedShaderHashcodes;            /**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/
 		UINT m_dwBufferIndexDebug;                  /**< [Switch] : Activate to output all possible buffer sizes to the debug trace for the index in m_dwBufferIndex.***/
 
+		UINT m_dwBufferIndex;                       /**< [Switch] Buffer index **/
+		UINT m_dwBufferSize;                        /**< [Switch] Buffer size **/
+#endif
 		// string entries for the switches above
 		std::wstring m_szConstantName;
 		std::wstring m_szPartialName;
@@ -1233,12 +1234,14 @@ private:
 		// values of the controls
 		bool m_bConstantName;
 		bool m_bPartialName;
-		bool m_bBufferIndex;
-		bool m_bBufferSize;
 		bool m_bStartRegIndex;
 		bool m_bTranspose;
 		UINT m_dwOperationValue;
 		UINT m_dwRegCountValue;
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		bool m_bBufferIndex;
+		bool m_bBufferSize;
 #elif defined(VIREIO_D3D9)
 		UINT m_dwShaderIndices;                     /**< [List] All shader-specific indices **/
 #endif
