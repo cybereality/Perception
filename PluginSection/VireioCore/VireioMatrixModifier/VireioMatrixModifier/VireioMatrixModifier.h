@@ -111,6 +111,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
 
+#define E_NO_MATCH         _HRESULT_TYPEDEF_(0x8A596AF85)
+
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 void debugf(const char *fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
@@ -360,10 +362,12 @@ template <class T = float>
 class IDirect3DManagedStereoShader9 : public T
 {
 public:
-	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules) :
+	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules, std::vector<UINT>* pasGeneralIndices, std::map<UINT, UINT>* pasShaderIndices) :
 		m_pcVertexShader(pcActualVertexShader),
 		m_pcOwningDevice(pcOwningDevice),
 		m_pasConstantRules(pasConstantRules),
+		m_pasGeneralIndices(pasGeneralIndices),
+		m_pasShaderIndices(pasShaderIndices),
 		m_unRefCount(1)
 	{
 		assert(pcActualVertexShader != NULL);
@@ -500,95 +504,8 @@ public:
 						auto itRules = (*m_pasConstantRules).begin();
 						while (itRules != (*m_pasConstantRules).end())
 						{
-							// Type match
-							if ((*itRules).m_dwRegisterCount == pConstantDesc[j].RegisterCount)
-							{
-								// name match required
-								if ((*itRules).m_szConstantName.size() > 0)
-								{
-									bool nameMatch = false;
-									if ((*itRules).m_bUsePartialNameMatch)
-									{
-										nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules).m_szConstantName.c_str()) != NULL;
-									}
-									else
-									{
-										nameMatch = (*itRules).m_szConstantName.compare(pConstantDesc[j].Name) == 0;
-									}
-
-									if (!nameMatch)
-									{
-										// no match
-										++itRules; ++unIndex;
-										continue;
-									}
-								}
-
-								// register match required
-								if ((*itRules).m_dwStartRegIndex != UINT_MAX)
-								{
-									if ((*itRules).m_dwStartRegIndex != pConstantDesc[j].RegisterIndex)
-									{
-										// no match
-										++itRules; ++unIndex;
-										continue;
-									}
-								}
-
-#ifdef _DEBUG
-								// output shader constant + index 
-								switch (pConstantDesc[j].Class)
-								{
-									case D3DXPC_VECTOR:
-										OutputDebugString(L"VS: D3DXPC_VECTOR");
-										break;
-									case D3DXPC_MATRIX_ROWS:
-										OutputDebugString(L"VS: D3DXPC_MATRIX_ROWS");
-										break;
-									case D3DXPC_MATRIX_COLUMNS:
-										OutputDebugString(L"VS: D3DXPC_MATRIX_COLUMNS");
-										break;
-									default:
-										OutputDebugString(L"VS: UNKNOWN_CONSTANT");
-										break;
-								}
-								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
-#endif 
-								// set register index
-								m_aunRegisterModificationIndex[pConstantDesc[j].RegisterIndex] = (UINT)m_asConstantRuleIndices.size();
-
-								// set constant rule index
-								Vireio_Constant_Rule_Index_DX9 sConstantRuleIndex;
-								sConstantRuleIndex.m_dwIndex = unIndex;
-								sConstantRuleIndex.m_dwConstantRuleRegister = pConstantDesc[j].RegisterIndex;
-								sConstantRuleIndex.m_dwConstantRuleRegisterCount = pConstantDesc[j].RegisterCount;
-
-								// init data.. TODO !! INIT DATA MODIFIED
-								IDirect3DDevice9* pcDevice = nullptr;
-								m_pcVertexShader->GetDevice(&pcDevice);
-								if (pcDevice)
-								{
-									// get current shader
-									T* pcShaderOld = nullptr;
-									pcDevice->GetVertexShader(&pcShaderOld);
-
-									// set new shader and get data
-									pcDevice->SetVertexShader(pcShaderOld);
-									pcDevice->GetVertexShaderConstantF(pConstantDesc[j].RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, pConstantDesc[j].RegisterCount);
-									pcDevice->GetVertexShaderConstantF(pConstantDesc[j].RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, pConstantDesc[j].RegisterCount);
-									pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
-									pcDevice->Release();
-
-									// set back vertex shader
-									if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); }
-									else pcDevice->SetVertexShader(nullptr);
-								}
-
-								m_asConstantRuleIndices.push_back(sConstantRuleIndex);
-
-								// only the first matching rule is applied to a constant
-								break;
-							}
+							// compare rule->description, break in case of success
+							if (SUCCEEDED(VerifyConstantDescriptionForRule(&(*itRules), &(pConstantDesc[j]), unIndex))) break;
 
 							++itRules; ++unIndex;
 						}
@@ -748,9 +665,113 @@ protected:
 	***/
 	std::vector<Vireio_Constant_Modification_Rule>* m_pasConstantRules;
 	/**
+	* Pointer to all general rule indices.
+	***/
+	std::vector<UINT>* m_pasGeneralIndices;
+	/**
+	* Pointer to all shader specfic rule indices.
+	***/
+	std::map<UINT, UINT>* m_pasShaderIndices;
+	/**
 	* Index of modification for the specified register.
 	***/
 	UINT m_aunRegisterModificationIndex[MAX_DX9_CONSTANT_REGISTERS];
+
+private:
+	/**
+	* Compares a constant description and a shader rule, if succeedes it adds the index to the shader constant rule indices.
+	***/
+	HRESULT VerifyConstantDescriptionForRule(Vireio_Constant_Modification_Rule* psRule, D3DXCONSTANT_DESC* psDescription, UINT unRuleIndex)
+	{
+		// Type match
+		if (psRule->m_dwRegisterCount == psDescription->RegisterCount)
+		{
+			// name match required
+			if (psRule->m_szConstantName.size() > 0)
+			{
+				bool nameMatch = false;
+				if (psRule->m_bUsePartialNameMatch)
+				{
+					nameMatch = std::strstr(psDescription->Name, psRule->m_szConstantName.c_str()) != NULL;
+				}
+				else
+				{
+					nameMatch = psRule->m_szConstantName.compare(psDescription->Name) == 0;
+				}
+
+				if (!nameMatch)
+				{
+					// no match
+					return E_NO_MATCH;
+				}
+			}
+
+			// register match required
+			if (psRule->m_dwStartRegIndex != UINT_MAX)
+			{
+				if (psRule->m_dwStartRegIndex != psDescription->RegisterIndex)
+				{
+					// no match
+					return E_NO_MATCH;
+				}
+			}
+
+#ifdef _DEBUG
+			// output shader constant + index 
+			switch (psDescription->Class)
+			{
+				case D3DXPC_VECTOR:
+					OutputDebugString(L"VS: D3DXPC_VECTOR");
+					break;
+				case D3DXPC_MATRIX_ROWS:
+					OutputDebugString(L"VS: D3DXPC_MATRIX_ROWS");
+					break;
+				case D3DXPC_MATRIX_COLUMNS:
+					OutputDebugString(L"VS: D3DXPC_MATRIX_COLUMNS");
+					break;
+				default:
+					OutputDebugString(L"VS: UNKNOWN_CONSTANT");
+					break;
+			}
+			debugf("Register Index: %d", psDescription->RegisterIndex);
+#endif 
+			// set register index
+			m_aunRegisterModificationIndex[psDescription->RegisterIndex] = (UINT)m_asConstantRuleIndices.size();
+
+			// set constant rule index
+			Vireio_Constant_Rule_Index_DX9 sConstantRuleIndex;
+			sConstantRuleIndex.m_dwIndex = unRuleIndex;
+			sConstantRuleIndex.m_dwConstantRuleRegister = psDescription->RegisterIndex;
+			sConstantRuleIndex.m_dwConstantRuleRegisterCount = psDescription->RegisterCount;
+
+			// init data.. TODO !! INIT DATA MODIFIED
+			IDirect3DDevice9* pcDevice = nullptr;
+			m_pcVertexShader->GetDevice(&pcDevice);
+			if (pcDevice)
+			{
+				// get current shader
+				T* pcShaderOld = nullptr;
+				pcDevice->GetVertexShader(&pcShaderOld);
+
+				// set new shader and get data
+				pcDevice->SetVertexShader(pcShaderOld);
+				pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
+				pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
+				pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
+				pcDevice->Release();
+
+				// set back vertex shader
+				if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); }
+				else pcDevice->SetVertexShader(nullptr);
+			}
+
+			m_asConstantRuleIndices.push_back(sConstantRuleIndex);
+
+			// only the first matching rule is applied to a constant
+			return S_OK;
+		}
+		else return E_NO_MATCH;
+	}
 };
 #endif
 
@@ -1093,7 +1114,7 @@ private:
 	/**
 	* Global constant rule indices array.
 	***/
-	std::vector<UINT> m_adwGlobalConstantRuleIndices;
+	std::vector<UINT> m_aunGlobalConstantRuleIndices;
 	/**
 	* The constant rules update counter.
 	* Starts with "1" and increases for every newly added shader rule.
@@ -1102,7 +1123,7 @@ private:
 	/**
 	* Shader-specific constant rule indices array.
 	***/
-	std::vector<Vireio_Shader_Constant_Rule_Index> m_asShaderSpecificRuleIndices;
+	std::map<UINT, UINT> m_aunShaderSpecificRuleIndices;
 	/**
 	* Indices for constant buffer addressed shader rules.
 	***/

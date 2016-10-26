@@ -136,8 +136,8 @@ m_adwPShaderHashCodes(),
 m_eDebugOption(Debug_Grab_Options::Debug_ConstantFloat4),
 m_bGrabDebug(false),
 m_adwPageIDs(0, 0),
-m_adwGlobalConstantRuleIndices(),
-m_asShaderSpecificRuleIndices(),
+m_aunGlobalConstantRuleIndices(),
+m_aunShaderSpecificRuleIndices(),
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
 m_bSwitchRenderTarget(FALSE),
@@ -462,7 +462,7 @@ DWORD MatrixModifier::GetSaveDataSize()
 	dwSizeofData += sizeof(UINT);
 	dwSizeofData += (DWORD)m_asConstantRules.size() * sizeof(Vireio_Constant_Modification_Rule_Normalized);
 	dwSizeofData += sizeof(UINT);
-	dwSizeofData += (DWORD)m_adwGlobalConstantRuleIndices.size() * sizeof(UINT);
+	dwSizeofData += (DWORD)m_aunGlobalConstantRuleIndices.size() * sizeof(UINT);
 
 	return dwSizeofData;
 }
@@ -510,9 +510,9 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 	}
 
 	// general indices
-	UINT dwNumberOfIndices = (UINT)m_adwGlobalConstantRuleIndices.size();
+	UINT dwNumberOfIndices = (UINT)m_aunGlobalConstantRuleIndices.size();
 	acStream.write((char*)&dwNumberOfIndices, sizeof(UINT));
-	acStream.write((char*)&m_adwGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
+	acStream.write((char*)&m_aunGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// fetched shader hash codes
@@ -602,7 +602,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 					dwDataOffset += sizeof(UINT);
 
 					// add index
-					m_adwGlobalConstantRuleIndices.push_back(dwIndex);
+					m_aunGlobalConstantRuleIndices.push_back(dwIndex);
 
 					dwSizeOfRules -= sizeof(UINT);
 				}
@@ -2816,7 +2816,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						if (SUCCEEDED(nHr))
 						{
-							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules);
+							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_aunShaderSpecificRuleIndices);
 						}
 						else
 						{
@@ -3514,7 +3514,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
 					{
 						// add to general rules
-						m_adwGlobalConstantRuleIndices.push_back((UINT)nSelection);
+						m_aunGlobalConstantRuleIndices.push_back((UINT)nSelection);
 					}
 
 					// update the list
@@ -3531,7 +3531,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleGeneralIndices.size()))
 					{
 						// erase
-						m_adwGlobalConstantRuleIndices.erase(m_adwGlobalConstantRuleIndices.begin() + nSelection);
+						m_aunGlobalConstantRuleIndices.erase(m_aunGlobalConstantRuleIndices.begin() + nSelection);
 					}
 
 					// update the list
@@ -3549,12 +3549,12 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 
 						{
 							// delete all entries for that index in the general list
-							auto it = m_adwGlobalConstantRuleIndices.begin();
-							while (it < m_adwGlobalConstantRuleIndices.end())
+							auto it = m_aunGlobalConstantRuleIndices.begin();
+							while (it < m_aunGlobalConstantRuleIndices.end())
 							{
 								if ((INT)*it == nSelection)
 								{
-									m_adwGlobalConstantRuleIndices.erase(it);
+									m_aunGlobalConstantRuleIndices.erase(it);
 								}
 								it++;
 							}
@@ -3693,12 +3693,12 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 		std::vector<Vireio_Constant_Rule_Index> asConstantBufferRules = std::vector<Vireio_Constant_Rule_Index>();
 
 		// loop through all global rules
-		for (UINT dwI = 0; dwI < (UINT)m_adwGlobalConstantRuleIndices.size(); dwI++)
+		for (UINT dwI = 0; dwI < (UINT)m_aunGlobalConstantRuleIndices.size(); dwI++)
 		{
 			// get a bool for each register index, set to false
 			std::vector<bool> abRegistersMatching = std::vector<bool>(dwBufferRegisterSize, false);
 
-			if ((m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseName) || (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch))
+			if ((m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUseName) || (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch))
 			{
 				Vireio_Shader_Private_Data sPrivateData;
 				UINT dwDataSize = sizeof(sPrivateData);
@@ -3706,7 +3706,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 				if (dwDataSize)
 				{
 					// use name ?
-					if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseName)
+					if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUseName)
 					{
 						switch (eShaderType)
 						{
@@ -3718,7 +3718,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 									for (UINT nConstant = 0; nConstant < (UINT)m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 									{
 										// test full name matching
-										if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_szConstantName.compare(m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName) == 0)
+										if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_szConstantName.compare(m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName) == 0)
 										{
 											// set this register to 'false' if not matching
 											UINT dwRegister = m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset >> 5;
@@ -3742,7 +3742,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 					}
 
 					// use partial name ?
-					if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch)
+					if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch)
 					{
 						switch (eShaderType)
 						{
@@ -3754,7 +3754,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 									for (UINT nConstant = 0; nConstant < (UINT)m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 									{
 										// test partial name matching
-										if (std::strstr(m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_szConstantName.c_str()))
+										if (std::strstr(m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_szConstantName.c_str()))
 										{
 											// set this register to 'false' if not matching
 											UINT dwRegister = m_asVShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset >> 5;
@@ -3780,9 +3780,9 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 			}
 
 			// use start reg index ?
-			if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseStartRegIndex)
+			if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUseStartRegIndex)
 			{
-				UINT dwRegister = m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_dwStartRegIndex;
+				UINT dwRegister = m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_dwStartRegIndex;
 				if ((dwBufferRegisterSize) && (dwRegister <= dwBufferRegisterSize))
 				{
 					bool bOld = abRegistersMatching[dwRegister];
@@ -3790,7 +3790,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 					abRegistersMatching[dwRegister] = bOld;
 
 					// set to true if no naming convention 
-					if ((!m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseName) && (!m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch))
+					if ((!m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUseName) && (!m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch))
 						abRegistersMatching[dwRegister] = true;
 				}
 				else
@@ -3798,12 +3798,12 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 			}
 
 			// use buffer index
-			if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseBufferIndex)
+			if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUseBufferIndex)
 			{
 				switch (eShaderType)
 				{
 					case VertexShader:
-						if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_dwBufferIndex != dwBufferIndex)
+						if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_dwBufferIndex != dwBufferIndex)
 							abRegistersMatching = std::vector<bool>(dwBufferRegisterSize, false);
 						break;
 					case PixelShader:
@@ -3820,9 +3820,9 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 			}
 
 			// use buffer size
-			if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseBufferSize)
+			if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_bUseBufferSize)
 			{
-				if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_dwBufferSize != dwBufferSize)
+				if (m_asConstantRules[m_aunGlobalConstantRuleIndices[dwI]].m_dwBufferSize != dwBufferSize)
 					abRegistersMatching = std::vector<bool>(dwBufferRegisterSize, false);
 			}
 
@@ -3833,7 +3833,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 				if (abRegistersMatching[dwJ])
 				{
 					Vireio_Constant_Rule_Index sIndex;
-					sIndex.m_dwIndex = m_adwGlobalConstantRuleIndices[dwI];
+					sIndex.m_dwIndex = m_aunGlobalConstantRuleIndices[dwI];
 					sIndex.m_dwConstantRuleRegister = dwJ;
 					asConstantBufferRules.push_back(sIndex);
 				}
@@ -4606,10 +4606,10 @@ void MatrixModifier::FillShaderRuleGeneralIndices()
 	if (m_pcVireioGUI)
 		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
 	m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
-	for (UINT dwI = 0; dwI < (UINT)m_adwGlobalConstantRuleIndices.size(); dwI++)
+	for (UINT dwI = 0; dwI < (UINT)m_aunGlobalConstantRuleIndices.size(); dwI++)
 	{
 		// add text
-		std::wstringstream szIndex; szIndex << L"Rule : " << m_adwGlobalConstantRuleIndices[dwI];
+		std::wstringstream szIndex; szIndex << L"Rule : " << m_aunGlobalConstantRuleIndices[dwI];
 		m_aszShaderRuleGeneralIndices.push_back(szIndex.str());
 	}
 }
