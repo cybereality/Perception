@@ -343,6 +343,14 @@ struct Vireio_Hash_Rule_Index
 	UINT unRuleIndex;
 };
 /**
+* Simple enumeration of supported Shaders.
+***/
+enum Vireio_Supported_Shaders
+{
+	VertexShader,
+	PixelShader,
+};
+/**
 * Managed proxy shader class.
 * Contains left and right shader constants.
 */
@@ -350,13 +358,14 @@ template <class T = float>
 class IDirect3DManagedStereoShader9 : public T
 {
 public:
-	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules, std::vector<UINT>* paunGeneralIndices, std::vector<Vireio_Hash_Rule_Index>* pasShaderIndices) :
+	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules, std::vector<UINT>* paunGeneralIndices, std::vector<Vireio_Hash_Rule_Index>* pasShaderIndices, Vireio_Supported_Shaders eShaderType) :
 		m_pcActualShader(pcActualVertexShader),
 		m_pcOwningDevice(pcOwningDevice),
 		m_pasConstantRules(pasConstantRules),
 		m_paunGeneralIndices(paunGeneralIndices),
 		m_pasShaderIndices(pasShaderIndices),
-		m_unRefCount(1)
+		m_unRefCount(1),
+		m_eShaderType(eShaderType)
 	{
 		assert(pcActualVertexShader != NULL);
 		assert(pcOwningDevice != NULL);
@@ -628,6 +637,10 @@ protected:
 	***/
 	T* const m_pcActualShader;
 	/**
+	* The type of this class.
+	***/
+	Vireio_Supported_Shaders m_eShaderType;
+	/**
 	* Pointer to the D3D device that owns the shader.
 	***/
 	IDirect3DDevice9* m_pcOwningDevice;
@@ -762,19 +775,40 @@ private:
 			if (pcDevice)
 			{
 				// get current shader
-				T* pcShaderOld = nullptr;
-				/*pcDevice->GetVertexShader(&pcShaderOld);
+				IUnknown* pcShaderOld = nullptr;
 
-				// set new shader and get data
-				pcDevice->SetVertexShader(pcShaderOld);
-				pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
-				pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
-				pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);*/
-				pcDevice->Release();
+				// shader type ?
+				switch (m_eShaderType)
+				{
+					case VertexShader:
+						pcDevice->GetVertexShader((IDirect3DVertexShader9**)&pcShaderOld);
 
-				// set back vertex shader
-				/*if (pcShaderOld) { pcDevice->SetVertexShader(pcShaderOld); pcShaderOld->Release(); }
-				else pcDevice->SetVertexShader(nullptr);*/
+						// set new shader and get data
+						pcDevice->SetVertexShader((IDirect3DVertexShader9*)pcShaderOld);
+						pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
+						pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
+						pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
+
+						// set back vertex shader
+						if (pcShaderOld) { pcDevice->SetVertexShader((IDirect3DVertexShader9*)pcShaderOld); pcShaderOld->Release(); }
+						else pcDevice->SetVertexShader(nullptr);
+						break;
+					case PixelShader:
+						pcDevice->GetPixelShader((IDirect3DPixelShader9**)&pcShaderOld);
+
+						// set new shader and get data
+						pcDevice->SetPixelShader((IDirect3DPixelShader9*)pcShaderOld);
+						pcDevice->GetPixelShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
+						pcDevice->GetPixelShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
+						pcDevice->GetPixelShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
+
+						// set back pixel shader
+						if (pcShaderOld) { pcDevice->SetPixelShader((IDirect3DPixelShader9*)pcShaderOld); pcShaderOld->Release(); }
+						else pcDevice->SetPixelShader(nullptr);
+						break;
+				}
+							
+				pcDevice->Release();							
 			}
 
 			m_asConstantRuleIndices.push_back(sConstantRuleIndex);

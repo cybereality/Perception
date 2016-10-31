@@ -3012,7 +3012,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						if (SUCCEEDED(nHr))
 						{
-							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices);
+							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::VertexShader);
 						}
 						else
 						{
@@ -3035,7 +3035,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						if (SUCCEEDED(nHr))
 						{
-							**m_pppcShader_Pixel = new IDirect3DManagedStereoShader9<IDirect3DPixelShader9>(pcActualPShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices);
+							**m_pppcShader_Pixel = new IDirect3DManagedStereoShader9<IDirect3DPixelShader9>(pcActualPShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::PixelShader);
 						}
 						else
 						{
