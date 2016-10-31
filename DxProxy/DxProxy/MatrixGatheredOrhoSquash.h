@@ -52,15 +52,15 @@ public:
 	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixGatheredOrthoSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
-		: MatrixOrthoSquash(modID, adjustmentMatrices, transpose) 
+	MatrixGatheredOrthoSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
+		: MatrixOrthoSquash(modID, adjustmentMatrices, transpose)
 	{};
 
 	/**
 	* Applies modification to registers.
 	* This method should not generally be overridden by subclasses (if it is the overriding method
-	* should respect the result of DoNotApply). 
-	* Do modification in DoMatrixModification. Transposed matrices will be provided to 
+	* should respect the result of DoNotApply).
+	* Do modification in DoMatrixModification. Transposed matrices will be provided to
 	* DoMatrixModification if transpose is true.
 	* @param [in] inData Input matrix to be modified and assigned to registers.
 	* @param [in, out] outLeft Register vector left.
@@ -68,21 +68,24 @@ public:
 	***/
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
-		D3DXMATRIX tempMatrix (inData);
+		D3DXMATRIX tempMatrix(inData);
 
 		// conditions to apply the matrix ?
-		if (DoNotApply(tempMatrix)) {
+		if (DoNotApply(tempMatrix))
+		{
 
 			outLeft->assign(&tempMatrix[0], &tempMatrix[0] + outLeft->size());
 			outRight->assign(&tempMatrix[0], &tempMatrix[0] + outRight->size());
 		}
-		else {
+		else
+		{
 
 			// matrix to be transposed ?
-			if (m_bTranspose) {
+			if (m_bTranspose)
+			{
 				D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
 			}
-			
+
 			D3DXMATRIX tempLeft;
 			D3DXMATRIX tempRight;
 
@@ -90,7 +93,8 @@ public:
 			DoMatrixModification(tempMatrix, tempLeft, tempRight);
 
 			// transpose back
-			if (m_bTranspose) {
+			if (m_bTranspose)
+			{
 				D3DXMatrixTranspose(&tempLeft, &tempLeft);
 				D3DXMatrixTranspose(&tempRight, &tempRight);
 			}
@@ -103,5 +107,23 @@ public:
 			m_spAdjustmentMatrices->GatherMatrix(tempLeft, tempRight);
 		}
 	}
+
+#ifdef VIREIO_MATRIX_MODIFIER
+	/**
+	* For the matrix modifier we do not use the ApplyModification() method, we use DoMatrixModification() directly.
+	* Same functionality as in ApplyMocification().
+	* @param in [in] Modification matrix to be multiplied by adjustment matrix (left/right).
+	* @param outLeft [in, out] Left transform matrix.
+	* @param outRight [in, out] Right transform matrix.
+	***/
+	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
+	{
+		MatrixOrthoSquash::DoMatrixModification(in, outLeft, outright);
+
+		// gather matrix
+		m_spAdjustmentMatrices->GatherMatrix(outLeft, outright);
+	}
+#endif
+
 };
 #endif

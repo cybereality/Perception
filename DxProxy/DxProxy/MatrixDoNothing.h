@@ -47,11 +47,11 @@ class MatrixDoNothing : public ShaderMatrixModification
 {
 public:
 	/**
-	* Just sets the class values that correspond to the parameters. 
+	* Just sets the class values that correspond to the parameters.
 	* @param modID The modification ID
 	* @param adjustmentMatrices The matricies to do the adjustments to.
 	***/
-	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : 
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) :
 		ShaderMatrixModification(modID, adjustmentMatrices, false) { };
 
 	/**
@@ -62,5 +62,21 @@ public:
 	{
 		return true;
 	}
+
+#ifdef VIREIO_MATRIX_MODIFIER
+	/**
+	* For the matrix modifier we do not use the ApplyModification() method, we use DoMatrixModification() directly.
+	* Same functionality as in ApplyMocification().
+	* @param in [in] Modification matrix to be multiplied by adjustment matrix (left/right).
+	* @param outLeft [in, out] Left transform matrix.
+	* @param outRight [in, out] Right transform matrix.
+	***/
+	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
+	{
+		outLeft = D3DXMATRIX(in);
+		outright = D3DXMATRIX(in);
+	}
+#endif
+
 };
 #endif
