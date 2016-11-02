@@ -53,6 +53,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
+#define SMALL_FLOAT 0.001f
+#define	SLIGHTLY_LESS_THAN_ONE 0.999f
+
+#define PI 3.141592654
+#define RADIANS_TO_DEGREES(fRad) ((float) fRad * (float) (180.0 / PI))
+
 #define D3DFMT_ATI1N ((D3DFORMAT)MAKEFOURCC('A','T','I','1'))
 #define D3DFMT_ATI2N ((D3DFORMAT)MAKEFOURCC('A','T','I','2'))
 #define D3DFMT_AYUV ((D3DFORMAT)MAKEFOURCC('A','Y','U','V'))
@@ -67,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RESZ_CODE 0x7fa05000
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        24
+#define NUMBER_OF_DECOMMANDERS                        25
 
 /**
 * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15}
@@ -116,6 +122,7 @@ enum STS_Decommanders
 	pasPShaderConstantIndices,    /**< The constant rule indices for the actual pixel shader. ***/
 	State,                        /**< ->SetRenderState() State ***/
 	Value,                        /**< ->SetRenderState() Value ***/
+	pViewport,                    /**< ->SetViewport() Viewport ***/
 };
 
 /**
@@ -165,6 +172,7 @@ private:
 	void                    SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD unRenderTargetIndex, IDirect3DSurface9* pcRenderTarget);
 	void                    SetDepthStencilSurface(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pNewZStencil);
 	void                    SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage, IDirect3DBaseTexture9* pcTexture);
+	HRESULT                 SetViewport(IDirect3DDevice9* pcDevice, CONST D3DVIEWPORT9* psViewport);
 	void                    Apply();
 
 	/*** StereoSplitter private methods ***/
@@ -177,7 +185,7 @@ private:
 	bool                    ShouldDuplicateDepthStencilSurface(UINT unWidth, UINT unHeight, D3DFORMAT eFormat, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bDiscard);
 	bool                    ShouldDuplicateTexture(UINT unWidth, UINT unHeight, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool);
 	bool                    ShouldDuplicateCubeTexture(UINT unEdgeLength, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool);
-
+	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
 	
 	/**
 	* Input pointers.
@@ -206,6 +214,7 @@ private:
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices; /**< Pointer to the constant rule indices for the current pixel shader ***/
 	D3DRENDERSTATETYPE*     m_peState;                                         /**< ->SetRenderState() State ***/
 	DWORD*                  m_punValue;                                        /**< ->SetRenderState() Value ***/
+	D3DVIEWPORT9**          m_ppsViewport;                                     /**< ->SetViewport() Viewport ***/
 
 	/**
 	* Active stored render target views.
@@ -249,6 +258,15 @@ private:
 	* Current drawing side, only changed in SetDrawingSide().
 	**/
 	RenderPosition m_eCurrentRenderingSide;
+	/**
+	* True if active viewport is the default one.
+	* @see isViewportDefaultForMainRT()
+	**/
+	bool m_bActiveViewportIsDefault;
+	/**
+	* Last viewport backup.
+	**/
+	D3DVIEWPORT9 m_sLastViewportSet;
 	/**
 	* The control bitmap.
 	***/

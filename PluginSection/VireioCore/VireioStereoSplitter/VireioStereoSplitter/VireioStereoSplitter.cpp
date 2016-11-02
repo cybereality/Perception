@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_COLORFILL                   35 
 #define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET             38 
 #define METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE      40 
+#define METHOD_IDIRECT3DDEVICE9_SETVIEWPORT                 47
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE              57
 #define METHOD_IDIRECT3DDEVICE9_GETTEXTURE                  64 
 #define METHOD_IDIRECT3DDEVICE9_RESET                       16
@@ -95,7 +96,10 @@ m_unRenderTargetNumber(0),
 m_bPresent(false),
 m_bApply(true),
 m_ppasVSConstantRuleIndices(nullptr),
-m_ppasPSConstantRuleIndices(nullptr)
+m_ppasPSConstantRuleIndices(nullptr),
+m_peState(nullptr),
+m_punValue(nullptr),
+m_ppsViewport(nullptr)
 {
 	m_pcActiveDepthStencilSurface[0] = nullptr;
 	m_pcActiveDepthStencilSurface[1] = nullptr;
@@ -106,6 +110,9 @@ m_ppasPSConstantRuleIndices(nullptr)
 
 	// set to "LEFT" !!
 	m_eCurrentRenderingSide = RenderPosition::Left;
+
+	// first viewport set is default
+	m_bActiveViewportIsDefault = true;
 }
 
 /**
@@ -240,6 +247,7 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"asPShaderConstantIndices", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"State", 5); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Value", 5); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pViewport", 5); nY += 64;
 
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
@@ -341,6 +349,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"State";
 		case Value:
 			return L"Value";
+		case pViewport:
+			return L"pViewport";
 		default:
 			break;
 	}
@@ -411,6 +421,8 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_D3DRENDERSTATETYPE;
 		case Value:
 			return NOD_Plugtype::AQU_UINT;
+		case pViewport:
+			return NOD_Plugtype::AQU_PNT_D3DVIEWPORT9;
 		default:
 			break;
 	}
@@ -513,6 +525,9 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case Value:
 			m_punValue = (DWORD*)pData;
 			break;
+		case pViewport:
+			m_ppsViewport = (D3DVIEWPORT9**)pData;
+			break;
 		default:
 			break;
 	}
@@ -551,7 +566,8 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE))
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVIEWPORT))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
@@ -626,6 +642,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   {
 														   nHr = ((IDirect3DDevice9*)pThis)->SetRenderTarget(*m_punRenderTargetIndex, m_apcActiveRenderTargets[*m_punRenderTargetIndex + D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT]);
 													   }
+
+													   // changing rendertarget resets viewport to fullsurface
+													   if (nHr == D3D_OK) m_bActiveViewportIsDefault = true;
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -950,6 +969,18 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   }
 												   return nullptr;
 #pragma endregion
+#pragma region SetViewport
+											   case METHOD_IDIRECT3DDEVICE9_SETVIEWPORT:
+												   if (m_ppsViewport)
+												   {
+													   nHr = SetViewport((IDirect3DDevice9*)pThis, *m_ppsViewport);
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
 										   }
 										   return nullptr;
 		}
@@ -1034,6 +1065,9 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			m_pcActiveDepthStencilSurface[1] = VerifyPrivateDataInterfaces(pcDevice, pcDepthStencil);
 			pcDepthStencil->Release();
 		}
+
+		// get viewport
+		pcDevice->GetViewport(&m_sLastViewportSet);
 
 		// TODO !! INIT ACTIVE TEXTURES
 	}
@@ -1190,6 +1224,25 @@ void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage, IDirect
 	}
 
 	m_bControlUpdate = true;
+}
+
+/**
+* Try and set, if success save viewport.
+* If viewport width and height match primary render target size and zmin is 0 and zmax 1 set
+* m_bActiveViewportIsDefault flag true.
+* @see m_bActiveViewportIsDefault
+***/
+HRESULT StereoSplitter::SetViewport(IDirect3DDevice9* pcDevice, CONST D3DVIEWPORT9* psViewport)
+{
+	HRESULT nHR = pcDevice->SetViewport(psViewport);
+
+	if (SUCCEEDED(nHR))
+	{
+		m_bActiveViewportIsDefault = IsViewportDefaultForMainRT(psViewport);
+		m_sLastViewportSet = *psViewport;
+	}
+
+	return nHR;
 }
 
 /**
@@ -1422,6 +1475,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	}
 
 	// switch render targets to new eSide
+	bool bRenderTargetChanged = false;
 	HRESULT nHr = D3D_OK;
 	for (std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_unRenderTargetNumber; i++)
 	{
@@ -1438,6 +1492,16 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		{
 			OutputDebugString(L"Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
 		}
+		else
+		{
+			bRenderTargetChanged = true;
+		}
+	}
+
+	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport
+	if (bRenderTargetChanged && !m_bActiveViewportIsDefault)
+	{
+		pcDevice->SetViewport(&m_sLastViewportSet);
 	}
 
 	//#define DRAW_INDICATORS
@@ -1774,4 +1838,19 @@ bool StereoSplitter::ShouldDuplicateCubeTexture(UINT unEdgeLength, UINT unLevels
 	}
 
 	return IS_RENDER_TARGET(unUsage);
+}
+
+/**
+* Comparison made against active primary render target.
+***/
+bool StereoSplitter::IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport)
+{
+	if (!m_apcActiveRenderTargets[0]) return false;
+
+	// get description from first active render target
+	D3DSURFACE_DESC sRTDesc;
+	m_apcActiveRenderTargets[0]->GetDesc(&sRTDesc);
+
+	return  ((psViewport->Height == sRTDesc.Height) && (psViewport->Width == sRTDesc.Width) &&
+		(psViewport->MinZ <= SMALL_FLOAT) && (psViewport->MaxZ >= SLIGHTLY_LESS_THAN_ONE));
 }
