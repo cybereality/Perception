@@ -1261,7 +1261,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		sa 
+			mpDesc.MaxLOD = D3D11_FLOAT32_MAX;
 		if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
 			OutputDebugString(L"[CIN] Failed to create sampler.");
 	}

@@ -181,7 +181,7 @@
       <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
     <PreLinkEvent>
-      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin" md "$(USERPROFILE)\Documents\Vireio\Perception\bin"</Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
