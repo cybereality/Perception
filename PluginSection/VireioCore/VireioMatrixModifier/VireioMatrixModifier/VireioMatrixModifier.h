@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_Default.h"
 #include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
 #include"..\..\..\..\Shared\ConfigDefaults.h"
+#include"..\..\..\..\Shared\pugixml.hpp"
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
@@ -895,6 +896,7 @@ private:
 #else
 	void FillShaderRuleShaderIndices();
 #endif
+	bool MatrixModifier::ImportXMLRules(std::string rulesPath);
 
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -1287,6 +1289,7 @@ private:
 		UINT m_dwDeleteLatest;                      /**< [Button] Delete latest rule **/
 		UINT m_dwAddGeneral;                        /**< [Button] Add to general indices **/
 		UINT m_dwDeleteGeneral;                     /**< [Button] Delete chosen general index **/
+		UINT m_dwImportXML;                         /**< [Button] Import v3 XML file **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		UINT m_dwFetchedShaderHashcodes;            /**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/

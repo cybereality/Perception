@@ -183,6 +183,8 @@
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\..\..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\..\..\..\Shared\pugixml.hpp" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
@@ -194,6 +196,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.cpp" />
     <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
+    <ClCompile Include="..\..\..\..\..\Shared\pugixml.cpp" />
     <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
     <ClCompile Include="..\VireioMatrixModifier.cpp" />
   </ItemGroup>

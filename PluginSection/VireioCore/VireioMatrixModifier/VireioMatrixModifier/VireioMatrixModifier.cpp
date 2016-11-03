@@ -3630,6 +3630,40 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 						FillShaderRuleGeneralIndices();
 					}
 				}
+				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwImportXML)
+				{
+					OPENFILENAME ofn;
+					wchar_t szFileName[MAX_PATH] = L"";
+
+					// get filename using the OPENFILENAME structure and GetOpenFileName()
+					ZeroMemory(&ofn, sizeof(ofn));
+
+					ofn.lStructSize = sizeof(ofn);
+					ofn.hwndOwner = NULL;
+					ofn.lpstrFilter = (LPCWSTR)L"Vireio v3 Shader Rule XML file (*.xml)\0*.xml\0";
+					ofn.lpstrFile = (LPWSTR)szFileName;
+					ofn.nMaxFile = MAX_PATH;
+					ofn.lpstrDefExt = (LPCWSTR)L"xml";
+					ofn.lpstrTitle = L"Import Vireio v3 Shader Rule XML file";
+					ofn.Flags = OFN_FILEMUSTEXIST;
+
+					if (GetOpenFileName(&ofn))
+					{
+						// and import
+						std::wstring szW = std::wstring(ofn.lpstrFile);
+						std::string szFilePath = std::string(szW.begin(), szW.end());
+						ImportXMLRules(szFilePath);
+					}
+
+					// fill the string list
+					FillShaderRuleIndices();
+					FillShaderRuleGeneralIndices();
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					FillFetchedHashCodeList();
+#elif defined(VIREIO_D3D9)
+					FillShaderRuleShaderIndices();
+#endif
+				}
 			}
 			break;
 #pragma endregion
@@ -4216,6 +4250,7 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szDeleteLast = std::wstring(L"Delete Last");
 	static std::wstring szToGeneral = std::wstring(L"To General");
 	static std::wstring szDelete = std::wstring(L"Delete");
+	static std::wstring szImport = std::wstring(L"Import XML");
 	static std::wstring szBufferIndexDebug = std::wstring(L"Debug Index");
 
 	static std::vector<std::wstring> aszOperations;
@@ -4393,6 +4428,7 @@ void MatrixModifier::CreateGUI()
 	m_sPageGameShaderRules.m_dwDeleteLatest = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szDeleteLast, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE - GUI_CONTROL_FONTBORDER, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameShaderRules.m_dwAddGeneral = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szToGeneral, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE - GUI_CONTROL_FONTBORDER, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameShaderRules.m_dwDeleteGeneral = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szDelete, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 1) + GUI_CONTROL_FONTBORDER + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwImportXML = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szImport, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 1) + GUI_CONTROL_FONTBORDER + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	m_sPageGameShaderRules.m_dwBufferIndexDebug = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szBufferIndexDebug, m_bBufferIndexDebug, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 1) + GUI_CONTROL_FONTBORDER + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 #endif
@@ -4710,3 +4746,182 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 	}
 }
 #endif
+
+/**
+* Imports (v3) shader modification rules.
+* True if load succeeds, false otherwise.
+* (pugi::xml_document)
+* @param szRulesPath Rules path as defined in game configuration.
+***/
+bool MatrixModifier::ImportXMLRules(std::string szRulesPath)
+{
+	// helper to convert IDs to indices (Vireio v4 does use indices instead of IDs)
+	std::vector<UINT> aIDIndices = std::vector<UINT>();
+
+	m_asConstantRules.clear();
+	m_aunGlobalConstantRuleIndices.clear();
+#if defined(VIREIO_D3D9)
+	m_asShaderSpecificRuleIndices.clear();
+#endif
+
+	pugi::xml_document cRulesFile;
+	pugi::xml_parse_result sResultProfiles = cRulesFile.load_file(szRulesPath.c_str());
+
+	if (sResultProfiles.status != pugi::status_ok)
+	{
+		OutputDebugString(L"[MAM] Parsing of shader rules file failed. No rules loaded.\n");
+		OutputDebugStringA(szRulesPath.c_str());
+		return false;
+	}
+
+	// load from file
+	pugi::xml_node cXmlShaderConfig = cRulesFile.child("shaderConfig");
+	if (!cXmlShaderConfig)
+	{
+		OutputDebugString(L"[MAM] 'shaderConfig' node missing, malformed shader rules doc.\n");
+		return false;
+	}
+
+	pugi::xml_node cXmlRules = cXmlShaderConfig.child("rules");
+	if (!cXmlRules)
+	{
+		OutputDebugString(L"[MAM] No 'rules' node found, malformed shader rules doc.\n");
+		return false;
+	}
+	else
+	{
+		for (pugi::xml_node cRule = cXmlRules.child("rule"); cRule; cRule = cRule.next_sibling("rule"))
+		{
+			// NOTE : no pattern search supported in v4 !!
+			static Vireio_Constant_Modification_Rule sNewRule;
+
+			// get constant name
+			sNewRule.m_szConstantName = cRule.attribute("constantName").as_string();
+			sNewRule.m_bUseName = (bool)(sNewRule.m_szConstantName.length() > 0);
+
+			// parse type
+			std::string szType = cRule.attribute("constantType").as_string();
+			if (szType.compare("MatrixC") == 0)
+			{
+				sNewRule.m_dwRegisterCount = 4;
+			}
+			else if (szType.compare("MatrixR") == 0)
+			{
+				sNewRule.m_dwRegisterCount = 4;
+			}
+			else if (szType.compare("Vector") == 0)
+			{
+				sNewRule.m_dwRegisterCount = 1;
+			}
+			else
+			{
+				OutputDebugString(L"Unknown or unsupported constant type: ");
+				OutputDebugStringA(szType.c_str());
+				OutputDebugString(L"\n");
+
+				sNewRule.m_dwRegisterCount = 1;
+			}
+
+			// get the ID as index, to convert later
+			UINT unID = cRule.attribute("id").as_uint();
+			aIDIndices.push_back(unID);
+
+			sNewRule.m_dwOperationToApply = cRule.attribute("modToApply").as_uint();
+			sNewRule.m_dwStartRegIndex = cRule.attribute("startReg").as_uint(UINT_MAX);
+			sNewRule.m_bUsePartialNameMatch = cRule.attribute("partialName").as_bool(false);
+			sNewRule.m_bTranspose = cRule.attribute("transpose").as_bool(false);
+
+			// and add to vector
+			m_asConstantRules.push_back(sNewRule);
+		}
+
+		// default rules (these are optional but will most likely exist for 99% of profiles)
+		pugi::xml_node cDefaultRules = cXmlShaderConfig.child("defaultRuleIDs");
+		if (cDefaultRules)
+		{
+			for (pugi::xml_node cRuleId = cDefaultRules.child("ruleID"); cRuleId; cRuleId = cRuleId.next_sibling("ruleID"))
+			{
+				// get ID
+				UINT unID = cRuleId.attribute("id").as_uint();
+
+				// get index
+				UINT unIndex = 0;
+				bool bFoundID = false;
+				for (UINT unI = 0; unI < (UINT)aIDIndices.size(); unI++)
+				{
+					if (unID == aIDIndices[unI])
+					{
+						unIndex = unI;
+						bFoundID = true;
+					}
+				}
+
+				// add to indices if ID is present
+				if (bFoundID)
+				{
+					m_aunGlobalConstantRuleIndices.push_back(unIndex);
+				}
+			}
+		}
+		else
+		{
+			OutputDebugString(L"[MAM] No default rules found, did you do this intentionally?\n");
+		}
+
+#if defined(VIREIO_D3D9)
+		// Shader specific rules (optional)
+		for (pugi::xml_node cShaderSpecificIDs = cXmlShaderConfig.child("shaderSpecificRuleIDs"); cShaderSpecificIDs; cShaderSpecificIDs = cShaderSpecificIDs.next_sibling("shaderSpecificRuleIDs"))
+		{
+			UINT unHash = cShaderSpecificIDs.attribute("shaderHash").as_uint(0);
+
+			if (unHash == 0)
+			{
+				OutputDebugString(L"[MAM] Shader specific rule with invalid/no hash. Skipping rule.\n");
+				continue;
+			}
+
+			// TODO !! VIEWPORT SQUISH ?? OBJECT TYPE ??
+			std::vector<UINT> aunShaderRuleIDs;
+
+			for (pugi::xml_node cRuleId = cShaderSpecificIDs.child("ruleID"); cRuleId; cRuleId = cRuleId.next_sibling("ruleID"))
+			{
+				aunShaderRuleIDs.push_back(cRuleId.attribute("id").as_uint());
+			}
+
+			if (aunShaderRuleIDs.size())
+			{
+				for (UINT unI = 0; unI < (UINT)aunShaderRuleIDs.size(); unI++)
+				{
+					// get ID
+					UINT unID = aunShaderRuleIDs[unI];
+
+					// get index
+					UINT unIndex = 0;
+					bool bFoundID = false;
+					for (UINT unJ = 0; unJ < (UINT)aIDIndices.size(); unJ++)
+					{
+						if (unID == aIDIndices[unJ])
+						{
+							unIndex = unJ;
+							bFoundID = true;
+						}
+					}
+
+					// add to indices if ID is present
+					if (bFoundID)
+					{
+						static Vireio_Hash_Rule_Index sIndex;
+						sIndex.unHash = unHash;
+						sIndex.unRuleIndex = unIndex;
+
+						m_asShaderSpecificRuleIndices.push_back(sIndex);
+					}
+
+				}
+			}
+		}
+#endif
+	}
+
+	return true;
+}
