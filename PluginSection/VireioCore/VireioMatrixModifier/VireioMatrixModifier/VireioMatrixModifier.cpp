@@ -325,196 +325,6 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 
 	m_psMatViewCurrent = &m_sMatViewLeft;
 	m_psMatProjCurrent = &m_sMatProjLeft;
-
-	// TODO !! TEST RULES
-	{
-		//<rule constantName = "WorldViewProj" partialName = "true" id = "1" constantType = "MatrixR" modToApply = "7" startReg = "0" transpose = "true" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 7, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule constantName = "mvp" partialName = "true" id = "2" constantType = "MatrixC" modToApply = "7" startReg = "0" transpose = "true" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("mvp", 0, 0, 0, true, true, false, false, true, 4, 7, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule constantName = "WorldViewProj" partialName = "true" id = "3" constantType = "MatrixR" modToApply = "7" startReg = "128" transpose = "true" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 128, true, true, false, false, true, 4, 7, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule constantName = "WorldViewProj" partialName = "true" id = "4" constantType = "MatrixR" modToApply = "7" startReg = "180" transpose = "true" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 7, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule constantName = "ModelViewProj" partialName = "true" id = "5" constantType = "MatrixR" modToApply = "7" startReg = "0" transpose = "true" / >*/
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("ModelViewProj", 0, 0, 0, true, true, false, false, true, 4, 7, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	m_aunGlobalConstantRuleIndices.push_back(0);
-	m_aunGlobalConstantRuleIndices.push_back(1);
-	m_aunGlobalConstantRuleIndices.push_back(2);
-	m_aunGlobalConstantRuleIndices.push_back(3);
-	m_aunGlobalConstantRuleIndices.push_back(4);
-	{
-		//<rule transpose = "true" startReg = "0" modToApply = "6" constantType = "MatrixR" id = "6" partialName = "true" constantName = "ModelViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("ModelViewProj", 0, 0, 0, true, true, false, false, true, 4, 6, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "0" modToApply = "5" constantType = "MatrixR" id = "7" partialName = "true" constantName = "TextureProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("TextureProj", 0, 0, 0, true, true, false, false, true, 4, 5, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "0" modToApply = "9" constantType = "MatrixR" id = "8" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 9, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "180" modToApply = "9" constantType = "MatrixR" id = "9" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 9, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "0" modToApply = "1" constantType = "MatrixR" id = "10" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 1, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "180" modToApply = "1" constantType = "MatrixR" id = "11" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 1, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "0" modToApply = "0" constantType = "MatrixR" id = "12" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "180" modToApply = "0" constantType = "MatrixR" id = "13" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 0, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{
-		//<rule transpose = "true" startReg = "0" modToApply = "14" constantType = "MatrixR" id = "14" partialName = "true" constantName = "WorldViewProj" / >
-		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 14, true);
-		if (sRule.m_dwRegisterCount == 1)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-		else if (sRule.m_dwRegisterCount == 4)
-			sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-		else sRule.m_pcModification = nullptr;
-		m_asConstantRules.push_back(sRule);
-	}
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2316301020; sIndex.unRuleIndex = 5; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 338128279; sIndex.unRuleIndex = 5; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1276318424; sIndex.unRuleIndex = 5; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3584763826; sIndex.unRuleIndex = 6; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 462145519; sIndex.unRuleIndex = 6; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2880869292; sIndex.unRuleIndex = 6; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1804716609; sIndex.unRuleIndex = 6; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 908413788; sIndex.unRuleIndex = 6; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1851963494; sIndex.unRuleIndex = 7; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3047518823; sIndex.unRuleIndex = 7; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2431438006; sIndex.unRuleIndex = 7; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3582244086; sIndex.unRuleIndex = 7; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3994929422; sIndex.unRuleIndex = 7; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 4109403606; sIndex.unRuleIndex = 7; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 9123333; sIndex.unRuleIndex = 8; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 752610056; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1023935469; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2937704700; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3328280590; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 495206152; sIndex.unRuleIndex = 10; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 253144833; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 311972612; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2818948964; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1475371883; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 43392215; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 577023959; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 996284032; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3228632850; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1818018526; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 174026321; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2291231027; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3325411395; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3230145213; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 1068286076; sIndex.unRuleIndex = 11; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2487947601; sIndex.unRuleIndex = 12; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 717279834; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 4181114023; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2956448341; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 4086638634; sIndex.unRuleIndex = 10; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3958603502; sIndex.unRuleIndex = 10; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 2386739519; sIndex.unRuleIndex = 10; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 3685386228; sIndex.unRuleIndex = 10; m_asShaderSpecificRuleIndices.push_back(sIndex); }
-	{ Vireio_Hash_Rule_Index sIndex; sIndex.unHash = 186708600; sIndex.unRuleIndex = 9; m_asShaderSpecificRuleIndices.push_back(sIndex); }
 #endif
 }
 
@@ -604,7 +414,13 @@ DWORD MatrixModifier::GetSaveDataSize()
 	dwSizeofData += (DWORD)m_asConstantRules.size() * sizeof(Vireio_Constant_Modification_Rule_Normalized);
 	dwSizeofData += sizeof(UINT);
 	dwSizeofData += (DWORD)m_aunGlobalConstantRuleIndices.size() * sizeof(UINT);
-
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	dwSizeofData += sizeof(UINT);
+	dwSizeofData += (DWORD)m_aunFetchedHashCodes.size() * sizeof(UINT);
+#elif defined(VIREIO_D3D9)
+	dwSizeofData += sizeof(UINT);
+	dwSizeofData += (DWORD)m_asShaderSpecificRuleIndices.size() * sizeof(Vireio_Hash_Rule_Index);
+#endif
 	return dwSizeofData;
 }
 
@@ -660,6 +476,10 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 	UINT unNumberOfFetched = (UINT)m_aunFetchedHashCodes.size();
 	acStream.write((char*)&unNumberOfFetched, sizeof(UINT));
 	acStream.write((char*)&m_aunFetchedHashCodes[0], sizeof(UINT)*unNumberOfFetched);
+#elif defined(VIREIO_D3D9)
+	UINT unNumberOfShaderSpecific = (UINT)m_asShaderSpecificRuleIndices.size();
+	acStream.write((char*)&unNumberOfShaderSpecific, sizeof(UINT));
+	acStream.write((char*)&m_asShaderSpecificRuleIndices[0], sizeof(Vireio_Hash_Rule_Index)*unNumberOfShaderSpecific);
 #endif
 
 	// set data size
@@ -775,6 +595,34 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 					m_aunFetchedHashCodes.push_back(unHash);
 
 					dwSizeOfRules -= sizeof(UINT);
+				}
+			}
+		}
+#elif defined(VIREIO_D3D9)
+		// shader specific rules
+		if (dwSizeOfRules >= sizeof(UINT))
+		{
+			// get the number of rules
+			UINT unNumberOfShaderSpecific;
+			memcpy(&unNumberOfShaderSpecific, pData + dwDataOffset, sizeof(UINT));
+			dwDataOffset += sizeof(UINT);
+
+			// data size correct ?
+			dwSizeOfRules -= sizeof(UINT);
+			if (dwSizeOfRules >= (sizeof(Vireio_Hash_Rule_Index)* unNumberOfShaderSpecific))
+			{
+				// create the indices
+				for (UINT dwI = 0; dwI < unNumberOfShaderSpecific; dwI++)
+				{
+					// read normalized data block
+					Vireio_Hash_Rule_Index unHashRuleIndex;
+					memcpy(&unHashRuleIndex, pData + dwDataOffset, sizeof(Vireio_Hash_Rule_Index));
+					dwDataOffset += sizeof(Vireio_Hash_Rule_Index);
+
+					// add rule index
+					m_asShaderSpecificRuleIndices.push_back(unHashRuleIndex);
+
+					dwSizeOfRules -= sizeof(Vireio_Hash_Rule_Index);
 				}
 			}
 		}
@@ -3950,7 +3798,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 								break;
 							default:
 								break;
-						}						
+						}
 					}
 
 					// use partial name ?
@@ -3986,7 +3834,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 								break;
 							default:
 								break;
-						}						
+						}
 					}
 				}
 			}
@@ -4028,7 +3876,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 						break;
 					default:
 						break;
-				}				
+				}
 			}
 
 			// use buffer size
@@ -4850,5 +4698,15 @@ void MatrixModifier::FillFetchedHashCodeList()
 ***/
 void MatrixModifier::FillShaderRuleShaderIndices()
 {
+	// first, unselect and clear
+	if (m_pcVireioGUI)
+		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwShaderIndices);
+	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
+	for (UINT dwI = 0; dwI < (UINT)m_asShaderSpecificRuleIndices.size(); dwI++)
+	{
+		// add text
+		std::wstringstream szIndex; szIndex << L"Hash : " << m_asShaderSpecificRuleIndices[dwI].unHash << " Rule Ix: " << m_asShaderSpecificRuleIndices[dwI].unRuleIndex;
+		m_aszShaderRuleShaderIndices.push_back(szIndex.str());
+	}
 }
 #endif
