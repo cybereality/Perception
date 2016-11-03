@@ -540,7 +540,8 @@ public:
 			D3DXMATRIX sMatrix(&m_afRegisters[unStartRegister]);
 			{
 				// matrix to be transposed ?
-				if (true)
+				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
+				if (bTranspose)
 				{
 					D3DXMatrixTranspose(&sMatrix, &sMatrix);
 				}
@@ -550,7 +551,7 @@ public:
 				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
 
 				// transpose back
-				if (true)
+				if (bTranspose)
 				{
 					D3DXMatrixTranspose(&sMatrixLeft, &sMatrixLeft);
 					D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
@@ -579,7 +580,8 @@ public:
 					D3DXMATRIX sMatrix(&m_afRegisters[unStartRegister]);
 					{
 						// matrix to be transposed ?
-						if (true)
+						bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
+						if (bTranspose)
 						{
 							D3DXMatrixTranspose(&sMatrix, &sMatrix);
 						}
@@ -589,7 +591,7 @@ public:
 						((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
 
 						// transpose back
-						if (true)
+						if (bTranspose)
 						{
 							D3DXMatrixTranspose(&sMatrixLeft, &sMatrixLeft);
 							D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
