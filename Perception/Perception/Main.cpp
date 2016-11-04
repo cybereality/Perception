@@ -200,7 +200,7 @@ private:
 	static HBITMAP     game_bitmap;
 	static POINT       m_ptMouseCursor;            /**< The current mouse cursor. **/
 	static Vireio_GUI* m_pcVireioGUI;              /**< Vireio Graphical User Interface class. **/
-	static UINT        m_dwSpinGameProfiles;       /**< Game profiles selection. ***/
+	static UINT        m_dwListGameProfiles;       /**< Game profiles selection. ***/
 	static UINT        m_dwSpinHMD;                /**< HMD selection. ***/
 	static UINT        m_dwSpinStereoView;         /**< Main driver stereo view selection. ***/
 	static UINT        m_dwSpinTracker;            /**< Main driver tracker selection. ***/
@@ -479,14 +479,16 @@ public:
 			}
 		}
 
-		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+		// Game selection
+		sControl.m_eControlType = Vireio_Control_Type::ListBox;
 		sControl.m_sPosition.x = 16;
-		sControl.m_sPosition.y = 128;
-		sControl.m_sSize.cx = 420;
-		sControl.m_sSize.cy = APP_SIZE_FONT + 12;
-		sControl.m_sSpinControl.m_dwCurrentSelection = unProfileIndex;
-		sControl.m_sSpinControl.m_paszEntries = &m_aszMonoCinemaGames;
-		m_dwSpinGameProfiles = m_pcVireioGUI->AddControl(dwPage, sControl);
+		sControl.m_sPosition.y = 168;
+		sControl.m_sSize.cx = 400;
+		sControl.m_sSize.cy = APP_SIZE_FONT * 7;
+		sControl.m_sListBox.m_bSelectable = true;
+		sControl.m_sListBox.m_nCurrentSelection = unProfileIndex;
+		sControl.m_sListBox.m_paszEntries = &m_aszMonoCinemaGames;
+		m_dwListGameProfiles = m_pcVireioGUI->AddControl(dwPage, sControl);
 
 		// spin control - HMD selection
 		static std::vector<std::wstring> m_aszHMD_Options;
@@ -497,7 +499,7 @@ public:
 		m_aszHMD_Options.push_back(L"OSVR");
 		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
 		sControl.m_sPosition.x = 16;
-		sControl.m_sPosition.y = 168;
+		sControl.m_sPosition.y = 128;
 		sControl.m_sSize.cx = 100;
 		sControl.m_sSize.cy = APP_SIZE_FONT + 12;
 		sControl.m_sSpinControl.m_dwCurrentSelection = unHMDIndex;
@@ -618,7 +620,7 @@ POINT       Vireio_Perception_Main_Window::m_ptMouseCursor;
 HBITMAP     Vireio_Perception_Main_Window::logo_bitmap;
 HBITMAP     Vireio_Perception_Main_Window::game_bitmap;
 Vireio_GUI* Vireio_Perception_Main_Window::m_pcVireioGUI;
-UINT        Vireio_Perception_Main_Window::m_dwSpinGameProfiles;
+UINT        Vireio_Perception_Main_Window::m_dwListGameProfiles;
 UINT        Vireio_Perception_Main_Window::m_dwSpinHMD;
 UINT        Vireio_Perception_Main_Window::m_dwSpinStereoView;
 UINT        Vireio_Perception_Main_Window::m_dwSpinTracker;
@@ -640,6 +642,7 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 		{
 			case ChangedToNext:
 			case ChangedToPrevious:
+			case ChangedToValue:
 #ifdef _VIREIO_3
 				if (sEvent.dwIndexOfControl == m_dwSpinStereoView)
 				{
@@ -657,7 +660,7 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 					helper.SaveDisplayAdapter(anMonitors[sEvent.dwNewValue]);
 				}
 #else
-				if (sEvent.dwIndexOfControl == m_dwSpinGameProfiles)
+				if (sEvent.dwIndexOfControl == m_dwListGameProfiles)
 				{
 					// get global config
 #ifdef _WIN64
@@ -730,22 +733,19 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 				LONG nX = (LONG)GET_X_LPARAM(lparam);
 				LONG nY = (LONG)GET_Y_LPARAM(lparam);
 
-				// get the difference to the old position set only in WM_LBUTTONDOWN
-				nX -= m_ptMouseCursor.x;
-				nY -= m_ptMouseCursor.y;
+				if (m_ptMouseCursor.y < 94)
+				{
+					// get the difference to the old position set only in WM_LBUTTONDOWN
+					nX -= m_ptMouseCursor.x;
+					nY -= m_ptMouseCursor.y;
 
-				// get the old window position
-				RECT rcWnd;
-				GetWindowRect(window_handle, &rcWnd);
+					// get the old window position
+					RECT rcWnd;
+					GetWindowRect(window_handle, &rcWnd);
 
-				// set the new window position
-				SetWindowPos(window_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
-			}
-			else
-			{
-				// get the mouse cursor
-				m_ptMouseCursor.x = (LONG)GET_X_LPARAM(lparam);
-				m_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lparam);
+					// set the new window position
+					SetWindowPos(window_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
+				}
 			}
 			UpdateWindow(window_handle);
 			return 0;
@@ -763,6 +763,9 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 		}
 		case WM_LBUTTONDOWN:
 		{
+			// get the mouse cursor position
+			m_ptMouseCursor.x = (LONG)GET_X_LPARAM(lparam);
+			m_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lparam);
 			break;
 		}
 		case WM_LBUTTONUP:
@@ -778,7 +781,7 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 						OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
 
 						// get current selections
-						UINT unSelectionGame = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwSpinGameProfiles);
+						UINT unSelectionGame = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwListGameProfiles);
 						if (unSelectionGame >= (UINT)m_asVireioGameProfiles.size()) unSelectionGame = 0;
 						UINT unSelectionHMD = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwSpinHMD);
 						if (unSelectionHMD >= 4) unSelectionHMD = 0;

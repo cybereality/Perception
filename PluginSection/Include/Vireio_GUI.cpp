@@ -998,6 +998,10 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 									// clamp
 									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection >= (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size())
 										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+
+									// set return value
+									sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+									sRet.dwNewValue = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection;
 								}
 
 								// get position and size pointers, full text size
