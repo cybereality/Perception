@@ -232,7 +232,7 @@
       <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin" md "$(USERPROFILE)\Documents\Vireio\Perception\bin"</Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
