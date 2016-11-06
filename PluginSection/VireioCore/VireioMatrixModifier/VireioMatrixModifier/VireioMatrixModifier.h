@@ -641,7 +641,11 @@ public:
 		return D3D_OK;
 	}
 	/**
+	* Gets shader constant register.
 	* Override IDirect3DDevice9->GetShaderConstantF() here.
+	* @param unStartRegister Look at IDirect3DDevice9::GetVertexShaderConstantF().
+	* @param pfConstantData Look at IDirect3DDevice9::GetVertexShaderConstantF().
+	* @param unVector4fCount Look at IDirect3DDevice9::GetVertexShaderConstantF().
 	***/
 	HRESULT GetShaderConstantF(UINT unStartRegister, float* pfConstantData, UINT unVector4fCount)
 	{

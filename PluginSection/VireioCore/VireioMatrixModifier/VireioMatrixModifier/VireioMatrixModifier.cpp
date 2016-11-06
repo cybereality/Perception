@@ -2763,7 +2763,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						{
 							// set modified data
 							nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, &m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
-							
+
 							// method replaced, immediately return
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
@@ -2777,6 +2777,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
+					if (m_pcActiveVertexShader)
+					{
+						nHr = m_pcActiveVertexShader->GetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						return (void*)&nHr;
+					}
 					break;
 #pragma endregion
 #pragma region SetPixelShaderConstantF
@@ -2795,7 +2803,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						{
 							// set modified data
 							nHr = ((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(*m_pdwStartRegister, &m_pcActivePixelShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
-							
+
 							// method replaced, immediately return
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
@@ -2809,6 +2817,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
+					if (m_pcActivePixelShader)
+					{
+						nHr = m_pcActivePixelShader->GetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						return (void*)&nHr;
+					}
 					break;
 #pragma endregion
 #pragma region SetStreamSource
