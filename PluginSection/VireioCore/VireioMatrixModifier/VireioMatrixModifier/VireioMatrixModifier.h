@@ -97,7 +97,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           3
-#define NUMBER_OF_DECOMMANDERS                        20
+#define NUMBER_OF_DECOMMANDERS                        22
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000     
 #define VECTOR_LENGTH 4                                                      /**< One shader register has 4 float values. ***/
@@ -234,6 +234,8 @@ enum STS_Decommanders
 	pFunction,                   // CreateVertex/PixelShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader) 
 	ppShader_Vertex,
 	ppShader_Pixel,
+	pnConstantData,              // Set/GetVertex/PixelShaderConstantI constant data
+	pbConstantData,              // Set/GetVertex/PixelShaderConstantB constant data
 	// IDirect3DStateBlock::Apply();
 #endif
 };
@@ -462,6 +464,15 @@ public:
 
 		if (pConstantTable)
 		{
+			// set to defaults
+			IDirect3DDevice9* pcDevice = nullptr;
+			m_pcActualShader->GetDevice(&pcDevice);
+			if (pcDevice)
+			{
+				pConstantTable->SetDefaults(pcDevice);
+				pcDevice->Release();
+			}
+
 			// get constant table description
 			D3DXCONSTANTTABLE_DESC pDesc;
 			pConstantTable->GetDesc(&pDesc);
@@ -496,7 +507,7 @@ public:
 							if ((*m_pasShaderIndices)[unK].unHash == m_unShaderHash)
 							{
 								// compare rule->description, break in case of success
-								if (SUCCEEDED(VerifyConstantDescriptionForRule(&((*m_pasConstantRules)[(*m_pasShaderIndices)[unK].unRuleIndex]), &(pConstantDesc[unJ]), (*m_pasShaderIndices)[unK].unRuleIndex)))
+								if (SUCCEEDED(VerifyConstantDescriptionForRule(&((*m_pasConstantRules)[(*m_pasShaderIndices)[unK].unRuleIndex]), &(pConstantDesc[unJ]), (*m_pasShaderIndices)[unK].unRuleIndex, (void*)pConstantDesc[unJ].DefaultValue)))
 								{
 									bShaderSpecificRulePresent = true;
 									break;
@@ -510,7 +521,7 @@ public:
 							for (UINT unK = 0; unK < (UINT)(*m_paunGeneralIndices).size(); unK++)
 							{
 								// compare rule->description, break in case of success
-								if (SUCCEEDED(VerifyConstantDescriptionForRule(&((*m_pasConstantRules)[(*m_paunGeneralIndices)[unK]]), &(pConstantDesc[unJ]), (*m_paunGeneralIndices)[unK]))) break;
+								if (SUCCEEDED(VerifyConstantDescriptionForRule(&((*m_pasConstantRules)[(*m_paunGeneralIndices)[unK]]), &(pConstantDesc[unJ]), (*m_paunGeneralIndices)[unK], (void*)pConstantDesc[unJ].DefaultValue))) break;
 							}
 						}
 					}
@@ -752,7 +763,7 @@ private:
 	/**
 	* Compares a constant description and a shader rule, if succeedes it adds the index to the shader constant rule indices.
 	***/
-	HRESULT VerifyConstantDescriptionForRule(Vireio_Constant_Modification_Rule* psRule, D3DXCONSTANT_DESC* psDescription, UINT unRuleIndex)
+	HRESULT VerifyConstantDescriptionForRule(Vireio_Constant_Modification_Rule* psRule, D3DXCONSTANT_DESC* psDescription, UINT unRuleIndex, void* pDefaultValue)
 	{
 		// Type match
 		if (psRule->m_dwRegisterCount == psDescription->RegisterCount)
@@ -816,7 +827,7 @@ private:
 			sConstantRuleIndex.m_dwConstantRuleRegisterCount = psDescription->RegisterCount;
 
 			// init data.. TODO !! INIT DATA MODIFIED
-			IDirect3DDevice9* pcDevice = nullptr;
+			/*IDirect3DDevice9* pcDevice = nullptr;
 			m_pcActualShader->GetDevice(&pcDevice);
 			if (pcDevice)
 			{
@@ -855,7 +866,13 @@ private:
 				}
 
 				pcDevice->Release();
-			}
+			}*/
+
+			if (pDefaultValue)
+			{
+				memcpy(&sConstantRuleIndex.m_afConstantDataLeft[0], pDefaultValue, psDescription->RegisterCount * sizeof(float)* 4);
+				memcpy(&sConstantRuleIndex.m_afConstantDataRight[0], pDefaultValue, psDescription->RegisterCount * sizeof(float)* 4);
+			};
 
 			m_asConstantRuleIndices.push_back(sConstantRuleIndex);
 
@@ -1151,6 +1168,8 @@ private:
 	DWORD** m_ppunFunction;
 	IDirect3DVertexShader9*** m_pppcShader_Vertex;
 	IDirect3DPixelShader9*** m_pppcShader_Pixel;
+	INT** m_ppnConstantData;
+	BOOL** m_ppbConstantData;
 
 	/**
 	* The active vertex shader.

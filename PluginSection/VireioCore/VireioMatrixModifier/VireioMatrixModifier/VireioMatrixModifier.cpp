@@ -78,8 +78,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_MULTIPLYTRANSFORM 46
 #define METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTF 94
 #define METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTF 95
+#define METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTI 96
+#define METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTI 97
+#define METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTB 98
+#define METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTB 99
 #define METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF 109
 #define METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTF 110
+#define METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTI 111
+#define METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTI 112
+#define METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTB 113
+#define METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTB 114
 #define METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE 100
 #define METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE 101
 #define METHOD_IDIRECT3DDEVICE9_CREATEVERTEXSHADER 91
@@ -139,6 +147,9 @@ m_adwPageIDs(0, 0),
 m_aunGlobalConstantRuleIndices(),
 #if defined(VIREIO_D3D9)
 m_asShaderSpecificRuleIndices(),
+m_ppfConstantData(nullptr),
+m_ppnConstantData(nullptr),
+m_ppbConstantData(nullptr),
 #endif
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
@@ -879,6 +890,10 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"ppShader_Vertex";
 		case ppShader_Pixel:
 			return L"ppShader_Pixel";
+		case pnConstantData:
+			return L"pnConstantData";
+		case pbConstantData:
+			return L"pbConstantData";
 	}
 #endif
 	return L"UNTITLED";
@@ -1105,6 +1120,10 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXSHADER9;
 		case ppShader_Pixel:
 			return NOD_Plugtype::AQU_PPNT_IDIRECT3DPIXELSHADER9;
+		case pnConstantData:
+			return NOD_Plugtype::AQU_PNT_INT;
+		case pbConstantData:
+			return NOD_Plugtype::AQU_PNT_BOOL;
 	}
 #endif
 	return 0;
@@ -1413,6 +1432,12 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ppShader_Pixel:
 			m_pppcShader_Pixel = (IDirect3DPixelShader9***)pData;
 			break;
+		case pnConstantData:
+			m_ppnConstantData = (INT**)pData;
+			break;
+		case pbConstantData:
+			m_ppbConstantData = (BOOL**)pData;
+			break;
 	}
 #endif
 }
@@ -1473,8 +1498,16 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_MULTIPLYTRANSFORM) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTF) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTF) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTI) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTI) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTB) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTB) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTF) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTI) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTI) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTB) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTB) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEVERTEXSHADER) ||
@@ -2787,6 +2820,62 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					}
 					break;
 #pragma endregion
+#pragma region SetVertexShaderConstantI
+				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTI:
+					if (!m_pdwStartRegister) return nullptr;
+					if (!m_ppnConstantData) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;
+
+					if (m_pcActiveVertexShader)
+					{
+						bool bModified = false;
+						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, (float*)*m_ppnConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
+						
+						// was the data modified for stereo ?
+						if (bModified)
+						{
+							// set modified data
+							nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantI(*m_pdwStartRegister, (INT*)&m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							return (void*)&nHr;
+						}
+					}
+					break;
+#pragma endregion
+#pragma region GetVertexShaderConstantI
+				case METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTI:
+					break;
+#pragma endregion
+#pragma region SetVertexShaderConstantB
+				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTB:
+					if (!m_pdwStartRegister) return nullptr;
+					if (!m_ppbConstantData) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;
+
+					if (m_pcActiveVertexShader)
+					{
+						bool bModified = false;
+						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, (float*)*m_ppbConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
+						
+						// was the data modified for stereo ?
+						if (bModified)
+						{
+							// set modified data
+							nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantB(*m_pdwStartRegister, (BOOL*)&m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							return (void*)&nHr;
+						}
+					}
+					break;
+#pragma endregion
+#pragma region GetVertexShaderConstantB
+				case METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTB:
+					break;
+#pragma endregion
 #pragma region SetPixelShaderConstantF
 				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF:
 					if (!m_pdwStartRegister) return nullptr;
@@ -2825,6 +2914,22 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						return (void*)&nHr;
 					}
+					break;
+#pragma endregion
+#pragma region SetPixelShaderConstantI
+				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTI:
+					break;
+#pragma endregion
+#pragma region GetPixelShaderConstantI
+				case METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTI:
+					break;
+#pragma endregion
+#pragma region SetPixelShaderConstantB
+				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTB:
+					break;
+#pragma endregion
+#pragma region GetPixelShaderConstantB
+				case METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTB:
 					break;
 #pragma endregion
 #pragma region SetStreamSource
