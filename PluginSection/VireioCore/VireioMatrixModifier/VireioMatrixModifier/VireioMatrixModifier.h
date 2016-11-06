@@ -381,6 +381,9 @@ public:
 		m_unMaxShaderConstantRegs = MAX_DX9_CONSTANT_REGISTERS; /** TODO !! COUNT MAX CONSTANT REG NUMBER FOR THIS SHADER ***/
 		m_afRegisters = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
 
+		// ... and the buffer for the last SetShaderDataF() call
+		m_afRegisterBuffer = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
+
 		// init the shader rules
 		InitShaderRules();
 	}
@@ -521,19 +524,25 @@ public:
 	/**
 	* Override IDirect3DDevice9->SetShaderConstantF() here.
 	***/
-	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, UINT& unIndex)
+	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide)
 	{
 		if ((unStartRegister >= m_unMaxShaderConstantRegs) || ((unStartRegister + unVector4fCount) >= m_unMaxShaderConstantRegs))
 			return D3DERR_INVALIDCALL;
 
+		// no rules present ? return
+		if (!m_asConstantRuleIndices.size()) return S_OK;
+
 		// Set proxy registers
 		memcpy(&m_afRegisters[unStartRegister], pfConstantData, unVector4fCount * 4 * sizeof(float));
+
+		// set buffer
+		memcpy(&m_afRegisterBuffer[0], pfConstantData, unVector4fCount * 4 * sizeof(float));
 
 		// modification present for this index ?
 		if ((m_aunRegisterModificationIndex[unStartRegister] < (UINT)m_asConstantRuleIndices.size()) && (unVector4fCount == 4))
 		{
 			// apply to left and right data
-			unIndex = m_aunRegisterModificationIndex[unStartRegister];
+			UINT unIndex = m_aunRegisterModificationIndex[unStartRegister];
 			bModified = true;
 
 			// get the matrix
@@ -559,6 +568,13 @@ public:
 
 				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
 				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
+
+				// copy modified data to buffer
+				if (eRenderSide == RenderPosition::Left)
+					memcpy(&m_afRegisterBuffer[0], &sMatrixLeft, sizeof(D3DMATRIX));
+				else
+					memcpy(&m_afRegisterBuffer[0], &sMatrixRight, sizeof(D3DMATRIX));
+
 			}
 		}
 		else
@@ -574,10 +590,11 @@ public:
 				{
 					// apply to left and right data
 					bModified = true;
-					unIndex = unInd;
+					UINT unIndex = unInd;
+					UINT unStartRegisterConstant = (*it).m_dwConstantRuleRegister;
 
 					// get the matrix
-					D3DXMATRIX sMatrix(&m_afRegisters[unStartRegister]);
+					D3DXMATRIX sMatrix(&m_afRegisters[unStartRegisterConstant]);
 					{
 						// matrix to be transposed ?
 						bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
@@ -599,6 +616,22 @@ public:
 
 						m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
 						m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
+
+						// copy modified data to buffer
+						if (eRenderSide == RenderPosition::Left)
+						{
+							if (unStartRegister <= unStartRegisterConstant)
+								memcpy(&m_afRegisterBuffer[unStartRegisterConstant - unStartRegister], &sMatrixLeft, sizeof(D3DMATRIX));
+							else
+								OutputDebugString(L"TODO: Handle partially changed matrices.");
+						}
+						else
+						{
+							if (unStartRegister <= unStartRegisterConstant)
+								memcpy(&m_afRegisterBuffer[unStartRegisterConstant - unStartRegister], &sMatrixRight, sizeof(D3DMATRIX));
+							else
+								OutputDebugString(L"TODO: Handle partially changed matrices.");
+						}
 					}
 				}
 				it++; unInd++;
@@ -633,6 +666,12 @@ public:
 	* For DX9 these indices also contain the left/right modified constant data.
 	***/
 	std::vector<Vireio_Constant_Rule_Index_DX9> m_asConstantRuleIndices;
+	/**
+	* Shader register buffer. Currently modified shader constant data.
+	* 4 floats == 1 register (defined in VECTOR_LENGTH).
+	* Filled with the last SetShaderConstantF update.
+	***/
+	std::vector<float> m_afRegisterBuffer;
 
 protected:
 	/**
@@ -810,8 +849,8 @@ private:
 						else pcDevice->SetPixelShader(nullptr);
 						break;
 				}
-							
-				pcDevice->Release();							
+
+				pcDevice->Release();
 			}
 
 			m_asConstantRuleIndices.push_back(sConstantRuleIndex);

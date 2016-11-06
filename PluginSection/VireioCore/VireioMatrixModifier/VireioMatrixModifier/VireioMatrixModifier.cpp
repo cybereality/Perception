@@ -2756,24 +2756,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (m_pcActiveVertexShader)
 					{
 						bool bModified = false;
-						UINT unIndex = 0;
-						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, unIndex);
+						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
 
 						// was the data modified for stereo ?
 						if (bModified)
 						{
 							// set modified data
-							if (m_eCurrentRenderingSide == RenderPosition::Left)
-							{
-								nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
-								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_dwConstantRuleRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataLeft, 4);
-							}
-							else
-							{
-								nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
-								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_dwConstantRuleRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataRight, 4);
-							}
-
+							nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, &m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
+							
 							// method replaced, immediately return
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
@@ -2798,24 +2788,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (m_pcActivePixelShader)
 					{
 						bool bModified = false;
-						UINT unIndex = 0;
-						m_pcActivePixelShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, unIndex);
+						m_pcActivePixelShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
 
 						// was the data modified for stereo ?
 						if (bModified)
 						{
 							// set modified data
-							if (m_eCurrentRenderingSide == RenderPosition::Left)
-							{
-								nHr = ((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
-								((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(m_pcActivePixelShader->m_asConstantRuleIndices[unIndex].m_dwConstantRuleRegister, m_pcActivePixelShader->m_asConstantRuleIndices[unIndex].m_afConstantDataLeft, 4);
-							}
-							else
-							{
-								nHr = ((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
-								((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(m_pcActivePixelShader->m_asConstantRuleIndices[unIndex].m_dwConstantRuleRegister, m_pcActivePixelShader->m_asConstantRuleIndices[unIndex].m_afConstantDataRight, 4);
-							}
-
+							nHr = ((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(*m_pdwStartRegister, &m_pcActivePixelShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
+							
 							// method replaced, immediately return
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
