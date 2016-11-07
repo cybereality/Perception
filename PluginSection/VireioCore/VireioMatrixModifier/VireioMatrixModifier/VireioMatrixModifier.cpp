@@ -329,6 +329,10 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	m_pcActivePixelShader = nullptr;
 	m_bViewTransformSet = false;
 
+	// init proxy registers
+	m_afRegistersVertex = std::vector<float>(MAX_DX9_CONSTANT_REGISTERS * VECTOR_LENGTH);
+	m_afRegistersPixel = std::vector<float>(MAX_DX9_CONSTANT_REGISTERS * VECTOR_LENGTH);
+
 	D3DXMatrixIdentity(&m_sMatViewLeft);
 	D3DXMatrixIdentity(&m_sMatViewRight);
 	D3DXMatrixIdentity(&m_sMatProjLeft);
@@ -2594,6 +2598,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					}
 					else
 					{
+						// set back modified constants... TODO !! make this optionally... shouldn't need that maybe
+						// if (m_pcActiveVertexShader)
+						// m_pcActiveVertexShader->SetShaderOld((IDirect3DDevice9*)pThis, &m_afRegistersVertex[0]);
+
 						// set new active shader
 						m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*>(*m_ppcShader_Vertex);
 
@@ -2602,6 +2610,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// replace call, set actual shader
 						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
+
+						// update shader constants for active side
+						m_pcActiveVertexShader->SetShader(&m_afRegistersVertex[0]);
 
 						// set modified constants
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -2640,6 +2651,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// replace call, set actual shader
 						nHr = ((IDirect3DDevice9*)pThis)->SetPixelShader(m_pcActivePixelShader->GetActualShader());
+
+						// update shader constants for active side
+						m_pcActivePixelShader->SetShader(&m_afRegistersPixel[0]);
 
 						// set modified constants
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -2786,10 +2800,18 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
+					// ->D3DERR_INVALIDCALL
+					if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+						return nullptr;
+
+					// Set proxy registers
+					memcpy(&m_afRegistersVertex[RegisterIndex(*m_pdwStartRegister)], *m_ppfConstantData, (*m_pdwVector4fCount) * 4 * sizeof(float));
+
 					if (m_pcActiveVertexShader)
 					{
+						// check proxy shader wether the data gets modified or not
 						bool bModified = false;
-						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
+						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide, &m_afRegistersVertex[0]);
 
 						// was the data modified for stereo ?
 						if (bModified)
@@ -2812,7 +2834,15 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					if (m_pcActiveVertexShader)
 					{
-						nHr = m_pcActiveVertexShader->GetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
+						// out of range ?
+						if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+							nHr = D3DERR_INVALIDCALL;
+						else
+						{
+							// get data from proxy register
+							*m_ppfConstantData = &m_afRegistersVertex[RegisterIndex((*m_pdwStartRegister))];
+							nHr = D3D_OK;
+						}
 
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -2826,22 +2856,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppnConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
-					if (m_pcActiveVertexShader)
-					{
-						bool bModified = false;
-						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, (float*)*m_ppnConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
-						
-						// was the data modified for stereo ?
-						if (bModified)
-						{
-							// set modified data
-							nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantI(*m_pdwStartRegister, (INT*)&m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
-
-							// method replaced, immediately return
-							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-							return (void*)&nHr;
-						}
-					}
 					break;
 #pragma endregion
 #pragma region GetVertexShaderConstantI
@@ -2854,22 +2868,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppbConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
-					if (m_pcActiveVertexShader)
-					{
-						bool bModified = false;
-						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, (float*)*m_ppbConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
-						
-						// was the data modified for stereo ?
-						if (bModified)
-						{
-							// set modified data
-							nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantB(*m_pdwStartRegister, (BOOL*)&m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
-
-							// method replaced, immediately return
-							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-							return (void*)&nHr;
-						}
-					}
 					break;
 #pragma endregion
 #pragma region GetVertexShaderConstantB
@@ -2882,10 +2880,18 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
+					// ->D3DERR_INVALIDCALL
+					if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+						return nullptr;
+
+					// Set proxy registers
+					memcpy(&m_afRegistersPixel[RegisterIndex(*m_pdwStartRegister)], *m_ppfConstantData, (*m_pdwVector4fCount) * 4 * sizeof(float));
+
 					if (m_pcActivePixelShader)
 					{
+						// check proxy shader wether the data gets modified or not
 						bool bModified = false;
-						m_pcActivePixelShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide);
+						m_pcActivePixelShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_eCurrentRenderingSide, &m_afRegistersPixel[0]);
 
 						// was the data modified for stereo ?
 						if (bModified)
@@ -2908,7 +2914,15 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					if (m_pcActivePixelShader)
 					{
-						nHr = m_pcActivePixelShader->GetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
+						// out of range ?
+						if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+							nHr = D3DERR_INVALIDCALL;
+						else
+						{
+							// get data from proxy register
+							*m_ppfConstantData = &m_afRegistersPixel[RegisterIndex((*m_pdwStartRegister))];
+							nHr = D3D_OK;
+						}
 
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;

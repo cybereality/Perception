@@ -381,7 +381,6 @@ public:
 
 		// create managed registers
 		m_unMaxShaderConstantRegs = MAX_DX9_CONSTANT_REGISTERS; /** TODO !! COUNT MAX CONSTANT REG NUMBER FOR THIS SHADER ***/
-		m_afRegisters = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
 
 		// ... and the buffer for the last SetShaderDataF() call
 		m_afRegisterBuffer = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
@@ -533,18 +532,75 @@ public:
 		if (pData) delete[] pData;
 	}
 	/**
+	* This shader is set new, applies all modifications.
+	***/
+	void SetShader(float* afRegisters)
+	{
+		UINT unInd = 0;
+
+		// more data, loop through modified constants for this shader
+		auto it = m_asConstantRuleIndices.begin();
+		while (it != m_asConstantRuleIndices.end())
+		{
+			// apply to left and right data
+			UINT unIndex = unInd;
+			UINT unStartRegisterConstant = (*it).m_dwConstantRuleRegister;
+
+			// get the matrix
+			D3DXMATRIX sMatrix(&afRegisters[RegisterIndex(unStartRegisterConstant)]);
+			{
+				// matrix to be transposed ?
+				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
+				if (bTranspose)
+				{
+					D3DXMatrixTranspose(&sMatrix, &sMatrix);
+				}
+
+				// do modification
+				D3DXMATRIX sMatrixLeft, sMatrixRight;
+				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+
+				// transpose back
+				if (bTranspose)
+				{
+					D3DXMatrixTranspose(&sMatrixLeft, &sMatrixLeft);
+					D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
+				}
+
+				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
+				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
+			}
+			it++; unInd++;
+		}
+	}
+	/**
+	* This shader is set old, applies unmodified data.
+	***/
+	void SetShaderOld(IDirect3DDevice9* pcDevice, float* afRegisters)
+	{
+		UINT unInd = 0;
+
+		// more data, loop through modified constants for this shader
+		auto it = m_asConstantRuleIndices.begin();
+		while (it != m_asConstantRuleIndices.end())
+		{
+			// apply to left and right data
+			UINT unIndex = unInd;
+			UINT unStartRegisterConstant = (*it).m_dwConstantRuleRegister;
+
+			// set back modification
+			pcDevice->SetVertexShaderConstantF(unStartRegisterConstant, &afRegisters[RegisterIndex(unStartRegisterConstant)], 4);
+
+			it++; unInd++;
+		}
+	}
+	/**
 	* Override IDirect3DDevice9->SetShaderConstantF() here.
 	***/
-	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide)
+	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide, float* afRegisters)
 	{
-		if ((unStartRegister >= m_unMaxShaderConstantRegs) || ((unStartRegister + unVector4fCount) >= m_unMaxShaderConstantRegs))
-			return D3DERR_INVALIDCALL;
-
 		// no rules present ? return
 		if (!m_asConstantRuleIndices.size()) return S_OK;
-
-		// Set proxy registers
-		memcpy(&m_afRegisters[unStartRegister], pfConstantData, unVector4fCount * 4 * sizeof(float));
 
 		// set buffer
 		memcpy(&m_afRegisterBuffer[0], pfConstantData, unVector4fCount * 4 * sizeof(float));
@@ -557,7 +613,7 @@ public:
 			bModified = true;
 
 			// get the matrix
-			D3DXMATRIX sMatrix(&m_afRegisters[unStartRegister]);
+			D3DXMATRIX sMatrix(&afRegisters[RegisterIndex(unStartRegister)]);
 			{
 				// matrix to be transposed ?
 				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
@@ -605,7 +661,7 @@ public:
 					UINT unStartRegisterConstant = (*it).m_dwConstantRuleRegister;
 
 					// get the matrix
-					D3DXMATRIX sMatrix(&m_afRegisters[unStartRegisterConstant]);
+					D3DXMATRIX sMatrix(&afRegisters[RegisterIndex(unStartRegisterConstant)]);
 					{
 						// matrix to be transposed ?
 						bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
@@ -652,22 +708,6 @@ public:
 		return D3D_OK;
 	}
 	/**
-	* Gets shader constant register.
-	* Override IDirect3DDevice9->GetShaderConstantF() here.
-	* @param unStartRegister Look at IDirect3DDevice9::GetVertexShaderConstantF().
-	* @param pfConstantData Look at IDirect3DDevice9::GetVertexShaderConstantF().
-	* @param unVector4fCount Look at IDirect3DDevice9::GetVertexShaderConstantF().
-	***/
-	HRESULT GetShaderConstantF(UINT unStartRegister, float* pfConstantData, UINT unVector4fCount)
-	{
-		if ((StartRegister >= m_unMaxShaderConstantRegs) || ((StartRegister + Vector4fCount) >= m_unMaxShaderConstantRegs))
-			return D3DERR_INVALIDCALL;
-
-		pfConstantData = &m_afRegisters[RegisterIndex(StartRegister)];
-
-		return D3D_OK;
-	}
-	/**
 	* @returns: The hash code of the shader.
 	***/
 	uint32_t GetShaderHash() { return m_unShaderHash; }
@@ -705,14 +745,6 @@ protected:
 	* Internal reference counter.
 	***/
 	ULONG m_unRefCount;
-	/**
-	* Shader register vector. Unmodified shader constant data.
-	* 4 floats == 1 register (defined in VECTOR_LENGTH):
-	* [0][1][2][3] would be the first register.
-	* [4][5][6][7] the second, etc.
-	* use RegisterIndex(x) to access first float in register
-	***/
-	std::vector<float> m_afRegisters;
 	/**
 	* Maximum shader constant registers.
 	***/
@@ -826,48 +858,7 @@ private:
 			sConstantRuleIndex.m_dwConstantRuleRegister = psDescription->RegisterIndex;
 			sConstantRuleIndex.m_dwConstantRuleRegisterCount = psDescription->RegisterCount;
 
-			// init data.. TODO !! INIT DATA MODIFIED
-			/*IDirect3DDevice9* pcDevice = nullptr;
-			m_pcActualShader->GetDevice(&pcDevice);
-			if (pcDevice)
-			{
-				// get current shader
-				IUnknown* pcShaderOld = nullptr;
-
-				// shader type ?
-				switch (m_eShaderType)
-				{
-					case VertexShader:
-						pcDevice->GetVertexShader((IDirect3DVertexShader9**)&pcShaderOld);
-
-						// set new shader and get data
-						pcDevice->SetVertexShader((IDirect3DVertexShader9*)pcShaderOld);
-						pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
-						pcDevice->GetVertexShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
-						pcDevice->GetVertexShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
-
-						// set back vertex shader
-						if (pcShaderOld) { pcDevice->SetVertexShader((IDirect3DVertexShader9*)pcShaderOld); pcShaderOld->Release(); }
-						else pcDevice->SetVertexShader(nullptr);
-						break;
-					case PixelShader:
-						pcDevice->GetPixelShader((IDirect3DPixelShader9**)&pcShaderOld);
-
-						// set new shader and get data
-						pcDevice->SetPixelShader((IDirect3DPixelShader9*)pcShaderOld);
-						pcDevice->GetPixelShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, psDescription->RegisterCount);
-						pcDevice->GetPixelShaderConstantF(psDescription->RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, psDescription->RegisterCount);
-						pcDevice->GetPixelShaderConstantF(0, &m_afRegisters[0], m_unMaxShaderConstantRegs);
-
-						// set back pixel shader
-						if (pcShaderOld) { pcDevice->SetPixelShader((IDirect3DPixelShader9*)pcShaderOld); pcShaderOld->Release(); }
-						else pcDevice->SetPixelShader(nullptr);
-						break;
-				}
-
-				pcDevice->Release();
-			}*/
-
+			// init data if default value present
 			if (pDefaultValue)
 			{
 				memcpy(&sConstantRuleIndex.m_afConstantDataLeft[0], pDefaultValue, psDescription->RegisterCount * sizeof(float)* 4);
@@ -1100,7 +1091,7 @@ private:
 	* The number of frames the constant buffers are to be verified.
 	* Set to zero to optimize StereoSplitter->SetDrawingSide()
 	***/
-	UINT m_dwVerifyConstantBuffers;	
+	UINT m_dwVerifyConstantBuffers;
 	/**
 	* Current chosen shader type.
 	***/
@@ -1191,6 +1182,22 @@ private:
 	* Shader-specific constant rule indices array.
 	***/
 	std::vector<Vireio_Hash_Rule_Index> m_asShaderSpecificRuleIndices;
+	/**
+	* Shader register vector. Unmodified vertex shader constant data.
+	* 4 floats == 1 register (defined in VECTOR_LENGTH):
+	* [0][1][2][3] would be the first register.
+	* [4][5][6][7] the second, etc.
+	* use RegisterIndex(x) to access first float in register
+	***/
+	std::vector<float> m_afRegistersVertex;
+	/**
+	* Shader register vector. Unmodified pixel shader constant data.
+	* 4 floats == 1 register (defined in VECTOR_LENGTH):
+	* [0][1][2][3] would be the first register.
+	* [4][5][6][7] the second, etc.
+	* use RegisterIndex(x) to access first float in register
+	***/
+	std::vector<float> m_afRegistersPixel;
 	/**
 	* True if view transform is set via SetTransform().
 	* @see SetTransform()
