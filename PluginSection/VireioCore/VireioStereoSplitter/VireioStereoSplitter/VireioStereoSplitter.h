@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#include"..\..\..\Include\Vireio_GUI.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
@@ -71,6 +72,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DFMT_RAWZ ((D3DFORMAT)MAKEFOURCC('R','A','W','Z'))
 #define D3DFMT_RESZ ((D3DFORMAT)MAKEFOURCC('R','E','S','Z'))
 #define RESZ_CODE 0x7fa05000
+
+#define GUI_WIDTH                                   1024                      
+#define GUI_HEIGHT                                  3000
+#define GUI_CONTROL_BORDER                            64
+#define GUI_CONTROL_FONTSIZE                          64
+#define GUI_CONTROL_FONTBORDER                        16
+#define GUI_CONTROL_LINE                              92
+#define GUI_CONTROL_BUTTONSIZE                       488
 
 #define NUMBER_OF_COMMANDERS                           2
 #define NUMBER_OF_DECOMMANDERS                        25
@@ -136,6 +145,106 @@ enum RenderPosition
 };
 
 /**
+* All GUI pages for the Stereo Splitter.
+* Must be added in following order.
+***/
+enum GUI_Pages
+{
+	MainPage = 0,
+	DescriptionPage = 1,
+	GameSettingsPage = 2,
+	NumberOfPages = 3,
+};
+
+/**
+* Simple false/true enumeration prototype.
+***/
+typedef struct
+{
+	enum
+	{
+		DT_FALSE = 0,
+		DT_TRUE = 1,
+		DETERMINEFALSETRUE_LAST
+	};
+} DetermineFalseTrue;
+
+/**
+* Determines how to save render states for stereo view output.
+***/
+enum DetermineSaveRenderStates
+{
+	DT_STATE_BLOCK = 0,
+	DT_SELECTED_STATES_MANUALLY = 1,
+	DT_ALL_STATES_MANUALLY = 2,
+	DT_DO_NOT_SAVE_AND_RESTORE = 3,
+	DETERMINESAVERENDERSTATES_LAST
+};
+
+/**
+* Determines when to duplicate a render target or depth stencil.
+***/
+typedef struct : public DetermineFalseTrue
+{
+	enum
+	{
+		DT_WIDTH_UNEQUAL_HEIGHT = DetermineFalseTrue::DETERMINEFALSETRUE_LAST,
+		DETERMINEDUPLICATERTODS_LAST
+	};
+} DetermineDuplicateRToDS;
+
+/**
+* Determines when to duplicate a base texture.
+***/
+typedef struct : public DetermineFalseTrue
+{
+	enum : int
+	{
+		DT_IF_RENDER_TARGET = DetermineFalseTrue::DETERMINEFALSETRUE_LAST,
+		DETERMINEDUPLICATEBASETEXTURE_LAST
+	};
+} DetermineDuplicateBaseTexture;
+
+/**
+* Determines when to duplicate a texture.
+***/
+typedef struct : public DetermineDuplicateBaseTexture
+{
+	enum
+	{
+		DT_IF_RENDER_TARGET_AND_WIDTH_UNEQUAL_HEIGHT = DetermineDuplicateBaseTexture::DETERMINEDUPLICATEBASETEXTURE_LAST,
+		DETERMINEDUPLICATETEXTURE_LAST
+	};
+} DetermineDuplicateTexture;
+
+/**
+* Determines when to duplicate a cube texture.
+***/
+typedef struct : public DetermineDuplicateBaseTexture
+{
+	enum
+	{
+		DETERMINEDUPLICATECUBETEXTURE_LAST = DetermineDuplicateBaseTexture::DETERMINEDUPLICATEBASETEXTURE_LAST,
+	};
+} DetermineDuplicateCubeTexture;
+
+/**
+* Game type settings enumeration.
+* Contains all game specific stereo rendering settings.
+***/
+enum GameTypeEntry
+{
+	StateBlockSaveRestoreType,					// State Block Save/Restore type (DetermineSaveRenderStates enum)
+	ShouldDuplicateRenderTarget,                // Should duplicate render target surface mode (0 - false, 1 - true, 2 - Width != height)
+	ShouldDuplicateDepthStencil,                // Should duplicate depth stencil surface mode (0 - false, 1 - true, 2 - Width != height)
+	ShouldDuplicateTexture,						// Should duplicate texture mode (0 - false, 1 - true, 2 - Is Render Target?, 3 - Is Render Target and Width != Height)
+	ShouldDuplicateCubeTexture,					// Should duplicate cube texture mode (0 - false, 1 - true, 2 - Is Render Target?)
+	// DeviceStateFlags  TODO !!!               // Bit 1 - Sampler State flags (0 D3DSAMP_SRGBTEXTURE = 0, 1 - D3DSAMP_SRGBTEXTURE = ssSrgb)
+	// Bit 0 - Disable Scissor Test state before draw
+	GAMETYPEENTRY_LAST
+};
+
+/**
 * Vireio Stereo Splitter Node Plugin (Direct3D 9).
 * Vireio Perception Stereo Render Target Handler.
 ***/
@@ -163,6 +272,7 @@ public:
 	virtual void            SetInputPointer(DWORD unDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex);
+	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:
 	/*** StereoSplitter private D3D9 stub methods ***/
@@ -186,7 +296,8 @@ private:
 	bool                    ShouldDuplicateTexture(UINT unWidth, UINT unHeight, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool);
 	bool                    ShouldDuplicateCubeTexture(UINT unEdgeLength, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool);
 	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
-	
+	void                    CreateGUI();
+
 	/**
 	* Input pointers.
 	***/
@@ -299,6 +410,40 @@ private:
 	* Left (0) / Right (1)
 	***/
 	LPDIRECT3DSURFACE9 m_pcStereoBufferSurface[2];
+	/**
+	* Vireio Graphical User Interface class.
+	***/
+	Vireio_GUI* m_pcVireioGUI;
+	/**
+	* All GUI pages IDs.
+	***/
+	std::vector<DWORD> m_aunPageIDs;
+	/**
+	* Game Settings page control IDs.
+	* Structure contains all control IDs for the game settings page.
+	***/
+	struct PageGameSettings
+	{
+		/*** PageGameSettings game configuration ***/
+		UINT unDuplicateRenderTargetID;  /**< [Switch] Setting which render targets are to be duplicated. **/
+		UINT unDuplicateDepthStencilID;  /**< [Switch] Setting which depth stencils are to be duplicated. **/
+		UINT unDuplicateTextureID;       /**< [Switch] Setting which textures are to be duplicated. **/
+		UINT unDuplicateCubeTextureID;   /**< [Switch] Setting which cube textures are to be duplicated. **/
+		UINT unSaveRenderStatesID;       /**< [Switch] Setting how to save render states for stereo rendering. **/
+	} m_sPageGameSettings;
+	/**
+	* Game settings page.
+	* Structure contains all stereo game settings.
+	***/
+	struct GameSettings
+	{
+		/*** GameSettings game configuration ***/
+		int nDuplicateRenderTarget;  /**< [Switch] Setting which render targets are to be duplicated. **/
+		int nDuplicateDepthStencil;  /**< [Switch] Setting which depth stencils are to be duplicated. **/
+		int nDuplicateTexture;       /**< [Switch] Setting which textures are to be duplicated. **/
+		int nDuplicateCubeTexture;   /**< [Switch] Setting which cube textures are to be duplicated. **/
+		int nSaveRenderStatesID;   /**< [Switch] Setting how to save render states for stereo rendering. **/
+	} m_sGameSettings;
 };
 
 /**

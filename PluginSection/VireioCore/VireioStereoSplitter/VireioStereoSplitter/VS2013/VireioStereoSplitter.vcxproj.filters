@@ -4,12 +4,14 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioStereoSplitter.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioStereoSplitter.cpp" />
+    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\VireioStereoSplitter_Resources.rc" />

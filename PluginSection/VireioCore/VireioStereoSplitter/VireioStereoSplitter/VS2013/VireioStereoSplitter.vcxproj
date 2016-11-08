@@ -74,11 +74,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioStereoSplitter.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
     <ClCompile Include="..\VireioStereoSplitter.cpp" />
   </ItemGroup>
   <ItemGroup>

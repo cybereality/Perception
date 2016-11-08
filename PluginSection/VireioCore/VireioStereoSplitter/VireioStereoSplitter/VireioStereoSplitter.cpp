@@ -113,6 +113,16 @@ m_ppsViewport(nullptr)
 
 	// first viewport set is default
 	m_bActiveViewportIsDefault = true;
+
+	// set default behaviour
+	m_sGameSettings.nDuplicateRenderTarget = DetermineDuplicateRToDS::DT_TRUE;
+	m_sGameSettings.nDuplicateDepthStencil = DetermineDuplicateRToDS::DT_WIDTH_UNEQUAL_HEIGHT;
+	m_sGameSettings.nDuplicateTexture = DetermineDuplicateTexture::DT_IF_RENDER_TARGET;
+	m_sGameSettings.nDuplicateCubeTexture = DetermineDuplicateCubeTexture::DT_IF_RENDER_TARGET;
+
+	// Vireio GUI is always null at begin... since in a compiled profile it is never used
+	m_pcVireioGUI = nullptr;
+
 }
 
 /**
@@ -184,98 +194,13 @@ HBITMAP StereoSplitter::GetLogo()
 ***/
 HBITMAP StereoSplitter::GetControl()
 {
-	if (!m_hBitmapControl)
-	{
-		// create bitmap, set control update to true
-		HWND hwnd = GetActiveWindow();
-		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2800);
-		if (!m_hBitmapControl)
-			OutputDebugString(L"Failed to create bitmap!");
-		m_bControlUpdate = true;
-	}
-
-	if (m_bControlUpdate)
-	{
-		// get control bitmap dc
-		HDC hdcImage = CreateCompatibleDC(NULL);
-		HBITMAP hbmOld = (HBITMAP)SelectObject(hdcImage, m_hBitmapControl);
-		HFONT hOldFont;
-
-		// clear the background
-		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 2800);
-		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
-
-		// create font
-		if (!m_hFont)
-			m_hFont = CreateFont(64, 0, 0, 0, 0, FALSE,
-			FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
-			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH,
-			L"Segoe UI");
-
-		// Select the variable stock font into the specified device context. 
-		if (hOldFont = (HFONT)SelectObject(hdcImage, m_hFont))
-		{
-			int nY = 16;
-
-			SetTextColor(hdcImage, RGB(240, 240, 240));
-			SetBkColor(hdcImage, RGB(160, 160, 200));
-
-			// display all data
-			TextOut(hdcImage, 50, nY, L"RenderTargetIndex", 17); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pRenderTarget", 13); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pNewZStencil", 12); nY += 64;
-			TextOut(hdcImage, 50, nY, L"Sampler", 7); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pTexture", 8); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pSourceSurface", 14); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pSourceRect", 11); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pDestinationSurface", 19); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pDestPoint", 10); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pSourceTexture", 14); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pDestinationTexture", 19); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pSurface", 8); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pRect", 5); nY += 64;
-			TextOut(hdcImage, 50, nY, L"color", 5); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pSourceSurface_StretchRect", 26); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pSourceRect_StretchRect", 23); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pDestSurface_StretchRect", 24); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pDestRect_StretchRect", 21); nY += 64;
-			TextOut(hdcImage, 50, nY, L"Filter_StretchRect", 18); nY += 64;
-			TextOut(hdcImage, 50, nY, L"peDrawingSide", 15); nY += 64;
-			TextOut(hdcImage, 50, nY, L"asVShaderConstantIndices", 24); nY += 64;
-			TextOut(hdcImage, 50, nY, L"asPShaderConstantIndices", 24); nY += 64;
-			TextOut(hdcImage, 50, nY, L"State", 5); nY += 64;
-			TextOut(hdcImage, 50, nY, L"Value", 5); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pViewport", 5); nY += 64;
-
-			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
-			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
-
-			// Restore the original font.        
-			SelectObject(hdcImage, hOldFont);
-		}
-
-		// draw boundaries
-		int nY = 16 + 128;
-		HBRUSH hb = CreateSolidBrush(RGB(64, 64, 192));
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 64;
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 128;
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 192;
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 128;
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 4 * 64;
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 2 * 64;
-		SetRect(&rc, 0, nY, 600, nY + 4); FillRect(hdcImage, &rc, hb); nY += 3 * 64;
-
-		SelectObject(hdcImage, hbmOld);
-		DeleteDC(hdcImage);
-
-		// next update only by request, return updated bitmap
-		m_bControlUpdate = false;
-		return m_hBitmapControl;
-	}
+	// here we create the Vireio GUI.... if this runs under a compiled profile this method is never called
+	if (!m_pcVireioGUI)
+		CreateGUI();
 	else
-		return nullptr;
+		return m_pcVireioGUI->GetGUI(false, true, false, false);
+
+	return nullptr;
 }
 
 /**
@@ -1026,6 +951,22 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 }
 
 /**
+* There's some windows event on our node.
+***/
+void StereoSplitter::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	// multiply mouse coords by 4 due to Aquilinus workspace architecture
+	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam, 4);
+	switch (sEvent.eType)
+	{
+		case NoEvent:
+			break;
+		case ChangedToNext:
+			break;
+	}
+}
+
+/**
 * Incoming Present() call.
 * Handle the check time counter.
 ***/
@@ -1743,16 +1684,14 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 ***/
 bool StereoSplitter::ShouldDuplicateRenderTarget(UINT unWidth, UINT unHeight, D3DFORMAT Format, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bLockable, bool bIsSwapChainBackBuffer)
 {
-	// default behaviour
-	int nDuplicateRenderTarget = 1;
-
-	switch (nDuplicateRenderTarget)
+	// switch by defined behaviour
+	switch (m_sGameSettings.nDuplicateRenderTarget)
 	{
-		case 0:
+		case DetermineDuplicateRToDS::DT_FALSE:
 			return false;
-		case 1:
+		case DetermineDuplicateRToDS::DT_TRUE:
 			return true;
-		case 2:
+		case DetermineDuplicateRToDS::DT_WIDTH_UNEQUAL_HEIGHT:
 			if (bIsSwapChainBackBuffer)
 			{
 				return true;
@@ -1769,16 +1708,14 @@ bool StereoSplitter::ShouldDuplicateRenderTarget(UINT unWidth, UINT unHeight, D3
 ***/
 bool StereoSplitter::ShouldDuplicateDepthStencilSurface(UINT unWidth, UINT unHeight, D3DFORMAT eFormat, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bDiscard)
 {
-	// default behaviour
-	int nDuplicateDepthStencil = 2;
-
-	switch (nDuplicateDepthStencil)
+	// switch by defined behaviour
+	switch (m_sGameSettings.nDuplicateDepthStencil)
 	{
-		case 0:
+		case DetermineDuplicateRToDS::DT_FALSE:
 			return false;
-		case 1:
+		case DetermineDuplicateRToDS::DT_TRUE:
 			return true;
-		case 2:
+		case DetermineDuplicateRToDS::DT_WIDTH_UNEQUAL_HEIGHT:
 			return unWidth != unHeight;
 	}
 
@@ -1791,20 +1728,18 @@ bool StereoSplitter::ShouldDuplicateDepthStencilSurface(UINT unWidth, UINT unHei
 ***/
 bool StereoSplitter::ShouldDuplicateTexture(UINT unWidth, UINT unHeight, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool)
 {
-	// default behaviour
-	int nDuplicateTexture = 2;
-
-	switch (nDuplicateTexture)
+	// switch by defined behaviour
+	switch (m_sGameSettings.nDuplicateTexture)
 	{
-		case 0:
+		case DetermineDuplicateTexture::DT_FALSE:
 			return false;
-		case 1:
+		case DetermineDuplicateTexture::DT_TRUE:
 			return true;
-		case 2:
+		case DetermineDuplicateTexture::DT_IF_RENDER_TARGET:
 			if ((unUsage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 				return true;
 			return IS_RENDER_TARGET(unUsage);
-		case 3:
+		case DetermineDuplicateTexture::DT_IF_RENDER_TARGET_AND_WIDTH_UNEQUAL_HEIGHT:
 			if ((unUsage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 				return true;
 			return IS_RENDER_TARGET(unUsage) && (unWidth != unHeight);
@@ -1824,16 +1759,14 @@ bool StereoSplitter::ShouldDuplicateTexture(UINT unWidth, UINT unHeight, UINT un
 ***/
 bool StereoSplitter::ShouldDuplicateCubeTexture(UINT unEdgeLength, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool)
 {
-	// default behaviour
-	int nDuplicateCubeTexture = 2;
-
-	switch (nDuplicateCubeTexture)
+	// switch by defined behaviour
+	switch (m_sGameSettings.nDuplicateCubeTexture)
 	{
-		case 0:
+		case DetermineDuplicateCubeTexture::DT_FALSE:
 			return false;
-		case 1:
+		case DetermineDuplicateCubeTexture::DT_TRUE:
 			return true;
-		case 2:
+		case DetermineDuplicateCubeTexture::DT_IF_RENDER_TARGET:
 			return IS_RENDER_TARGET(unUsage);
 	}
 
@@ -1853,4 +1786,83 @@ bool StereoSplitter::IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport)
 
 	return  ((psViewport->Height == sRTDesc.Height) && (psViewport->Width == sRTDesc.Width) &&
 		(psViewport->MinZ <= SMALL_FLOAT) && (psViewport->MaxZ >= SLIGHTLY_LESS_THAN_ONE));
+}
+
+/**
+* Creates the Graphical User Interface for this node.
+***/
+void StereoSplitter::CreateGUI()
+{
+	SIZE sSizeOfThis;
+	sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
+	m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Candara", TRUE, GUI_CONTROL_FONTSIZE, RGB(120, 125, 90), RGB(250, 250, 200));
+
+	// first, add all pages
+	for (int i = 0; i < (int)GUI_Pages::NumberOfPages; i++)
+	{
+		UINT dwPage = m_pcVireioGUI->AddPage();
+		m_aunPageIDs.push_back(dwPage);
+	}
+
+	// control structure
+	Vireio_Control sControl;
+
+#pragma region Static Text
+	// game configuration
+	static std::wstring szGameSeparationText = std::wstring(L"World Scale Factor");
+#pragma endregion
+
+#pragma region Main Page
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	static std::vector<std::wstring> sEntriesCommanders;
+	static std::vector<std::wstring> sEntriesDecommanders;
+
+	// create the decommanders list
+	sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
+	sControl.m_sPosition.y = 0;
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
+	sControl.m_sSize.cy = NUMBER_OF_DECOMMANDERS * 64;
+	sControl.m_sStaticListBox.m_bSelectable = false;
+	sControl.m_sStaticListBox.m_paszEntries = &sEntriesDecommanders;
+	UINT dwDecommandersList = m_pcVireioGUI->AddControl(m_aunPageIDs[GUI_Pages::MainPage], sControl);
+
+	// create the commanders list out of the decommanders list
+	sControl.m_sPosition.y += NUMBER_OF_DECOMMANDERS * 64;
+	sControl.m_sPosition.x = GUI_WIDTH >> 2;
+	sControl.m_sSize.cy = NUMBER_OF_COMMANDERS * 64;
+	sControl.m_sStaticListBox.m_paszEntries = &sEntriesCommanders;
+	UINT dwCommandersList = m_pcVireioGUI->AddControl(m_aunPageIDs[GUI_Pages::MainPage], sControl);
+
+	// and add all entries
+	for (int i = 0; i < NUMBER_OF_DECOMMANDERS; i++)
+		m_pcVireioGUI->AddEntry(dwDecommandersList, this->GetDecommanderName(i));
+	for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
+		m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
+#pragma endregion
+
+#pragma region Game setting page
+
+	// m_sPageGameSettings.m_dwConvergenceEnabled = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergenceToggle, m_sGameConfiguration.bConvergenceEnabled, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+
+#pragma endregion
+
+#pragma region Description Page
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	static std::vector<std::wstring> sEntriesDescription;
+
+	// create the description list
+	sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
+	sControl.m_sPosition.y = 0;
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
+	sControl.m_sSize.cy = (NUMBER_OF_DECOMMANDERS + NUMBER_OF_COMMANDERS) * 64;
+	sControl.m_sStaticListBox.m_bSelectable = false;
+	sControl.m_sStaticListBox.m_paszEntries = &sEntriesDescription;
+	UINT dwDescriptionList = m_pcVireioGUI->AddControl(m_aunPageIDs[GUI_Pages::DescriptionPage], sControl);
+
+	// and add all entries
+	// m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10Device::CreateVertexShader");
+
+#pragma endregion
 }
