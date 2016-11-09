@@ -927,19 +927,125 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 	ZeroMemory(&sRet, sizeof(Vireio_GUI_Event));
 	sRet.eType = Vireio_GUI_Event_Type::NoEvent;
 
-	// get local mouse cursor
-	m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
-	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
-
-	// border adjustment -> only if mouse coords are multiplied
-	if (dwMultiplyMouseCoords > 1)
-		m_sMouseCoords.x -= 16;
-
 	switch (msg)
 	{
+		case WM_HOTKEY:
+			//OutputDebugString(L"WM_HOTKEY received");
+			break;
+#pragma region WM_KEYDOWN
+		// key down
+		case WM_KEYDOWN:
+			// mouse currently bound to any control ?
+			if (!m_bMouseBoundToControl)
+			{
+				// next/previous page ?
+				if ((m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_asPages.size() > 1))
+				{
+					// left/right ?
+					if (m_sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1))
+					{
+						if (m_dwCurrentPage > 0) m_dwCurrentPage--;
+					}
+					else
+					{
+						if (m_dwCurrentPage < (UINT)(m_asPages.size() - 1)) m_dwCurrentPage++;
+					}
+					m_bMouseBoundToControl = true;
+				}
+				// loop through active controls for this page
+				else
+					for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+					{
+						// get position and size pointers
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+
+						// get the rectangle of the control (+ font size to the right)
+						RECT sRect;
+						SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx + m_dwFontSize, psPos->y + psSize->cy);
+						if (InRect(sRect, m_sMouseCoords))
+						{
+							// set to pressed only if within borders without font size
+							if (m_sMouseCoords.x < psPos->x + psSize->cx)
+							{
+								// set event to "pressed"
+								sRet.eType = Vireio_GUI_Event_Type::Pressed;
+								sRet.dwIndexOfPage = m_dwCurrentPage;
+								sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
+							}
+#pragma region List Box
+							// is this a control with a side- scrollbar ?
+							if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
+							{
+								// within borders ? list box selectable ?
+								if ((m_sMouseCoords.x < psPos->x + psSize->cx) && (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_bSelectable))
+								{
+									// get y position
+									//float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+
+									// set new selection, deselect if current selection is chosen
+									//if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection == ((INT)fYPos / m_dwFontSize))
+									//	m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+									//else
+									//	m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
+									//	(INT)fYPos / m_dwFontSize;
+									//OutputDebugString("VireioMatrixModifierDx10: WM_KEYDOWN");
+
+									if (wParam == VK_PRIOR)
+									{
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection -= 1;
+
+										// wrap
+										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection < 0)
+											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() - 1;
+
+										// set return value
+										sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+										sRet.dwNewValue = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection;
+									}
+
+									if (wParam == VK_NEXT)
+									{
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection += 1;
+
+										// wrap
+										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection >= (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size())
+											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = 0;
+
+										// set return value
+										sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+										sRet.dwNewValue = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection;
+									}
+								}
+							}
+						}
+					}
+			}
+			// update control
+			m_bControlUpdate = true;
+#pragma endregion
+			break;
+#pragma endregion
+#pragma region WM_KEYUP
+		case WM_KEYUP:
+			m_eActiveControlAction = Vireio_Control_Action::None;
+			m_bMouseBoundToControl = false;
+
+			// update control
+			m_bControlUpdate = true;
+			break;
+#pragma endregion
 #pragma region WM_LBUTTONDOWN
 		// left mouse button down ?
 		case WM_LBUTTONDOWN:
+			// get local mouse cursor
+			m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
+			m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
+
+			// border adjustment -> only if mouse coords are multiplied
+			if (dwMultiplyMouseCoords > 1)
+				m_sMouseCoords.x -= 16;
+
 			// mouse currently bound to any control ?
 			if (!m_bMouseBoundToControl)
 			{
@@ -1162,6 +1268,14 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 #pragma region WM_LBUTTONUP
 			// left mouse button up ?
 		case WM_LBUTTONUP:
+			// get local mouse cursor
+			m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
+			m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
+
+			// border adjustment -> only if mouse coords are multiplied
+			if (dwMultiplyMouseCoords > 1)
+				m_sMouseCoords.x -= 16;
+
 			// set all buttons to not pressed
 			for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 			{
@@ -1179,6 +1293,14 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 #pragma region WM_MOUSEMOVE
 			// mouse move ?
 		case WM_MOUSEMOVE:
+			// get local mouse cursor
+			m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
+			m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
+
+			// border adjustment -> only if mouse coords are multiplied
+			if (dwMultiplyMouseCoords > 1)
+				m_sMouseCoords.x -= 16;
+
 			if (!(wParam & MK_LBUTTON)) m_bMouseBoundToControl = false;
 			if (m_bMouseBoundToControl)
 			{
