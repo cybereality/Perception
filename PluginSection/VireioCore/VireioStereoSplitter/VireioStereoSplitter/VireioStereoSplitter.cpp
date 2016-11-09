@@ -119,6 +119,7 @@ m_ppsViewport(nullptr)
 	m_sGameSettings.nDuplicateDepthStencil = DetermineDuplicateRToDS::DT_WIDTH_UNEQUAL_HEIGHT;
 	m_sGameSettings.nDuplicateTexture = DetermineDuplicateTexture::DT_IF_RENDER_TARGET;
 	m_sGameSettings.nDuplicateCubeTexture = DetermineDuplicateCubeTexture::DT_IF_RENDER_TARGET;
+	m_sGameSettings.nSaveRenderStatesID = DetermineSaveRenderStates::DT_STATE_BLOCK;
 
 	// Vireio GUI is always null at begin... since in a compiled profile it is never used
 	m_pcVireioGUI = nullptr;
@@ -201,6 +202,53 @@ HBITMAP StereoSplitter::GetControl()
 		return m_pcVireioGUI->GetGUI(false, true, false, false);
 
 	return nullptr;
+}
+
+/**
+* Node data size.
+* 1) sizeof(GameSettings)
+***/
+DWORD StereoSplitter::GetSaveDataSize()
+{
+	DWORD dwSizeofData = sizeof(GameSettings);
+	
+	return dwSizeofData;
+}
+
+/**
+* Save the data.
+***/
+char* StereoSplitter::GetSaveData(UINT* pdwSizeOfData)
+{
+	static std::stringstream acStream;
+	acStream = std::stringstream();
+
+	// write game config
+	acStream.write((char*)&m_sGameSettings, sizeof(GameSettings));
+
+	// set data size
+	UINT unDataSize = (UINT)acStream.str().size();
+	if (unDataSize > MAX_DATA_SIZE) unDataSize = 0;
+	*pdwSizeOfData = unDataSize;
+
+	// copy data
+	memcpy(&m_acData[0], (void*)&acStream.str()[0], (size_t)unDataSize);
+
+	return (char*)&m_acData[0];
+}
+
+/**
+* Get node data from the profile file.
+***/
+void StereoSplitter::InitNodeData(char* pData, UINT dwSizeOfData)
+{
+	UINT dwDataOffset = 0;
+	if (dwSizeOfData >= sizeof(GameSettings))
+	{
+		// copy the game settings data
+		memcpy(&m_sGameSettings, pData, sizeof(GameSettings));
+		dwDataOffset += sizeof(GameSettings);
+	}
 }
 
 /**
@@ -962,6 +1010,21 @@ void StereoSplitter::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		case NoEvent:
 			break;
 		case ChangedToNext:
+		case ChangedToPrevious:
+			// handle game settings page
+			if (sEvent.dwIndexOfPage == m_aunPageIDs[GUI_Pages::GameSettingsPage])
+			{
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.unDuplicateRenderTargetID)
+					m_sGameSettings.nDuplicateRenderTarget = sEvent.nNewValue;
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.unDuplicateDepthStencilID)
+					m_sGameSettings.nDuplicateDepthStencil = sEvent.nNewValue;
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.unDuplicateTextureID)
+					m_sGameSettings.nDuplicateTexture = sEvent.nNewValue;
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.unDuplicateCubeTextureID)
+					m_sGameSettings.nDuplicateCubeTexture = sEvent.nNewValue;
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.unSaveRenderStatesID)
+					m_sGameSettings.nSaveRenderStatesID = sEvent.nNewValue;
+			}
 			break;
 	}
 }
@@ -1808,8 +1871,39 @@ void StereoSplitter::CreateGUI()
 	Vireio_Control sControl;
 
 #pragma region Static Text
-	// game configuration
-	static std::wstring szGameSeparationText = std::wstring(L"World Scale Factor");
+	static std::vector<std::wstring> aszGameSettingsStrings;
+	aszGameSettingsStrings.push_back(L"Duplicate Render Target"); aszGameSettingsStrings.push_back(std::wstring()); aszGameSettingsStrings.push_back(std::wstring());
+	aszGameSettingsStrings.push_back(L"Duplicate Depth Stencil"); aszGameSettingsStrings.push_back(std::wstring()); aszGameSettingsStrings.push_back(std::wstring());
+	aszGameSettingsStrings.push_back(L"Duplicate Texture"); aszGameSettingsStrings.push_back(std::wstring()); aszGameSettingsStrings.push_back(std::wstring());
+	aszGameSettingsStrings.push_back(L"Duplicate Cube Texture"); aszGameSettingsStrings.push_back(std::wstring()); aszGameSettingsStrings.push_back(std::wstring());
+	aszGameSettingsStrings.push_back(L"Save Render States"); aszGameSettingsStrings.push_back(std::wstring()); aszGameSettingsStrings.push_back(std::wstring());
+
+	static std::vector<std::wstring> aszDetermineRenderTargetStrings;
+	aszDetermineRenderTargetStrings.push_back(L"DT_FALSE");
+	aszDetermineRenderTargetStrings.push_back(L"DT_TRUE");
+	aszDetermineRenderTargetStrings.push_back(L"DT_WIDTH_UNEQUAL_HEIGHT");
+
+	static std::vector<std::wstring> aszDetermineDepthStencilStrings;
+	aszDetermineDepthStencilStrings.push_back(L"DT_FALSE");
+	aszDetermineDepthStencilStrings.push_back(L"DT_TRUE");
+	aszDetermineDepthStencilStrings.push_back(L"DT_WIDTH_UNEQUAL_HEIGHT");
+
+	static std::vector<std::wstring> aszDetermineTextureStrings;
+	aszDetermineTextureStrings.push_back(L"DT_FALSE");
+	aszDetermineTextureStrings.push_back(L"DT_TRUE");
+	aszDetermineTextureStrings.push_back(L"DT_IF_RENDER_TARGET");
+	aszDetermineTextureStrings.push_back(L"DT_IF_RENDER_TARGET_AND_WIDTH_UNEQUAL_HEIGHT");
+
+	static std::vector<std::wstring> aszDetermineCubeTextureStrings;
+	aszDetermineCubeTextureStrings.push_back(L"DT_FALSE");
+	aszDetermineCubeTextureStrings.push_back(L"DT_TRUE");
+	aszDetermineCubeTextureStrings.push_back(L"DT_IF_RENDER_TARGET");
+
+	static std::vector<std::wstring> aszDetermineSaveRenderStates;
+	aszDetermineSaveRenderStates.push_back(L"DT_STATE_BLOCK");
+	aszDetermineSaveRenderStates.push_back(L"DT_SELECTED_STATES_MANUALLY");
+	aszDetermineSaveRenderStates.push_back(L"DT_ALL_STATES_MANUALLY");
+	aszDetermineSaveRenderStates.push_back(L"DT_DO_NOT_SAVE_AND_RESTORE");
 #pragma endregion
 
 #pragma region Main Page
@@ -1842,9 +1936,13 @@ void StereoSplitter::CreateGUI()
 #pragma endregion
 
 #pragma region Game setting page
+	m_sPageGameSettings.unTextlist = CreateStaticListControl(m_pcVireioGUI, m_aunPageIDs[GUI_Pages::GameSettingsPage], &aszGameSettingsStrings, DUPLICATE_RENDERTARGET_POS_X, DUPLICATE_RENDERTARGET_POS_Y - GUI_CONTROL_FONTSIZE, GUI_CONTROL_SPINSIZE);
 
-	// m_sPageGameSettings.m_dwConvergenceEnabled = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergenceToggle, m_sGameConfiguration.bConvergenceEnabled, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-
+	m_sPageGameSettings.unDuplicateRenderTargetID = CreateSpinControl(m_pcVireioGUI, m_aunPageIDs[GUI_Pages::GameSettingsPage], &aszDetermineRenderTargetStrings, (UINT)m_sGameSettings.nDuplicateRenderTarget, DUPLICATE_RENDERTARGET_POS_X, DUPLICATE_RENDERTARGET_POS_Y, GUI_CONTROL_SPINSIZE);
+	m_sPageGameSettings.unDuplicateDepthStencilID = CreateSpinControl(m_pcVireioGUI, m_aunPageIDs[GUI_Pages::GameSettingsPage], &aszDetermineDepthStencilStrings, (UINT)m_sGameSettings.nDuplicateDepthStencil, DUPLICATE_DEPTHSTENCIL_POS_X, DUPLICATE_DEPTHSTENCIL_POS_Y, GUI_CONTROL_SPINSIZE);
+	m_sPageGameSettings.unDuplicateTextureID = CreateSpinControl(m_pcVireioGUI, m_aunPageIDs[GUI_Pages::GameSettingsPage], &aszDetermineTextureStrings, (UINT)m_sGameSettings.nDuplicateTexture, DUPLICATE_TEXTURE_POS_X, DUPLICATE_TEXTURE_POS_Y, GUI_CONTROL_SPINSIZE);
+	m_sPageGameSettings.unDuplicateCubeTextureID = CreateSpinControl(m_pcVireioGUI, m_aunPageIDs[GUI_Pages::GameSettingsPage], &aszDetermineCubeTextureStrings, (UINT)m_sGameSettings.nDuplicateCubeTexture, DUPLICATE_CUBETEXTURE_POS_X, DUPLICATE_CUBETEXTURE_POS_Y, GUI_CONTROL_SPINSIZE);
+	m_sPageGameSettings.unSaveRenderStatesID = CreateSpinControl(m_pcVireioGUI, m_aunPageIDs[GUI_Pages::GameSettingsPage], &aszDetermineSaveRenderStates, (UINT)m_sGameSettings.nSaveRenderStatesID, SAVE_RENDERSTATES_POS_X, SAVE_RENDERSTATES_POS_Y, GUI_CONTROL_SPINSIZE);
 #pragma endregion
 
 #pragma region Description Page
@@ -1862,7 +1960,30 @@ void StereoSplitter::CreateGUI()
 	UINT dwDescriptionList = m_pcVireioGUI->AddControl(m_aunPageIDs[GUI_Pages::DescriptionPage], sControl);
 
 	// and add all entries
-	// m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10Device::CreateVertexShader");
-
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderTarget() target index");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderTarget() render target");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetDepthStencilSurface() surface");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetTexture() sampler index");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetTexture() texture pointer");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->UpdateSurface() source surface");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->UpdateSurface() source rectangle");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->UpdateSurface() destination surface");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->UpdateSurface() destination point");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->UpdateTexture() source texture");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->UpdateTexture() destination texture");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->ColorFill() surface pointer");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->ColorFill() destination rectangle");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->ColorFill() destination color");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->StretchRect() source surface");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->StretchRect() source rectangle");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->StretchRect() destination surface");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->StretchRect() destination rectangle");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->StretchRect() filter");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Pointer to the extern drawing side bool.");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"The constant rule indices for the vshader.");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"The constant rule indices for the pshader.");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderState() State");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderState() Value");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetViewport() Viewport");
 #pragma endregion
 }

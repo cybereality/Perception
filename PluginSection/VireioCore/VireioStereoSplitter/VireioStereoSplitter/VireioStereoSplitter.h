@@ -38,6 +38,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#pragma region include
 #include<stdio.h>
 #include<vector>
 
@@ -53,7 +54,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_GUI.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
+#pragma endregion
 
+#pragma region defines
 #define SMALL_FLOAT 0.001f
 #define	SLIGHTLY_LESS_THAN_ONE 0.999f
 
@@ -80,9 +83,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_FONTBORDER                        16
 #define GUI_CONTROL_LINE                              92
 #define GUI_CONTROL_BUTTONSIZE                       488
+#define GUI_CONTROL_SPINSIZE                         980
 
 #define NUMBER_OF_COMMANDERS                           2
 #define NUMBER_OF_DECOMMANDERS                        25
+
+#define DUPLICATE_RENDERTARGET_POS_X                  16
+#define DUPLICATE_RENDERTARGET_POS_Y                  64
+#define DUPLICATE_DEPTHSTENCIL_POS_X                  16
+#define DUPLICATE_DEPTHSTENCIL_POS_Y                 256
+#define DUPLICATE_TEXTURE_POS_X                       16
+#define DUPLICATE_TEXTURE_POS_Y                      448
+#define DUPLICATE_CUBETEXTURE_POS_X                   16
+#define DUPLICATE_CUBETEXTURE_POS_Y                  640
+#define SAVE_RENDERSTATES_POS_X                       16
+#define SAVE_RENDERSTATES_POS_Y                      832
+
+#define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
+#pragma endregion
 
 /**
 * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15}
@@ -262,6 +280,9 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual DWORD           GetSaveDataSize();
+	virtual char*           GetSaveData(UINT* pdwSizeOfData);
+	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD unCommanderIndex);
@@ -430,6 +451,7 @@ private:
 		UINT unDuplicateTextureID;       /**< [Switch] Setting which textures are to be duplicated. **/
 		UINT unDuplicateCubeTextureID;   /**< [Switch] Setting which cube textures are to be duplicated. **/
 		UINT unSaveRenderStatesID;       /**< [Switch] Setting how to save render states for stereo rendering. **/
+		UINT unTextlist;                 /**< [Text] Text for all controls of this page. **/
 	} m_sPageGameSettings;
 	/**
 	* Game settings page.
@@ -444,6 +466,10 @@ private:
 		int nDuplicateCubeTexture;   /**< [Switch] Setting which cube textures are to be duplicated. **/
 		int nSaveRenderStatesID;   /**< [Switch] Setting how to save render states for stereo rendering. **/
 	} m_sGameSettings;
+	/**
+	* Data buffer to save this node.
+	***/
+	char m_acData[MAX_DATA_SIZE];
 };
 
 /**
