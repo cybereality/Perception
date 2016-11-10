@@ -211,7 +211,7 @@ HBITMAP StereoSplitter::GetControl()
 DWORD StereoSplitter::GetSaveDataSize()
 {
 	DWORD dwSizeofData = sizeof(GameSettings);
-	
+
 	return dwSizeofData;
 }
 
@@ -1272,6 +1272,10 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 
 	if (pcSurfaceTwin)
 	{
+		// interface already verified ? return nullptr
+		if (pcSurfaceTwin == NO_PRIVATE_INTERFACE)
+			return nullptr;
+
 		// no release here, DX9 does not increment the counter
 		return pcSurfaceTwin;
 	}
@@ -1290,6 +1294,10 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 			IDirect3DBaseTexture9* pcTextureTwin = nullptr;
 			CreateStereoTexture(pcDevice, pcTexture, &pcTextureTwin);
 
+			// no twin ?
+			if (!pcTextureTwin)
+				return nullptr;
+
 			// try to get the twin after creating the stereo texture
 			DWORD unSize = sizeof(pcSurfaceTwin);
 			pcSurface->GetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)&pcSurfaceTwin, &unSize);
@@ -1306,13 +1314,23 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 			// should we duplicate ?
 			if ((sDesc.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 			{
+				// no duplicate ? set "verified" indicator
 				if (!ShouldDuplicateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/))
+				{
+					IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
+					pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)NO_PRIVATE_INTERFACE, sizeof(IUnknown*), 0);
 					return nullptr;
+				}
 			}
 			else
 			{
+				// no duplicate ? set "verified" indicator
 				if (!ShouldDuplicateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/, (pcSurface == m_apcActiveRenderTargets[0])))
+				{
+					IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
+					pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)NO_PRIVATE_INTERFACE, sizeof(IUnknown*), 0);
 					return nullptr;
+				}
 			}
 
 			// get target pointers, both tex + surface
@@ -1388,6 +1406,10 @@ IDirect3DBaseTexture9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevi
 	// has a twin already ?
 	if (pcTextureTwin)
 	{
+		// interface already verified ? return nullptr
+		if (pcTextureTwin == NO_PRIVATE_INTERFACE)
+			return nullptr;
+
 		// no release here, DX9 does not increment the counter
 		return pcTextureTwin;
 	}
@@ -1618,7 +1640,28 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 
 									 // should we duplicate ?
 									 if (!ShouldDuplicateTexture(sDesc.Width, sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool))
+									 {
+										 // set no interface indicator
+										 IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
+										 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+
+										 // loop throug all levels, set no interface indicator
+										 for (DWORD unI = 0; unI < pcTexture->GetLevelCount(); unI++)
+										 {
+											 // get current level
+											 pcSurface = nullptr;
+											 ((IDirect3DTexture9*)pcTexture)->GetSurfaceLevel(unI, &pcSurface);
+											 if (pcSurface)
+											 {
+												 // set no interface indicator
+												 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+												 pcSurface->Release();
+											 }
+
+										 }
+
 										 return;
+									 }
 
 									 // create the texture
 									 if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DTexture9**)ppcStereoTwinTexture, NULL)))
@@ -1685,7 +1728,31 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 
 										 // should we duplicate ?
 										 if (!ShouldDuplicateCubeTexture(sDesc.Width, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool))
+										 {
+											 // set no interface indicator
+											 IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
+											 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+
+											 // loop throug all levels, set no interface indicator
+											 for (DWORD unI = 0; unI < pcTexture->GetLevelCount(); unI++)
+											 {
+												 // loop throug all facetypes
+												 for (UINT unFaceType = 0; unFaceType < 6; unFaceType++)
+												 {
+													 // get current level
+													 pcSurface = nullptr;
+													 ((IDirect3DCubeTexture9*)pcTexture)->GetCubeMapSurface((D3DCUBEMAP_FACES)unFaceType, unI, &pcSurface);
+													 if (pcSurface)
+													 {
+														 // set no interface indicator
+														 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+														 pcSurface->Release();
+													 }
+												 }
+											 }
+
 											 return;
+										 }
 
 										 // create the texture
 										 if (FAILED(pcDevice->CreateCubeTexture((UINT)sDesc.Width, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DCubeTexture9**)ppcStereoTwinTexture, NULL)))
@@ -1960,7 +2027,7 @@ void StereoSplitter::CreateGUI()
 	UINT dwDescriptionList = m_pcVireioGUI->AddControl(m_aunPageIDs[GUI_Pages::DescriptionPage], sControl);
 
 	// and add all entries
-	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderTarget() target index");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderTarget()  target index");
 	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderTarget() render target");
 	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetDepthStencilSurface() surface");
 	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetTexture() sampler index");

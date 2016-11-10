@@ -100,6 +100,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAVE_RENDERSTATES_POS_Y                      832
 
 #define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
+
+#define NO_PRIVATE_INTERFACE             (IUnknown*)0xf1                     /**< Arbitrary value set instead of an IUnknown interface as "verified" indicator. ***/
 #pragma endregion
 
 /**
