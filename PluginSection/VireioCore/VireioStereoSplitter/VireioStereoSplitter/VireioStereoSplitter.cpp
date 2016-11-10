@@ -1302,6 +1302,10 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 			DWORD unSize = sizeof(pcSurfaceTwin);
 			pcSurface->GetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)&pcSurfaceTwin, &unSize);
 
+			// interface already verified ? return nullptr
+			if (pcSurfaceTwin == NO_PRIVATE_INTERFACE)
+				return nullptr;
+
 			// and return the twin
 			if (pcSurfaceTwin) return pcSurfaceTwin; else return nullptr;
 		}
@@ -1318,7 +1322,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				if (!ShouldDuplicateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/))
 				{
 					IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
-					pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)NO_PRIVATE_INTERFACE, sizeof(IUnknown*), 0);
+					pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)&pcIndicator, sizeof(IUnknown*), 0);
 					return nullptr;
 				}
 			}
@@ -1328,7 +1332,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				if (!ShouldDuplicateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false /*TODO!!*/, (pcSurface == m_apcActiveRenderTargets[0])))
 				{
 					IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
-					pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)NO_PRIVATE_INTERFACE, sizeof(IUnknown*), 0);
+					pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)&pcIndicator, sizeof(IUnknown*), 0);
 					return nullptr;
 				}
 			}
@@ -1643,7 +1647,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 									 {
 										 // set no interface indicator
 										 IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
-										 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+										 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)&pcIndicator, sizeof(IUnknown*), 0);
 
 										 // loop throug all levels, set no interface indicator
 										 for (DWORD unI = 0; unI < pcTexture->GetLevelCount(); unI++)
@@ -1654,7 +1658,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 											 if (pcSurface)
 											 {
 												 // set no interface indicator
-												 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+												 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)&pcIndicator, sizeof(IUnknown*), 0);
 												 pcSurface->Release();
 											 }
 
@@ -1731,7 +1735,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 										 {
 											 // set no interface indicator
 											 IUnknown* pcIndicator = NO_PRIVATE_INTERFACE;
-											 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+											 pcTexture->SetPrivateData(PDIID_IDirect3DBaseTexture9_Stereo_Twin, (void*)&pcIndicator, sizeof(IUnknown*), 0);
 
 											 // loop throug all levels, set no interface indicator
 											 for (DWORD unI = 0; unI < pcTexture->GetLevelCount(); unI++)
@@ -1745,7 +1749,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 													 if (pcSurface)
 													 {
 														 // set no interface indicator
-														 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)pcIndicator, sizeof(IUnknown*), 0);
+														 pcSurface->SetPrivateData(PDIID_IDirect3DSurface9_Stereo_Twin, (void*)&pcIndicator, sizeof(IUnknown*), 0);
 														 pcSurface->Release();
 													 }
 												 }
