@@ -633,7 +633,7 @@ UINT        Vireio_Perception_Main_Window::m_dwExit;
 LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handle, UINT message, WPARAM wparam, LPARAM lparam)
 {
 	// call vireio gui class for all mouse actions
-	if ((message == WM_LBUTTONDOWN) || (message == WM_LBUTTONUP) || (message == WM_MOUSEMOVE))
+	if ((message == WM_KEYDOWN) || (message == WM_KEYUP) || (message == WM_LBUTTONDOWN) || (message == WM_LBUTTONUP) || (message == WM_MOUSEMOVE))
 	{
 		Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(message, wparam, lparam, 1);
 
