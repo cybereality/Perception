@@ -404,7 +404,7 @@ void VireioConstructorDx11::CreateShader(std::vector<Vireio_D3D11_Shader>* pasSh
 		}
 
 		// shader data for each shader
-		Vireio_D3D11_Shader sShaderData = { 0 };
+		Vireio_D3D11_Shader sShaderData = {};
 
 		// first, disassemble shader
 		ID3DBlob* pcIDisassembly = nullptr;

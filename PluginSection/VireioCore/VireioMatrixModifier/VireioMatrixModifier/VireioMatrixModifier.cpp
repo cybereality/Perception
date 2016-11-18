@@ -3126,9 +3126,12 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
 			{
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 				// which shader is chosen ?
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 				std::vector<Vireio_D3D11_Shader>* pasShaders;
+#elif defined(VIREIO_D3D9)
+				std::vector<Vireio_D3D9_Shader>* pasShaders;
+#endif
 				std::vector<std::wstring>* pasShaderHashCodes;
 				std::vector<UINT>* padwShaderHashCodes;
 				if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
@@ -3143,7 +3146,6 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					pasShaderHashCodes = &m_aszPShaderHashCodes;
 					padwShaderHashCodes = &m_adwPShaderHashCodes;
 				}
-#endif
 				// "Sort Shader List" button
 				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwSort)
 				{
@@ -3439,9 +3441,12 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 			// "Shaders" page
 			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
 			{
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 				// which shader is chosen ?
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 				std::vector<Vireio_D3D11_Shader>* pasShaders;
+#elif defined(VIREIO_D3D9)
+				std::vector<Vireio_D3D9_Shader>* pasShaders;
+#endif
 				std::vector<std::wstring>* pasShaderHashCodes;
 				std::vector<UINT>* padwShaderHashCodes;
 				if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
@@ -3456,7 +3461,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					pasShaderHashCodes = &m_aszPShaderHashCodes;
 					padwShaderHashCodes = &m_adwPShaderHashCodes;
 				}
-#endif
+		
 				// "Update Shader Hash Code List" - Button
 				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwUpdate)
 				{

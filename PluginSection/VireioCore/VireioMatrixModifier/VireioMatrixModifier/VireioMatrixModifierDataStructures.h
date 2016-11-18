@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<d3d10_1.h>
 #include<d3d10.h>
 #include<d3d9.h>
+#include<d3dx9.h>
 #include<stdio.h>
 #include<vector>
 
@@ -151,18 +152,18 @@ struct Vireio_Constant_Modification_Rule
 	* Creates empty shader constant modification rule.
 	***/
 	Vireio_Constant_Modification_Rule() :
-		m_szConstantName("ThisWontMatchAnything"),
-		m_dwBufferIndex(999999),
-		m_dwBufferSize(0),
-		m_dwStartRegIndex(0),
-		m_bUseName(false),
-		m_bUsePartialNameMatch(false),
-		m_bUseBufferIndex(false),
-		m_bUseBufferSize(false),
-		m_bUseStartRegIndex(false),
-		m_dwRegisterCount(0),
-		m_dwOperationToApply(0),
-		m_bTranspose(false)
+	m_szConstantName("ThisWontMatchAnything"),
+	m_dwBufferIndex(999999),
+	m_dwBufferSize(0),
+	m_dwStartRegIndex(0),
+	m_bUseName(false),
+	m_bUsePartialNameMatch(false),
+	m_bUseBufferIndex(false),
+	m_bUseBufferSize(false),
+	m_bUseStartRegIndex(false),
+	m_dwRegisterCount(0),
+	m_dwOperationToApply(0),
+	m_bTranspose(false)
 	{};
 
 	/**
@@ -376,20 +377,36 @@ struct Vireio_D3D11_Constant_Buffer_Unaccounted
 };
 
 /**
-* Vireio D3D11 shader description.
-* Structure containing all necessary data for the ID3D11VertexShader interface.
+* Vireio basic shader description.
 ***/
-struct Vireio_D3D11_Shader
+struct Vireio_Shader
 {
 	UINT                                                  dwVersion;                                    /**< Shader version ***/
 	CHAR                                                  szCreator[VIREIO_MAX_VARIABLE_NAME_LENGTH];   /**< Creator string ***/
+	UINT                                                  dwHashCode;                                   /**< This shaders hash code. ***/
+};
+
+/**
+* Vireio D3D9 shader description.
+* Structure containing all necessary data for the IDirect3D(X)Shader9 interfaces.
+***/
+struct Vireio_D3D9_Shader : public Vireio_Shader
+{
+	std::vector<D3DXCONSTANT_DESC>                        asConstantDescriptions;                       /**< Shader constant descriptions. ***/
+};
+
+/**
+* Vireio D3D11 shader description.
+* Structure containing all necessary data for the ID3D11(X)Shader interfaces.
+***/
+struct Vireio_D3D11_Shader : public Vireio_Shader
+{
 	UINT                                                  dwConstantBuffers;                            /**< Number of constant buffers ***/
 	UINT                                                  dwBoundResources;                             /**< Number of bound resources ***/
 	UINT                                                  dwInputParameters;                            /**< Number of parameters in the input signature ***/
 	UINT                                                  dwOutputParameters;                           /**< Number of parameters in the output signature ***/
 	std::vector<Vireio_D3D11_Constant_Buffer>             asBuffers;                                    /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
 	std::vector<Vireio_D3D11_Constant_Buffer_Unaccounted> asBuffersUnaccounted;                         /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
-	UINT                                                  dwHashCode;                                   /**< This shaders hash code. ***/
 };
 
 /**

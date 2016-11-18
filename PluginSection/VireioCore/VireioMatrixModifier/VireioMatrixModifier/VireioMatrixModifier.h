@@ -385,7 +385,8 @@ public:
 		// ... and the buffer for the last SetShaderDataF() call
 		m_afRegisterBuffer = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
 
-		// init the shader rules
+		// init the shader rules, first clear constants vector
+		m_asConstantDesc = std::vector<D3DXCONSTANT_DESC>();
 		InitShaderRules();
 	}
 	virtual ~IDirect3DManagedStereoShader9() {}
@@ -494,6 +495,9 @@ public:
 
 				for (UINT unJ = 0; unJ < unConstantNum; unJ++)
 				{
+					// add to constant vector
+					m_asConstantDesc.push_back(pConstantDesc[unJ]);
+
 					// register count 1 (= vector) and 4 (= matrix) supported
 					if (((pConstantDesc[unJ].Class == D3DXPC_VECTOR) && (pConstantDesc[unJ].RegisterCount == 1))
 						|| (((pConstantDesc[unJ].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[unJ].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[unJ].RegisterCount == 4)))
@@ -715,6 +719,10 @@ public:
 	* @returns: The actual shader.
 	***/
 	T* GetActualShader() { return m_pcActualShader; }
+	/***
+	* @returns: The constant list.
+	***/
+	std::vector<D3DXCONSTANT_DESC>* GetConstantDescriptions() { return &m_asConstantDesc; }
 
 	/**
 	* The indices of the shader rules assigned to that shader.
@@ -769,6 +777,10 @@ protected:
 	* Index of modification for the specified register.
 	***/
 	UINT m_aunRegisterModificationIndex[MAX_DX9_CONSTANT_REGISTERS];
+	/**
+	* The constant descriptions for that shader.
+	***/
+	std::vector<D3DXCONSTANT_DESC> m_asConstantDesc;
 
 private:
 	/**
@@ -1091,11 +1103,7 @@ private:
 	* The number of frames the constant buffers are to be verified.
 	* Set to zero to optimize StereoSplitter->SetDrawingSide()
 	***/
-	UINT m_dwVerifyConstantBuffers;
-	/**
-	* Current chosen shader type.
-	***/
-	Vireio_Supported_Shaders m_eChosenShaderType;
+	UINT m_dwVerifyConstantBuffers;	
 	/**
 	* Constant Buffer private data buffer left eye.
 	***/
@@ -1162,6 +1170,16 @@ private:
 	INT** m_ppnConstantData;
 	BOOL** m_ppbConstantData;
 
+	/**
+	* The d3d9 vertex shader description vector.
+	* Contains all enumerated shader data structures.
+	***/
+	std::vector<Vireio_D3D9_Shader> m_asVShaders;
+	/**
+	* The d3d9 pixel shader description vector.
+	* Contains all enumerated shader data structures.
+	***/
+	std::vector<Vireio_D3D9_Shader> m_asPShaders;
 	/**
 	* The active vertex shader.
 	***/
@@ -1234,6 +1252,10 @@ private:
 	D3DXMATRIX* m_psMatProjCurrent;
 #endif
 
+	/**
+	* Current chosen shader type.
+	***/
+	Vireio_Supported_Shaders m_eChosenShaderType;
 	/**
 	* All constant rules loaded for that game.
 	***/
