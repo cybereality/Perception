@@ -979,18 +979,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							{
 								// within borders ? list box selectable ?
 								if ((m_sMouseCoords.x < psPos->x + psSize->cx) && (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_bSelectable))
-								{
-									// get y position
-									//float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
-
-									// set new selection, deselect if current selection is chosen
-									//if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection == ((INT)fYPos / m_dwFontSize))
-									//	m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
-									//else
-									//	m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
-									//	(INT)fYPos / m_dwFontSize;
-									//OutputDebugString("VireioMatrixModifierDx10: WM_KEYDOWN");
-
+								{									
 									if (wParam == VK_PRIOR)
 									{
 										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection -= 1;
@@ -999,12 +988,11 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection < 0)
 											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() - 1;
 
-										// set return value
+										// set return value... selectable box retrieves "ChangedToValue"
 										sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
 										sRet.dwNewValue = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection;
 									}
-
-									if (wParam == VK_NEXT)
+									else if (wParam == VK_NEXT)
 									{
 										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection += 1;
 
@@ -1012,10 +1000,27 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection >= (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size())
 											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = 0;
 
-										// set return value
+										// set return value... selectable box retrieves "ChangedToValue"
 										sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
 										sRet.dwNewValue = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection;
 									}
+									else
+									{
+										// get y position
+										float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+
+										// set new selection, deselect if current selection is chosen
+										if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection == ((INT)fYPos / m_dwFontSize))
+											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+										else
+											m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
+											(INT)fYPos / m_dwFontSize;
+
+										// set return value... selectable box retrieves "ChangedToValue"
+										sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+										sRet.dwNewValue = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection;
+									}
+
 								}
 							}
 						}
