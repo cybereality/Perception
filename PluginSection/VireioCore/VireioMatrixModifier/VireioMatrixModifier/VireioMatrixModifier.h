@@ -1310,12 +1310,12 @@ private:
 		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
 		UINT m_dwToName;                           /**< [Button] : Activate to fill the constant name control on the shader rule page (ID) ***/
 		UINT m_dwToRegister;                       /**< [Button] : Activate to fill the register control on the shader rule page (ID) ***/
+		UINT m_dwShaderType;                       /**< [Spin] Currently chosen shader type (ID) ***/
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
 		UINT m_dwToBufferSize;                     /**< [Button] : Activate to fill the buffer size control on the shader rule page (ID) ***/
 		UINT m_dwToBufferIndex;                    /**< [Button] : Activate to fill the buffer index control on the shader rule page (ID) ***/
 		UINT m_dwToFetchedList;                    /**< [Button] : Activate to fill the fetched shader hash code list on the shader rule page (ID) ***/
-		UINT m_dwShaderType;                       /**< [Spin] Currently chosen shader type (ID) ***/
 #endif
 	} m_sPageShader;
 	/**
