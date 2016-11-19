@@ -251,7 +251,7 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	// mapped resource data
 	m_asMappedBuffers = std::vector<Vireio_Map_Data>();
 	m_dwMappedBuffers = 0;
-	
+
 	// constant rule buffer counter starts with 1 to init a first update
 	m_dwConstantRulesUpdateCounter = 1;
 
@@ -2976,9 +2976,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_pppcShader_Vertex) return nullptr;
 					if (!*m_pppcShader_Vertex) return nullptr;
 					{
+						// create the actual shader
 						IDirect3DVertexShader9* pcActualVShader = NULL;
 						nHr = ((IDirect3DDevice9*)pThis)->CreateVertexShader(*m_ppunFunction, &pcActualVShader);
 
+						// create the proxy shader
 						if (SUCCEEDED(nHr))
 						{
 							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::VertexShader);
@@ -3006,12 +3008,23 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							{
 								Vireio_D3D9_Shader sShaderDesc = {};
 								sShaderDesc.dwHashCode = unHash;
+
+								// get the constant descriptions from that shader
 								std::vector<D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*)**m_pppcShader_Vertex)->GetConstantDescriptions();
-								sShaderDesc.asConstantDescriptions = std::vector<D3DXCONSTANT_DESC>(*pasConstants);
+								sShaderDesc.asConstantDescriptions = std::vector<D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
+
+								// copy the name (LPCSTR) to a new string
+								for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
+								{
+									// copy name string
+									sShaderDesc.asConstantDescriptions[unI].Name = new char[strlen((*pasConstants)[unI].Name)];
+									memcpy((void*)sShaderDesc.asConstantDescriptions[unI].Name, (void*)(*pasConstants)[unI].Name, (strlen((*pasConstants)[unI].Name) + 1) * sizeof(char));
+								}
 								m_asVShaders.push_back(sShaderDesc);
 							}
 
 						}
+
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
@@ -3023,9 +3036,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_pppcShader_Pixel) return nullptr;
 					if (!*m_pppcShader_Pixel) return nullptr;
 					{
+						// create the actual shader
 						IDirect3DPixelShader9* pcActualPShader = NULL;
 						nHr = ((IDirect3DDevice9*)pThis)->CreatePixelShader(*m_ppunFunction, &pcActualPShader);
 
+						// create the proxy shader
 						if (SUCCEEDED(nHr))
 						{
 							**m_pppcShader_Pixel = new IDirect3DManagedStereoShader9<IDirect3DPixelShader9>(pcActualPShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::PixelShader);
@@ -3033,6 +3048,41 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						else
 						{
 							OutputDebugString(L"[MAM] Failed to create the pixel shader!");
+						}
+
+						if (**m_pppcShader_Pixel)
+						{
+							// get the hash
+							UINT unHash = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*)**m_pppcShader_Pixel)->GetShaderHash();
+
+							// loop through shader list wether hash is present
+							bool bPresent = false;
+							for (UINT unI = 0; unI < (UINT)m_asPShaders.size(); unI++)
+							{
+								if (m_asPShaders[unI].dwHashCode == unHash)
+									bPresent = true;
+							}
+
+							// add to shader list
+							if (!bPresent)
+							{
+								Vireio_D3D9_Shader sShaderDesc = {};
+								sShaderDesc.dwHashCode = unHash;
+
+								// get the constant descriptions from that shader
+								std::vector<D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*)**m_pppcShader_Pixel)->GetConstantDescriptions();
+								sShaderDesc.asConstantDescriptions = std::vector<D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
+
+								// copy the name (LPCSTR) to a new string
+								for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
+								{
+									// copy name string
+									sShaderDesc.asConstantDescriptions[unI].Name = new char[strlen((*pasConstants)[unI].Name)];
+									memcpy((void*)sShaderDesc.asConstantDescriptions[unI].Name, (void*)(*pasConstants)[unI].Name, (strlen((*pasConstants)[unI].Name) + 1) * sizeof(char));
+								}
+								m_asPShaders.push_back(sShaderDesc);
+							}
+
 						}
 
 						// method replaced, immediately return
@@ -3245,6 +3295,16 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 							m_aszShaderBuffersizes.push_back(szReg.str());
 							std::wstringstream szSize; szSize << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwI].dwSize;
 							m_aszShaderBuffersizes.push_back(szSize.str());
+						}
+#elif defined(VIREIO_D3D9)
+						// add all constant names to the current shader constant list
+						for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asConstantDescriptions.size(); dwK++)
+						{
+							// convert to wstring
+							std::string szNameA = std::string((*pasShaders)[dwIndex].asConstantDescriptions[dwK].Name);
+							std::wstring szName(szNameA.begin(), szNameA.end());
+
+							m_aszShaderConstantsCurrent.push_back(szName);
 						}
 #endif
 					}
@@ -3521,8 +3581,22 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 									}
 								}
 							}
-#endif
+#elif defined(VIREIO_D3D9)
+							// loop through constant descriptions for that shader
+							for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asConstantDescriptions.size(); dwK++)
+							{
+								// convert to wstring
+								std::string szNameA = std::string((*pasShaders)[dwI].asConstantDescriptions[dwK].Name);
+								std::wstring szName(szNameA.begin(), szNameA.end());
 
+								// constant available in list ?
+								if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
+								{
+									m_aszShaderConstants.push_back(szName);
+									m_aszShaderConstantsA.push_back(szNameA);
+								}
+							}
+#endif
 							// add shader hash to lists
 							std::wstring szHash = std::to_wstring((*pasShaders)[dwI].dwHashCode);
 							(*pasShaderHashCodes).push_back(szHash);
