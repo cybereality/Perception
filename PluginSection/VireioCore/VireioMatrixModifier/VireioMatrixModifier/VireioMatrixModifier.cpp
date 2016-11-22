@@ -490,7 +490,8 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 	// general indices
 	UINT dwNumberOfIndices = (UINT)m_aunGlobalConstantRuleIndices.size();
 	acStream.write((char*)&dwNumberOfIndices, sizeof(UINT));
-	acStream.write((char*)&m_aunGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
+	if (m_aunGlobalConstantRuleIndices.size() > 0)
+		acStream.write((char*)&m_aunGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// fetched shader hash codes
@@ -500,7 +501,8 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 #elif defined(VIREIO_D3D9)
 	UINT unNumberOfShaderSpecific = (UINT)m_asShaderSpecificRuleIndices.size();
 	acStream.write((char*)&unNumberOfShaderSpecific, sizeof(UINT));
-	acStream.write((char*)&m_asShaderSpecificRuleIndices[0], sizeof(Vireio_Hash_Rule_Index)*unNumberOfShaderSpecific);
+	if (m_asShaderSpecificRuleIndices.size() > 0)
+		acStream.write((char*)&m_asShaderSpecificRuleIndices[0], sizeof(Vireio_Hash_Rule_Index)*unNumberOfShaderSpecific);
 #endif
 
 	// set data size
