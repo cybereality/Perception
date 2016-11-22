@@ -361,6 +361,9 @@ template <class T = float>
 class IDirect3DManagedStereoShader9 : public T
 {
 public:
+	/**
+	* Constructor.
+	***/
 	IDirect3DManagedStereoShader9(T* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules, std::vector<UINT>* paunGeneralIndices, std::vector<Vireio_Hash_Rule_Index>* pasShaderIndices, Vireio_Supported_Shaders eShaderType) :
 		m_pcActualShader(pcActualVertexShader),
 		m_pcOwningDevice(pcOwningDevice),
@@ -389,7 +392,17 @@ public:
 		m_asConstantDesc = std::vector<D3DXCONSTANT_DESC>();
 		InitShaderRules();
 	}
-	virtual ~IDirect3DManagedStereoShader9() {}
+	/**
+	* Destructor.
+	***/
+	virtual ~IDirect3DManagedStereoShader9()
+	{
+		if (m_pcActualShader)
+			m_pcActualShader->Release();
+
+		if (m_pcOwningDevice)
+			m_pcOwningDevice->Release();
+	}
 
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)

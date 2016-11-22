@@ -1063,6 +1063,11 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			}
 		}
 
+		// set number of render targets
+		m_unRenderTargetNumber = 0;
+		for (std::vector<IDirect3DSurface9*>::size_type i = 0; i < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+		if (m_apcActiveRenderTargets[i] != NULL) m_unRenderTargetNumber = (DWORD)i + 1;
+
 		// get depth stencil
 		IDirect3DSurface9* pcDepthStencil = nullptr;
 		pcDevice->GetDepthStencilSurface(&pcDepthStencil);
