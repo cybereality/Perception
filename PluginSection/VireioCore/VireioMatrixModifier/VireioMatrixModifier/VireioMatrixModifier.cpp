@@ -1545,7 +1545,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	static HRESULT nHr = S_OK;
 
 #ifdef _DEBUG_MAM
-	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+	{ wchar_t buf[128]; wsprintf(buf, L"[MAM] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)

@@ -70,7 +70,8 @@ m_pcSampler11(nullptr),
 m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
 m_bZoomOut(FALSE),
-m_bMenu(false)
+m_bMenu(false),
+m_bMenuHotkeySwitch(false)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;

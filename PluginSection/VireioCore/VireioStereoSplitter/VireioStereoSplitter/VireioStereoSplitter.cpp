@@ -562,6 +562,11 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex)
 {
+
+#ifdef _DEBUG_STEREO_SPLITTER
+	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 	static HRESULT nHr = S_OK;
 
 	if (m_bPresent)
