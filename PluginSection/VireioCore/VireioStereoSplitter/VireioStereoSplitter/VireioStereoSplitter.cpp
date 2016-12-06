@@ -689,11 +689,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_CLEAR:
 												   if (m_bPresent)
 												   {
+													   bool bSwitched = true;
+
 													   // switch the drawing side before the second draw call is done
 													   if (m_eCurrentRenderingSide == RenderPosition::Left)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
 													   else if (m_eCurrentRenderingSide == RenderPosition::Right)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+
+													   // no second call if not switched -> immediate return
+													   if (!bSwitched)
+													   {
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   nHr = S_OK;
+														   return (void*)&nHr;
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
@@ -701,11 +711,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
 												   if (m_bPresent)
 												   {
+													   bool bSwitched = true;
+
 													   // switch the drawing side before the second draw call is done
 													   if (m_eCurrentRenderingSide == RenderPosition::Left)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
 													   else if (m_eCurrentRenderingSide == RenderPosition::Right)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+
+													   // no second call if not switched -> immediate return
+													   if (!bSwitched)
+													   {
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   nHr = S_OK;
+														   return (void*)&nHr;
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
@@ -713,11 +733,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE:
 												   if (m_bPresent)
 												   {
+													   bool bSwitched = true;
+
 													   // switch the drawing side before the second draw call is done
 													   if (m_eCurrentRenderingSide == RenderPosition::Left)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
 													   else if (m_eCurrentRenderingSide == RenderPosition::Right)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+
+													   // no second call if not switched -> immediate return
+													   if (!bSwitched)
+													   {
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   nHr = S_OK;
+														   return (void*)&nHr;
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
@@ -725,11 +755,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
 												   if (m_bPresent)
 												   {
+													   bool bSwitched = true;
+
 													   // switch the drawing side before the second draw call is done
 													   if (m_eCurrentRenderingSide == RenderPosition::Left)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
 													   else if (m_eCurrentRenderingSide == RenderPosition::Right)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+
+													   // no second call if not switched -> immediate return
+													   if (!bSwitched)
+													   {
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   nHr = S_OK;
+														   return (void*)&nHr;
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
@@ -737,11 +777,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP:
 												   if (m_bPresent)
 												   {
+													   bool bSwitched = true;
+
 													   // switch the drawing side before the second draw call is done
 													   if (m_eCurrentRenderingSide == RenderPosition::Left)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
 													   else if (m_eCurrentRenderingSide == RenderPosition::Right)
-														   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+														   bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+
+													   // no second call if not switched -> immediate return
+													   if (!bSwitched)
+													   {
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   nHr = S_OK;
+														   return (void*)&nHr;
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
@@ -1173,8 +1223,10 @@ void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD unRenderT
 	}
 	else return;
 
-	// set second render target.. never set to mono here !
+	// set second render target
 	m_apcActiveRenderTargets[unRenderTargetIndex + D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT] = VerifyPrivateDataInterfaces(pcDevice, pcRenderTarget);
+	if ((unRenderTargetIndex == 0) && (m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT] == nullptr))
+		m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT] = m_apcActiveRenderTargets[0];
 }
 
 /**
@@ -1480,6 +1532,12 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	// Already on the correct eye
 	if (eSide == m_eCurrentRenderingSide)
 		return true;
+
+	// should never try and render for the right eye if there is no render target for the main render targets right side
+	if ((m_apcActiveRenderTargets[0] == m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT]) && (eSide == RenderPosition::Left))
+	{
+		return false;
+	}
 
 	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
 	// things, as I have already managed twice.
