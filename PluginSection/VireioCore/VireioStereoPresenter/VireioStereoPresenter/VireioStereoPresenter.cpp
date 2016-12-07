@@ -47,6 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDXGISWAPCHAIN                                             29
 
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
+#define	METHOD_IDIRECT3DDEVICE9_PRESENT                                      17
 
 /**
 * Constructor.
@@ -487,6 +488,12 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
+	// only present accepted
+	bool bValid = false;
+	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||
+		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
+	if (!bValid) return nullptr;
+
 	static UINT unWidthRT = 0, unHeightRT = 0;
 	static const UINT unFoVSettings = 3;
 	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
@@ -508,9 +515,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_sUserSettings.fFoVADS == afFoVADS[un]) m_unFoVADS = un;
 		}
 	}
-	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
-	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
-
+	
 	// immersive mode ?
 	bool bImmersiveMode = true;
 	if (m_apnIntInput[1])

@@ -158,93 +158,115 @@ private:
 	/*** VireioCinema private methods ***/
 	void InitD3D9(LPDIRECT3DDEVICE9 pcDevice);
 	void RenderD3D9(LPDIRECT3DDEVICE9 pcDevice);
-	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
+	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext);
 	void RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, D3DXVECTOR3 sScale = D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3 sTranslate = D3DXVECTOR3(), UINT32 unWidth = 1024, UINT32 unHeight = 1024);
-	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
+	// void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
+	HRESULT CreateD3D11Device();
 
-#pragma region VireioCinema D3D9 private fields
+#pragma region VireioCinema D3D9/D3D10 private fields
 	/**
-	* Cinema screen vertex shader.
+	* D3D11 device to be used in D3D9/D3D10 games.
 	***/
-	LPDIRECT3DVERTEXSHADER9	m_vsCinema;
+	ID3D11Device* m_pcD3D11Device;
 	/**
-	* Cinema screen pixel shader.
+	* D3D11 device context to be used in D3D9/D3D10 games.
 	***/
-	LPDIRECT3DPIXELSHADER9	m_psCinema;
+	ID3D11DeviceContext* m_pcD3D11Context;
+
+	///**
+	//* Cinema screen vertex shader.
+	//***/
+	//LPDIRECT3DVERTEXSHADER9	m_vsCinema;
+	///**
+	//* Cinema screen pixel shader.
+	//***/
+	//LPDIRECT3DPIXELSHADER9	m_psCinema;
+	///**
+	//* Cinema screen pixel shader constant table.
+	//***/
+	//LPD3DXCONSTANTTABLE	m_ctPCinema;
+	///**
+	//* Cinema screen pixel shader constant table.
+	//***/
+	//LPD3DXCONSTANTTABLE	m_ctVCinema;
+	///**
+	//* Cinema theatre vertex shader.
+	//***/
+	//LPDIRECT3DVERTEXSHADER9	m_vsCinemaTheatre;
+	///**
+	//* Cinema theatre pixel shader.
+	//***/
+	//LPDIRECT3DPIXELSHADER9	m_psCinemaTheatre;
+	///**
+	//* Cinema theatre pixel shader constant table.
+	//***/
+	//LPD3DXCONSTANTTABLE	m_ctPCinemaTheatre;
+	///**
+	//* Cinema theatre pixel shader constant table.
+	//***/
+	//LPD3DXCONSTANTTABLE	m_ctVCinemaTheatre;
+	///**
+	//* Cinema screen mesh vertex buffer.
+	//***/
+	//LPDIRECT3DVERTEXBUFFER9 m_pVBCinemaScreen;
+	///**
+	//* Cinema theatre mesh vertex buffer.
+	//***/
+	//LPDIRECT3DVERTEXBUFFER9 m_pVBCinemaTheatre;
+	///**
+	//* Cinema theatre mesh index buffer.
+	//***/
+	//LPDIRECT3DINDEXBUFFER9 m_pIBCinemaTheatre;
+	///**
+	//* Cinema texture.
+	//***/
+	//LPDIRECT3DTEXTURE9 m_pTextureCinema;
+	///**
+	//* Cinema theatre texture.
+	//***/
+	//LPDIRECT3DTEXTURE9 m_pTextureCinemaTheatre;
 	/**
-	* Cinema screen pixel shader constant table.
+	* The input textures left/right (D3D9).
 	***/
-	LPD3DXCONSTANTTABLE	m_ctPCinema;
+	IDirect3DTexture9** m_ppcTex9Input[2];
 	/**
-	* Cinema screen pixel shader constant table.
+	* The shared D3D11 textures.
 	***/
-	LPD3DXCONSTANTTABLE	m_ctVCinema;
+	ID3D11Texture2D* m_pcSharedTexture[2];
 	/**
-	* Cinema theatre vertex shader.
+	* Input texture SR views left/right.
 	***/
-	LPDIRECT3DVERTEXSHADER9	m_vsCinemaTheatre;
+	ID3D11Texture2D* m_pcTexCopy11[2];
 	/**
-	* Cinema theatre pixel shader.
+	* Input texture SR views left/right.
 	***/
-	LPDIRECT3DPIXELSHADER9	m_psCinemaTheatre;
-	/**
-	* Cinema theatre pixel shader constant table.
-	***/
-	LPD3DXCONSTANTTABLE	m_ctPCinemaTheatre;
-	/**
-	* Cinema theatre pixel shader constant table.
-	***/
-	LPD3DXCONSTANTTABLE	m_ctVCinemaTheatre;
-	/**
-	* Cinema screen mesh vertex buffer.
-	***/
-	LPDIRECT3DVERTEXBUFFER9 m_pVBCinemaScreen;
-	/**
-	* Cinema theatre mesh vertex buffer.
-	***/
-	LPDIRECT3DVERTEXBUFFER9 m_pVBCinemaTheatre;
-	/**
-	* Cinema theatre mesh index buffer.
-	***/
-	LPDIRECT3DINDEXBUFFER9 m_pIBCinemaTheatre;
-	/**
-	* Cinema texture.
-	***/
-	LPDIRECT3DTEXTURE9 m_pTextureCinema;
-	/**
-	* Cinema theatre texture.
-	***/
-	LPDIRECT3DTEXTURE9 m_pTextureCinemaTheatre;
-	/**
-	* The texture of the current frame.
-	***/
-	IDirect3DTexture9** m_ppcFrameTexture;
-	/**
-	* The output texture (left).
-	***/
-	LPDIRECT3DTEXTURE9 m_pStereoOutputLeft;
-	/**
-	* The output texture (right).
-	***/
-	LPDIRECT3DTEXTURE9 m_pStereoOutputRight;
-	/**
-	* The output surface (left).
-	***/
-	LPDIRECT3DSURFACE9 m_pStereoOutputSurfaceLeft;
-	/**
-	* The output surface (right).
-	***/
-	LPDIRECT3DSURFACE9 m_pStereoOutputSurfaceRight;
-	/**
-	* The depth stencil surface (left).
-	***/
-	LPDIRECT3DSURFACE9 m_pcDepthStencilLeft;
-	/**
-	* The depth stencil surface (right).
-	***/
-	LPDIRECT3DSURFACE9 m_pcDepthStencilRight;
+	ID3D11ShaderResourceView* m_pcTexCopy11SRV[2];
+	///**
+	//* The output texture (left).
+	//***/
+	//LPDIRECT3DTEXTURE9 m_pStereoOutputLeft;
+	///**
+	//* The output texture (right).
+	//***/
+	//LPDIRECT3DTEXTURE9 m_pStereoOutputRight;
+	///**
+	//* The output surface (left).
+	//***/
+	//LPDIRECT3DSURFACE9 m_pStereoOutputSurfaceLeft;
+	///**
+	//* The output surface (right).
+	//***/
+	//LPDIRECT3DSURFACE9 m_pStereoOutputSurfaceRight;
+	///**
+	//* The depth stencil surface (left).
+	//***/
+	//LPDIRECT3DSURFACE9 m_pcDepthStencilLeft;
+	///**
+	//* The depth stencil surface (right).
+	//***/
+	//LPDIRECT3DSURFACE9 m_pcDepthStencilRight;
 #pragma endregion
 #pragma region VireioCinema D3D11 private fields
 	/**
@@ -332,6 +354,16 @@ private:
 	***/
 	ID3D11ShaderResourceView* m_apcTex11InputSRV[2];
 #pragma endregion
+	/**
+	* D3D version used in game
+	**/
+	enum D3DVersion
+	{
+		D3D_Undefined,
+		D3D_9,
+		D3D_10,
+		D3D_11,
+	} m_eD3DVersion;
 	/**
 	* Yaw angle pointer.
 	***/
