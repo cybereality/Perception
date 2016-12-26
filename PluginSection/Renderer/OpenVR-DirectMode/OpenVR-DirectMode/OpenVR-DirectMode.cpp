@@ -53,19 +53,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT   3
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
-#pragma region OpenVR-Tracker static fields
-bool OpenVR_DirectMode::m_bInit;
-vr::IVRSystem **OpenVR_DirectMode::m_ppHMD;
-ID3D11Texture2D *OpenVR_DirectMode::m_pcTex11Shared[2];
-HANDLE OpenVR_DirectMode::m_pThread;
-float OpenVR_DirectMode::m_fHorizontalOffsetCorrectionLeft;
-float OpenVR_DirectMode::m_fHorizontalOffsetCorrectionRight;
-float OpenVR_DirectMode::m_fHorizontalRatioCorrectionLeft;
-float OpenVR_DirectMode::m_fHorizontalRatioCorrectionRight;
-bool OpenVR_DirectMode::m_bForceInterleavedReprojection;
-DWORD OpenVR_DirectMode::m_unSleepTime;
-#pragma endregion
-
 /**
 * Matrix translation helper.
 ***/
@@ -197,7 +184,6 @@ m_bRenderModelsCreated(false)
 	// static fields
 	m_bInit = false;
 	m_ppHMD = nullptr;
-	m_pThread = nullptr;
 	m_fHorizontalRatioCorrectionLeft = 0.0f;
 	m_fHorizontalRatioCorrectionRight = 0.0f;
 	m_fHorizontalOffsetCorrectionLeft = 0.0f;
@@ -348,8 +334,6 @@ OpenVR_DirectMode::~OpenVR_DirectMode()
 	if (m_pcTex11DrawRTV[1]) m_pcTex11DrawRTV[1]->Release();
 	if (m_pcTex11Shared[0]) m_pcTex11Shared[0]->Release();
 	if (m_pcTex11Shared[1]) m_pcTex11Shared[1]->Release();
-
-	TerminateThread(m_pThread, S_OK);
 }
 
 /**
@@ -559,11 +543,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 		bAspectRatio = true;
 	}
 #pragma endregion
-
-	// create thread
-	if (!unThreadId)
-		m_pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, 0, &unThreadId);
-
+	
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
 	if (!pcSwapChain)
@@ -1007,7 +987,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
 
 							// set mouse cursor for first controller device
-							vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass((vr::TrackedDeviceIndex_t)unI+1);
+							vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass((vr::TrackedDeviceIndex_t)unI + 1);
 							if ((eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller) && (!bMouseCursorSet))
 							{
 								// get pose matrix
@@ -1056,10 +1036,10 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 									GetWindowRect(pDesktop, &sDesktop);
 									float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
 									float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
-									
+
 									SetCursorPos((int)fXPos, (int)fYPos);
 									bMouseCursorSet = true;
-																		
+
 									// hardware emulation... if ever needed
 									// POINT sPoint;
 									// GetCursorPos(&sPoint);
@@ -1221,7 +1201,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							if (pcResourceShared)
 							{
 								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
+								vr::Texture_t sTexture = { (void*)pcResourceShared, vr::TextureType_DirectX, vr::ColorSpace_Gamma };
 								vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sTexture);
 								pcResourceShared->Release();
 							}
@@ -1258,7 +1238,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								pcContext->CopyResource(m_pcTex11CopyHUD, pcResource);
 
 								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)m_pcTex11SharedHUD, vr::API_DirectX, vr::ColorSpace_Gamma };
+								vr::Texture_t sTexture = { (void*)m_pcTex11SharedHUD, vr::TextureType_DirectX, vr::ColorSpace_Gamma };
 								vr::VROverlay()->SetOverlayTexture(m_ulHUDOverlayHandle, &sTexture);
 								pcResource->Release();
 							}
@@ -1299,6 +1279,25 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			}
 			else
 				OutputDebugString(L"OpenVR: Current process has NOT the scene focus.");
+		}
+
+		// submit
+		if (m_bInit)
+		{
+			vr::VRCompositor()->CompositorBringToFront();
+
+			// left + right
+			for (int nEye = 0; nEye < 2; nEye++)
+			{
+				// fill openvr texture struct
+				vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::TextureType_DirectX, vr::ColorSpace_Gamma };
+
+				// submit left texture
+				vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture);
+			}
+
+			// force interleaved reprojection ?
+			vr::VRCompositor()->ForceInterleavedReprojectionOn(m_bForceInterleavedReprojection);
 		}
 
 		// call post present handoff for better performance here

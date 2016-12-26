@@ -686,7 +686,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
 			{
 				vr::VRControllerState_t state;
-				if (m_pHMD->GetControllerState(unDevice, &state))
+				if (m_pHMD->GetControllerState(unDevice, &state, sizeof(vr::VRControllerState_t)))
 				{
 					// loop through controller buttons
 					for (UINT unButtonIx = 0; unButtonIx < unButtonNo; unButtonIx++)
@@ -887,14 +887,10 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			}
 		}
 
-		// get predicted pose for next frame
-		if (!vr::VRCompositor()->GetLastFrameRenderer())
-			vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
-		else
-		{
-			m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, (float)m_cGameTimer.DeltaTime(), m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
-		}
-
+		// call WaitGetPoses() with "1" count, then get all poses with time delta provided for pose prediction
+		vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, 1, NULL, 0);
+		m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, (float)m_cGameTimer.DeltaTime(), m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+		
 		// first, we only handle the HMD = 0 index
 		uint32_t unI = vr::k_unTrackedDeviceIndex_Hmd;
 

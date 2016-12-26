@@ -205,39 +205,6 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
 	/**
-	* Submit left and right shared texture constantly.
-	***/
-	static DWORD WINAPI SubmitFramesConstantly(void* Param)
-	{
-		// constantly submit the latest frame
-		while (true)
-		{
-			if (m_ppHMD)
-			{
-				if (*m_ppHMD)
-				{
-					if (m_bInit)
-					{
-						// left + right
-						for (int nEye = 0; nEye < 2; nEye++)
-						{
-							// fill openvr texture struct
-							vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
-
-							// submit left texture
-							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture);
-						}
-
-						// sleep if needed (0 milliseconds = default)
-						Sleep(m_unSleepTime);
-						vr::VRCompositor()->ForceInterleavedReprojectionOn(m_bForceInterleavedReprojection);
-					}
-				}
-			}
-		}
-	}
-
-	/**
 	* Temporary directx 11 device for OpenVR.
 	***/
 	ID3D11Device* m_pcDeviceTemporary;
@@ -260,7 +227,7 @@ private:
 	/**
 	* OpenVR system.
 	***/
-	static vr::IVRSystem **m_ppHMD;
+	vr::IVRSystem **m_ppHMD;
 	/**
 	* The (tracked) device poses (for all devices).
 	***/
@@ -284,27 +251,23 @@ private:
 	/**
 	* Left eye aspect ratio correction.
 	***/
-	static float m_fHorizontalRatioCorrectionLeft;
+	float m_fHorizontalRatioCorrectionLeft;
 	/**
 	* Right eye aspect ratio correction.
 	***/
-	static float m_fHorizontalRatioCorrectionRight;
+	float m_fHorizontalRatioCorrectionRight;
 	/**
 	* Left eye lens offset correction.
 	***/
-	static float m_fHorizontalOffsetCorrectionLeft;
+	float m_fHorizontalOffsetCorrectionLeft;
 	/**
 	* Right eye lens offset correction.
 	***/
-	static float m_fHorizontalOffsetCorrectionRight;
+	float m_fHorizontalOffsetCorrectionRight;
 	/**
 	* True if OpenVR is initialized.
 	***/
-	static bool m_bInit;
-	/**
-	* Static thread handle.
-	***/
-	static HANDLE m_pThread;
+	bool m_bInit;
 	/**
 	* The 2D vertex shader.
 	***/
@@ -345,7 +308,7 @@ private:
 	/**
 	* Shared texture (created by temporary device 1.1)
 	***/
-	static ID3D11Texture2D* m_pcTex11Shared[2];
+	ID3D11Texture2D* m_pcTex11Shared[2];
 	/**
 	* Copy texture shared for HUD (created by game device).
 	***/
@@ -395,11 +358,11 @@ private:
 	/**
 	* True if interleaved reprojection is forced on.
 	***/
-	static bool m_bForceInterleavedReprojection;
+	bool m_bForceInterleavedReprojection;
 	/**
 	* Time to sleep for each submission frame. (in ms)
 	***/
-	static DWORD m_unSleepTime;
+	DWORD m_unSleepTime;
 	/**
 	* Default aspect ratio.
 	***/
