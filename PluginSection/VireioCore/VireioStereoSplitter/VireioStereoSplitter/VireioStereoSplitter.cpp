@@ -1157,19 +1157,27 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 				// got the backbuffer ?
 				if (sDesc.Width > 0)
 				{
-					HANDLE pHandleLeft = nullptr;
-					if (!m_pcStereoBuffer[0])
-						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], &pHandleLeft);
+					// query for the IDirect3DDevice9Ex interface
+					IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+					if (SUCCEEDED(pcDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
+					{
+						HANDLE pHandleLeft = nullptr;
+						if (!m_pcStereoBuffer[0])
+							pcDirect3DDevice9Ex->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], &pHandleLeft);
 
-					HANDLE pHandleRight = nullptr;
-					if (!m_pcStereoBuffer[1])
-						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], &pHandleRight);
+						HANDLE pHandleRight = nullptr;
+						if (!m_pcStereoBuffer[1])
+							pcDirect3DDevice9Ex->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], &pHandleRight);
 
-					// set shared handles as private interfaces
-					if (m_pcStereoBuffer[0])
-						m_pcStereoBuffer[0]->SetPrivateData(PDIID_Shared_Handle, (void*)pHandleLeft, sizeof(IUnknown*), NULL);
-					if (m_pcStereoBuffer[1])
-						m_pcStereoBuffer[1]->SetPrivateData(PDIID_Shared_Handle, (void*)pHandleRight, sizeof(IUnknown*), NULL);
+						// set shared handles as private interfaces
+						if (m_pcStereoBuffer[0])
+							m_pcStereoBuffer[0]->SetPrivateData(PDIID_Shared_Handle, (void*)pHandleLeft, sizeof(IUnknown*), NULL);
+						if (m_pcStereoBuffer[1])
+							m_pcStereoBuffer[1]->SetPrivateData(PDIID_Shared_Handle, (void*)pHandleRight, sizeof(IUnknown*), NULL);
+
+						pcDirect3DDevice9Ex->Release();
+					}
+					else OutputDebugString(L"[STS] Failed to query IDirect3DDevice9Ex interface.");
 				}
 			}
 
