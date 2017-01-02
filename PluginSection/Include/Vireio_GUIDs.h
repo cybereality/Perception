@@ -97,4 +97,7 @@ const GUID PDIID_IDXGISwapChain_TextureXD_Stereo_Twin = { 0x4458d508, 0xc9b4, 0x
 // PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin : 814ea333-0f87-485e-b264-faac42d62faf
 const GUID PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin = { 0x814ea333, 0x0f87, 0x485e, { 0xb2, 0x64, 0xfa, 0xac, 0x42, 0xd6, 0x2f, 0xaf } };
 
+// PDIID_Shared_Handle : 88522b10-cab2-4284-a2cc-d7344398cb31
+const GUID PDIID_Shared_Handle = { 0x88522b10, 0xcab2, 0x4284, { 0xa2, 0xcc, 0xd7, 0x34, 0x43, 0x98, 0xcb, 0x31 } };
+
 #pragma endregion

@@ -684,7 +684,6 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 						  // ...or init all stuff
 						  InitD3D9(pcDevice);
 
-
 					  // release device if provided by swapchain
 					  if (bReleaseDevice) pcDevice->Release();
 		}
@@ -1155,6 +1154,7 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 ***/
 void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext)
 {
+	OutputDebugString(L"InitD3D11");
 	// create vertex shader
 	if (!m_pcVSGeometry11)
 	{
@@ -1544,6 +1544,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// for aspect ratio based fx we set a 1.0 ratio here
 	m_sGeometryConstants.sResolution.x = 1024.0f;
 	m_sGeometryConstants.sResolution.y = 1024.0f;
+
+	OutputDebugString(L"~InitD3D11");
 }
 
 /**
@@ -1551,6 +1553,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 ***/
 void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain)
 {
+	// OutputDebugString(L"RenderD3D11");
+
 	switch (m_eD3DVersion)
 	{
 		case VireioCinema::D3D_Undefined:
@@ -1565,57 +1569,58 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			{
 				if ((!m_pcSharedTexture[0]) || (!m_pcSharedTexture[1]))
 				{
+					// connected textures already initialized ?? return if not
+					if ((!(*(m_ppcTex9Input[0]))) || (!(*(m_ppcTex9Input[1])))) return;
+
 					// QI IDXGIResource interface to synchronized shared surface.
 					for (UINT unEye = 0; unEye < 2; unEye++)
 					{
-						// get shared dxgi resource
-						IDXGIResource* pcDXGIResource = nullptr;
-						(*(m_ppcTex9Input[unEye]))->QueryInterface(__uuidof(IDXGIResource), (LPVOID*)&pcDXGIResource);
-
 						// obtain handle to IDXGIResource object.
 						HANDLE pSharedHandle = nullptr;
-						pcDXGIResource->GetSharedHandle(&pSharedHandle);
-						pcDXGIResource->Release();
-						if (!pSharedHandle)
-							return;
+						DWORD unSize = sizeof(pSharedHandle);
+						(*(m_ppcTex9Input[unEye]))->GetPrivateData(PDIID_Shared_Handle, (void*)&pSharedHandle, &unSize);
 
-						// get temporary resource
-						ID3D11Resource* pcResource11 = NULL;
-						IID iid = __uuidof(ID3D11Resource);
-						if (FAILED(m_pcD3D11Device->OpenSharedResource(pSharedHandle, iid, (void**)(&pcResource11))))
+						if (pSharedHandle)
 						{
-							OutputDebugString(L"[CIN] Failed to open shared DX11 resource !");
-							return;
-						}
-
-						// QI for the texture
-						pcResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcSharedTexture[unEye]));
-						pcResource11->Release();
-
-						if (m_pcSharedTexture[unEye])
-						{
-							// get the description and create the copy texture
-							D3D11_TEXTURE2D_DESC sDesc;
-							m_pcSharedTexture[unEye]->GetDesc(&sDesc);
-							sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
-							if (FAILED(m_pcD3D11Device->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTexCopy11[unEye])))
+							// get temporary resource
+							ID3D11Resource* pcResource11 = NULL;
+							IID iid = __uuidof(ID3D11Resource);
+							if (FAILED(m_pcD3D11Device->OpenSharedResource(pSharedHandle, iid, (void**)(&pcResource11))))
 							{
-								OutputDebugString(L"[CIN] Failed to create copy texture !");
+								OutputDebugString(L"[CIN] Failed to open shared DX11 resource !");
 								return;
 							}
 
-							// create shader resource view
-							if (m_pcTexCopy11[unEye])
+							// QI for the texture
+							pcResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcSharedTexture[unEye]));
+							pcResource11->Release();
+
+							if (m_pcSharedTexture[unEye])
 							{
-								if (FAILED(m_pcD3D11Device->CreateShaderResourceView(m_pcTexCopy11[unEye], NULL, &m_pcTexCopy11SRV[unEye])))
-									OutputDebugString(L"[CIN] Failed to create shader resource view.");
+								// get the description and create the copy texture
+								D3D11_TEXTURE2D_DESC sDesc;
+								m_pcSharedTexture[unEye]->GetDesc(&sDesc);
+								sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+								if (FAILED(m_pcD3D11Device->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTexCopy11[unEye])))
+								{
+									OutputDebugString(L"[CIN] Failed to create copy texture !");
+									return;
+								}
+
+								// create shader resource view
+								if (m_pcTexCopy11[unEye])
+								{
+									if (FAILED(m_pcD3D11Device->CreateShaderResourceView(m_pcTexCopy11[unEye], NULL, &m_pcTexCopy11SRV[unEye])))
+										OutputDebugString(L"[CIN] Failed to create shader resource view.");
+								}
+							}
+							else
+							{
+								OutputDebugString(L"[CIN] Can't query shared texture interface.");
+								return;
 							}
 						}
-						else
-						{
-							OutputDebugString(L"[CIN] Can't query shared texture interface.");
-							return;
-						}
+						else OutputDebugString(L"[CIN] Can't get shared handle by private interface.");
 					}
 				}
 
@@ -1879,6 +1884,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// set back device
 	ApplyStateblock(pcContext, &sStateBlock);
+
+	// OutputDebugString(L"~RenderD3D11");
 }
 
 /**
@@ -2033,6 +2040,7 @@ HRESULT VireioCinema::CreateD3D11Device()
 		if (FAILED(unHR)) return unHR;
 		pcDXGIDevice1->SetMaximumFrameLatency(1);
 		pcDXGIDevice1->Release();
+		return unHR;
 	}
 }
 

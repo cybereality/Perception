@@ -467,7 +467,12 @@ void OpenVR_DirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 ***/
 bool OpenVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
-	return true;
+	if ((nD3DInterface == INTERFACE_IDXGISWAPCHAIN) ||
+		(nD3DInterface == INTERFACE_IDIRECT3DDEVICE9) ||
+		(nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9))
+		return true;
+
+	return false;
 }
 
 /**
@@ -482,8 +487,10 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	static float fAspectRatio = m_fAspectRatio;
 	static float bAspectRatio = false;
 
-	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
-	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT)) return nullptr;
+	if ((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod != METHOD_IDIRECT3DDEVICE9_PRESENT)) return nullptr;
+	if ((eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) && (eD3DMethod != METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)) return nullptr;
+
 	/*if (!m_bHotkeySwitch)
 	{
 	if (GetAsyncKeyState(VK_F11))
@@ -517,6 +524,9 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	// calculate aspect ratio + offset correction..for OpenVR we need to set UV coords as aspect ratio
 	if (!bAspectRatio)
 	{
+		if (!m_ppHMD) return nullptr;
+		if (!(*m_ppHMD)) return nullptr;
+
 		// compute left eye 
 		float fLeft, fRight, fTop, fBottom;
 		(*m_ppHMD)->GetProjectionRaw(vr::Eye_Left, &fLeft, &fRight, &fTop, &fBottom);
@@ -543,28 +553,52 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 		bAspectRatio = true;
 	}
 #pragma endregion
-	
-	// cast swapchain
-	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
-	if (!pcSwapChain)
-	{
-		OutputDebugString(L"Oculus Direct Mode Node : No swapchain !");
-		return nullptr;
-	}
+
 	// get device
 	ID3D11Device* pcDevice = nullptr;
-	pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+	switch (eD3DInterface)
+	{
+		case INTERFACE_IDXGISWAPCHAIN:
+			if (pThis)
+			{
+				// cast swapchain
+				IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
+
+				// and get the device from the swapchain
+				pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+				pcSwapChain->Release();
+			}
+			else
+			{
+				OutputDebugString(L"[OPENVR] : No swapchain !");
+				return nullptr;
+			}
+			break;
+		case INTERFACE_IDIRECT3DDEVICE9:
+		case INTERFACE_IDIRECT3DSWAPCHAIN9:
+			// get the d3d11 device from the connected tex view
+			if (m_ppcTexView11[0])
+			{
+				if (*(m_ppcTexView11[0]))
+					(*(m_ppcTexView11[0]))->GetDevice(&pcDevice);
+				// else return nullptr;
+			}
+			else OutputDebugString(L"[OPENVR] : Connect d3d 11 texture views to obtain d3d 11 device.");
+			break;
+	}
+
 	if (!pcDevice)
 	{
-		OutputDebugString(L"Oculus Direct Mode Node : No d3d 11 device !");
+		OutputDebugString(L"[OPENVR] : No d3d 11 device !");
 		return nullptr;
 	}
+
 	// get context
 	ID3D11DeviceContext* pcContext = nullptr;
 	pcDevice->GetImmediateContext(&pcContext);
 	if (!pcContext)
 	{
-		OutputDebugString(L"Oculus Direct Mode Node : No device context !");
+		OutputDebugString(L"[OPENVR] : No d3d 11 device context !");
 		return nullptr;
 	}
 
@@ -594,7 +628,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
 					if (FAILED(hr) | (DXGIDevice1 == NULL))
 					{
-						pcSwapChain->Release();
 						pcDevice->Release();
 						pcContext->Release();
 						return nullptr;
