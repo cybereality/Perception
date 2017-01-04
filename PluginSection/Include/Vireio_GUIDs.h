@@ -100,4 +100,9 @@ const GUID PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin = { 0x814ea333, 0x0
 // PDIID_Shared_Handle : 88522b10-cab2-4284-a2cc-d7344398cb31
 const GUID PDIID_Shared_Handle = { 0x88522b10, 0xcab2, 0x4284, { 0xa2, 0xcc, 0xd7, 0x34, 0x43, 0x98, 0xcb, 0x31 } };
 
+/*** Vireio Cinema GUIDs ***/
+
+// PDIID_ID3D11Device_IDXGISwapChain : 90de944a-d1ee-4921-b9a4-6517319d0f43
+const GUID PDIID_ID3D11Device_IDXGISwapChain = { 0x90de944a, 0xd1ee, 0x4921, { 0xb9, 0xa4, 0x65, 0x17, 0x31, 0x9d, 0x0f, 0x43 } };
+
 #pragma endregion

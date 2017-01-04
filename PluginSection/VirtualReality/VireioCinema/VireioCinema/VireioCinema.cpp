@@ -727,10 +727,10 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 ***/
 void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
-	// create d3d11 device/context
+	// create d3d11 device/context/swapchain
 	if ((!m_pcD3D11Device) || (!m_pcD3D11Context))
 	{
-		CreateD3D11Device();
+		CreateD3D11Device(true);
 	}
 
 	// init all stuff
@@ -1658,7 +1658,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 					for (UINT unEye = 0; unEye < 2; unEye++)
 					{
 						D3DLOCKED_RECT sLockedRect = {};
-						if (SUCCEEDED((*(m_ppcTex9Input[unEye]))->LockRect(0, &sLockedRect, NULL, D3DLOCK_DISCARD)))
+						if (SUCCEEDED((*(m_ppcTex9Input[unEye]))->LockRect(0, &sLockedRect, NULL, D3DLOCK_READONLY)))//D3DLOCK_DISCARD)))
 						{
 							pcContext->UpdateSubresource((ID3D11Resource*)m_pcTexCopy11[unEye], 0, NULL, sLockedRect.pBits, sLockedRect.Pitch, 0);
 							(*(m_ppcTex9Input[unEye]))->UnlockRect(0);
@@ -2056,7 +2056,7 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 /**
 * Creates a D3D11 device to be used in D3D9/D3D10 games.
 ***/
-HRESULT VireioCinema::CreateD3D11Device()
+HRESULT VireioCinema::CreateD3D11Device(bool bCreateSwapChain)
 {
 	// get factory / adapter
 	IDXGIFactory* pcDXGIFactory;
@@ -2069,9 +2069,55 @@ HRESULT VireioCinema::CreateD3D11Device()
 
 	// create the DX11 device
 	{
-		if (FAILED(unHR = D3D11CreateDevice(pcAdapter, pcAdapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
-			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcD3D11Device, NULL, &m_pcD3D11Context)))
-			return unHR;
+		if (bCreateSwapChain)
+		{
+			// get render target dimension if hmd node connected
+			UINT unWidth = 1024;
+			UINT unHeight = 1024;
+			if (m_punTexResolutionWidth)
+			if (*m_punTexResolutionWidth) unWidth = *m_punTexResolutionWidth;
+			if (m_punTexResolutionHeight)
+			if (*m_punTexResolutionHeight) unHeight = *m_punTexResolutionHeight;
+
+			// fill swap chain description
+			DXGI_SWAP_CHAIN_DESC sDesc = {};
+			ZeroMemory(&sDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+			sDesc.BufferCount = 1;
+			sDesc.BufferDesc.Width = unWidth;
+			sDesc.BufferDesc.Height = unHeight;
+			sDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sDesc.BufferDesc.RefreshRate.Numerator = 90;
+			sDesc.BufferDesc.RefreshRate.Denominator = 1;
+			sDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			sDesc.OutputWindow = GetForegroundWindow();
+			sDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+			sDesc.Windowed = true;
+			sDesc.SampleDesc.Count = 1;
+			sDesc.SampleDesc.Quality = 0;
+
+			sDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+			sDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+			// create with swapchain
+			IDXGISwapChain* pcSwapChain = nullptr;
+			unHR = D3D11CreateDeviceAndSwapChain(pcAdapter, pcAdapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE, NULL, 0,
+				NULL, 0, D3D11_SDK_VERSION, &sDesc, &pcSwapChain, &m_pcD3D11Device,
+				NULL, &m_pcD3D11Context);
+
+			if ((m_pcD3D11Device) && (pcSwapChain))
+			{
+				// set the swapchain as private data interface to the device
+				m_pcD3D11Device->SetPrivateDataInterface(PDIID_ID3D11Device_IDXGISwapChain, pcSwapChain);
+				pcSwapChain->Release();
+			}
+		}
+		else
+		{
+			// create without swapchain
+			if (FAILED(unHR = D3D11CreateDevice(pcAdapter, pcAdapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+				NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcD3D11Device, NULL, &m_pcD3D11Context)))
+				return unHR;
+		}
 
 		// Set max frame latency to 1
 		IDXGIDevice1* pcDXGIDevice1 = NULL;

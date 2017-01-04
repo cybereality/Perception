@@ -1333,6 +1333,12 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			vr::VRCompositor()->ForceInterleavedReprojectionOn(m_bForceInterleavedReprojection);
 		}
 
+		// is a swapchain connected to the device ? call present in case
+		IDXGISwapChain* pcSwapchain = nullptr;
+		UINT unSize = sizeof(pcSwapchain);
+		pcDevice->GetPrivateData(PDIID_ID3D11Device_IDXGISwapChain, &unSize, &pcSwapchain);
+		if (pcSwapchain) pcSwapchain->Present(0, 0);
+
 		// call post present handoff for better performance here
 		vr::VRCompositor()->PostPresentHandoff();
 	}

@@ -163,7 +163,7 @@ private:
 	void RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, D3DXVECTOR3 sScale = D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3 sTranslate = D3DXVECTOR3(), UINT32 unWidth = 1024, UINT32 unHeight = 1024);
 	// void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
-	HRESULT CreateD3D11Device();
+	HRESULT CreateD3D11Device(bool bCreateSwapChain);
 
 #pragma region VireioCinema D3D9/D3D10 private fields
 	/**
