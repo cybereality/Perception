@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVR-DirectMode", "..\Ren
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioCinema", "..\VirtualReality\VireioCinema\VireioCinema\VS2013\VireioCinema.vcxproj", "{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitter", "..\VireioCore\VireioStereoSplitter\VireioStereoSplitter\VS2013\VireioStereoSplitter.vcxproj", "{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -179,6 +181,18 @@ Global
 		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|Win32.Build.0 = Release|Win32
 		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|x64.ActiveCfg = Release|x64
 		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|x64.Build.0 = Release|x64
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Debug|Win32.Build.0 = Debug|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Debug|x64.ActiveCfg = Debug|x64
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Debug|x64.Build.0 = Debug|x64
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Release|Win32.ActiveCfg = Release|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Release|Win32.Build.0 = Release|Win32
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Release|x64.ActiveCfg = Release|x64
+		{C03D58AF-3F0E-44C1-A37E-BE0F2E352CB8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

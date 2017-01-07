@@ -1602,11 +1602,11 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	{
 		if (eSide == RenderPosition::Left)
 		{
-			nHr = pcDevice->SetRenderTarget(i, m_apcActiveRenderTargets[i]);
+			nHr = pcDevice->SetRenderTarget((DWORD)i, m_apcActiveRenderTargets[i]);
 		}
 		else
 		{
-			nHr = pcDevice->SetRenderTarget(i, m_apcActiveRenderTargets[i + D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT]);
+			nHr = pcDevice->SetRenderTarget((DWORD)i, m_apcActiveRenderTargets[i + D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT]);
 		}
 
 		if (nHr)
@@ -1663,10 +1663,10 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	{
 		if ((eSide == RenderPosition::Left) || (!(m_apcActiveTextures[i + D3D9_SIMULTANEAOUS_TEXTURE_COUNT])))
 		{
-			nHr = pcDevice->SetTexture(i, m_apcActiveTextures[i]);
+			nHr = pcDevice->SetTexture((DWORD)i, m_apcActiveTextures[i]);
 		}
 		else
-			nHr = pcDevice->SetTexture(i, m_apcActiveTextures[i + D3D9_SIMULTANEAOUS_TEXTURE_COUNT]);
+			nHr = pcDevice->SetTexture((DWORD)i, m_apcActiveTextures[i + D3D9_SIMULTANEAOUS_TEXTURE_COUNT]);
 
 		if (nHr)
 			OutputDebugString(L"[STS] Error trying to set one of the textures while switching between active eyes for drawing.\n");
