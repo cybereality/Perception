@@ -47,29 +47,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDIRECT3DDEVICE9                           8
 #define INTERFACE_IDIRECT3DSTATEBLOCK9                      13
 #define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
+#define METHOD_IDIRECT3DDEVICE9_RESET                       16
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
+#define METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER               18 
+#define METHOD_IDIRECT3DDEVICE9_CREATETEXTURE               23
+#define METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE         24
+#define METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE           25
+#define METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER          26
+#define METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER           27
+#define METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET          28
+#define METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE   29
+#define METHOD_IDIRECT3DDEVICE9_UPDATESURFACE               30 
+#define METHOD_IDIRECT3DDEVICE9_UPDATETEXTURE               31 
+#define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA         32
+#define METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA          33
+#define METHOD_IDIRECT3DDEVICE9_STRETCHRECT                 34 
+#define METHOD_IDIRECT3DDEVICE9_COLORFILL                   35 
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
+#define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET             38 
 #define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39
+#define METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE      40 
 #define METHOD_IDIRECT3DDEVICE9_BEGINSCENE                  41
 #define METHOD_IDIRECT3DDEVICE9_ENDSCENE                    42
 #define METHOD_IDIRECT3DDEVICE9_CLEAR                       43
+#define METHOD_IDIRECT3DDEVICE9_SETVIEWPORT                 47
+#define METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE              57
+#define METHOD_IDIRECT3DDEVICE9_GETTEXTURE                  64 
 #define METHOD_IDIRECT3DDEVICE9_SETTEXTURE                  65
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE               81
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE        82 
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP             83 
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP      84
-#define METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER               18 
-#define METHOD_IDIRECT3DDEVICE9_UPDATESURFACE               30 
-#define METHOD_IDIRECT3DDEVICE9_UPDATETEXTURE               31 
-#define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA         32
-#define METHOD_IDIRECT3DDEVICE9_STRETCHRECT                 34 
-#define METHOD_IDIRECT3DDEVICE9_COLORFILL                   35 
-#define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET             38 
-#define METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE      40 
-#define METHOD_IDIRECT3DDEVICE9_SETVIEWPORT                 47
-#define METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE              57
-#define METHOD_IDIRECT3DDEVICE9_GETTEXTURE                  64 
-#define METHOD_IDIRECT3DDEVICE9_RESET                       16
 #define METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH              115 
 #define METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH               116
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT                   3
@@ -83,11 +91,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 StereoSplitter::StereoSplitter() :AQU_Nodus(),
 m_apcActiveRenderTargets(D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT * 2, nullptr),
 m_apcActiveTextures(D3D9_SIMULTANEAOUS_TEXTURE_COUNT * 2, nullptr),
-m_punRenderTargetIndex(nullptr),
-m_ppcRenderTarget(nullptr),
-m_ppcNewZStencil(nullptr),
-m_punSampler(nullptr),
-m_ppcTexture(nullptr),
 m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
 m_hFont(nullptr),
@@ -95,11 +98,51 @@ m_unTextureNumber(0),
 m_unRenderTargetNumber(0),
 m_bPresent(false),
 m_bApply(true),
+m_punRenderTargetIndex(nullptr),
+m_ppcRenderTarget(nullptr),
+m_ppcNewZStencil(nullptr),
+m_punSampler(nullptr),
+m_ppcTexture(nullptr),
+m_ppSourceSurface(nullptr),
+m_ppcSourceRect(nullptr),
+m_ppcDestinationSurface(nullptr),
+m_ppsDestPoint(nullptr),
+m_ppcSourceTexture(nullptr),
+m_ppcDestinationTexture(nullptr),
+m_ppcSurface(nullptr),
+m_ppsRect(nullptr),
+m_punColor(nullptr),
+m_ppcSourceSurface_StretchRect(nullptr),
+m_ppcSourceRect_StretchRect(nullptr),
+m_ppcDestSurface_StretchRect(nullptr),
+m_ppcDestRect_StretchRect(nullptr),
+m_peFilter_StretchRect(nullptr),
+m_peDrawingSide(nullptr),
 m_ppasVSConstantRuleIndices(nullptr),
 m_ppasPSConstantRuleIndices(nullptr),
 m_peState(nullptr),
 m_punValue(nullptr),
-m_ppsViewport(nullptr)
+m_ppsViewport(nullptr),
+m_ppcRenderTargetGetData(nullptr),
+m_punISwapChain(nullptr),
+m_ppcDestSurface(nullptr),
+m_punWidth(nullptr),
+m_punHeight(nullptr),
+m_punEdgeLength(nullptr),
+m_punLevels(nullptr),
+m_punDepth(nullptr),
+m_punUsage(nullptr),
+m_peFormat(nullptr),
+m_peMultiSample(nullptr),
+m_punMultisampleQuality(nullptr),
+m_pnDiscard(nullptr),
+m_pnLockable(nullptr),
+m_pePool(nullptr),
+m_ppcTextureCreate(nullptr),
+m_ppcVolumeTexture(nullptr),
+m_ppcCubeTexture(nullptr),
+m_ppcSurfaceCreate(nullptr),
+m_ppvSharedHandle(nullptr)
 {
 	m_pcActiveDepthStencilSurface[0] = nullptr;
 	m_pcActiveDepthStencilSurface[1] = nullptr;
@@ -124,6 +167,8 @@ m_ppsViewport(nullptr)
 	// Vireio GUI is always null at begin... since in a compiled profile it is never used
 	m_pcVireioGUI = nullptr;
 
+	// use a D3D9Ex device ? only available by setting, false by constructor
+	m_bUseD3D9Ex = false;
 }
 
 /**
@@ -324,6 +369,46 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"Value";
 		case pViewport:
 			return L"pViewport";
+		case pRenderTargetGetData:
+			return L"pRenderTargetGetData";
+		case iSwapChain:
+			return L"iSwapChain";
+		case pDestSurface:
+			return L"pDestSurface";
+		case Width:
+			return L"Width";
+		case Height:
+			return L"Height";
+		case EdgeLength:
+			return L"EdgeLength";
+		case Levels:
+			return L"Levels";
+		case Depth:
+			return L"Depth";
+		case Usage:
+			return L"Usage";
+		case Format:
+			return L"Format";
+		case MultiSample:
+			return L"MultiSample";
+		case MultisampleQuality:
+			return L"MultisampleQuality";
+		case Discard:
+			return L"Discard";
+		case Lockable:
+			return L"Lockable";
+		case Pool:
+			return L"Pool";
+		case ppTexture:
+			return L"ppTexture";
+		case ppVolumeTexture:
+			return L"ppVolumeTexture";
+		case ppCubeTexture:
+			return L"ppCubeTexture";
+		case ppSurface:
+			return L"ppSurface";
+		case pSharedHandle:
+			return L"pSharedHandle";
 		default:
 			break;
 	}
@@ -396,8 +481,46 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_UINT;
 		case pViewport:
 			return NOD_Plugtype::AQU_PNT_D3DVIEWPORT9;
-		default:
-			break;
+		case pRenderTargetGetData:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
+		case iSwapChain:
+			return NOD_Plugtype::AQU_UINT;
+		case pDestSurface:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
+		case Width:
+			return NOD_Plugtype::AQU_UINT;
+		case Height:
+			return NOD_Plugtype::AQU_UINT;
+		case EdgeLength:
+			return NOD_Plugtype::AQU_UINT;
+		case Levels:
+			return NOD_Plugtype::AQU_UINT;
+		case Depth:
+			return NOD_Plugtype::AQU_UINT;
+		case Usage:
+			return NOD_Plugtype::AQU_UINT;
+		case Format:
+			return NOD_Plugtype::AQU_UINT;
+		case MultiSample:
+			return NOD_Plugtype::AQU_D3DMULTISAMPLE_TYPE;
+		case MultisampleQuality:
+			return NOD_Plugtype::AQU_UINT;
+		case Discard:
+			return NOD_Plugtype::AQU_BOOL;
+		case Lockable:
+			return NOD_Plugtype::AQU_BOOL;
+		case Pool:
+			return NOD_Plugtype::AQU_D3DPOOL;
+		case ppTexture:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
+		case ppVolumeTexture:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DVOLUMETEXTURE9;
+		case ppCubeTexture:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DCUBETEXTURE9;
+		case ppSurface:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
+		case pSharedHandle:
+			return NOD_Plugtype::AQU_PNT_HANDLE;
 	}
 
 	return 0;
@@ -501,6 +624,66 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pViewport:
 			m_ppsViewport = (D3DVIEWPORT9**)pData;
 			break;
+		case pRenderTargetGetData:
+			m_ppcRenderTargetGetData = (IDirect3DSurface9**)pData; /**< ->GetRenderTargetData() */
+			break;
+		case iSwapChain:
+			m_punISwapChain = (UINT*)pData;                        /**< ->GetFrontBufferData() */
+			break;
+		case pDestSurface:
+			m_ppcDestSurface = (IDirect3DSurface9**)pData;         /**< ->GetRenderTargetData() + GetFrontBufferData() */
+			break;
+		case Width:
+			m_punWidth = (UINT*)pData;                             /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+			break;
+		case Height:
+			m_punHeight = (UINT*)pData;                            /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+			break;
+		case EdgeLength:
+			m_punEdgeLength = (UINT*)pData;                        /**< ->CreateCubeTexture() **/
+			break;
+		case Levels:
+			m_punLevels = (UINT*)pData;                            /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
+			break;
+		case Depth:
+			m_punDepth = (UINT*)pData;                             /**< ->CreateVolumeTexture() **/
+			break;
+		case Usage:
+			m_punUsage = (DWORD*)pData;                            /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
+			break;
+		case Format:
+			m_peFormat = (D3DFORMAT*)pData;                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+			break;
+		case MultiSample:
+			m_peMultiSample = (D3DMULTISAMPLE_TYPE*)pData;         /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
+			break;
+		case MultisampleQuality:
+			m_punMultisampleQuality = (DWORD*)pData;               /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
+			break;
+		case Discard:
+			m_pnDiscard = (BOOL*)pData;                            /**< ->CreateDepthStencilSurface() **/
+			break;
+		case Lockable:
+			m_pnLockable = (BOOL*)pData;                           /**< ->CreateRenderTarget() **/
+			break;
+		case Pool:
+			m_pePool = (D3DPOOL*)pData;                            /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface() **/
+			break;
+		case ppTexture:
+			m_ppcTextureCreate = (IDirect3DTexture9**)pData;       /**< ->CreateTexture() **/
+			break;
+		case ppVolumeTexture:
+			m_ppcVolumeTexture = (IDirect3DVolumeTexture9**)pData; /**< ->CreateVolumeTexture() **/
+			break;
+		case ppCubeTexture:
+			m_ppcCubeTexture = (IDirect3DCubeTexture9**)pData;     /**< ->CreateCubeTexture() **/
+			break;
+		case ppSurface:
+			m_ppcSurfaceCreate = (IDirect3DSurface9**)pData;       /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+			break;
+		case pSharedHandle:
+			m_ppvSharedHandle = (HANDLE**)pData;
+			break;
 		default:
 			break;
 	}
@@ -528,7 +711,6 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_UPDATESURFACE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_UPDATETEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_STRETCHRECT) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_COLORFILL) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET) ||
@@ -540,7 +722,16 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVIEWPORT))
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVIEWPORT) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATETEXTURE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
@@ -914,12 +1105,12 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 												   return nullptr;
 #pragma endregion 
-#pragma region GetRenderTargetData
-											   case METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
-												   // ensure left drawing side here
-												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
-												   return nullptr;
-#pragma endregion
+												   //#pragma region GetRenderTargetData
+												   //											   case METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
+												   //												   // ensure left drawing side here
+												   //												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   //												   return nullptr;
+												   //#pragma endregion
 #pragma region GetDepthStencilSurface
 											   case METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE:
 												   // ensure left drawing side here
@@ -1002,6 +1193,159 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (m_ppsViewport)
 												   {
 													   nHr = SetViewport((IDirect3DDevice9*)pThis, *m_ppsViewport);
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateTexture
+											   case METHOD_IDIRECT3DDEVICE9_CREATETEXTURE:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (!m_punWidth) return nullptr;
+												   if (!m_punHeight) return nullptr;
+												   if (!m_punLevels) return nullptr;
+												   if (!m_punUsage) return nullptr;
+												   if (!m_peFormat) return nullptr;
+												   if (!m_pePool) return nullptr;
+												   if (!m_ppcTextureCreate) return nullptr;
+												   if (!m_ppvSharedHandle) return nullptr;
+												   if (m_bUseD3D9Ex)
+												   {
+													   IDirect3DTexture9* pLeftTexture = NULL;
+													   IDirect3DTexture9* pRightTexture = NULL;
+
+													   D3DPOOL newPool = *m_pePool;
+
+													   HRESULT hr = S_OK;
+													   IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+														   Pool == D3DPOOL_MANAGED)
+													   {
+														   newPool = D3DPOOL_DEFAULT;
+														   pDirect3DDevice9Ex->Release();
+													   }
+
+													   // try and create left
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pLeftTexture, *m_ppvSharedHandle)))
+													   {
+														   // Does this Texture need duplicating?
+														   if (ShouldDuplicateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool))
+														   {
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pRightTexture, *m_ppvSharedHandle)))
+															   {
+																   OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+																   pRightTexture = NULL;
+															   }
+														   }
+													   }
+													   else
+													   {
+														   OutputDebugString(L"[STS] Failed to create texture\n");
+													   }
+
+													   if (SUCCEEDED(nHr))
+													   {
+														   *m_ppcTextureCreate = new IDirect3DStereoTexture9(pLeftTexture, pRightTexture, ((IDirect3DDevice9*)pThis));
+													   }
+
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateVolumeTexture
+											   case  METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateCubeTexture
+											   case  METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateVertexBuffer
+											   case  METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateIndexBuffer
+											   case  METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateRenderTarget
+											   case  METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateDepthStencilSurface
+											   case  METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region GetRendertargetData
+											   case  METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region GetFrontBufferData
+											   case METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA:
+												   return nullptr; // NOT_IMPLEMENTED
+												   if (m_bUseD3D9Ex)
+												   {
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;

@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_GUI.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
+#include"VireioStereoSplitter_Proxy.h"
 #pragma endregion
 
 #pragma region defines
@@ -86,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_SPINSIZE                         980
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        25
+#define NUMBER_OF_DECOMMANDERS                        45
 
 #define DUPLICATE_RENDERTARGET_POS_X                  16
 #define DUPLICATE_RENDERTARGET_POS_Y                  64
@@ -152,6 +153,26 @@ enum STS_Decommanders
 	State,                        /**< ->SetRenderState() State ***/
 	Value,                        /**< ->SetRenderState() Value ***/
 	pViewport,                    /**< ->SetViewport() Viewport ***/
+	pRenderTargetGetData,         /**< ->GetRenderTargetData() */
+	iSwapChain,                   /**< ->GetFrontBufferData() */
+	pDestSurface,                 /**< ->GetRenderTargetData() + GetFrontBufferData() */
+	Width,                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	Height,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	EdgeLength,                   /**< ->CreateCubeTexture() **/
+	Levels,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
+	Depth,                        /**< ->CreateVolumeTexture() **/
+	Usage,                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
+	Format,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	MultiSample,                  /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
+	MultisampleQuality,           /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
+	Discard,                      /**< ->CreateDepthStencilSurface() **/
+	Lockable,                     /**< ->CreateRenderTarget() **/
+	Pool,                         /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface() **/
+	ppTexture,                    /**< ->CreateTexture() **/
+	ppVolumeTexture,              /**< ->CreateVolumeTexture() **/
+	ppCubeTexture,                /**< ->CreateCubeTexture() **/
+	ppSurface,                    /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	pSharedHandle,                /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 };
 
 /**
@@ -324,32 +345,52 @@ private:
 	/**
 	* Input pointers.
 	***/
-	DWORD*                  m_punRenderTargetIndex;                            /**< ->SetRenderTarget() render target index ***/
-	IDirect3DSurface9**     m_ppcRenderTarget;                                 /**< ->SetRenderTarget() render target ***/
-	IDirect3DSurface9**     m_ppcNewZStencil;                                  /**< ->SetDepthStencilSurface() stencil surface ***/
-	DWORD*                  m_punSampler;                                      /**< ->SetTexture() sampler index **/
-	IDirect3DTexture9**     m_ppcTexture;                                      /**< ->SetTexture() texture pointer ***/
-	IDirect3DSurface9**     m_ppSourceSurface;                                 /**< ->UpdateSurface() source surface ***/
-	RECT**                  m_ppcSourceRect;                                   /**< ->UpdateSurface() source rectangle ***/
-	IDirect3DSurface9**     m_ppcDestinationSurface;                           /**< ->UpdateSurface() destination surface ***/
-	POINT**                 m_ppsDestPoint;                                    /**< ->UpdateSurface() destination point ***/
-	IDirect3DBaseTexture9** m_ppcSourceTexture;                                /**< ->UpdateTexture() source texture ***/
-	IDirect3DBaseTexture9** m_ppcDestinationTexture;                           /**< ->UpdateTexture() destination texture ***/
-	IDirect3DSurface9**     m_ppcSurface;                                      /**< ->ColorFill() surface pointer ***/
-	RECT**                  m_ppsRect;                                         /**< ->ColorFill() destination rectangle ***/
-	D3DCOLOR*               m_punColor;                                        /**< ->ColorFill() destination color ***/
-	IDirect3DSurface9**     m_ppcSourceSurface_StretchRect;                    /**< ->StretchRect() source surface ***/
-	RECT**                  m_ppcSourceRect_StretchRect;                       /**< ->StretchRect() source rectangle ***/
-	IDirect3DSurface9**     m_ppcDestSurface_StretchRect;                      /**< ->StretchRect() destination surface ***/
-	RECT**                  m_ppcDestRect_StretchRect;                         /**< ->StretchRect() destination rectangle ***/
-	D3DTEXTUREFILTERTYPE*   m_peFilter_StretchRect;                            /**< ->StretchRect() filter ***/
-	RenderPosition*         m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
-	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices; /**< Pointer to the constant rule indices for the current vertex shader ***/
-	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices; /**< Pointer to the constant rule indices for the current pixel shader ***/
-	D3DRENDERSTATETYPE*     m_peState;                                         /**< ->SetRenderState() State ***/
-	DWORD*                  m_punValue;                                        /**< ->SetRenderState() Value ***/
-	D3DVIEWPORT9**          m_ppsViewport;                                     /**< ->SetViewport() Viewport ***/
-
+	DWORD*                                        m_punRenderTargetIndex;                            /**< ->SetRenderTarget() render target index ***/
+	IDirect3DSurface9**                           m_ppcRenderTarget;                                 /**< ->SetRenderTarget() render target ***/
+	IDirect3DSurface9**                           m_ppcNewZStencil;                                  /**< ->SetDepthStencilSurface() stencil surface ***/
+	DWORD*                                        m_punSampler;                                      /**< ->SetTexture() sampler index **/
+	IDirect3DTexture9**                           m_ppcTexture;                                      /**< ->SetTexture() texture pointer ***/
+	IDirect3DSurface9**                           m_ppSourceSurface;                                 /**< ->UpdateSurface() source surface ***/
+	RECT**                                        m_ppcSourceRect;                                   /**< ->UpdateSurface() source rectangle ***/
+	IDirect3DSurface9**                           m_ppcDestinationSurface;                           /**< ->UpdateSurface() destination surface ***/
+	POINT**                                       m_ppsDestPoint;                                    /**< ->UpdateSurface() destination point ***/
+	IDirect3DBaseTexture9**                       m_ppcSourceTexture;                                /**< ->UpdateTexture() source texture ***/
+	IDirect3DBaseTexture9**                       m_ppcDestinationTexture;                           /**< ->UpdateTexture() destination texture ***/
+	IDirect3DSurface9**                           m_ppcSurface;                                      /**< ->ColorFill() surface pointer ***/
+	RECT**                                        m_ppsRect;                                         /**< ->ColorFill() destination rectangle ***/
+	D3DCOLOR*                                     m_punColor;                                        /**< ->ColorFill() destination color ***/
+	IDirect3DSurface9**                           m_ppcSourceSurface_StretchRect;                    /**< ->StretchRect() source surface ***/
+	RECT**                                        m_ppcSourceRect_StretchRect;                       /**< ->StretchRect() source rectangle ***/
+	IDirect3DSurface9**                           m_ppcDestSurface_StretchRect;                      /**< ->StretchRect() destination surface ***/
+	RECT**                                        m_ppcDestRect_StretchRect;                         /**< ->StretchRect() destination rectangle ***/
+	D3DTEXTUREFILTERTYPE*                         m_peFilter_StretchRect;                            /**< ->StretchRect() filter ***/
+	RenderPosition*                               m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current vertex shader ***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current pixel shader ***/
+	D3DRENDERSTATETYPE*                           m_peState;                                         /**< ->SetRenderState() State ***/
+	DWORD*                                        m_punValue;                                        /**< ->SetRenderState() Value ***/
+	D3DVIEWPORT9**                                m_ppsViewport;                                     /**< ->SetViewport() Viewport ***/
+	IDirect3DSurface9**                           m_ppcRenderTargetGetData;                          /**< ->GetRenderTargetData() */
+	UINT*                                         m_punISwapChain;                                   /**< ->GetFrontBufferData() */
+	IDirect3DSurface9**                           m_ppcDestSurface;                                  /**< ->GetRenderTargetData() + GetFrontBufferData() */
+	UINT*                                         m_punWidth;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	UINT*                                         m_punHeight;                                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	UINT*                                         m_punEdgeLength;                                   /**< ->CreateCubeTexture() **/
+	UINT*                                         m_punLevels;                                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
+	UINT*                                         m_punDepth;                                        /**< ->CreateVolumeTexture() **/
+	DWORD*                                        m_punUsage;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
+	D3DFORMAT*                                    m_peFormat;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	D3DMULTISAMPLE_TYPE*                          m_peMultiSample;                                   /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
+	DWORD*                                        m_punMultisampleQuality;                           /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
+	BOOL*                                         m_pnDiscard;                                       /**< ->CreateDepthStencilSurface() **/
+	BOOL*                                         m_pnLockable;                                      /**< ->CreateRenderTarget() **/
+	D3DPOOL*                                      m_pePool;                                          /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface() **/
+	IDirect3DTexture9**                           m_ppcTextureCreate;                                /**< ->CreateTexture() **/
+	IDirect3DVolumeTexture9**                     m_ppcVolumeTexture;                                /**< ->CreateVolumeTexture() **/
+	IDirect3DCubeTexture9**                       m_ppcCubeTexture;                                  /**< ->CreateCubeTexture() **/
+	IDirect3DSurface9**                           m_ppcSurfaceCreate;                                /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	HANDLE**                                      m_ppvSharedHandle;                                 /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+		
 	/**
 	* Active stored render target views.
 	* The render targets that are currently in use.
@@ -472,6 +513,10 @@ private:
 	* Data buffer to save this node.
 	***/
 	char m_acData[MAX_DATA_SIZE];
+	/**
+	* True if the Splitter used a D3D9Ex device.
+	***/
+	bool m_bUseD3D9Ex;
 };
 
 /**

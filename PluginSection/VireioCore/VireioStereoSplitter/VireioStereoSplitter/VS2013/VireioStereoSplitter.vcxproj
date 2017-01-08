@@ -183,6 +183,7 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioStereoSplitter.h" />
     <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\VireioStereoSplitter_Proxy.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
