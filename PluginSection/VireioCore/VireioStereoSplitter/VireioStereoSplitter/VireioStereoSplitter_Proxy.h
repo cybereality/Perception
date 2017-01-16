@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma region defines/types
 #define IF_GUID(riid,a,b,c,d,e,f,g) if ((riid.Data1==a)&&(riid.Data2==b)&&(riid.Data3==c)&&(riid.Data4[0]==d)&&(riid.Data4[1]==e)&&(riid.Data4[2]==f)&&(riid.Data4[3]==g))
-#define SHOW_CALL(name) // CallLogger call(name)
+#define SHOW_CALL(name) // OutputDebugStringA(name) // CallLogger call(name)
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 inline void _assert(const char* expression, const char* file, int line)
 {
@@ -68,6 +68,11 @@ struct hash_CubeSurfaceKey
 		return std::hash<int>()(cubeSurfaceKey.first) ^ std::hash<UINT>()(cubeSurfaceKey.second);
 	}
 };
+
+/**
+* Must be set to TRUE whenever the device is in use.
+***/
+static bool s_bDeviceInUseByProxy = false;
 #pragma endregion
 
 /**
@@ -96,6 +101,8 @@ public:
 		SHOW_CALL("D3D9ProxySurface::D3D9ProxySurface()");
 
 		assert(pcOwningDevice != NULL);
+
+		if (!pcActualSurfaceLeft) OutputDebugString(L"[STS] Trying to create zero left actual surface.");
 
 		if (!pcWrappedContainer)
 			pcOwningDevice->AddRef();
@@ -129,6 +136,8 @@ public:
 	***/
 	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
+		SHOW_CALL("D3D9ProxySurface::QueryInterface()");
+
 		return m_pcActualSurface->QueryInterface(riid, ppv);
 	}
 
@@ -355,8 +364,11 @@ public:
 		bool createdTexture = false;
 		if (!lockableSysMemTexture)
 		{
+			// set the static device bool when using it
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->CreateTexture(desc.Width, desc.Height, 1, 0,
 				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture, NULL);
+			s_bDeviceInUseByProxy = false;
 
 			if (FAILED(hr))
 				return hr;
@@ -396,7 +408,6 @@ public:
 	HRESULT WINAPI UnlockRect()
 	{
 		SHOW_CALL("D3D9ProxySurface::UnlockRect");
-
 		D3DSURFACE_DESC desc;
 		m_pcActualSurface->GetDesc(&desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
@@ -417,12 +428,15 @@ public:
 			return hr;
 
 		hr = pSurface->UnlockRect();
+		OutputDebugString(L"Update UnlockRect");
 
 		if (IsStereo())
 		{
 			if (fullSurface)
 			{
+				s_bDeviceInUseByProxy = true;
 				hr = m_pcOwningDevice->UpdateSurface(pSurface, NULL, m_pcActualSurfaceRight, NULL);
+				s_bDeviceInUseByProxy = false;
 				if (FAILED(hr))
 					WriteDesc(desc);
 			}
@@ -434,7 +448,9 @@ public:
 					POINT p;
 					p.x = rectIter->left;
 					p.y = rectIter->top;
+					s_bDeviceInUseByProxy = true;
 					hr = m_pcOwningDevice->UpdateSurface(pSurface, &(*rectIter), m_pcActualSurfaceRight, &p);
+					s_bDeviceInUseByProxy = false;
 					if (FAILED(hr))
 						WriteDesc(desc);
 					rectIter++;
@@ -444,7 +460,9 @@ public:
 
 		if (fullSurface)
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->UpdateSurface(pSurface, NULL, m_pcActualSurface, NULL);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 				WriteDesc(desc);
 		}
@@ -456,7 +474,9 @@ public:
 				POINT p;
 				p.x = rectIter->left;
 				p.y = rectIter->top;
+				s_bDeviceInUseByProxy = true;
 				hr = m_pcOwningDevice->UpdateSurface(pSurface, &(*rectIter), m_pcActualSurface, &p);
+				s_bDeviceInUseByProxy = false;
 				if (FAILED(hr))
 					WriteDesc(desc);
 				rectIter++;
@@ -466,6 +486,7 @@ public:
 		pSurface->Release();
 
 		fullSurface = false;
+		OutputDebugString(L"return UnlockRect");
 		return hr;
 	}
 
@@ -868,7 +889,6 @@ public:
 				assert(leftResult == resultRight);
 			}
 
-
 			if (SUCCEEDED(leftResult))
 			{
 
@@ -942,8 +962,10 @@ public:
 		HRESULT hr = D3DERR_INVALIDCALL;
 		if (!lockableSysMemTexture[Level])
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->CreateTexture(desc.Width, desc.Height, 1, 0,
 				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture[Level], NULL);
+			s_bDeviceInUseByProxy = false;
 			newTexture = true;
 
 			if (FAILED(hr))
@@ -951,8 +973,10 @@ public:
 				//DXT textures can't be less than 4 pixels in either width or height
 				if (desc.Width < 4) desc.Width = 4;
 				if (desc.Height < 4) desc.Height = 4;
+				s_bDeviceInUseByProxy = true;
 				hr = m_pcOwningDevice->CreateTexture(desc.Width, desc.Height, 1, 0,
 					desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture[Level], NULL);
+				s_bDeviceInUseByProxy = false;
 				newTexture = true;
 				if (FAILED(hr))
 				{
@@ -1053,7 +1077,9 @@ public:
 
 			if (fullSurfaces[Level])
 			{
+				s_bDeviceInUseByProxy = true;
 				hr = m_pcOwningDevice->UpdateSurface(pSurface, NULL, pActualSurfaceRight, NULL);
+				s_bDeviceInUseByProxy = false;
 				if (FAILED(hr))
 				{
 #ifdef _DEBUG
@@ -1072,7 +1098,9 @@ public:
 					POINT p;
 					p.x = rectIter->left;
 					p.y = rectIter->top;
+					s_bDeviceInUseByProxy = true;
 					hr = m_pcOwningDevice->UpdateSurface(pSurface, &(*rectIter), pActualSurfaceRight, &p);
+					s_bDeviceInUseByProxy = false;
 					if (FAILED(hr))
 					{
 #ifdef _DEBUG
@@ -1095,7 +1123,9 @@ public:
 			return hr;
 		if (fullSurfaces[Level])
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->UpdateSurface(pSurface, NULL, pActualSurface, NULL);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 			{
 #ifdef _DEBUG
@@ -1115,7 +1145,9 @@ public:
 				POINT p;
 				p.x = rectIter->left;
 				p.y = rectIter->top;
+				s_bDeviceInUseByProxy = true;
 				hr = m_pcOwningDevice->UpdateSurface(pSurface, &(*rectIter), pActualSurface, &p);
+				s_bDeviceInUseByProxy = false;
 				if (FAILED(hr))
 				{
 #ifdef _DEBUG
@@ -1205,17 +1237,18 @@ protected:
 */
 class IDirect3DStereoCubeTexture9 : public IDirect3DCubeTexture9
 {
+public:
 	/**
 	* Constructor.
 	* @param pcActualTexture Imbed actual texture.
 	***/
 	IDirect3DStereoCubeTexture9(IDirect3DCubeTexture9* pcActualTextureLeft, IDirect3DCubeTexture9* pcActualTextureRight, IDirect3DDevice9* pcOwningDevice) :
-	m_pcActualTexture(pcActualTextureLeft),
-	m_unRefCount(1),
-	m_pcActualTextureRight(pcActualTextureRight),
-	m_aaWrappedSurfaceLevels(),
-	m_pcOwningDevice(pcOwningDevice),
-	lockableSysMemTexture(NULL)
+		m_pcActualTexture(pcActualTextureLeft),
+		m_unRefCount(1),
+		m_pcActualTextureRight(pcActualTextureRight),
+		m_aaWrappedSurfaceLevels(),
+		m_pcOwningDevice(pcOwningDevice),
+		lockableSysMemTexture(NULL)
 	{
 		SHOW_CALL("D3D9ProxyCubeTexture()");
 		assert(pcOwningDevice != NULL);
@@ -1534,9 +1567,11 @@ class IDirect3DStereoCubeTexture9 : public IDirect3DCubeTexture9
 		HRESULT hr = D3DERR_INVALIDCALL;
 		if (!lockableSysMemTexture)
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->CreateCubeTexture(desc.Width,
 				m_pcActualTexture->GetLevelCount(), 0,
 				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture, NULL);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->getActual()->CreateCubeTexture hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1612,12 +1647,16 @@ class IDirect3DStereoCubeTexture9 : public IDirect3DCubeTexture9
 
 		if (IsStereo())
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->UpdateTexture(lockableSysMemTexture, m_pcActualTextureRight);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 				return hr;
 		}
 
+		s_bDeviceInUseByProxy = true;
 		hr = m_pcOwningDevice->UpdateTexture(lockableSysMemTexture, m_pcActualTexture);
+		s_bDeviceInUseByProxy = false;
 		if (FAILED(hr))
 			return hr;
 

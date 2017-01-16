@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA          33
 #define METHOD_IDIRECT3DDEVICE9_STRETCHRECT                 34 
 #define METHOD_IDIRECT3DDEVICE9_COLORFILL                   35 
+#define METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE 36
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
 #define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET             38 
 #define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39
@@ -138,10 +139,10 @@ m_punMultisampleQuality(nullptr),
 m_pnDiscard(nullptr),
 m_pnLockable(nullptr),
 m_pePool(nullptr),
-m_ppcTextureCreate(nullptr),
-m_ppcVolumeTexture(nullptr),
-m_ppcCubeTexture(nullptr),
-m_ppcSurfaceCreate(nullptr),
+m_pppcTextureCreate(nullptr),
+m_pppcVolumeTexture(nullptr),
+m_pppcCubeTexture(nullptr),
+m_pppcSurfaceCreate(nullptr),
 m_ppvSharedHandle(nullptr)
 {
 	m_pcActiveDepthStencilSurface[0] = nullptr;
@@ -169,6 +170,10 @@ m_ppvSharedHandle(nullptr)
 
 	// use a D3D9Ex device ? only available by setting, false by constructor
 	m_bUseD3D9Ex = false;
+
+	// init d3d9ex specific vectors
+	m_aapcActiveProxyBackBufferSurfaces = std::vector<std::vector<IDirect3DStereoSurface9*>>();
+	m_apcActiveSwapChains = std::vector<IDirect3DSwapChain9*>();
 }
 
 /**
@@ -319,16 +324,22 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 {
 	switch ((STS_Decommanders)unDecommanderIndex)
 	{
-		case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
+		case RenderTargetIndex:
 			return L"RenderTargetIndex";
-		case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
+		case pRenderTarget:
 			return L"pRenderTarget";
-		case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
+		case ppRenderTarget:
+			return L"ppRenderTarget";
+		case pNewZStencil:
 			return L"pNewZStencil";
-		case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+		case ppZStencilSurface:
+			return L"ppZStencilSurface";
+		case Sampler:
 			return L"Sampler";
-		case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
+		case pTexture:
 			return L"pTexture";
+		case ppTextureGet:
+			return L"ppTexture_Get";
 		case pSourceSurface:
 			return L"pSourceSurface";
 		case pSourceRect:
@@ -357,12 +368,6 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"pDestRect_StretchRect";
 		case Filter_StretchRect:
 			return L"Filter_StretchRect";
-		case peDrawingSide:
-			return L"peDrawingSide";
-		case pasVShaderConstantIndices:
-			return L"pasVShaderConstantIndices";
-		case pasPShaderConstantIndices:
-			return L"pasPShaderConstantIndices";
 		case State:
 			return L"State";
 		case Value:
@@ -375,6 +380,12 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"iSwapChain";
 		case pDestSurface:
 			return L"pDestSurface";
+		case iBackBuffer:
+			return L"iBackBuffer";
+		case Type:
+			return L"Type";
+		case ppBackBuffer:
+			return L"ppBackBuffer";
 		case Width:
 			return L"Width";
 		case Height:
@@ -409,8 +420,12 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"ppSurface";
 		case pSharedHandle:
 			return L"pSharedHandle";
-		default:
-			break;
+		case peDrawingSide:
+			return L"peDrawingSide";
+		case pasVShaderConstantIndices:
+			return L"pasVShaderConstantIndices";
+		case pasPShaderConstantIndices:
+			return L"pasPShaderConstantIndices";
 	}
 
 	return L"";
@@ -435,12 +450,18 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_UINT;
 		case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
+		case ppRenderTarget:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DSURFACE9;
 		case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
-		case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+		case ppZStencilSurface:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DSURFACE9;
+		case STS_Decommanders::Sampler:                       /**< ->SetTexture(), GetTexture() sampler index **/
 			return NOD_Plugtype::AQU_UINT;
 		case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DBASETEXTURE9;
+		case STS_Decommanders::ppTextureGet:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DBASETEXTURE9;
 		case pSourceSurface:
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
 		case pSourceRect:
@@ -469,12 +490,6 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_RECT;
 		case Filter_StretchRect:
 			return NOD_Plugtype::AQU_D3DTEXTUREFILTERTYPE;
-		case peDrawingSide:
-			return NOD_Plugtype::AQU_INT;
-		case pasVShaderConstantIndices:
-			return NOD_Plugtype::AQU_VOID;
-		case pasPShaderConstantIndices:
-			return NOD_Plugtype::AQU_VOID;
 		case State:
 			return NOD_Plugtype::AQU_D3DRENDERSTATETYPE;
 		case Value:
@@ -487,6 +502,12 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_UINT;
 		case pDestSurface:
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
+		case iBackBuffer:
+			return NOD_Plugtype::AQU_UINT;
+		case Type:
+			return NOD_Plugtype::AQU_D3DBACKBUFFER_TYPE;
+		case ppBackBuffer:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DSURFACE9;
 		case Width:
 			return NOD_Plugtype::AQU_UINT;
 		case Height:
@@ -500,7 +521,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case Usage:
 			return NOD_Plugtype::AQU_UINT;
 		case Format:
-			return NOD_Plugtype::AQU_UINT;
+			return NOD_Plugtype::AQU_D3DFORMAT;
 		case MultiSample:
 			return NOD_Plugtype::AQU_D3DMULTISAMPLE_TYPE;
 		case MultisampleQuality:
@@ -512,15 +533,21 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case Pool:
 			return NOD_Plugtype::AQU_D3DPOOL;
 		case ppTexture:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DTEXTURE9;
 		case ppVolumeTexture:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DVOLUMETEXTURE9;
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVOLUMETEXTURE9;
 		case ppCubeTexture:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DCUBETEXTURE9;
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DCUBETEXTURE9;
 		case ppSurface:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DSURFACE9;
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DSURFACE9;
 		case pSharedHandle:
 			return NOD_Plugtype::AQU_PNT_HANDLE;
+		case peDrawingSide:
+			return NOD_Plugtype::AQU_INT;
+		case pasVShaderConstantIndices:
+			return NOD_Plugtype::AQU_VOID;
+		case pasPShaderConstantIndices:
+			return NOD_Plugtype::AQU_VOID;
 	}
 
 	return 0;
@@ -549,20 +576,29 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 {
 	switch ((STS_Decommanders)unDecommanderIndex)
 	{
-		case STS_Decommanders::RenderTargetIndex:                        /**< ->SetRenderTarget() render target index ***/
+		case STS_Decommanders::RenderTargetIndex:                        /**< ->SetRenderTarget(), GetRenderTarget() render target index ***/
 			m_punRenderTargetIndex = (DWORD*)pData;
 			break;
 		case STS_Decommanders::pRenderTarget:                            /**< ->SetRenderTarget() render target ***/
 			m_ppcRenderTarget = (IDirect3DSurface9**)pData;
 			break;
+		case ppRenderTarget:                                             /**< ->GetRenderTarget() render target ***/
+			m_pppcRenderTarget = (IDirect3DSurface9***)pData;
+			break;
 		case STS_Decommanders::pNewZStencil:                             /**< ->SetDepthStencilSurface() stencil surface ***/
 			m_ppcNewZStencil = (IDirect3DSurface9**)pData;
+			break;
+		case ppZStencilSurface:
+			m_pppcZStencilSurface = (IDirect3DSurface9***)pData;
 			break;
 		case STS_Decommanders::Sampler:                                  /**< ->SetTexture() sampler index **/
 			m_punSampler = (DWORD*)pData;
 			break;
 		case STS_Decommanders::pTexture:                                 /**< ->SetTexture() texture pointer ***/
-			m_ppcTexture = (IDirect3DTexture9**)pData;
+			m_ppcTexture = (IDirect3DBaseTexture9**)pData;
+			break;
+		case STS_Decommanders::ppTextureGet:
+			m_pppcTexture = (IDirect3DBaseTexture9***)pData;
 			break;
 		case pSourceSurface:
 			m_ppSourceSurface = (IDirect3DSurface9**)pData;              /**< ->UpdateSurface() source surface ***/
@@ -606,15 +642,6 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case Filter_StretchRect:
 			m_peFilter_StretchRect = (D3DTEXTUREFILTERTYPE*)pData;       /**< ->StretchRect() filter ***/
 			break;
-		case peDrawingSide:
-			m_peDrawingSide = (RenderPosition*)pData;
-			break;
-		case pasVShaderConstantIndices:
-			m_ppasVSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
-			break;
-		case pasPShaderConstantIndices:
-			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
-			break;
 		case State:
 			m_peState = (D3DRENDERSTATETYPE*)pData;
 			break;
@@ -632,6 +659,15 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			break;
 		case pDestSurface:
 			m_ppcDestSurface = (IDirect3DSurface9**)pData;         /**< ->GetRenderTargetData() + GetFrontBufferData() */
+			break;
+		case iBackBuffer:
+			m_punIBackBuffer = (UINT*)pData;
+			break;
+		case Type:
+			m_peType = (D3DBACKBUFFER_TYPE*)pData;
+			break;
+		case ppBackBuffer:
+			m_pppcBackBuffer = (IDirect3DSurface9***)pData;
 			break;
 		case Width:
 			m_punWidth = (UINT*)pData;                             /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
@@ -670,21 +706,28 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_pePool = (D3DPOOL*)pData;                            /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface() **/
 			break;
 		case ppTexture:
-			m_ppcTextureCreate = (IDirect3DTexture9**)pData;       /**< ->CreateTexture() **/
+			m_pppcTextureCreate = (IDirect3DTexture9***)pData;       /**< ->CreateTexture() **/
 			break;
 		case ppVolumeTexture:
-			m_ppcVolumeTexture = (IDirect3DVolumeTexture9**)pData; /**< ->CreateVolumeTexture() **/
+			m_pppcVolumeTexture = (IDirect3DVolumeTexture9***)pData; /**< ->CreateVolumeTexture() **/
 			break;
 		case ppCubeTexture:
-			m_ppcCubeTexture = (IDirect3DCubeTexture9**)pData;     /**< ->CreateCubeTexture() **/
+			m_pppcCubeTexture = (IDirect3DCubeTexture9***)pData;     /**< ->CreateCubeTexture() **/
 			break;
 		case ppSurface:
-			m_ppcSurfaceCreate = (IDirect3DSurface9**)pData;       /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+			m_pppcSurfaceCreate = (IDirect3DSurface9***)pData;       /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 			break;
 		case pSharedHandle:
 			m_ppvSharedHandle = (HANDLE**)pData;
 			break;
-		default:
+		case peDrawingSide:
+			m_peDrawingSide = (RenderPosition*)pData;
+			break;
+		case pasVShaderConstantIndices:
+			m_ppasVSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
+			break;
+		case pasPShaderConstantIndices:
+			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
 	}
 }
@@ -731,7 +774,8 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA))
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
@@ -753,15 +797,21 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex)
 {
+	// instantly return if the device is in use by a proxy class;
+	if (s_bDeviceInUseByProxy) return nullptr;
 
+// #define _DEBUG_STEREO_SPLITTER
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
 	static HRESULT nHr = S_OK;
 
-	if (m_bPresent)
-		nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
+	// return nullptr;
+	m_bUseD3D9Ex = true; // TODO !! DELETE !!
+
+	// if (m_bPresent)
+	//	nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag; // TODO !!
 
 	switch (eD3DInterface)
 	{
@@ -791,10 +841,72 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion 
 #pragma region SetRenderTarget
 											   case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
-												   if (m_bPresent)
+												   if (!m_punRenderTargetIndex) return nullptr;
+												   if (!m_ppcRenderTarget) return nullptr;
+
+												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+												   if (m_bUseD3D9Ex)
 												   {
-													   if (!m_punRenderTargetIndex) return nullptr;
-													   if (!m_ppcRenderTarget) return nullptr;
+													   // cast proxy surface
+													   IDirect3DStereoSurface9* newRenderTarget = static_cast<IDirect3DStereoSurface9*>(*m_ppcRenderTarget);
+
+#ifdef _DEBUG
+													   if (newRenderTarget && !newRenderTarget->GetActualLeft() && !newRenderTarget->GetActualRight())
+													   {
+														   OutputDebugString(L"RenderTarget is not a valid (IDirect3DStereoSurface) stereo capable surface\n");
+													   }
+#endif
+
+													   //// Update actual render target ////
+
+													   // Removing a render target
+													   if (newRenderTarget == NULL)
+													   {
+														   if (RenderTargetIndex == 0)
+														   {
+															   // main render target should never be set to NULL
+															   nHr = D3DERR_INVALIDCALL;
+														   }
+														   else
+														   {
+															   nHr = ((IDirect3DDevice9*)pThis)->SetRenderTarget(*m_punRenderTargetIndex, NULL);
+														   }
+													   }
+													   // Setting a render target
+													   else
+													   {
+														   if (m_eCurrentRenderingSide == RenderPosition::Left)
+														   {
+															   nHr = ((IDirect3DDevice9*)pThis)->SetRenderTarget(*m_punRenderTargetIndex, newRenderTarget->GetActualLeft());
+														   }
+														   else
+														   {
+															   nHr = ((IDirect3DDevice9*)pThis)->SetRenderTarget(*m_punRenderTargetIndex, newRenderTarget->GetActualRight());
+														   }
+													   }
+
+													   //// update proxy collection of stereo render targets to reflect new actual render target ////
+													   if (nHr == D3D_OK)
+													   {
+														   // changing rendertarget resets viewport to fullsurface
+														   m_bActiveViewportIsDefault = true;
+
+														   // release old render target
+														   if (m_apcActiveRenderTargets[RenderTargetIndex] != NULL)
+															   m_apcActiveRenderTargets[RenderTargetIndex]->Release();
+
+														   // replace with new render target (may be NULL)
+														   m_apcActiveRenderTargets[RenderTargetIndex] = newRenderTarget;
+														   if (m_apcActiveRenderTargets[RenderTargetIndex] != NULL)
+															   m_apcActiveRenderTargets[RenderTargetIndex]->AddRef();
+													   }
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   else if (m_bPresent)
+												   {
 
 													   // call method
 													   SetRenderTarget((LPDIRECT3DDEVICE9)pThis, *m_punRenderTargetIndex, *m_ppcRenderTarget);
@@ -823,9 +935,48 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetDepthStencilSurface
 											   case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
-												   if (m_bPresent)
+
+												   if (!m_ppcNewZStencil) return nullptr;
+
+												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+												   if (m_bUseD3D9Ex)
 												   {
-													   if (!m_ppcNewZStencil) return nullptr;
+													   // cast proxy surface
+													   IDirect3DStereoSurface9* pNewDepthStencil = static_cast<IDirect3DStereoSurface9*>(*m_ppcNewZStencil);
+
+													   IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
+													   if (pNewDepthStencil)
+													   {
+														   if (m_eCurrentRenderingSide == RenderPosition::Left)
+															   pActualStencilForCurrentSide = pNewDepthStencil->GetActualLeft();
+														   else
+															   pActualStencilForCurrentSide = pNewDepthStencil->GetActualRight();
+													   }
+
+													   // Update actual depth stencil
+													   nHr = ((IDirect3DDevice9*)pThis)->SetDepthStencilSurface(pActualStencilForCurrentSide);
+
+													   // Update stored proxy depth stencil
+													   if (SUCCEEDED(nHr))
+													   {
+														   if (m_pcActiveDepthStencilSurface[0])
+														   {
+															   m_pcActiveDepthStencilSurface[0]->Release();
+														   }
+
+														   m_pcActiveDepthStencilSurface[0] = pNewDepthStencil;
+														   if (m_pcActiveDepthStencilSurface[0])
+														   {
+															   m_pcActiveDepthStencilSurface[0]->AddRef();
+														   }
+													   }
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   else if (m_bPresent)
+												   {
 
 													   // call method
 													   SetDepthStencilSurface((LPDIRECT3DDEVICE9)pThis, *m_ppcNewZStencil);
@@ -848,12 +999,67 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetTexture
 											   case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
-												   if (m_bPresent)
-												   {
-													   // get data
-													   if (!m_punSampler) return nullptr;
-													   if (!m_ppcTexture) return nullptr;
+												   // get data
+												   if (!m_punSampler) return nullptr;
+												   if (!m_ppcTexture) return nullptr;
 
+												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+												   if (m_bUseD3D9Ex)
+												   {
+													   // index too high ?
+													   if ((*m_punSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT) return nullptr;
+
+													   // texture provided ?
+													   if (*m_ppcTexture)
+													   {
+														   IDirect3DBaseTexture9* pActualLeftTexture = NULL;
+														   IDirect3DBaseTexture9* pActualRightTexture = NULL;
+
+														   UnWrapProxyTexture(*m_ppcTexture, &pActualLeftTexture, &pActualRightTexture);
+
+														   // Try and Update the actual devices textures -> use left (mono) if not stereo or one left side
+														   if ((pActualRightTexture == NULL) || (m_eCurrentRenderingSide == RenderPosition::Left))
+															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, pActualLeftTexture);
+														   else
+															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, pActualRightTexture);
+
+													   }
+													   else
+													   {
+														   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, NULL);
+													   }
+
+													   // Update m_activeTextureStages if new texture was successfully set
+													   if (SUCCEEDED(nHr))
+													   {
+														   // If in a Begin-End StateBlock pair update the block state rather than the current proxy device state... TODO !!
+														   /*if (m_pCapturingStateTo)
+														   {
+														   m_pCapturingStateTo->SelectAndCaptureState(*m_punSampler, pTexture);
+														   }
+														   else*/
+														   {
+
+															   // remove existing texture that was active at Stage if there is one
+															   if (m_apcActiveTextures[*m_punSampler])
+															   {
+
+																   m_apcActiveTextures[*m_punSampler]->Release();
+																   m_apcActiveTextures[*m_punSampler] = nullptr;
+															   }
+
+															   // insert new texture (can be a NULL pointer, this is important for StateBlock tracking)
+															   m_apcActiveTextures[*m_punSampler] = *m_ppcTexture;
+															   if (m_apcActiveTextures[*m_punSampler]) m_apcActiveTextures[*m_punSampler]->AddRef();
+														   }
+													   }
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   else if (m_bPresent)
+												   {
 													   // call method
 													   SetTexture((LPDIRECT3DDEVICE9)pThis, *m_punSampler, *m_ppcTexture);
 
@@ -995,6 +1201,44 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (!(*m_ppSourceSurface)) return nullptr;
 												   if (!(*m_ppcDestinationSurface)) return nullptr;
 												   {
+													   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+													   if (m_bUseD3D9Ex)
+													   {
+														   IDirect3DSurface9* pSourceSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppSourceSurface))->GetActualLeft();
+														   IDirect3DSurface9* pSourceSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppSourceSurface))->GetActualRight();
+														   IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestinationSurface))->GetActualLeft();
+														   IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestinationSurface))->GetActualRight();
+
+														   nHr = ((IDirect3DDevice9*)pThis)->UpdateSurface(pSourceSurfaceLeft, *m_ppcSourceRect, pDestSurfaceLeft, *m_ppsDestPoint);
+
+														   if (SUCCEEDED(nHr))
+														   {
+															   if (!pSourceSurfaceRight && pDestSurfaceRight)
+															   {
+																   // Source is not stereo, destination is stereo. Copying source to both sides of destination.
+																   if (FAILED(((IDirect3DDevice9*)pThis)->UpdateSurface(pSourceSurfaceLeft, *m_ppcSourceRect, pDestSurfaceRight, *m_ppsDestPoint)))
+																   {
+																	   OutputDebugString(L"[STS] ERROR: UpdateSurface - Failed to copy source left to destination right.\n");
+																   }
+															   }
+															   else if (pSourceSurfaceRight && !pDestSurfaceRight)
+															   {
+																   // Source is stereo, destination is not stereo. Copied Left side only.
+															   }
+															   else if (pSourceSurfaceRight && pDestSurfaceRight)
+															   {
+																   if (FAILED(((IDirect3DDevice9*)pThis)->UpdateSurface(pSourceSurfaceRight, *m_ppcSourceRect, pDestSurfaceRight, *m_ppsDestPoint)))
+																   {
+																	   OutputDebugString(L"[STS] ERROR: UpdateSurface - Failed to copy source right to destination right.\n");
+																   }
+															   }
+														   }
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
 													   // get twins
 													   IDirect3DSurface9* pcSurfaceDst = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppcDestinationSurface);
 													   IDirect3DSurface9* pcSurfaceSrc = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppSourceSurface);
@@ -1023,6 +1267,47 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (!(*m_ppcSourceTexture)) return nullptr;
 												   if (!(*m_ppcDestinationTexture)) return nullptr;
 												   {
+													   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+													   if (m_bUseD3D9Ex)
+													   {
+														   IDirect3DBaseTexture9* pSourceTextureLeft = NULL;
+														   IDirect3DBaseTexture9* pSourceTextureRight = NULL;
+														   IDirect3DBaseTexture9* pDestTextureLeft = NULL;
+														   IDirect3DBaseTexture9* pDestTextureRight = NULL;
+
+														   UnWrapProxyTexture(*m_ppcSourceTexture, &pSourceTextureLeft, &pSourceTextureRight);
+														   UnWrapProxyTexture(*m_ppcDestinationTexture, &pDestTextureLeft, &pDestTextureRight);
+
+														   nHr = ((IDirect3DDevice9*)pThis)->UpdateTexture(pSourceTextureLeft, pDestTextureLeft);
+
+														   if (SUCCEEDED(nHr))
+														   {
+															   if (!pSourceTextureRight && pDestTextureRight)
+															   {
+																   // Source is not stereo, destination is stereo. Copying source to both sides of destination.
+																   if (FAILED(((IDirect3DDevice9*)pThis)->UpdateTexture(pSourceTextureLeft, pDestTextureRight)))
+																   {
+																	   OutputDebugString(L"ERROR: UpdateTexture - Failed to copy source left to destination right.\n");
+																   }
+															   }
+															   else if (pSourceTextureRight && !pDestTextureRight)
+															   {
+																   // Source is stereo, destination is not stereo. Copied Left side only.
+															   }
+															   else if (pSourceTextureRight && pDestTextureRight)
+															   {
+																   if (FAILED(((IDirect3DDevice9*)pThis)->UpdateTexture(pSourceTextureRight, pDestTextureRight)))
+																   {
+																	   OutputDebugString(L"ERROR: UpdateTexture - Failed to copy source right to destination right.\n");
+																   }
+															   }
+														   }
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
 													   // get twins
 													   IDirect3DBaseTexture9* pcTextureSrc = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppcSourceTexture, false);
 													   IDirect3DBaseTexture9* pcTextureDst = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppcDestinationTexture, (pcTextureSrc != nullptr));
@@ -1052,8 +1337,49 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (!m_ppcDestRect_StretchRect) return nullptr;
 												   if (!m_peFilter_StretchRect) return nullptr;
 												   if (!(*m_ppcSourceSurface_StretchRect)) return nullptr;
-												   if (!(*m_ppcSourceRect_StretchRect)) return nullptr;
+												   if (!(*m_ppcDestSurface_StretchRect)) return nullptr;
 												   {
+													   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+													   if (m_bUseD3D9Ex)
+													   {
+														   IDirect3DStereoSurface9* pWrappedSource = static_cast<IDirect3DStereoSurface9*>(*m_ppcSourceSurface_StretchRect);
+														   IDirect3DStereoSurface9* pWrappedDest = static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface_StretchRect);
+
+														   IDirect3DSurface9* pSourceSurfaceLeft = pWrappedSource->GetActualLeft();
+														   IDirect3DSurface9* pSourceSurfaceRight = pWrappedSource->GetActualRight();
+														   IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->GetActualLeft();
+														   IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->GetActualRight();
+
+														   nHr = ((IDirect3DDevice9*)pThis)->StretchRect(pSourceSurfaceLeft, *m_ppcSourceRect_StretchRect, pDestSurfaceLeft, *m_ppcDestRect_StretchRect, *m_peFilter_StretchRect);
+
+														   if (SUCCEEDED(nHr))
+														   {
+															   if (!pSourceSurfaceRight && pDestSurfaceRight)
+															   {
+																   // Source is not stereo, destination is stereo. Copying source to both sides of destination.
+																   if (FAILED(((IDirect3DDevice9*)pThis)->StretchRect(pSourceSurfaceLeft, *m_ppcSourceRect_StretchRect, pDestSurfaceRight, *m_ppcDestRect_StretchRect, *m_peFilter_StretchRect)))
+																   {
+																	   OutputDebugString(L"ERROR: StretchRect - Failed to copy source left to destination right.\n");
+																   }
+															   }
+															   else if (pSourceSurfaceRight && !pDestSurfaceRight)
+															   {
+																   // Source is stereo, destination is not stereo. Copied Left side only.
+															   }
+															   else if (pSourceSurfaceRight && pDestSurfaceRight)
+															   {
+																   if (FAILED(((IDirect3DDevice9*)pThis)->StretchRect(pSourceSurfaceRight, *m_ppcSourceRect_StretchRect, pDestSurfaceRight, *m_ppcDestRect_StretchRect, *m_peFilter_StretchRect)))
+																   {
+																	   OutputDebugString(L"ERROR: StretchRect - Failed to copy source right to destination right.\n");
+																   }
+															   }
+														   }
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
 													   // get twins
 													   IDirect3DSurface9* pcSurfaceDst = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppcDestSurface_StretchRect);
 													   IDirect3DSurface9* pcSurfaceSrc = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppcSourceSurface_StretchRect);
@@ -1082,6 +1408,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (!m_punColor) return nullptr;
 												   if (!(*m_ppcSurface)) return nullptr;
 												   {
+													   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+													   if (m_bUseD3D9Ex)
+													   {
+														   IDirect3DStereoSurface9* pDerivedSurface = static_cast<IDirect3DStereoSurface9*>(*m_ppcSurface);
+														   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->ColorFill(pDerivedSurface->GetActualLeft(), *m_ppsRect, *m_punColor)))
+														   {
+															   if (pDerivedSurface->IsStereo())
+																   ((IDirect3DDevice9*)pThis)->ColorFill(pDerivedSurface->GetActualRight(), *m_ppsRect, *m_punColor);
+														   }
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
 													   // get twin
 													   IDirect3DSurface9* pcSurfaceTwin = VerifyPrivateDataInterfaces((IDirect3DDevice9*)pThis, *m_ppcSurface);
 
@@ -1095,37 +1436,228 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion 
 #pragma region GetBackBuffer
 											   case METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER:
+												   // D3D9Ex device used ? in case enumerate swapchains and create proxy back buffers on request
+												   if (m_bUseD3D9Ex)
+												   {
+													   if (!m_punISwapChain) return nullptr;
+													   if (!m_punIBackBuffer) return nullptr;
+													   if (!m_peType) return nullptr;
+													   if (!m_pppcBackBuffer) return nullptr;
+
+													   // swapchain index not present ?
+													   if ((*m_punISwapChain) >= (UINT)m_apcActiveSwapChains.size())
+													   {
+														   // enumerate swapchains in m_apcActiveSwapChains, backbuffers in m_aapcActiveProxyBackBufferSurfaces
+														   for (UINT unI = (UINT)m_apcActiveSwapChains.size(); unI < (*m_punISwapChain); unI++)
+														   {
+															   // get swapchain for the specified index
+															   IDirect3DSwapChain9* pcSwapChain = nullptr;
+															   ((IDirect3DDevice9*)pThis)->GetSwapChain(unI, &pcSwapChain);
+
+															   if (pcSwapChain)
+															   {
+
+																   // get number of backbuffers in that swapchain
+																   D3DPRESENT_PARAMETERS sParams = {};
+																   pcSwapChain->GetPresentParameters(&sParams);
+
+																   // create back buffer vector
+																   std::vector<IDirect3DStereoSurface9*> apcProxyBackBuffers = std::vector<IDirect3DStereoSurface9*>();
+
+																   // loop through backbuffers, add them
+																   for (UINT unJ = 0; unJ < sParams.BackBufferCount; unJ++)
+																   {
+																	   // get back buffer for the specified index
+																	   IDirect3DSurface9* pcBackBuffer = nullptr;
+																	   pcSwapChain->GetBackBuffer(unJ, D3DBACKBUFFER_TYPE::D3DBACKBUFFER_TYPE_MONO, &pcBackBuffer);
+
+																	   if (pcBackBuffer)
+																	   {
+																		   // create stereo proxy back buffer
+																		   D3DSURFACE_DESC sDesc = {};
+																		   pcBackBuffer->GetDesc(&sDesc);
+																		   IDirect3DSurface9* pcBackBufferRight = nullptr;
+																		   HRESULT hr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcBackBufferRight, nullptr);
+																		   if (FAILED(hr))
+																		   {
+																			   { wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
+																			   HRESULT hr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &pcBackBufferRight, nullptr);
+																			   if (FAILED(hr))
+																			   {
+																				   { wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
+																				   exit(99);
+																			   }
+																		   }
+																		   IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcBackBuffer, pcBackBufferRight, (IDirect3DDevice9*)pThis, (IUnknown*)pcSwapChain, nullptr, nullptr);
+
+																		   // add backbuffer to vector and release
+																		   apcProxyBackBuffers.push_back(pcBackBufferStereo);
+																		   pcBackBuffer->Release();
+																	   }
+																	   else
+																	   {
+																		   // actually, we shouldn't come here
+																		   OutputDebugString(L"[STS] D3DPRESTENT_PARAMETERS struct is invalid !");
+																		   apcProxyBackBuffers.push_back(nullptr);
+																	   }
+																   }
+
+																   // add backbuffer vector and swapchain, release swapchain
+																   m_apcActiveSwapChains.push_back(pcSwapChain);
+																   m_aapcActiveProxyBackBufferSurfaces.push_back(apcProxyBackBuffers);
+																   pcSwapChain->Release();
+															   }
+															   else
+															   {
+																   // invalid call ?
+																   OutputDebugString(L"[STS] Invalid call to ->GetBackBuffer().");
+																   nHr = D3DERR_INVALIDCALL;
+
+																   // method replaced, immediately return
+																   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+																   return (void*)&nHr;
+															   }
+														   }
+													   }
+
+													   // swapchain index is active ?
+													   if ((*m_punISwapChain) < (UINT)m_apcActiveSwapChains.size())
+													   {
+														   if ((*m_punIBackBuffer) < (UINT)m_aapcActiveProxyBackBufferSurfaces[*m_punISwapChain].size())
+															   *(*m_pppcBackBuffer) = m_aapcActiveProxyBackBufferSurfaces[*m_punISwapChain][*m_punIBackBuffer];
+														   if (*(*m_pppcBackBuffer)) (*(*m_pppcBackBuffer))->AddRef();
+
+														   nHr = D3D_OK;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+												   }
 												   // ensure left drawing side here
 												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 												   return nullptr;
 #pragma endregion 
 #pragma region GetRenderTarget
 											   case METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET:
-												   // ensure left drawing side here
-												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   if (m_bUseD3D9Ex)
+												   {
+													   SHOW_CALL("GetRenderTarget");
+
+													   if (!m_punRenderTargetIndex) return nullptr;
+													   if (!m_pppcRenderTarget) return nullptr;
+
+													   if (*m_punRenderTargetIndex >= D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT)
+													   {
+														   nHr = D3DERR_INVALIDCALL;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
+													   IDirect3DSurface9* pcTargetToReturn = m_apcActiveRenderTargets[*m_punRenderTargetIndex];
+													   if (!pcTargetToReturn)
+													   {
+														   nHr = D3DERR_NOTFOUND;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+													   else
+													   {
+														   // set return target and add a reference
+														   *(*m_pppcRenderTarget) = pcTargetToReturn;
+														   pcTargetToReturn->AddRef();
+
+														   nHr = D3D_OK;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+												   }
+												   else
+												   {
+													   // ensure left drawing side here
+													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   }
 												   return nullptr;
 #pragma endregion 
-												   //#pragma region GetRenderTargetData
-												   //											   case METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
-												   //												   // ensure left drawing side here
-												   //												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
-												   //												   return nullptr;
-												   //#pragma endregion
 #pragma region GetDepthStencilSurface
 											   case METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE:
-												   // ensure left drawing side here
-												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   if (m_bUseD3D9Ex)
+												   {
+													   SHOW_CALL("GetDepthStencilSurface");
+
+													   if (!m_pppcZStencilSurface) return nullptr;
+
+													   if (!m_pcActiveDepthStencilSurface[0])
+													   {
+														   nHr = D3DERR_NOTFOUND;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
+													   *(*m_pppcZStencilSurface) = m_pcActiveDepthStencilSurface[0];
+													   (*(*m_pppcZStencilSurface))->AddRef();
+
+													   nHr = D3D_OK;
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   else
+												   {
+													   // ensure left drawing side here
+													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   }
 												   return nullptr;
 #pragma endregion  
 #pragma region GetTexture 
 											   case METHOD_IDIRECT3DDEVICE9_GETTEXTURE:
-												   // ensure left drawing side here
-												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   if (m_bUseD3D9Ex)
+												   {
+													   SHOW_CALL("GetTexture");
+
+													   if (!m_punSampler) return nullptr;
+													   if (!m_pppcTexture) return nullptr;
+
+													   // index too high ?
+													   if ((*m_punSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT) return nullptr;
+
+													   *(*m_pppcTexture) = m_apcActiveTextures[*m_punSampler];
+													   if (*(*m_pppcTexture))
+														   (*(*m_pppcTexture))->AddRef();
+
+													   nHr = D3D_OK;
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   else
+												   {
+													   // ensure left drawing side here
+													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   }
 												   return nullptr;
 #pragma endregion  
 #pragma region Reset
 											   case METHOD_IDIRECT3DDEVICE9_RESET:
-												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   if (m_bUseD3D9Ex)
+												   {
+													   OutputDebugString(L"[STS] ->Reset() NOT IMPLEMENTED !!");
+													   exit(99);
+												   }
+												   else
+												   {
+													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   }
 												   return nullptr;
 #pragma endregion 
 #pragma region DrawRectPatch
@@ -1202,17 +1734,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CreateTexture
 											   case METHOD_IDIRECT3DDEVICE9_CREATETEXTURE:
-												   return nullptr; // NOT_IMPLEMENTED
-												   if (!m_punWidth) return nullptr;
-												   if (!m_punHeight) return nullptr;
-												   if (!m_punLevels) return nullptr;
-												   if (!m_punUsage) return nullptr;
-												   if (!m_peFormat) return nullptr;
-												   if (!m_pePool) return nullptr;
-												   if (!m_ppcTextureCreate) return nullptr;
-												   if (!m_ppvSharedHandle) return nullptr;
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_punWidth) return nullptr;
+													   if (!m_punHeight) return nullptr;
+													   if (!m_punLevels) return nullptr;
+													   if (!m_punUsage) return nullptr;
+													   if (!m_peFormat) return nullptr;
+													   if (!m_pePool) return nullptr;
+													   if (!m_pppcTextureCreate) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
+
 													   IDirect3DTexture9* pLeftTexture = NULL;
 													   IDirect3DTexture9* pRightTexture = NULL;
 
@@ -1221,7 +1753,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-														   Pool == D3DPOOL_MANAGED)
+														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
 														   newPool = D3DPOOL_DEFAULT;
 														   pDirect3DDevice9Ex->Release();
@@ -1242,14 +1774,13 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   }
 													   else
 													   {
-														   OutputDebugString(L"[STS] Failed to create texture\n");
+														   OutputDebugString(L"[STS] Failed to create texture IDirect3DTexture9\n");
 													   }
 
 													   if (SUCCEEDED(nHr))
 													   {
-														   *m_ppcTextureCreate = new IDirect3DStereoTexture9(pLeftTexture, pRightTexture, ((IDirect3DDevice9*)pThis));
+														   *(*m_pppcTextureCreate) = new IDirect3DStereoTexture9(pLeftTexture, pRightTexture, ((IDirect3DDevice9*)pThis));
 													   }
-
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1259,9 +1790,32 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CreateVolumeTexture
 											   case  METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_punWidth) return nullptr;
+													   if (!m_punHeight) return nullptr;
+													   if (!m_punDepth) return nullptr;
+													   if (!m_punLevels) return nullptr;
+													   if (!m_punUsage) return nullptr;
+													   if (!m_peFormat) return nullptr;
+													   if (!m_pePool) return nullptr;
+													   if (!m_pppcVolumeTexture) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
+
+													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
+														   (*m_pePool) == D3DPOOL_MANAGED)
+													   {
+														   (*m_pePool) = D3DPOOL_DEFAULT;
+														   pcDirect3DDevice9Ex->Release();
+													   }
+
+
+													   IDirect3DVolumeTexture9* pActualTexture = NULL;
+													   nHr = ((IDirect3DDevice9*)pThis)->CreateVolumeTexture(*m_punWidth, *m_punHeight, *m_punDepth, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool, &pActualTexture, *m_ppvSharedHandle);
+
+													   if (SUCCEEDED(nHr))
+														   *(*m_pppcVolumeTexture) = pActualTexture;// new D3D9ProxyVolumeTexture(pActualTexture, this); // TODO !!
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1271,9 +1825,54 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CreateCubeTexture
 											   case  METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_punEdgeLength) return nullptr;
+													   if (!m_punLevels) return nullptr;
+													   if (!m_punUsage) return nullptr;
+													   if (!m_peFormat) return nullptr;
+													   if (!m_pePool) return nullptr;
+													   if (!m_pppcCubeTexture) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
+
+													   D3DPOOL newPool = *m_pePool;
+
+													   // query d3d9ex device
+													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
+														   (*m_pePool) == D3DPOOL_MANAGED)
+													   {
+														   newPool = D3DPOOL_DEFAULT;
+														   pcDirect3DDevice9Ex->Release();
+													   }
+
+													   IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
+													   IDirect3DCubeTexture9* pRightCubeTexture = NULL;
+
+													   // try and create left
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pLeftCubeTexture, *m_ppvSharedHandle)))
+													   {
+
+														   // Does this Texture need duplicating?
+														   if (ShouldDuplicateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool))
+														   {
+
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pRightCubeTexture, *m_ppvSharedHandle)))
+															   {
+																   OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+																   pRightCubeTexture = NULL;
+															   }
+														   }
+													   }
+													   else
+													   {
+														   OutputDebugString(L"[STS] Failed to create texture : IDirect3DCubeTexture9 \n");
+														   OutputDebugString(L" Pool : ");
+														   DEBUG_UINT(newPool);
+													   }
+
+													   if (SUCCEEDED(nHr))
+														   *(*m_pppcCubeTexture) = new IDirect3DStereoCubeTexture9(pLeftCubeTexture, pRightCubeTexture, (IDirect3DDevice9*)pThis);
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1307,9 +1906,69 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CreateRenderTarget
 											   case  METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_punWidth) return nullptr;
+													   if (!m_punHeight) return nullptr;
+													   if (!m_peFormat) return nullptr;
+													   if (!m_peMultiSample) return nullptr;
+													   if (!m_punMultisampleQuality) return nullptr;
+													   if (!m_pnLockable) return nullptr;
+													   if (!m_pppcSurfaceCreate) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
+
+													   SHOW_CALL("CreateRenderTarget");
+
+													   IDirect3DSurface9* pLeftRenderTarget = NULL;
+													   IDirect3DSurface9* pRightRenderTarget = NULL;
+
+													   // create left/mono
+													   HANDLE sharedHandleLeft = NULL;
+													   HANDLE sharedHandleRight = NULL;
+
+													   // Override multisampling if DX9Ex
+													   D3DMULTISAMPLE_TYPE newMultiSample = *m_peMultiSample;
+													   DWORD newMultisampleQuality = *m_punMultisampleQuality;
+
+													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
+													   {
+														   *m_ppvSharedHandle = &sharedHandleLeft;
+														   newMultiSample = D3DMULTISAMPLE_NONE;
+														   newMultisampleQuality = 0;
+													   }
+
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pLeftRenderTarget, *m_ppvSharedHandle)))
+													   {
+
+														   /* "If Needed" heuristic is the complicated part here.
+														   Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
+
+														   // TODO Should we duplicate this Render Target? Replace "true" with heuristic
+														   if (ShouldDuplicateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, false))
+														   {
+															   if (pcDirect3DDevice9Ex)
+																   *m_ppvSharedHandle = &sharedHandleRight;
+
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pRightRenderTarget, *m_ppvSharedHandle)))
+															   {
+																   OutputDebugString(L"[STS] Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
+																   pRightRenderTarget = NULL;
+															   }
+														   }
+													   }
+													   else
+													   {
+														   OutputDebugString(L"[STS] Failed to create render target\n");
+													   }
+
+													   if (SUCCEEDED(nHr))
+													   {
+														   *(*m_pppcSurfaceCreate) = new IDirect3DStereoSurface9(pLeftRenderTarget, pRightRenderTarget, (IDirect3DDevice9*)pThis, NULL, sharedHandleLeft, sharedHandleRight);
+													   }
+
+													   if (pcDirect3DDevice9Ex)
+														   pcDirect3DDevice9Ex->Release();
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1319,9 +1978,90 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CreateDepthStencilSurface
 											   case  METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_punWidth) return nullptr;
+													   if (!m_punHeight) return nullptr;
+													   if (!m_peFormat) return nullptr;
+													   if (!m_peMultiSample) return nullptr;
+													   if (!m_punMultisampleQuality) return nullptr;
+													   if (!m_pnDiscard) return nullptr;
+													   if (!m_pppcSurfaceCreate) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
+
+													   SHOW_CALL("CreateDepthStencilSurface");
+
+													   IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
+													   IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
+
+													   // Override multisampling if DX9Ex
+													   D3DMULTISAMPLE_TYPE newMultiSample = *m_peMultiSample;
+													   DWORD newMultisampleQuality = *m_punMultisampleQuality;
+
+													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
+													   {
+														   newMultiSample = D3DMULTISAMPLE_NONE;
+														   newMultisampleQuality = 0;
+													   }
+
+													   // create left/mono
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnDiscard, &pDepthStencilSurfaceLeft, *m_ppvSharedHandle)))
+													   {
+
+														   // TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
+														   if (ShouldDuplicateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnDiscard))
+														   {
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnDiscard, &pDepthStencilSurfaceRight, *m_ppvSharedHandle)))
+															   {
+																   OutputDebugString(L"[STS] Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
+																   pDepthStencilSurfaceRight = NULL;
+															   }
+														   }
+													   }
+													   else
+													   {
+														   OutputDebugString(L"[STS] Failed to create Depth Stencil Surface\n");
+													   }
+
+													   if (SUCCEEDED(nHr))
+														   *(*m_pppcSurfaceCreate) = new IDirect3DStereoSurface9(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, (IDirect3DDevice9*)pThis, NULL, NULL, NULL);
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region CreateOffscreenPlainSurface
+											   case METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE:
+												   if (m_bUseD3D9Ex)
+												   {
+													   if (!m_punWidth) return nullptr;
+													   if (!m_punHeight) return nullptr;
+													   if (!m_peFormat) return nullptr;
+													   if (!m_pePool) return nullptr;
+													   if (!m_pppcSurfaceCreate) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
+
+													   SHOW_CALL("CreateOffscreenPlainSurface");
+
+													   D3DPOOL newPool = *m_pePool;
+
+													   HRESULT hr = S_OK;
+													   IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+														   Pool == D3DPOOL_MANAGED)
+													   {
+														   newPool = D3DPOOL_DEFAULT;
+														   pDirect3DDevice9Ex->Release();
+													   }
+
+													   IDirect3DSurface9* pActualSurface = NULL;
+													   HRESULT creationResult = ((IDirect3DDevice9*)pThis)->CreateOffscreenPlainSurface(*m_punWidth, *m_punHeight, *m_peFormat, newPool, &pActualSurface, *m_ppvSharedHandle);
+
+													   if (SUCCEEDED(creationResult))
+														   *(*m_pppcSurfaceCreate) = new IDirect3DStereoSurface9(pActualSurface, NULL, (IDirect3DDevice9*)pThis, NULL, NULL, NULL);
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1331,21 +2071,28 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region GetRendertargetData
 											   case  METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetRenderTargetData()");
+													   exit(99);
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 													   return (void*)&nHr;
 												   }
+												   else
+												   {
+													   // ensure left drawing side here
+													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   }
 												   return nullptr;
 #pragma endregion
 #pragma region GetFrontBufferData
 											   case METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetFrontBufferData()");
+													   exit(99);
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1441,37 +2188,43 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 	// initialize ?
 	if (!m_bPresent)
 	{
-		// get active render targets
-		for (DWORD unI = 0; unI < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; unI++)
+		if (m_bUseD3D9Ex)
 		{
-			// get render target index
-			IDirect3DSurface9* pcTarget = nullptr;
-			pcDevice->GetRenderTarget(unI, &pcTarget);
+		}
+		else
+		{
+			// get active render targets
+			for (DWORD unI = 0; unI < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; unI++)
+			{
+				// get render target index
+				IDirect3DSurface9* pcTarget = nullptr;
+				pcDevice->GetRenderTarget(unI, &pcTarget);
+
+				// set active and release
+				if (pcTarget)
+				{
+					m_apcActiveRenderTargets[unI] = pcTarget;
+					m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT + unI] = VerifyPrivateDataInterfaces(pcDevice, pcTarget);
+					pcTarget->Release();
+				}
+			}
+
+			// set number of render targets
+			m_unRenderTargetNumber = 0;
+			for (std::vector<IDirect3DSurface9*>::size_type i = 0; i < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+			if (m_apcActiveRenderTargets[i] != NULL) m_unRenderTargetNumber = (DWORD)i + 1;
+
+			// get depth stencil
+			IDirect3DSurface9* pcDepthStencil = nullptr;
+			pcDevice->GetDepthStencilSurface(&pcDepthStencil);
 
 			// set active and release
-			if (pcTarget)
+			if (pcDepthStencil)
 			{
-				m_apcActiveRenderTargets[unI] = pcTarget;
-				m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT + unI] = VerifyPrivateDataInterfaces(pcDevice, pcTarget);
-				pcTarget->Release();
+				m_pcActiveDepthStencilSurface[0] = pcDepthStencil;
+				m_pcActiveDepthStencilSurface[1] = VerifyPrivateDataInterfaces(pcDevice, pcDepthStencil);
+				pcDepthStencil->Release();
 			}
-		}
-
-		// set number of render targets
-		m_unRenderTargetNumber = 0;
-		for (std::vector<IDirect3DSurface9*>::size_type i = 0; i < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-		if (m_apcActiveRenderTargets[i] != NULL) m_unRenderTargetNumber = (DWORD)i + 1;
-
-		// get depth stencil
-		IDirect3DSurface9* pcDepthStencil = nullptr;
-		pcDevice->GetDepthStencilSurface(&pcDepthStencil);
-
-		// set active and release
-		if (pcDepthStencil)
-		{
-			m_pcActiveDepthStencilSurface[0] = pcDepthStencil;
-			m_pcActiveDepthStencilSurface[1] = VerifyPrivateDataInterfaces(pcDevice, pcDepthStencil);
-			pcDepthStencil->Release();
 		}
 
 		// get viewport
@@ -1899,6 +2652,9 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	// Already on the correct eye
 	if (eSide == m_eCurrentRenderingSide)
 		return true;
+
+	// TODO !! IMPLEMENT !!
+	if (m_bUseD3D9Ex) return true;
 
 	// should never try and render for the right eye if there is no render target for the main render targets right side
 	if ((m_apcActiveRenderTargets[0] == m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT]) && (eSide == RenderPosition::Left))
@@ -2492,4 +3248,59 @@ void StereoSplitter::CreateGUI()
 	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetRenderState() Value");
 	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Device9::->SetViewport() Viewport");
 #pragma endregion
+}
+
+/**
+* Returns actual textures from wrapped (=proxy) texture.
+* @param pWrappedTexture [in] Wrapped texture.
+* @param ppActualLeftTexture [in, out] Will be set to the actual textures from pWrappedTexture. Left should never be NULL.
+* @param ppActualRightTexture [in, out] Will be set to the actual textures from pWrappedTexture. Right maybe NULL if texture isn't stereo.
+***/
+void StereoSplitter::UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture)
+{
+	if (!pWrappedTexture)
+		assert(false);
+
+	D3DRESOURCETYPE type = pWrappedTexture->GetType();
+
+	*ppActualLeftTexture = NULL;
+	*ppActualRightTexture = NULL;
+
+	switch (type)
+	{
+		case D3DRTYPE_TEXTURE:
+		{
+								 IDirect3DStereoTexture9* pDerivedTexture = static_cast<IDirect3DStereoTexture9*> (pWrappedTexture);
+								 *ppActualLeftTexture = pDerivedTexture->GetActualLeft();
+								 *ppActualRightTexture = pDerivedTexture->GetActualRight();
+
+								 break;
+		}
+		case D3DRTYPE_VOLUMETEXTURE:
+		{
+									   //D3D9ProxyVolumeTexture* pDerivedTexture = static_cast<D3D9ProxyVolumeTexture*> (pWrappedTexture);
+									   //*ppActualLeftTexture = pDerivedTexture->getActual();
+
+									   // TODO : DO WE NEED WRAPPED VOLUME TEXTURES HERE ?
+									   *ppActualLeftTexture = pWrappedTexture;
+									   break;
+		}
+		case D3DRTYPE_CUBETEXTURE:
+		{
+									 IDirect3DStereoTexture9* pDerivedTexture = static_cast<IDirect3DStereoTexture9*> (pWrappedTexture);
+									 *ppActualLeftTexture = pDerivedTexture->GetActualLeft();
+									 *ppActualRightTexture = pDerivedTexture->GetActualRight();
+									 break;
+		}
+
+		default:
+			OutputDebugString(L"[STS] Unhandled texture type in SetTexture\n");
+			break;
+	}
+
+	if ((*ppActualLeftTexture) == NULL)
+	{
+		OutputDebugString(L"[STS] No left texture? Unpossible!\n");
+		assert(false);
+	}
 }
