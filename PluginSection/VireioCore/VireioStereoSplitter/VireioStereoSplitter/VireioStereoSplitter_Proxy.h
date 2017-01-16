@@ -428,7 +428,6 @@ public:
 			return hr;
 
 		hr = pSurface->UnlockRect();
-		OutputDebugString(L"Update UnlockRect");
 
 		if (IsStereo())
 		{
@@ -486,7 +485,6 @@ public:
 		pSurface->Release();
 
 		fullSurface = false;
-		OutputDebugString(L"return UnlockRect");
 		return hr;
 	}
 

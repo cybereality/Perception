@@ -800,7 +800,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// instantly return if the device is in use by a proxy class;
 	if (s_bDeviceInUseByProxy) return nullptr;
 
-// #define _DEBUG_STEREO_SPLITTER
+	// #define _DEBUG_STEREO_SPLITTER
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
@@ -1882,25 +1882,39 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CreateVertexBuffer
 											   case  METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   SHOW_CALL("CreateVertexBuffer");
+													   
+													   if (!m_pePool) return nullptr;
 
-													   // method replaced, immediately return
-													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-													   return (void*)&nHr;
+													   HRESULT hr = S_OK;
+													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
+														   (*m_pePool) == D3DPOOL_MANAGED)
+													   {
+														   (*m_pePool) = D3DPOOL_DEFAULT;
+														   pcDirect3DDevice9Ex->Release();
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
 #pragma region CreateIndexBuffer
 											   case  METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER:
-												   return nullptr; // NOT_IMPLEMENTED
 												   if (m_bUseD3D9Ex)
 												   {
+													   SHOW_CALL("CreateIndexBuffer");
 
-													   // method replaced, immediately return
-													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-													   return (void*)&nHr;
+													   if (!m_pePool) return nullptr;
+
+													   HRESULT hr = S_OK;
+													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
+														   (*m_pePool) == D3DPOOL_MANAGED)
+													   {
+														   (*m_pePool) = D3DPOOL_DEFAULT;
+														   pcDirect3DDevice9Ex->Release();
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
