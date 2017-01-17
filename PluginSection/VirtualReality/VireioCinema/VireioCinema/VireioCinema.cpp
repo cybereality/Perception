@@ -1568,7 +1568,11 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			else
 			{
 				// connected textures already initialized ?? return if not
-				if ((!(*(m_ppcTex9Input[0]))) || (!(*(m_ppcTex9Input[1])))) return;
+				if ((!(*(m_ppcTex9Input[0]))) || (!(*(m_ppcTex9Input[1]))))
+				{
+					OutputDebugString(L"[CIN] No Input Textures !");
+					return;
+				}
 
 				if ((!m_pcTexCopy11SRV[0]) || (!m_pcTexCopy11SRV[1]))
 				{
@@ -1655,15 +1659,15 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 				if ((m_pcTexCopy11SRV[0]) && (m_pcTexCopy11SRV[1]))
 				{
-					for (UINT unEye = 0; unEye < 2; unEye++)
+					/*for (UINT unEye = 0; unEye < 2; unEye++)
 					{
-						D3DLOCKED_RECT sLockedRect = {};
-						if (SUCCEEDED((*(m_ppcTex9Input[unEye]))->LockRect(0, &sLockedRect, NULL, D3DLOCK_READONLY)))//D3DLOCK_DISCARD)))
-						{
-							pcContext->UpdateSubresource((ID3D11Resource*)m_pcTexCopy11[unEye], 0, NULL, sLockedRect.pBits, sLockedRect.Pitch, 0);
-							(*(m_ppcTex9Input[unEye]))->UnlockRect(0);
-						}
+					D3DLOCKED_RECT sLockedRect = {};
+					if (SUCCEEDED((*(m_ppcTex9Input[unEye]))->LockRect(0, &sLockedRect, NULL, D3DLOCK_READONLY)))//D3DLOCK_DISCARD)))
+					{
+					pcContext->UpdateSubresource((ID3D11Resource*)m_pcTexCopy11[unEye], 0, NULL, sLockedRect.pBits, sLockedRect.Pitch, 0);
+					(*(m_ppcTex9Input[unEye]))->UnlockRect(0);
 					}
+					}*/
 
 					// copy textures
 					//pcContext->CopyResource(m_pcTexCopy11[0], m_pcSharedTexture[0]);

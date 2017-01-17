@@ -110,9 +110,8 @@ public:
 
 		// pWrappedContainer->AddRef(); is not called here as container add/release is handled
 		// by the container. The ref could be added here but as the release and destruction is
-		// hanlded by the container we leave it all in the same place (the container)	
+		// hanlded by the container we leave it all in the same place (the container)
 	}
-
 
 	/**
 	* Destructor.
@@ -154,6 +153,8 @@ public:
 	***/
 	ULONG WINAPI AddRef()
 	{
+		SHOW_CALL("D3D9ProxySurface::AddRef()");
+		
 		// if surface is in a container increase count on container instead of the surface
 		if (m_pcWrappedContainer)
 		{
@@ -171,6 +172,7 @@ public:
 	***/
 	ULONG WINAPI Release()
 	{
+		SHOW_CALL("D3D9ProxySurface::Release()");
 		if (m_pcWrappedContainer)
 		{
 			return m_pcWrappedContainer->Release();
@@ -192,6 +194,7 @@ public:
 	***/
 	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice)
 	{
+		SHOW_CALL("D3D9ProxySurface::GetDevice()");
 		if (!m_pcOwningDevice)
 			return D3DERR_INVALIDCALL;
 		else
@@ -219,6 +222,7 @@ public:
 	***/
 	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 	{
+		SHOW_CALL("D3D9ProxySurface::GetPrivateData()");
 		return m_pcActualSurface->GetPrivateData(refguid, pData, pSizeOfData);
 	}
 
@@ -251,6 +255,7 @@ public:
 	***/
 	DWORD WINAPI GetPriority()
 	{
+		SHOW_CALL("D3D9ProxySurface::GetPriority()");
 		return m_pcActualSurface->GetPriority();
 	}
 
@@ -271,6 +276,7 @@ public:
 	***/
 	D3DRESOURCETYPE WINAPI GetType()
 	{
+		SHOW_CALL("D3D9ProxySurface::GetType()");
 		return m_pcActualSurface->GetType();
 	}
 
@@ -327,6 +333,8 @@ public:
 	***/
 	HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc)
 	{
+		SHOW_CALL("D3D9ProxySurface::GetDesc()");
+
 		return m_pcActualSurface->GetDesc(pDesc);
 	}
 
@@ -493,6 +501,8 @@ public:
 	***/
 	HRESULT WINAPI GetDC(HDC *phdc)
 	{
+		SHOW_CALL("D3D9ProxySurface::GetDC()");
+
 		return m_pcActualSurface->GetDC(phdc);
 	}
 
@@ -574,7 +584,7 @@ protected:
 	HANDLE m_SharedHandleLeft;
 	HANDLE m_SharedHandleRight;
 
-	//Special handling required for locking rectangles if we are using Dx9Ex
+	// Special handling required for locking rectangles if we are using Dx9Ex
 	std::mutex m_mtx;
 	std::vector<RECT> lockedRects;
 	bool fullSurface;
@@ -598,7 +608,8 @@ public:
 		m_pcActualTextureRight(pcActualTextureRight),
 		m_aaWrappedSurfaceLevels(),
 		m_pcOwningDevice(pcOwningDevice),
-		lockableSysMemTexture(NULL)
+		lockableSysMemTexture(NULL),
+		m_unRefCount(1)
 	{
 		SHOW_CALL("D3D9ProxyTexture::D3D9ProxyTexture");
 		assert(pcOwningDevice != NULL);
@@ -678,6 +689,7 @@ public:
 	***/
 	virtual ULONG WINAPI AddRef()
 	{
+		SHOW_CALL("D3D9ProxyTexture::AddRef()");
 		return ++m_unRefCount;
 	}
 
@@ -686,12 +698,12 @@ public:
 	***/
 	virtual ULONG WINAPI Release()
 	{
+		SHOW_CALL("D3D9ProxyTexture::Release()");
 		if (--m_unRefCount == 0)
 		{
 			delete this;
 			return 0;
 		}
-
 		return m_unRefCount;
 	}
 
@@ -700,6 +712,7 @@ public:
 	***/
 	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice)
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetDevice()");
 		if (!m_pcOwningDevice)
 			return D3DERR_INVALIDCALL;
 		else
@@ -727,6 +740,7 @@ public:
 	***/
 	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetPrivateData()");
 		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
 	}
 
@@ -759,6 +773,7 @@ public:
 	***/
 	DWORD WINAPI GetPriority()
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetPriority()");
 		return m_pcActualTexture->GetPriority();
 	}
 
@@ -779,6 +794,8 @@ public:
 	***/
 	D3DRESOURCETYPE WINAPI GetType()
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetType()");
+
 		return m_pcActualTexture->GetType();
 	}
 
@@ -799,6 +816,7 @@ public:
 	***/
 	DWORD WINAPI GetLOD()
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetLOD()");
 		return m_pcActualTexture->GetLOD();
 	}
 
@@ -807,6 +825,7 @@ public:
 	***/
 	DWORD WINAPI GetLevelCount()
 	{
+		SHOW_CALL("D3D9ProxySurface::GetLevelCount()");
 		return m_pcActualTexture->GetLevelCount();
 	}
 
@@ -827,6 +846,7 @@ public:
 	***/
 	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetAutoGenFilterType");
 		return m_pcActualTexture->GetAutoGenFilterType();
 	}
 
@@ -847,6 +867,7 @@ public:
 	***/
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
 	{
+		SHOW_CALL("D3D9ProxyTexture::GetLevelDesc");
 		return m_pcActualTexture->GetLevelDesc(Level, pDesc);
 	}
 
@@ -920,7 +941,6 @@ public:
 				finalResult = leftResult;
 			}
 		}
-
 		return finalResult;
 	}
 

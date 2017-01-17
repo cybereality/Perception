@@ -797,21 +797,19 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex)
 {
-	// instantly return if the device is in use by a proxy class;
-	if (s_bDeviceInUseByProxy) return nullptr;
+	m_bUseD3D9Ex = true; // TODO !! DELETE !!
 
-	// #define _DEBUG_STEREO_SPLITTER
+	// instantly return if the device is in use by a proxy class;
+	if ((m_bUseD3D9Ex) && (s_bDeviceInUseByProxy)) return nullptr;
+
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
 	static HRESULT nHr = S_OK;
 
-	// return nullptr;
-	m_bUseD3D9Ex = true; // TODO !! DELETE !!
-
-	// if (m_bPresent)
-	//	nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag; // TODO !!
+	//if (m_bPresent)
+	//nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
 
 	switch (eD3DInterface)
 	{
@@ -1745,6 +1743,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_pppcTextureCreate) return nullptr;
 													   if (!m_ppvSharedHandle) return nullptr;
 
+#ifdef _DEBUGTHIS
+													   wchar_t buf[32];
+													   wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
+													   wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
+													   wsprintf(buf, L"m_punLevels %u", *m_punLevels); OutputDebugString(buf);
+													   wsprintf(buf, L"m_punUsage %u", *m_punUsage); OutputDebugString(buf);
+													   wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
+													   wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
+#endif
+
 													   IDirect3DTexture9* pLeftTexture = NULL;
 													   IDirect3DTexture9* pRightTexture = NULL;
 
@@ -1867,8 +1875,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   else
 													   {
 														   OutputDebugString(L"[STS] Failed to create texture : IDirect3DCubeTexture9 \n");
-														   OutputDebugString(L" Pool : ");
-														   DEBUG_UINT(newPool);
 													   }
 
 													   if (SUCCEEDED(nHr))
@@ -1885,7 +1891,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (m_bUseD3D9Ex)
 												   {
 													   SHOW_CALL("CreateVertexBuffer");
-													   
+
 													   if (!m_pePool) return nullptr;
 
 													   HRESULT hr = S_OK;
@@ -2291,9 +2297,9 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 					else OutputDebugString(L"[STS] Failed to query IDirect3DDevice9Ex interface.");*/
 
 					if (!m_pcStereoBuffer[0])
-						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_DYNAMIC, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
+						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
 					if (!m_pcStereoBuffer[1])
-						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_DYNAMIC, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
+						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
 
 					if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1])) OutputDebugString(L"[STS] Failed to create texture default/dynamic.");
 				}
