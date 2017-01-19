@@ -154,7 +154,7 @@ public:
 	ULONG WINAPI AddRef()
 	{
 		SHOW_CALL("D3D9ProxySurface::AddRef()");
-		
+
 		// if surface is in a container increase count on container instead of the surface
 		if (m_pcWrappedContainer)
 		{
@@ -1727,241 +1727,674 @@ protected:
 };
 
 /**
+* Direct 3D proxy volume class.
+* Imbeds the wrapped container this volume is part of.
+*
+* See D3D9ProxySurface for notes on reference counting when in container.
+* @see D3D9ProxySurface
+***/
+class IDirect3DStereoVolume9 : public IDirect3DVolume9
+{
+public:
+	IDirect3DStereoVolume9(IDirect3DVolume9* pcActualVolume, IDirect3DDevice9* pcOwningDevice, IUnknown* pcWrappedContainer) :
+		m_pcActualVolume(pcActualVolume),
+		m_pcOwningDevice(pcOwningDevice),
+		m_pcWrappedContainer(pcWrappedContainer)
+	{
+		assert(pcOwningDevice != NULL);
+
+
+		if (!pcWrappedContainer)
+			pcOwningDevice->AddRef();
+		// else - We leave the device ref count changes to the container
+
+		// pcWrappedContainer->AddRef(); is not called here as container add/release is handled
+		// by the container. The ref could be added here but as the release and destruction is
+		// hanlded by the container we leave it all in the same place (the container)	
+	}
+
+	/**
+	* Destructor.
+	* (else - m_pWrappedContainer does not have released called on it because the container manages
+	* the device reference)
+	***/
+	~IDirect3DStereoVolume9()
+	{
+		if (!m_pcWrappedContainer)
+		{
+			m_pcOwningDevice->Release();
+		}
+		SAFE_RELEASE(m_pcActualVolume);
+	}
+
+	/**
+	* Base QueryInterface functionality.
+	***/
+	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
+	{
+		return m_pcActualVolume->QueryInterface(riid, ppv);
+	}
+
+	/**
+	* Behaviour determined through observing D3D with various test cases.
+	*
+	* Creating a volume should only increase the device ref count iff the volume has no parent container.
+	* (The container adds one ref to the device for it and all its volumes)
+
+	* If a volume has a container then adding references to the volume should increase the ref count on
+	* the container instead of the volume. The volume shares a total ref count with the container, when
+	* it reaches 0 the container and its volumes are destroyed. This is handled by sending all Add/Release
+	* on to the container when there is one.
+	***/
+	ULONG WINAPI AddRef()
+	{
+		// if volume is in a container increase count on container instead of the volume
+		if (m_pcWrappedContainer)
+		{
+			return m_pcWrappedContainer->AddRef();
+		}
+		else
+		{
+			// otherwise track references normally
+			return ++m_unRefCount;
+		}
+	}
+
+	/**
+	* Releases wrapped container if present else the base surface.
+	***/
+	ULONG WINAPI Release()
+	{
+		if (m_pcWrappedContainer)
+		{
+			return m_pcWrappedContainer->Release();
+		}
+		else if (--m_unRefCount == 0)
+			{
+				delete this;
+				return 0;
+			}
+
+		return m_unRefCount;
+	}
+
+	/**
+	* GetDevice on the underlying IDirect3DVolume9 will return the device used to create it.
+	* Which is the actual device and not the wrapper. Therefore we have to keep track of the wrapper
+	* device and return that instead.
+
+	* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface.
+	* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a
+	* memory leak.
+	***/
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
+	{
+		if (!m_pcOwningDevice)
+			return D3DERR_INVALIDCALL;
+		else
+		{
+			*ppDevice = m_pcOwningDevice;
+			m_pcOwningDevice->AddRef();
+			return D3D_OK;
+		}
+	}
+
+	/**
+	* Base SetPrivateData functionality.
+	***/
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+	{
+		return m_pcActualVolume->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	}
+
+	/**
+	* Base GetPrivateData functionality.
+	***/
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+	{
+		return m_pcActualVolume->GetPrivateData(refguid, pData, pSizeOfData);
+	}
+
+	/**
+	* Base FreePrivateData functionality.
+	***/
+	HRESULT WINAPI FreePrivateData(REFGUID refguid)
+	{
+		return m_pcActualVolume->FreePrivateData(refguid);
+	}
+
+	/**
+	* Provides acces to parent object.
+	* "Provides access to the parent cube texture or texture (mipmap) object, if this surface is a child
+	* level of a cube texture or a mipmap. This method can also provide access to the parent swap chain
+	* if the surface is a back-buffer child."
+	*
+	* "If the surface is created using CreateRenderTarget or CreateOffscreenPlainSurface or
+	* CreateDepthStencilSurface, the surface is considered stand alone. In this case, GetContainer
+	* will return the Direct3D device used to create the surface."
+	* <http://msdn.microsoft.com/en-us/library/windows/desktop/bb205893%28v=vs.85%29.aspx>
+	*
+	* If the call succeeds, the reference count of the container is increased by one.
+	* @return Owning device if no wrapped container present, otherwise the container.
+	* @see D3D9ProxySurface::GetContainer()
+	***/
+	HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer)
+	{
+		if (!m_pcWrappedContainer)
+		{
+			m_pcOwningDevice->AddRef();
+			*ppContainer = m_pcOwningDevice;
+			return D3D_OK;
+		}
+
+
+		void *pContainer = NULL;
+		HRESULT queryResult = m_pcWrappedContainer->QueryInterface(riid, &pContainer);
+
+		if (SUCCEEDED(queryResult))
+		{
+			*ppContainer = m_pcWrappedContainer;
+			m_pcWrappedContainer->AddRef();
+
+			return D3D_OK;
+		}
+		else if (queryResult == E_NOINTERFACE)
+		{
+
+			return E_NOINTERFACE;
+		}
+		else
+		{
+			return D3DERR_INVALIDCALL;
+		}
+	}
+
+	/**
+	* Base GetDesc functionality.
+	***/
+	HRESULT WINAPI GetDesc(D3DVOLUME_DESC *pDesc)
+	{
+		return m_pcActualVolume->GetDesc(pDesc);
+	}
+
+	/**
+	* Base LockBox functionality.
+	***/
+	HRESULT WINAPI LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
+	{
+		return m_pcActualVolume->LockBox(pLockedVolume, pBox, Flags);
+	}
+
+	/**
+	* Base UnlockBox functionality.
+	***/
+	HRESULT WINAPI UnlockBox()
+	{
+		return m_pcActualVolume->UnlockBox();
+	}
+
+	/**
+	* Gets the actual (parent) volume.
+	***/
+	IDirect3DVolume9* GetActualVolume()
+	{
+		return m_pcActualVolume;
+	}
+
+protected:
+	/**
+	* Container this Volume is part of.
+	* VolumeTexture, (other?) NULL if standalone.
+	***/
+	IUnknown* m_pcWrappedContainer;
+	/**
+	* The owning device.
+	***/
+	IDirect3DDevice9* m_pcOwningDevice;
+	/**
+	* The actual volume embedded.
+	***/
+	IDirect3DVolume9* m_pcActualVolume;
+	/**
+	* Internal reference counter.
+	***/
+	ULONG m_unRefCount;
+};
+
+/**
 *  Direct 3D proxy stereo volume texture class.
 *  Imbeds wrapped volume levels.
 */
-//class IDirect3DStereoVolumeTexture9 : public IDirect3DVolumeTexture9
-//{
-//	/**
-//	* Constructor.
-//	* @param pcActualTexture Imbed actual texture.
-//	***/
-//	IDirect3DStereoVolumeTexture9(IDirect3DVolumeTexture9* pcActualTexture) :
-//	m_pcActualTexture(pcActualTexture),
-//	m_unRefCount(1),
-//	m_aaWrappedVolumeLevels(),
-//	m_pcOwningDevice(pcOwningDevice),
-//	lockableSysMemVolume(NULL)
-//	{
-//		SHOW_CALL("D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture");
-//		assert(pOwningDevice != NULL);
-//
-//		m_pOwningDevice->AddRef();
-//	}
-//
-//	/**
-//	* Destructor.
-//	* Releases embedded texture.
-//	***/
-//	~IDirect3DStereoVolumeTexture9()
-//	{
-//		if (m_pcActualTexture)
-//			m_pcActualTexture->Release();
-//	}
-//
-//	/**
-//	* Base QueryInterface functionality.
-//	***/
-//	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
-//	{
-//		return m_pcActualTexture->QueryInterface(riid, ppv);
-//	}
-//
-//	/**
-//	* Base AddRef functionality.
-//	***/
-//	ULONG WINAPI AddRef()
-//	{
-//		return ++m_nRefCount;
-//	}
-//
-//	/**
-//	* Base Release functionality.
-//	***/
-//	ULONG WINAPI Release()
-//	{
-//		if (--m_nRefCount == 0)
-//		{
-//			delete this;
-//			return 0;
-//		}
-//
-//		return m_nRefCount;
-//	}
-//
-//	/**
-//	* Base GetDevice functionality.
-//	***/
-//	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
-//	{
-//		return m_pcActualTexture->GetDevice(ppDevice);
-//	}
-//
-//	/**
-//	* Base SetPrivateData functionality.
-//	***/
-//	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-//	{
-//		return m_pcActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
-//	}
-//
-//	/**
-//	* Base GetPrivateData functionality.
-//	***/
-//	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-//	{
-//		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
-//	}
-//
-//	/**
-//	* Base FreePrivateData functionality.
-//	***/
-//	HRESULT WINAPI FreePrivateData(REFGUID refguid)
-//	{
-//		return m_pcActualTexture->FreePrivateData(refguid);
-//	}
-//
-//	/**
-//	* Base SetPriority functionality.
-//	***/
-//	DWORD WINAPI SetPriority(DWORD PriorityNew)
-//	{
-//		return m_pcActualTexture->SetPriority(PriorityNew);
-//	}
-//
-//	/**
-//	* Base GetPriority functionality.
-//	***/
-//	DWORD WINAPI GetPriority()
-//	{
-//		return m_pcActualTexture->GetPriority();
-//	}
-//
-//	/**
-//	* Base PreLoad functionality.
-//	***/
-//	void WINAPI PreLoad()
-//	{
-//		return m_pcActualTexture->PreLoad();
-//	}
-//
-//	/**
-//	* Base GetType functionality.
-//	***/
-//	D3DRESOURCETYPE WINAPI GetType()
-//	{
-//		return m_pcActualTexture->GetType();
-//	}
-//
-//	/**
-//	* Base SetLOD functionality.
-//	***/
-//	DWORD WINAPI SetLOD(DWORD LODNew)
-//	{
-//		return m_pcActualTexture->SetLOD(LODNew);
-//	}
-//
-//	/**
-//	* Base GetLOD functionality.
-//	***/
-//	DWORD WINAPI GetLOD()
-//	{
-//		return m_pcActualTexture->GetLOD();
-//	}
-//
-//	/**
-//	* Base GetLevelCount functionality.
-//	***/
-//	DWORD WINAPI GetLevelCount()
-//	{
-//		return m_pcActualTexture->GetLevelCount();
-//	}
-//
-//	/**
-//	* Base SetAutoGenFilterType functionality.
-//	***/
-//	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
-//	{
-//		return m_pcActualTexture->SetAutoGenFilterType(FilterType);
-//	}
-//
-//	/**
-//	* Base GetAutoGenFilterType functionality.
-//	***/
-//	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
-//	{
-//		return m_pcActualTexture->GetAutoGenFilterType();
-//	}
-//
-//	/**
-//	* Base GenerateMipSubLevels functionality.
-//	***/
-//	void WINAPI GenerateMipSubLevels()
-//	{
-//		return m_pcActualTexture->GenerateMipSubLevels();
-//	}
-//
-//	/**
-//	* Base GetLevelDesc functionality.
-//	***/
-//	HRESULT WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
-//	{
-//		return m_pcActualTexture->GetLevelDesc(Level, pDesc);
-//	}
-//
-//	/**
-//	* Base GetVolumeLevel functionality.
-//	***/
-//	HRESULT WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9 **ppVolumeLevel)
-//	{
-//		return m_pcActualTexture->GetVolumeLevel(Level, ppVolumeLevel);
-//	}
-//
-//	/**
-//	* Base LockBox functionality.
-//	***/
-//	HRESULT WINAPI LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
-//	{
-//		return m_pcActualTexture->LockBox(Level, pLockedVolume, pBox, Flags);
-//	}
-//
-//	/**
-//	* Base UnlockBox functionality.
-//	***/
-//	HRESULT WINAPI UnlockBox(UINT Level)
-//	{
-//		return m_pcActualTexture->UnlockBox(Level);
-//	}
-//
-//	/**
-//	* Base AddDirtyBox functionality.
-//	***/
-//	HRESULT WINAPI AddDirtyBox(const D3DBOX *pDirtyBox)
-//	{
-//		return m_pcActualTexture->AddDirtyBox(pDirtyBox);
-//	}
-//protected:
-//	/**
-//	* The actual texture.
-//	***/
-//	IDirect3DVolumeTexture9* m_pcActualTexture;
-//	/**
-//	* The actual right texture embedded.
-//	***/
-//	IDirect3DVolumeTexture9* m_pcActualTextureRight;
-//	/**
-//	* Pointer to the owning D3D device.
-//	***/
-//	IDirect3DDevice9* m_pcOwningDevice;
-//	/**
-//	* Internal reference counter.
-//	***/
-//	ULONG m_unRefCount;
-//	/**
-//	* Wrapped Volume levels.
-//	***/
-//	std::unordered_map<UINT, IDirect3DVolume9*> m_aaWrappedVolumeLevels;
-//
-//	//Special handling required for locking boxes if we are using Dx9Ex
-//	IDirect3DVolumeTexture9* lockableSysMemVolume;
-//};
+class IDirect3DStereoVolumeTexture9 : public IDirect3DVolumeTexture9
+{
+public:
+	/**
+	* Constructor.
+	* @param pcActualTexture Imbed actual texture.
+	***/
+	IDirect3DStereoVolumeTexture9(IDirect3DVolumeTexture9* pcActualTexture, IDirect3DDevice9* pcOwningDevice, D3DPOOL ePoolDefault) :
+		m_pcActualTexture(pcActualTexture),
+		m_unRefCount(1),
+		m_aaWrappedVolumeLevels(),
+		m_pcOwningDevice(pcOwningDevice),
+		lockableSysMemVolume(NULL),
+		m_ePoolDefault(ePoolDefault)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::D3D9ProxyVolumeTexture");
+		assert(pcOwningDevice != NULL);
+
+		m_pcOwningDevice->AddRef();
+	}
+
+	/**
+	* Destructor.
+	* Releases embedded stuff.
+	***/
+	~IDirect3DStereoVolumeTexture9()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::~D3D9ProxyVolumeTexture");
+
+		// delete all surfaces in m_levels
+		auto it = m_aaWrappedVolumeLevels.begin();
+		while (it != m_aaWrappedVolumeLevels.end())
+		{
+			// we have to explicitly delete the Volume here as the Release behaviour of the volume would get stuck in a loop
+			// calling back to the container Release.
+			delete it->second;
+			it = m_aaWrappedVolumeLevels.erase(it);
+		}
+
+		if (lockableSysMemVolume)
+			lockableSysMemVolume->Release();
+
+		if (m_pcOwningDevice)
+			m_pcOwningDevice->Release();
+
+		if (m_pcActualTexture)
+			m_pcActualTexture->Release();
+	}
+
+	/**
+	* Base QueryInterface functionality.
+	***/
+	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::QueryInterface");
+		return m_pcActualTexture->QueryInterface(riid, ppv);
+	}
+
+	/**
+	* Base AddRef functionality.
+	***/
+	ULONG WINAPI AddRef()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::AddRef");
+		return ++m_unRefCount;
+	}
+
+	/**
+	* Base Release functionality.
+	***/
+	ULONG WINAPI Release()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::Release");
+		if (--m_unRefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+
+		return m_unRefCount;
+	}
+
+	/**
+	* GetDevice on the underlying IDirect3DVolumeTexture9 will return the device used to create it.
+	* Which is the actual device and not the wrapper. Therefore we have to keep track of the
+	* wrapper device and return that instead.
+	*
+	* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface.
+	* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a
+	* memory leak.
+	*/
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetDevice");
+		if (!m_pcOwningDevice)
+			return D3DERR_INVALIDCALL;
+		else
+		{
+			*ppDevice = m_pcOwningDevice;
+			m_pcOwningDevice->AddRef();
+			return D3D_OK;
+		}
+	}
+
+	/**
+	* Base SetPrivateData functionality.
+	***/
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetPrivateData");
+		return m_pcActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	}
+
+	/**
+	* Base GetPrivateData functionality.
+	***/
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetPrivateData");
+		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
+	}
+
+	/**
+	* Base FreePrivateData functionality.
+	***/
+	HRESULT WINAPI FreePrivateData(REFGUID refguid)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::FreePrivateData");
+		return m_pcActualTexture->FreePrivateData(refguid);
+	}
+
+	/**
+	* Base SetPriority functionality.
+	***/
+	DWORD WINAPI SetPriority(DWORD PriorityNew)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetPriority");
+		return m_pcActualTexture->SetPriority(PriorityNew);
+	}
+
+	/**
+	* Base GetPriority functionality.
+	***/
+	DWORD WINAPI GetPriority()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetPriority");
+		return m_pcActualTexture->GetPriority();
+	}
+
+	/**
+	* Base PreLoad functionality.
+	***/
+	void WINAPI PreLoad()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::PreLoad");
+		return m_pcActualTexture->PreLoad();
+	}
+
+	/**
+	* Base GetType functionality.
+	***/
+	D3DRESOURCETYPE WINAPI GetType()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetType");
+		return m_pcActualTexture->GetType();
+	}
+
+	/**
+	* Base SetLOD functionality.
+	***/
+	DWORD WINAPI SetLOD(DWORD LODNew)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetLOD");
+		return m_pcActualTexture->SetLOD(LODNew);
+	}
+
+	/**
+	* Base GetLOD functionality.
+	***/
+	DWORD WINAPI GetLOD()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLOD");
+		return m_pcActualTexture->GetLOD();
+	}
+
+	/**
+	* Base GetLevelCount functionality.
+	***/
+	DWORD WINAPI GetLevelCount()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLevelCount");
+		return m_pcActualTexture->GetLevelCount();
+	}
+
+	/**
+	* Base SetAutoGenFilterType functionality.
+	***/
+	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetAutoGenFilterType");
+		return m_pcActualTexture->SetAutoGenFilterType(FilterType);
+	}
+
+	/**
+	* Base GetAutoGenFilterType functionality.
+	***/
+	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetAutoGenFilterType");
+		return m_pcActualTexture->GetAutoGenFilterType();
+	}
+
+	/**
+	* Base GenerateMipSubLevels functionality.
+	***/
+	void WINAPI GenerateMipSubLevels()
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GenerateMipSubLevels");
+		return m_pcActualTexture->GenerateMipSubLevels();
+	}
+
+	/**
+	* Base GetLevelDesc functionality.
+	***/
+	HRESULT WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
+	{
+		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLevelDesc");
+		HRESULT nHr = m_pcActualTexture->GetLevelDesc(Level, pDesc);
+		pDesc->Pool = m_ePoolDefault;
+		return nHr;
+	}
+
+	/**
+	* If proxy volume is already stored on this level, return this one, otherwise create it.
+	* To create a new stored volume level, call the method on both (left/right) actual volumes.
+	***/
+	HRESULT WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9** ppVolumeLevel)
+	{
+		SHOW_CALL("D3D9ProxyVolumeTexture::GetVolumeLevel");
+		HRESULT finalResult;
+
+		// Have we already got a Proxy for this surface level?
+		if (m_aaWrappedVolumeLevels.count(Level) == 1)
+		{ // yes
+
+			// TODO Should we call through to underlying texture and make sure the result of doing this operation on the 
+			// underlying texture would still be a success? (not if we don't have to, will see if it becomes a problem)
+
+			*ppVolumeLevel = m_aaWrappedVolumeLevels[Level];
+			(*ppVolumeLevel)->AddRef();
+
+			finalResult = D3D_OK;
+		}
+		else
+		{
+			// Get underlying surfaces (stereo pair made from the surfaces at the same level in the left and right textues), 
+			//  wrap, then store in m_wrappedSurfaceLevels and return the wrapped surface
+			IDirect3DVolume9* pActualVolumeLevel = NULL;
+
+			HRESULT result = m_pcActualTexture->GetVolumeLevel(Level, &pActualVolumeLevel);
+
+			if (SUCCEEDED(result))
+			{
+				IDirect3DStereoVolume9* pWrappedVolumeLevel = new IDirect3DStereoVolume9(pActualVolumeLevel, m_pcOwningDevice, (IUnknown*)this);
+
+				if (m_aaWrappedVolumeLevels.insert(std::pair<ULONG, IDirect3DStereoVolume9*>(Level, pWrappedVolumeLevel)).second)
+				{
+					// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
+					*ppVolumeLevel = pWrappedVolumeLevel;
+					(*ppVolumeLevel)->AddRef();
+					finalResult = D3D_OK;
+				}
+				else
+				{
+					// Failure to insert should not be possible. In this case we could still return the wrapped surface,
+					// however, if we did and it was requested again a new wrapped instance will be returned and things would explode
+					// at some point. Better to fail fast.
+					OutputDebugStringA(__FUNCTION__);
+					OutputDebugStringA("\n");
+					OutputDebugStringA("Unable to store surface level.\n");
+					assert(false);
+
+					finalResult = D3DERR_INVALIDCALL;
+				}
+			}
+			else
+			{
+				OutputDebugStringA(__FUNCTION__);
+				OutputDebugStringA("\n");
+				OutputDebugStringA("Error fetching actual surface level.\n");
+				finalResult = result;
+			}
+		}
+
+		return finalResult;
+	}
+
+	/**
+	* Base LockBox functionality.
+	***/
+	HRESULT WINAPI LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
+	{
+		SHOW_CALL("D3D9ProxyVolumeTexture::LockBox");
+
+		D3DVOLUME_DESC desc;
+		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		if (desc.Pool != D3DPOOL_DEFAULT)
+		{
+			//Can't really handle stereo for this, so just lock on the original texture
+			return m_pcActualTexture->LockBox(Level, pLockedVolume, pBox, Flags);
+		}
+
+		//Create lockable system memory surfaces
+		HRESULT hr = D3DERR_INVALIDCALL;
+		if (!lockableSysMemVolume)
+		{
+			hr = m_pcOwningDevice->CreateVolumeTexture(desc.Width, desc.Height, desc.Depth, 1, 0,
+				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemVolume, NULL);
+			if (FAILED(hr))
+				return hr;
+		}
+
+		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
+			hr = m_pcActualTexture->AddDirtyBox(pBox);
+
+		hr = lockableSysMemVolume->LockBox(Level, pLockedVolume, pBox, Flags);
+		if (FAILED(hr))
+			return hr;
+
+		return hr;
+	}
+
+	/**
+	* Base UnlockBox functionality.
+	***/
+	HRESULT WINAPI UnlockBox(UINT Level)
+	{
+		SHOW_CALL("D3D9ProxyVolumeTexture::UnlockBox");
+		D3DVOLUME_DESC desc;
+		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		if (desc.Pool != D3DPOOL_DEFAULT)
+		{
+			return m_pcActualTexture->UnlockBox(Level);
+		}
+
+		//	IDirect3DVolume9 *pVolume= NULL;
+		//	HRESULT hr = lockableSysMemVolumes[Level] ? lockableSysMemVolumes[Level]->GetVolumeLevel(0, &pVolume) : D3DERR_INVALIDCALL;
+		//	if (FAILED(hr))
+		//		return hr;
+
+		HRESULT hr = lockableSysMemVolume->UnlockBox(Level);
+		if (FAILED(hr))
+			return hr;
+
+		//	IDirect3DSurface9 *pActualSurface = NULL;
+		//	hr = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurface);
+		//	if (FAILED(hr))
+		//		return hr;
+		//	if (fullSurfaces[Level])
+		{
+			hr = m_pcOwningDevice->UpdateTexture(lockableSysMemVolume, m_pcActualTexture);
+			if (FAILED(hr))
+				return hr;
+		}
+		/*	else
+		{
+		std::vector<RECT>::iterator rectIter = lockedRects[Level].begin();
+		while (rectIter != lockedRects[Level].end())
+		{
+		POINT p;
+		p.x = rectIter->left;
+		p.y = rectIter->top;
+		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurface, &p);
+		if (FAILED(hr))
+		return hr;
+		rectIter++;
+		}
+		}*/
+
+		//Release everything
+		//pActualSurface->Release();
+		//	pSurface->Release();
+
+		//	fullSurfaces[Level] = false;
+		return hr;
+	}
+
+	/**
+	* Base AddDirtyBox functionality.
+	***/
+	HRESULT WINAPI AddDirtyBox(const D3DBOX *pDirtyBox)
+	{
+		SHOW_CALL("D3D9ProxyVolumeTexture::AddDirtyBox");
+		return m_pcActualTexture->AddDirtyBox(pDirtyBox);
+	}
+
+	/**
+	* Returns the actual volume texture.
+	***/
+	IDirect3DVolumeTexture9* GetActual()
+	{
+		return m_pcActualTexture;
+	}
+protected:
+	/**
+	* The actual texture.
+	***/
+	IDirect3DVolumeTexture9* m_pcActualTexture;
+	/**
+	* The actual right texture embedded.
+	***/
+	IDirect3DVolumeTexture9* m_pcActualTextureRight;
+	/**
+	* Pointer to the owning D3D device.
+	***/
+	IDirect3DDevice9* m_pcOwningDevice;
+	/**
+	* Internal reference counter.
+	***/
+	ULONG m_unRefCount;
+	/**
+	* Wrapped Volume levels.
+	***/
+	std::unordered_map<UINT, IDirect3DVolume9*> m_aaWrappedVolumeLevels;
+	/**
+	* The default pool of the resource.
+	***/
+	D3DPOOL const m_ePoolDefault;
+
+	//Special handling required for locking boxes if we are using Dx9Ex
+	IDirect3DVolumeTexture9* lockableSysMemVolume;
+};

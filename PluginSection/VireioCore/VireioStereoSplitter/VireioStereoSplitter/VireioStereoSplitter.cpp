@@ -1811,19 +1811,19 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_ppvSharedHandle) return nullptr;
 
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+													   D3DPOOL ePool = D3DPOOL_DEFAULT;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
-														   (*m_pePool) = D3DPOOL_DEFAULT;
+														   ePool = D3DPOOL_DEFAULT;
 														   pcDirect3DDevice9Ex->Release();
 													   }
 
-
 													   IDirect3DVolumeTexture9* pActualTexture = NULL;
-													   nHr = ((IDirect3DDevice9*)pThis)->CreateVolumeTexture(*m_punWidth, *m_punHeight, *m_punDepth, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool, &pActualTexture, *m_ppvSharedHandle);
+													   nHr = ((IDirect3DDevice9*)pThis)->CreateVolumeTexture(*m_punWidth, *m_punHeight, *m_punDepth, *m_punLevels, *m_punUsage, *m_peFormat, ePool, &pActualTexture, *m_ppvSharedHandle);
 
 													   if (SUCCEEDED(nHr))
-														   *(*m_pppcVolumeTexture) = pActualTexture;// new D3D9ProxyVolumeTexture(pActualTexture, this); // TODO !!
+														   *(*m_pppcVolumeTexture) = new IDirect3DStereoVolumeTexture9(pActualTexture, ((IDirect3DDevice9*)pThis), (*m_pePool));
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -3298,11 +3298,8 @@ void StereoSplitter::UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, 
 		}
 		case D3DRTYPE_VOLUMETEXTURE:
 		{
-									   //D3D9ProxyVolumeTexture* pDerivedTexture = static_cast<D3D9ProxyVolumeTexture*> (pWrappedTexture);
-									   //*ppActualLeftTexture = pDerivedTexture->getActual();
-
-									   // TODO : DO WE NEED WRAPPED VOLUME TEXTURES HERE ?
-									   *ppActualLeftTexture = pWrappedTexture;
+									   IDirect3DStereoVolumeTexture9* pDerivedTexture = static_cast<IDirect3DStereoVolumeTexture9*>(pWrappedTexture);
+									   *ppActualLeftTexture = pDerivedTexture->GetActual();
 									   break;
 		}
 		case D3DRTYPE_CUBETEXTURE:
