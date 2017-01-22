@@ -426,6 +426,14 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"pasVShaderConstantIndices";
 		case pasPShaderConstantIndices:
 			return L"pasPShaderConstantIndices";
+		case Length:
+			return L"Length";
+		case FVF:
+			return L"FVF";
+		case ppVertexBuffer:
+			return L"ppVertexBuffer";
+		case ppIndexBuffer:
+			return L"ppIndexBuffer";
 	}
 
 	return L"";
@@ -548,6 +556,14 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_VOID;
 		case pasPShaderConstantIndices:
 			return NOD_Plugtype::AQU_VOID;
+		case Length:
+			return NOD_Plugtype::AQU_UINT;
+		case FVF:
+			return NOD_Plugtype::AQU_UINT;
+		case ppVertexBuffer:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXBUFFER9;
+		case ppIndexBuffer:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DINDEXBUFFER9;
 	}
 
 	return 0;
@@ -729,6 +745,18 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pasPShaderConstantIndices:
 			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
+		case Length:
+			m_punLength = (UINT*)pData;
+			break;
+		case FVF:
+			m_punFVF = (DWORD*)pData;
+			break;
+		case ppVertexBuffer:
+			m_pppcVertexBuffer = (IDirect3DVertexBuffer9***)pData;
+			break;
+		case ppIndexBuffer:
+			m_pppcIndexBuffer = (IDirect3DIndexBuffer9***)pData;
+			break;
 	}
 }
 
@@ -802,6 +830,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// instantly return if the device is in use by a proxy class;
 	if ((m_bUseD3D9Ex) && (s_bDeviceInUseByProxy)) return nullptr;
 
+	// #define _DEBUG_STEREO_SPLITTER
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
@@ -851,7 +880,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #ifdef _DEBUG
 													   if (newRenderTarget && !newRenderTarget->GetActualLeft() && !newRenderTarget->GetActualRight())
 													   {
-														   OutputDebugString(L"RenderTarget is not a valid (IDirect3DStereoSurface) stereo capable surface\n");
+														   OutputDebugString(L"[STS] RenderTarget is not a valid (IDirect3DStereoSurface) stereo capable surface\n");
 													   }
 #endif
 
@@ -860,7 +889,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   // Removing a render target
 													   if (newRenderTarget == NULL)
 													   {
-														   if (RenderTargetIndex == 0)
+														   if ((*m_punRenderTargetIndex) == 0)
 														   {
 															   // main render target should never be set to NULL
 															   nHr = D3DERR_INVALIDCALL;
@@ -890,13 +919,13 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   m_bActiveViewportIsDefault = true;
 
 														   // release old render target
-														   if (m_apcActiveRenderTargets[RenderTargetIndex] != NULL)
-															   m_apcActiveRenderTargets[RenderTargetIndex]->Release();
+														   if (m_apcActiveRenderTargets[*m_punRenderTargetIndex] != NULL)
+															   m_apcActiveRenderTargets[*m_punRenderTargetIndex]->Release();
 
 														   // replace with new render target (may be NULL)
-														   m_apcActiveRenderTargets[RenderTargetIndex] = newRenderTarget;
-														   if (m_apcActiveRenderTargets[RenderTargetIndex] != NULL)
-															   m_apcActiveRenderTargets[RenderTargetIndex]->AddRef();
+														   m_apcActiveRenderTargets[*m_punRenderTargetIndex] = newRenderTarget;
+														   if (m_apcActiveRenderTargets[*m_punRenderTargetIndex] != NULL)
+															   m_apcActiveRenderTargets[*m_punRenderTargetIndex]->AddRef();
 													   }
 
 													   // method replaced, immediately return
@@ -1285,7 +1314,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 																   // Source is not stereo, destination is stereo. Copying source to both sides of destination.
 																   if (FAILED(((IDirect3DDevice9*)pThis)->UpdateTexture(pSourceTextureLeft, pDestTextureRight)))
 																   {
-																	   OutputDebugString(L"ERROR: UpdateTexture - Failed to copy source left to destination right.\n");
+																	   OutputDebugString(L"[STS] ERROR: UpdateTexture - Failed to copy source left to destination right.\n");
 																   }
 															   }
 															   else if (pSourceTextureRight && !pDestTextureRight)
@@ -1296,7 +1325,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   {
 																   if (FAILED(((IDirect3DDevice9*)pThis)->UpdateTexture(pSourceTextureRight, pDestTextureRight)))
 																   {
-																	   OutputDebugString(L"ERROR: UpdateTexture - Failed to copy source right to destination right.\n");
+																	   OutputDebugString(L"[STS] ERROR: UpdateTexture - Failed to copy source right to destination right.\n");
 																   }
 															   }
 														   }
@@ -1357,7 +1386,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 																   // Source is not stereo, destination is stereo. Copying source to both sides of destination.
 																   if (FAILED(((IDirect3DDevice9*)pThis)->StretchRect(pSourceSurfaceLeft, *m_ppcSourceRect_StretchRect, pDestSurfaceRight, *m_ppcDestRect_StretchRect, *m_peFilter_StretchRect)))
 																   {
-																	   OutputDebugString(L"ERROR: StretchRect - Failed to copy source left to destination right.\n");
+																	   OutputDebugString(L"[STS] ERROR: StretchRect - Failed to copy source left to destination right.\n");
 																   }
 															   }
 															   else if (pSourceSurfaceRight && !pDestSurfaceRight)
@@ -1368,7 +1397,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   {
 																   if (FAILED(((IDirect3DDevice9*)pThis)->StretchRect(pSourceSurfaceRight, *m_ppcSourceRect_StretchRect, pDestSurfaceRight, *m_ppcDestRect_StretchRect, *m_peFilter_StretchRect)))
 																   {
-																	   OutputDebugString(L"ERROR: StretchRect - Failed to copy source right to destination right.\n");
+																	   OutputDebugString(L"[STS] ERROR: StretchRect - Failed to copy source right to destination right.\n");
 																   }
 															   }
 														   }
@@ -1454,56 +1483,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 															   if (pcSwapChain)
 															   {
-
-																   // get number of backbuffers in that swapchain
-																   D3DPRESENT_PARAMETERS sParams = {};
-																   pcSwapChain->GetPresentParameters(&sParams);
-
-																   // create back buffer vector
-																   std::vector<IDirect3DStereoSurface9*> apcProxyBackBuffers = std::vector<IDirect3DStereoSurface9*>();
-
-																   // loop through backbuffers, add them
-																   for (UINT unJ = 0; unJ < sParams.BackBufferCount; unJ++)
-																   {
-																	   // get back buffer for the specified index
-																	   IDirect3DSurface9* pcBackBuffer = nullptr;
-																	   pcSwapChain->GetBackBuffer(unJ, D3DBACKBUFFER_TYPE::D3DBACKBUFFER_TYPE_MONO, &pcBackBuffer);
-
-																	   if (pcBackBuffer)
-																	   {
-																		   // create stereo proxy back buffer
-																		   D3DSURFACE_DESC sDesc = {};
-																		   pcBackBuffer->GetDesc(&sDesc);
-																		   IDirect3DSurface9* pcBackBufferRight = nullptr;
-																		   HRESULT hr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcBackBufferRight, nullptr);
-																		   if (FAILED(hr))
-																		   {
-																			   { wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
-																			   HRESULT hr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &pcBackBufferRight, nullptr);
-																			   if (FAILED(hr))
-																			   {
-																				   { wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
-																				   exit(99);
-																			   }
-																		   }
-																		   IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcBackBuffer, pcBackBufferRight, (IDirect3DDevice9*)pThis, (IUnknown*)pcSwapChain, nullptr, nullptr);
-
-																		   // add backbuffer to vector and release
-																		   apcProxyBackBuffers.push_back(pcBackBufferStereo);
-																		   pcBackBuffer->Release();
-																	   }
-																	   else
-																	   {
-																		   // actually, we shouldn't come here
-																		   OutputDebugString(L"[STS] D3DPRESTENT_PARAMETERS struct is invalid !");
-																		   apcProxyBackBuffers.push_back(nullptr);
-																	   }
-																   }
-
-																   // add backbuffer vector and swapchain, release swapchain
-																   m_apcActiveSwapChains.push_back(pcSwapChain);
-																   m_aapcActiveProxyBackBufferSurfaces.push_back(apcProxyBackBuffers);
-																   pcSwapChain->Release();
+																   // enumerate this swapchain
+																   EnumerateSwapchain((IDirect3DDevice9*)pThis, pcSwapChain, unI);
 															   }
 															   else
 															   {
@@ -1531,9 +1512,15 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 														   return (void*)&nHr;
 													   }
+
+													   OutputDebugString(L"[STS] Fatal : GetBackBuffer no swapchain !");
+													   exit(99);
 												   }
-												   // ensure left drawing side here
-												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   else
+												   {
+													   // ensure left drawing side here
+													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+												   }
 												   return nullptr;
 #pragma endregion 
 #pragma region GetRenderTarget
@@ -1544,6 +1531,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   if (!m_punRenderTargetIndex) return nullptr;
 													   if (!m_pppcRenderTarget) return nullptr;
+
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis);
 
 													   if (*m_punRenderTargetIndex >= D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT)
 													   {
@@ -1575,6 +1565,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 														   return (void*)&nHr;
 													   }
+
+													   OutputDebugString(L"[STS] Critical : Failed to return render target !");
+													   exit(99);
 												   }
 												   else
 												   {
@@ -1752,6 +1745,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
 													   wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
 #endif
+													   SHOW_CALL("CreateTexture");
 
 													   IDirect3DTexture9* pLeftTexture = NULL;
 													   IDirect3DTexture9* pRightTexture = NULL;
@@ -1892,7 +1886,12 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   {
 													   SHOW_CALL("CreateVertexBuffer");
 
+													   if (!m_punLength) return nullptr;
+													   if (!m_punUsage) return nullptr;
 													   if (!m_pePool) return nullptr;
+													   if (!m_punFVF) return nullptr;
+													   if (!m_pppcVertexBuffer) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
 
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
@@ -1911,7 +1910,12 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   {
 													   SHOW_CALL("CreateIndexBuffer");
 
+													   if (!m_punLength) return nullptr;
+													   if (!m_punUsage) return nullptr;
+													   if (!m_peFormat) return nullptr;
 													   if (!m_pePool) return nullptr;
+													   if (!m_pppcIndexBuffer) return nullptr;
+													   if (!m_ppvSharedHandle) return nullptr;
 
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
@@ -1960,7 +1964,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pLeftRenderTarget, *m_ppvSharedHandle)))
 													   {
-
 														   /* "If Needed" heuristic is the complicated part here.
 														   Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 
@@ -2079,7 +2082,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   IDirect3DSurface9* pActualSurface = NULL;
 													   HRESULT creationResult = ((IDirect3DDevice9*)pThis)->CreateOffscreenPlainSurface(*m_punWidth, *m_punHeight, *m_peFormat, newPool, &pActualSurface, *m_ppvSharedHandle);
-
 													   if (SUCCEEDED(creationResult))
 														   *(*m_pppcSurfaceCreate) = new IDirect3DStereoSurface9(pActualSurface, NULL, (IDirect3DDevice9*)pThis, NULL, NULL, NULL);
 
@@ -2141,12 +2143,27 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				}
 					return nullptr;
 				case METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER:
-					// ensure left drawing side here
-					SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+					if (m_bUseD3D9Ex)
+					{
+						OutputDebugString(L"[STS] Fatal : IDirect3DSwapChain->GetBackBuffer() not implemented !");
+						exit(99);
+					}
+					else
+					{
+						// ensure left drawing side here
+						SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+					}
 					return nullptr;
 				case METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA:
-					// ensure left drawing side here
-					SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+					if (m_bUseD3D9Ex)
+					{
+						OutputDebugString(L"[STS] IDirect3DSwapChain->GetFrontBufferData() not implemented !");
+					}
+					else
+					{
+						// ensure left drawing side here
+						SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+					}
 					return nullptr;
 			}
 			return nullptr;
@@ -2210,6 +2227,25 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 	{
 		if (m_bUseD3D9Ex)
 		{
+			// get the first swapchain
+			IDirect3DSwapChain9* pcSwapChain = nullptr;
+			pcDevice->GetSwapChain(0, &pcSwapChain);
+
+			if (pcSwapChain)
+			{
+				// ...and enumerate it internally
+				EnumerateSwapchain(pcDevice, pcSwapChain, 0);
+
+				// set the first proxy render target internally
+				m_apcActiveRenderTargets[0] = m_aapcActiveProxyBackBufferSurfaces[0][0];
+			}
+			else
+			{
+				// actually we shouldnt come here...
+				OutputDebugString(L"[STS] Critical Error : No D3D9 swapchain present !");
+				exit(99);
+			}
+
 		}
 		else
 		{
@@ -2549,7 +2585,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				// discard must be false since we switch the stencil surfaces for every draw call
 				if (FAILED(pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
 				{
-					OutputDebugString(L"VireioStereoSplitter : Failed to create depth stencil surface.");
+					OutputDebugString(L"[STS] Failed to create depth stencil surface.");
 #ifdef _DEBUGTHIS
 					wchar_t buf[32];
 					wsprintf(buf, L"desc.Width %u", sDesc.Width); OutputDebugString(buf);
@@ -2565,7 +2601,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 			{
 				if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, true, &pcStereoTwinSurface, NULL)))
 				{
-					OutputDebugString(L"VireioStereoSplitter : Failed to create render target.");
+					OutputDebugString(L"[STS] Failed to create render target.");
 #ifdef _DEBUGTHIS
 					wchar_t buf[32];
 					wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
@@ -2731,7 +2767,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 
 		if (nHr)
 		{
-			OutputDebugString(L"Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
+			OutputDebugString(L"[STS] Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
 		}
 		else
 		{
@@ -2881,7 +2917,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 									 // create the texture
 									 if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DTexture9**)ppcStereoTwinTexture, NULL)))
 									 {
-										 OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+										 OutputDebugString(L"[STS] Failed to create render target texture.");
 #ifdef _DEBUGTHIS							
 										 wchar_t buf[32];
 										 wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
@@ -2972,7 +3008,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 										 // create the texture
 										 if (FAILED(pcDevice->CreateCubeTexture((UINT)sDesc.Width, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DCubeTexture9**)ppcStereoTwinTexture, NULL)))
 										 {
-											 OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+											 OutputDebugString(L"[STS] Failed to create render target texture.");
 #ifdef _DEBUGTHIS							
 											 wchar_t buf[32];
 											 wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
@@ -3320,4 +3356,60 @@ void StereoSplitter::UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, 
 		OutputDebugString(L"[STS] No left texture? Unpossible!\n");
 		assert(false);
 	}
+}
+
+/**
+* Enumerates a swapchain to the internal swapchain array.
+**/
+void StereoSplitter::EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwapChain9* pcSwapChain, UINT unIndex)
+{
+	// get number of backbuffers in that swapchain
+	D3DPRESENT_PARAMETERS sParams = {};
+	pcSwapChain->GetPresentParameters(&sParams);
+
+	// create back buffer vector
+	std::vector<IDirect3DStereoSurface9*> apcProxyBackBuffers = std::vector<IDirect3DStereoSurface9*>();
+
+	// loop through backbuffers, add them
+	for (UINT unJ = 0; unJ < sParams.BackBufferCount; unJ++)
+	{
+		// get back buffer for the specified index
+		IDirect3DSurface9* pcBackBuffer = nullptr;
+		pcSwapChain->GetBackBuffer(unJ, D3DBACKBUFFER_TYPE::D3DBACKBUFFER_TYPE_MONO, &pcBackBuffer);
+
+		if (pcBackBuffer)
+		{
+			// create stereo proxy back buffer
+			D3DSURFACE_DESC sDesc = {};
+			pcBackBuffer->GetDesc(&sDesc);
+			IDirect3DSurface9* pcBackBufferRight = nullptr;
+			HRESULT hr = pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcBackBufferRight, nullptr);
+			if (FAILED(hr))
+			{
+				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
+				HRESULT hr = pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &pcBackBufferRight, nullptr);
+				if (FAILED(hr))
+				{
+					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
+					exit(99);
+				}
+			}
+			IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcBackBuffer, pcBackBufferRight, pcDevice, (IUnknown*)pcSwapChain, nullptr, nullptr);
+
+			// add backbuffer to vector and release
+			apcProxyBackBuffers.push_back(pcBackBufferStereo);
+			pcBackBuffer->Release();
+		}
+		else
+		{
+			// actually, we shouldn't come here
+			OutputDebugString(L"[STS] D3DPRESTENT_PARAMETERS struct is invalid !");
+			apcProxyBackBuffers.push_back(nullptr);
+		}
+	}
+
+	// add backbuffer vector and swapchain, release swapchain
+	m_apcActiveSwapChains.push_back(pcSwapChain);
+	m_aapcActiveProxyBackBufferSurfaces.push_back(apcProxyBackBuffers);
+	pcSwapChain->Release();
 }

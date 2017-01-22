@@ -658,6 +658,7 @@ public:
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
 		SHOW_CALL("D3D9ProxyTexture::QueryInterface");
+
 		/* IID_IDirect3DTexture9 */
 		/* {85C31227-3DE5-4f00-9B3A-F11AC38C18B5} */
 		IF_GUID(riid, 0x85c31227, 0x3de5, 0x4f00, 0x9b, 0x3a, 0xf1, 0x1a)
@@ -918,6 +919,7 @@ public:
 					// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
 					*ppSurfaceLevel = pcWrappedSurfaceLevel;
 					(*ppSurfaceLevel)->AddRef();
+
 					finalResult = D3D_OK;
 				}
 				else
@@ -1513,13 +1515,12 @@ public:
 			IDirect3DSurface9* pActualSurfaceLevelRight = NULL;
 
 			HRESULT leftResult = m_pcActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelLeft);
-
+			
 			if (IsStereo())
 			{
 				HRESULT resultRight = m_pcActualTextureRight->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelRight);
 				assert(leftResult == resultRight);
 			}
-
 
 			if (SUCCEEDED(leftResult))
 			{

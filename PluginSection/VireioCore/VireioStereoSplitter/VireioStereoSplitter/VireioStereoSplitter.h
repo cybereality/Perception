@@ -87,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_SPINSIZE                         980
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        51
+#define NUMBER_OF_DECOMMANDERS                        55
 
 #define DUPLICATE_RENDERTARGET_POS_X                  16
 #define DUPLICATE_RENDERTARGET_POS_Y                  64
@@ -161,11 +161,13 @@ enum STS_Decommanders
 	ppBackBuffer,                 /**< ->GetBackBuffer() **/
 	Width,                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 	Height,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	Length,
+	Depth,                        /**< ->CreateVolumeTexture() **/
 	EdgeLength,                   /**< ->CreateCubeTexture() **/
 	Levels,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
-	Depth,                        /**< ->CreateVolumeTexture() **/
 	Usage,                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
 	Format,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	FVF,
 	MultiSample,                  /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
 	MultisampleQuality,           /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
 	Discard,                      /**< ->CreateDepthStencilSurface() **/
@@ -174,6 +176,8 @@ enum STS_Decommanders
 	ppTexture,                    /**< ->CreateTexture() **/
 	ppVolumeTexture,              /**< ->CreateVolumeTexture() **/
 	ppCubeTexture,                /**< ->CreateCubeTexture() **/
+	ppVertexBuffer,
+	ppIndexBuffer,
 	ppSurface,                    /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 	pSharedHandle,                /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 	peDrawingSide,                /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
@@ -348,6 +352,7 @@ private:
 	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
 	void                    CreateGUI();
 	void                    UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
+	void                    EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwapChain9* pcSwapChain, UINT unIndex);
 
 	/**
 	* Input pointers.
@@ -388,22 +393,26 @@ private:
 	UINT*                                         m_punEdgeLength;                                   /**< ->CreateCubeTexture() **/
 	UINT*                                         m_punLevels;                                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
 	UINT*                                         m_punDepth;                                        /**< ->CreateVolumeTexture() **/
-	DWORD*                                        m_punUsage;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
-	D3DFORMAT*                                    m_peFormat;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	DWORD*                                        m_punUsage;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateVertexBuffer(), CreateIndexBuffer() **/
+	D3DFORMAT*                                    m_peFormat;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface(), CreateIndexBuffer() **/
 	D3DMULTISAMPLE_TYPE*                          m_peMultiSample;                                   /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
 	DWORD*                                        m_punMultisampleQuality;                           /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
 	BOOL*                                         m_pnDiscard;                                       /**< ->CreateDepthStencilSurface() **/
 	BOOL*                                         m_pnLockable;                                      /**< ->CreateRenderTarget() **/
-	D3DPOOL*                                      m_pePool;                                          /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface() **/
+	D3DPOOL*                                      m_pePool;                                          /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface(), CreateVertexBuffer(), CreateIndexBuffer() **/
 	IDirect3DTexture9***                          m_pppcTextureCreate;                               /**< ->CreateTexture() **/
 	IDirect3DVolumeTexture9***                    m_pppcVolumeTexture;                               /**< ->CreateVolumeTexture() **/
 	IDirect3DCubeTexture9***                      m_pppcCubeTexture;                                 /**< ->CreateCubeTexture() **/
 	IDirect3DSurface9***                          m_pppcSurfaceCreate;                               /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	HANDLE**                                      m_ppvSharedHandle;                                 /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	UINT*                                         m_punLength;                                       /**< ->CreateVertexBuffer(), CreateIndexBuffer() **/
+	DWORD*                                        m_punFVF;                                          /**< ->CreateVertexBuffer() **/
+	IDirect3DVertexBuffer9***                     m_pppcVertexBuffer;                                /**< ->CreateVertexBuffer() **/
+	IDirect3DIndexBuffer9***                      m_pppcIndexBuffer;                                 /**< ->CreateIndexBuffer() **/
+	HANDLE**                                      m_ppvSharedHandle;                                 /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface(), CreateVertexBuffer(), CreateIndexBuffer() **/
 	RenderPosition*                               m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current vertex shader ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current pixel shader ***/
-
+	
 
 	/**
 	* Active stored render target views.
