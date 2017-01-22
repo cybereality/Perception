@@ -849,7 +849,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										   {
 #pragma region Present
 											   case METHOD_IDIRECT3DDEVICE9_PRESENT:
-												   Present((LPDIRECT3DDEVICE9)pThis);
+												   Present((LPDIRECT3DDEVICE9)pThis, false);
 												   return nullptr;
 #pragma endregion
 #pragma region BeginScene
@@ -1533,7 +1533,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_pppcRenderTarget) return nullptr;
 
 													   if (!m_bPresent)
-														   Present((IDirect3DDevice9*)pThis);
+														   Present((IDirect3DDevice9*)pThis, true);
 
 													   if (*m_punRenderTargetIndex >= D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT)
 													   {
@@ -2137,7 +2137,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   if (pcDevice)
 														   {
 															   ((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
-															   Present(pcDevice);
+															   Present(pcDevice, false);
 															   pcDevice->Release();
 														   }
 				}
@@ -2215,8 +2215,9 @@ void StereoSplitter::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 /**
 * Incoming Present() call.
 * Handle the check time counter.
+* @param bInit : True if not called by Present() to init otherwise.
 ***/
-void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
+void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 {
 	// ensure to be on left drawing side
 	if (m_eCurrentRenderingSide == RenderPosition::Right)
@@ -2289,6 +2290,12 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 		// TODO !! INIT ACTIVE TEXTURES
 	}
 
+	// set present() bool to true
+	m_bPresent = true;
+
+	// return if only called for initialization
+	if (bInit) return;
+
 	// finally, provide pointers to the left and right render target - get back buffer... TODO !! HANDLE CHANGED
 	if (!m_pcActiveBackBufferSurface[0])
 		pcDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &m_pcActiveBackBufferSurface[0]);
@@ -2311,31 +2318,36 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 				if (sDesc.Width > 0)
 				{
 					// query for the IDirect3DDevice9Ex interface
-					/*IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+					IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
 					if (SUCCEEDED(pcDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
 					{
-					HANDLE pHandleLeft = nullptr;
-					if (!m_pcStereoBuffer[0])
-					pcDirect3DDevice9Ex->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], &pHandleLeft);
+						// create the textures with a shared handle
+						HANDLE pHandleLeft = nullptr;
+						if (!m_pcStereoBuffer[0])
+							pcDirect3DDevice9Ex->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], &pHandleLeft);
 
-					HANDLE pHandleRight = nullptr;
-					if (!m_pcStereoBuffer[1])
-					pcDirect3DDevice9Ex->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], &pHandleRight);
+						HANDLE pHandleRight = nullptr;
+						if (!m_pcStereoBuffer[1])
+							pcDirect3DDevice9Ex->CreateTexture(sDesc.Width, sDesc.Height, 1, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], &pHandleRight);
 
-					// set shared handles as private interfaces
-					if (m_pcStereoBuffer[0])
-					m_pcStereoBuffer[0]->SetPrivateData(PDIID_Shared_Handle, (void*)pHandleLeft, sizeof(IUnknown*), NULL);
-					if (m_pcStereoBuffer[1])
-					m_pcStereoBuffer[1]->SetPrivateData(PDIID_Shared_Handle, (void*)pHandleRight, sizeof(IUnknown*), NULL);
+						// set shared handles as private interfaces
+						if (m_pcStereoBuffer[0])
+							m_pcStereoBuffer[0]->SetPrivateData(PDIID_Shared_Handle, (void*)&pHandleLeft, sizeof(HANDLE), NULL);
+						if (m_pcStereoBuffer[1])
+							m_pcStereoBuffer[1]->SetPrivateData(PDIID_Shared_Handle, (void*)&pHandleRight, sizeof(HANDLE), NULL);
 
-					pcDirect3DDevice9Ex->Release();
+						pcDirect3DDevice9Ex->Release();
 					}
-					else OutputDebugString(L"[STS] Failed to query IDirect3DDevice9Ex interface.");*/
+					else OutputDebugString(L"[STS] Failed to query IDirect3DDevice9Ex interface.");
 
-					if (!m_pcStereoBuffer[0])
-						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
-					if (!m_pcStereoBuffer[1])
-						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
+					// should we create standard textures if failed ?
+					if (false)
+					{
+						if (!m_pcStereoBuffer[0])
+							pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
+						if (!m_pcStereoBuffer[1])
+							pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
+					}
 
 					if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1])) OutputDebugString(L"[STS] Failed to create texture default/dynamic.");
 				}
@@ -2361,9 +2373,6 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 	}
 	else
 		OutputDebugString(L"Vireio Stereo Splitter : No primary swap chain found.");
-
-	// set present() bool to true
-	m_bPresent = true;
 }
 
 /**

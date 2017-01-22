@@ -330,7 +330,7 @@ public:
 
 private:
 	/*** StereoSplitter private D3D9 stub methods ***/
-	void                    Present(IDirect3DDevice9* pcDevice);
+	void                    Present(IDirect3DDevice9* pcDevice, bool bInit);
 
 	/*** StereoSplitter private D3D9 methods ***/
 	void                    SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD unRenderTargetIndex, IDirect3DSurface9* pcRenderTarget);
