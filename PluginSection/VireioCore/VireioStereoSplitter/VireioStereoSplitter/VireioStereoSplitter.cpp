@@ -1475,7 +1475,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if ((*m_punISwapChain) >= (UINT)m_apcActiveSwapChains.size())
 													   {
 														   // enumerate swapchains in m_apcActiveSwapChains, backbuffers in m_aapcActiveProxyBackBufferSurfaces
-														   for (UINT unI = (UINT)m_apcActiveSwapChains.size(); unI < (*m_punISwapChain); unI++)
+														   for (UINT unI = (UINT)m_apcActiveSwapChains.size(); unI <= (*m_punISwapChain); unI++)
 														   {
 															   // get swapchain for the specified index
 															   IDirect3DSwapChain9* pcSwapChain = nullptr;
