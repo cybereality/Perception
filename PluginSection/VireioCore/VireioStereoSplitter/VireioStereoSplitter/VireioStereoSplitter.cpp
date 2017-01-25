@@ -79,6 +79,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE        82 
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP             83 
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP      84
+#define METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES             85
+#define METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE            100
+#define METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE            101
+#define METHOD_IDIRECT3DDEVICE9_SETINDICES                 104
+#define METHOD_IDIRECT3DDEVICE9_GETINDICES                 105
 #define METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH              115 
 #define METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH               116
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT                   3
@@ -390,6 +395,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"Width";
 		case Height:
 			return L"Height";
+		case Length:
+			return L"Length";
 		case EdgeLength:
 			return L"EdgeLength";
 		case Levels:
@@ -400,6 +407,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"Usage";
 		case Format:
 			return L"Format";
+		case FVF:
+			return L"FVF";
 		case MultiSample:
 			return L"MultiSample";
 		case MultisampleQuality:
@@ -416,24 +425,50 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"ppVolumeTexture";
 		case ppCubeTexture:
 			return L"ppCubeTexture";
+		case ppVertexBuffer:
+			return L"ppVertexBuffer";
+		case ppIndexBuffer:
+			return L"ppIndexBuffer";
 		case ppSurface:
 			return L"ppSurface";
 		case pSharedHandle:
 			return L"pSharedHandle";
+		case SrcStartIndex:
+			return L"SrcStartIndex";
+		case DestIndex:
+			return L"DestIndex";
+		case VertexCount:
+			return L"VertexCount";
+		case pDestBuffer:
+			return L"pDestBuffer";
+		case pVertexDecl:
+			return L"pVertexDecl";
+		case Flags:
+			return L"Flags";
+		case StreamNumber:
+			return L"StreamNumber";
+		case pStreamData:
+			return L"pStreamData";
+		case OffsetInBytes:
+			return L"OffsetInBytes";
+		case Stride:
+			return L"Stride";
+		case ppStreamData:
+			return L"ppStreamData";
+		case pOffsetInBytes:
+			return L"pOffsetInBytes";
+		case pStride:
+			return L"pStride";
+		case pIndexData:
+			return L"pIndexData";
+		case ppIndexData:
+			return L"ppIndexData";
 		case peDrawingSide:
 			return L"peDrawingSide";
 		case pasVShaderConstantIndices:
 			return L"pasVShaderConstantIndices";
 		case pasPShaderConstantIndices:
 			return L"pasPShaderConstantIndices";
-		case Length:
-			return L"Length";
-		case FVF:
-			return L"FVF";
-		case ppVertexBuffer:
-			return L"ppVertexBuffer";
-		case ppIndexBuffer:
-			return L"ppIndexBuffer";
 	}
 
 	return L"";
@@ -520,6 +555,8 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_UINT;
 		case Height:
 			return NOD_Plugtype::AQU_UINT;
+		case Length:
+			return NOD_Plugtype::AQU_UINT;
 		case EdgeLength:
 			return NOD_Plugtype::AQU_UINT;
 		case Levels:
@@ -530,6 +567,8 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_UINT;
 		case Format:
 			return NOD_Plugtype::AQU_D3DFORMAT;
+		case FVF:
+			return NOD_Plugtype::AQU_UINT;
 		case MultiSample:
 			return NOD_Plugtype::AQU_D3DMULTISAMPLE_TYPE;
 		case MultisampleQuality:
@@ -546,24 +585,50 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVOLUMETEXTURE9;
 		case ppCubeTexture:
 			return NOD_Plugtype::AQU_PPNT_IDIRECT3DCUBETEXTURE9;
+		case ppVertexBuffer:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXBUFFER9;
+		case ppIndexBuffer:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DINDEXBUFFER9;
 		case ppSurface:
 			return NOD_Plugtype::AQU_PPNT_IDIRECT3DSURFACE9;
 		case pSharedHandle:
 			return NOD_Plugtype::AQU_PNT_HANDLE;
+		case SrcStartIndex:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->ProcessVertices() **/
+		case DestIndex:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->ProcessVertices() **/
+		case VertexCount:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->ProcessVertices() **/
+		case pDestBuffer:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DVERTEXBUFFER9;       /**< ->ProcessVertices() **/
+		case pVertexDecl:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DVERTEXDECLARATION9;  /**< ->ProcessVertices() **/
+		case Flags:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->ProcessVertices() **/
+		case StreamNumber:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->SetStreamSource(), ->GetStreamSource() **/
+		case pStreamData:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DVERTEXBUFFER9;       /**< ->SetStreamSource(), **/
+		case OffsetInBytes:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->SetStreamSource() **/
+		case Stride:
+			return NOD_Plugtype::AQU_UINT;                             /**< ->SetStreamSource() **/
+		case ppStreamData:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXBUFFER9;      /**< ->GetStreamSource() **/
+		case pOffsetInBytes:
+			return NOD_Plugtype::AQU_PNT_UINT;                         /**< ->GetStreamSource() **/
+		case pStride:
+			return NOD_Plugtype::AQU_PNT_UINT;                         /**< ->GetStreamSource() **/
+		case pIndexData:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DINDEXBUFFER9;        /**< ->SetIndices() **/
+		case ppIndexData:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DINDEXBUFFER9;       /**< ->GetIndices() **/
 		case peDrawingSide:
 			return NOD_Plugtype::AQU_INT;
 		case pasVShaderConstantIndices:
 			return NOD_Plugtype::AQU_VOID;
 		case pasPShaderConstantIndices:
 			return NOD_Plugtype::AQU_VOID;
-		case Length:
-			return NOD_Plugtype::AQU_UINT;
-		case FVF:
-			return NOD_Plugtype::AQU_UINT;
-		case ppVertexBuffer:
-			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXBUFFER9;
-		case ppIndexBuffer:
-			return NOD_Plugtype::AQU_PPNT_IDIRECT3DINDEXBUFFER9;
 	}
 
 	return 0;
@@ -691,6 +756,9 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case Height:
 			m_punHeight = (UINT*)pData;                            /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 			break;
+		case Length:
+			m_punLength = (UINT*)pData;
+			break;
 		case EdgeLength:
 			m_punEdgeLength = (UINT*)pData;                        /**< ->CreateCubeTexture() **/
 			break;
@@ -705,6 +773,9 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			break;
 		case Format:
 			m_peFormat = (D3DFORMAT*)pData;                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+			break;
+		case FVF:
+			m_punFVF = (DWORD*)pData;
 			break;
 		case MultiSample:
 			m_peMultiSample = (D3DMULTISAMPLE_TYPE*)pData;         /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
@@ -730,11 +801,62 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case ppCubeTexture:
 			m_pppcCubeTexture = (IDirect3DCubeTexture9***)pData;     /**< ->CreateCubeTexture() **/
 			break;
+		case ppVertexBuffer:
+			m_pppcVertexBuffer = (IDirect3DVertexBuffer9***)pData;
+			break;
+		case ppIndexBuffer:
+			m_pppcIndexBuffer = (IDirect3DIndexBuffer9***)pData;
+			break;
 		case ppSurface:
 			m_pppcSurfaceCreate = (IDirect3DSurface9***)pData;       /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 			break;
 		case pSharedHandle:
 			m_ppvSharedHandle = (HANDLE**)pData;
+			break;
+		case SrcStartIndex:
+			m_punSrcStartIndex = (UINT*)pData;                       /**< ->ProcessVertices() **/
+			break;
+		case DestIndex:
+			m_punDestIndex = (UINT*)pData;                           /**< ->ProcessVertices() **/
+			break;
+		case VertexCount:
+			m_punVertexCount = (UINT*)pData;                         /**< ->ProcessVertices() **/
+			break;
+		case pDestBuffer:
+			m_ppcDestBuffer = (IDirect3DVertexBuffer9**)pData;       /**< ->ProcessVertices() **/
+			break;
+		case pVertexDecl:
+			m_ppcVertexDecl = (IDirect3DVertexDeclaration9**)pData;  /**< ->ProcessVertices() **/
+			break;
+		case Flags:
+			m_punFlags = (DWORD*)pData;                              /**< ->ProcessVertices() **/
+			break;
+		case StreamNumber:
+			m_punStreamNumber = (UINT*)pData;                        /**< ->SetStreamSource(), ->GetStreamSource() **/
+			break;
+		case pStreamData:
+			m_ppcStreamData = (IDirect3DVertexBuffer9**)pData;       /**< ->SetStreamSource(), **/
+			break;
+		case OffsetInBytes:
+			m_punOffsetInBytes = (UINT*)pData;                       /**< ->SetStreamSource() **/
+			break;
+		case Stride:
+			m_punStride = (UINT*)pData;                              /**< ->SetStreamSource() **/
+			break;
+		case ppStreamData:
+			m_pppcStreamData = (IDirect3DVertexBuffer9***)pData;     /**< ->GetStreamSource() **/
+			break;
+		case pOffsetInBytes:
+			m_ppunOffsetInBytes = (UINT**)pData;                     /**< ->GetStreamSource() **/
+			break;
+		case pStride:
+			m_ppunStride = (UINT**)pData;                            /**< ->GetStreamSource() **/
+			break;
+		case pIndexData:
+			m_ppcIndexData = (IDirect3DIndexBuffer9**)pData;         /**< ->SetIndices() **/
+			break;
+		case ppIndexData:
+			m_pppcIndexData = (IDirect3DIndexBuffer9***)pData;       /**< ->GetIndices() **/
 			break;
 		case peDrawingSide:
 			m_peDrawingSide = (RenderPosition*)pData;
@@ -745,18 +867,9 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pasPShaderConstantIndices:
 			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
-		case Length:
-			m_punLength = (UINT*)pData;
-			break;
-		case FVF:
-			m_punFVF = (DWORD*)pData;
-			break;
-		case ppVertexBuffer:
-			m_pppcVertexBuffer = (IDirect3DVertexBuffer9***)pData;
-			break;
-		case ppIndexBuffer:
-			m_pppcIndexBuffer = (IDirect3DIndexBuffer9***)pData;
-			break;
+
+
+
 	}
 }
 
@@ -803,7 +916,12 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE))
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETINDICES) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETINDICES))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
@@ -2115,6 +2233,92 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   {
 													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetFrontBufferData()");
 													   exit(99);
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region ProcessVertices
+											   caseMETHOD_IDIRECT3DDEVICE9_PROCESSVERTICES :
+												   if (m_bUseD3D9Ex)
+												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : ProcessVertices()");
+													   exit(99);
+
+													   if (!m_punSrcStartIndex) return nullptr; /**< ->ProcessVertices() **/
+													   if (!m_punDestIndex) return nullptr; /**< ->ProcessVertices() **/
+													   if (!m_punVertexCount) return nullptr; /**< ->ProcessVertices() **/
+													   if (!m_ppcDestBuffer) return nullptr; /**< ->ProcessVertices() **/
+													   if (!m_ppcVertexDecl) return nullptr; /**< ->ProcessVertices() **/
+													   if (!m_punFlags) return nullptr; /**< ->ProcessVertices() **/
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region SetStreamSource
+											   case METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE:
+												   if (m_bUseD3D9Ex)
+												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : SetStreamSource()");
+													   exit(99);
+
+													   if (!m_punStreamNumber) return nullptr; /**< ->SetStreamSource(), ->GetStreamSource() **/
+													   if (!m_ppcStreamData) return nullptr; /**< ->SetStreamSource(), **/
+													   if (!m_punOffsetInBytes) return nullptr; /**< ->SetStreamSource() **/
+													   if (!m_punStride) return nullptr; /**< ->SetStreamSource() **/
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region GetStreamSource
+											   caseMETHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE :
+												   if (m_bUseD3D9Ex)
+												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetStreamSource()");
+													   exit(99);
+
+													   if (!m_punStreamNumber) return nullptr; /**< ->SetStreamSource(), ->GetStreamSource() **/
+													   if (!m_pppcStreamData) return nullptr; /**< ->GetStreamSource() **/
+													   if (!m_ppunOffsetInBytes) return nullptr; /**< ->GetStreamSource() **/
+													   if (!m_ppunStride) return nullptr; /**< ->GetStreamSource() **/
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region SetIndices
+											   case METHOD_IDIRECT3DDEVICE9_SETINDICES:
+												   if (m_bUseD3D9Ex)
+												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : SetIndices()");
+													   exit(99);
+
+													   if (!m_ppcIndexData) return nullptr; /**< ->SetIndices() **/
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region GetIndices
+											   case METHOD_IDIRECT3DDEVICE9_GETINDICES:
+												   if (m_bUseD3D9Ex)
+												   {
+													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetIndices()");
+													   exit(99);
+
+													   if (!m_pppcIndexData) return nullptr; /**< ->GetIndices() **/
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;

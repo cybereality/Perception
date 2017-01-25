@@ -78,7 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RESZ_CODE 0x7fa05000
 
 #define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  4500
+#define GUI_HEIGHT                                  5000
 #define GUI_CONTROL_BORDER                            64
 #define GUI_CONTROL_FONTSIZE                          64
 #define GUI_CONTROL_FONTBORDER                        16
@@ -87,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_SPINSIZE                         980
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        55
+#define NUMBER_OF_DECOMMANDERS                        70
 
 #define DUPLICATE_RENDERTARGET_POS_X                  16
 #define DUPLICATE_RENDERTARGET_POS_Y                  64
@@ -180,6 +180,21 @@ enum STS_Decommanders
 	ppIndexBuffer,
 	ppSurface,                    /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
 	pSharedHandle,                /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
+	SrcStartIndex,                /**< ->ProcessVertices() **/
+	DestIndex,                    /**< ->ProcessVertices() **/
+	VertexCount,                  /**< ->ProcessVertices() **/
+	pDestBuffer,                  /**< ->ProcessVertices() **/
+	pVertexDecl,                  /**< ->ProcessVertices() **/
+	Flags,                        /**< ->ProcessVertices() **/
+	StreamNumber,                 /**< ->SetStreamSource(), ->GetStreamSource() **/
+	pStreamData,                  /**< ->SetStreamSource(), **/
+	OffsetInBytes,                /**< ->SetStreamSource() **/
+	Stride,                       /**< ->SetStreamSource() **/
+	ppStreamData,                 /**< ->GetStreamSource() **/
+	pOffsetInBytes,               /**< ->GetStreamSource() **/
+	pStride,                      /**< ->GetStreamSource() **/
+	pIndexData,                   /**< ->SetIndices() **/
+	ppIndexData,                  /**< ->SetIndices() **/
 	peDrawingSide,                /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	pasVShaderConstantIndices,    /**< The constant rule indices for the actual vertex shader. ***/
 	pasPShaderConstantIndices,    /**< The constant rule indices for the actual pixel shader. ***/
@@ -409,10 +424,24 @@ private:
 	IDirect3DVertexBuffer9***                     m_pppcVertexBuffer;                                /**< ->CreateVertexBuffer() **/
 	IDirect3DIndexBuffer9***                      m_pppcIndexBuffer;                                 /**< ->CreateIndexBuffer() **/
 	HANDLE**                                      m_ppvSharedHandle;                                 /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface(), CreateVertexBuffer(), CreateIndexBuffer() **/
+	UINT*                                         m_punSrcStartIndex;                                /**< ->ProcessVertices() **/
+	UINT*                                         m_punDestIndex;                                    /**< ->ProcessVertices() **/
+	UINT*                                         m_punVertexCount;                                  /**< ->ProcessVertices() **/
+	IDirect3DVertexBuffer9**                      m_ppcDestBuffer;                                   /**< ->ProcessVertices() **/
+	IDirect3DVertexDeclaration9**                 m_ppcVertexDecl;                                   /**< ->ProcessVertices() **/
+	DWORD*                                        m_punFlags;                                        /**< ->ProcessVertices() **/
+	UINT*                                         m_punStreamNumber;                                 /**< ->SetStreamSource(), ->GetStreamSource() **/
+	IDirect3DVertexBuffer9**                      m_ppcStreamData;                                   /**< ->SetStreamSource(), **/
+	UINT*                                         m_punOffsetInBytes;                                /**< ->SetStreamSource() **/
+	UINT*                                         m_punStride;                                       /**< ->SetStreamSource() **/
+	IDirect3DVertexBuffer9***                     m_pppcStreamData;                                  /**< ->GetStreamSource() **/
+	UINT**                                        m_ppunOffsetInBytes;                               /**< ->GetStreamSource() **/
+	UINT**                                        m_ppunStride;                                      /**< ->GetStreamSource() **/
+	IDirect3DIndexBuffer9**                       m_ppcIndexData;                                    /**< ->SetIndices() **/
+	IDirect3DIndexBuffer9***                      m_pppcIndexData;                                   /**< ->GetIndices() **/
 	RenderPosition*                               m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current vertex shader ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current pixel shader ***/
-	
 
 	/**
 	* Active stored render target views.
