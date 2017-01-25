@@ -2241,7 +2241,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   return nullptr;
 #pragma endregion
 #pragma region ProcessVertices
-											   caseMETHOD_IDIRECT3DDEVICE9_PROCESSVERTICES :
+											   case METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES :
 												   if (m_bUseD3D9Ex)
 												   {
 													   OutputDebugString(L"[STS] NOT IMPLEMENTED : ProcessVertices()");
@@ -2279,7 +2279,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   return nullptr;
 #pragma endregion
 #pragma region GetStreamSource
-											   caseMETHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE :
+											   case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE :
 												   if (m_bUseD3D9Ex)
 												   {
 													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetStreamSource()");
