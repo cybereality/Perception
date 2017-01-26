@@ -122,7 +122,9 @@ public:
 		SHOW_CALL("D3D9ProxySurface::~D3D9ProxySurface()");
 		if (!m_pcWrappedContainer)
 		{
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->Release();
+			s_bDeviceInUseByProxy = false;
 		}
 
 		SAFE_RELEASE(lockableSysMemTexture);
@@ -200,7 +202,9 @@ public:
 		else
 		{
 			*ppcDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			return D3D_OK;
 		}
 	}
@@ -299,7 +303,9 @@ public:
 		SHOW_CALL("D3D9ProxySurface::GetContainer");
 		if (!m_pcWrappedContainer)
 		{
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			*ppContainer = m_pcOwningDevice;
 			return D3D_OK;
 		}
@@ -614,7 +620,9 @@ public:
 		SHOW_CALL("D3D9ProxyTexture::D3D9ProxyTexture");
 		assert(pcOwningDevice != NULL);
 
+		s_bDeviceInUseByProxy = true;
 		m_pcOwningDevice->AddRef();
+		s_bDeviceInUseByProxy = false;
 	}
 	/**
 	* Destructor.
@@ -644,7 +652,9 @@ public:
 
 		SAFE_RELEASE(m_pcActualTexture);
 		SAFE_RELEASE(m_pcActualTextureRight);
+		s_bDeviceInUseByProxy = true;
 		SAFE_RELEASE(m_pcOwningDevice);
+		s_bDeviceInUseByProxy = false;
 	}
 
 	/*** IUnknown methods ***/
@@ -719,7 +729,9 @@ public:
 		else
 		{
 			*ppcDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			return D3D_OK;
 		}
 	}
@@ -1000,7 +1012,7 @@ public:
 				newTexture = true;
 				if (FAILED(hr))
 				{
-					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->CreateTexture hr = 0x % 0.8x", hr); OutputDebugString(buf); }
+					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcOwningDevice->CreateTexture hr = 0x % 0.8x", hr); OutputDebugString(buf); }
 					return hr;
 				}
 
@@ -1103,7 +1115,7 @@ public:
 				if (FAILED(hr))
 				{
 #ifdef _DEBUG
-					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
+					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
 					WriteDesc(Level, desc);
 #endif
 					//Just ignore the failed copy back, not much we can do
@@ -1124,7 +1136,7 @@ public:
 					if (FAILED(hr))
 					{
 #ifdef _DEBUG
-						{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
+						{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
 						WriteDesc(Level, desc);
 #endif
 						//Just ignore the failed copy back, not much we can do
@@ -1149,7 +1161,7 @@ public:
 			if (FAILED(hr))
 			{
 #ifdef _DEBUG
-				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
+				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
 				WriteDesc(Level, desc);
 #endif
 
@@ -1171,7 +1183,7 @@ public:
 				if (FAILED(hr))
 				{
 #ifdef _DEBUG
-					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
+					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
 					WriteDesc(Level, desc);
 #endif
 					//Just ignore the failed copy back, not much we can do
@@ -1273,7 +1285,9 @@ public:
 		SHOW_CALL("D3D9ProxyCubeTexture()");
 		assert(pcOwningDevice != NULL);
 
+		s_bDeviceInUseByProxy = true;
 		m_pcOwningDevice->AddRef();
+		s_bDeviceInUseByProxy = false;
 	}
 
 	/**
@@ -1296,7 +1310,9 @@ public:
 
 		SAFE_RELEASE(m_pcActualTexture);
 		SAFE_RELEASE(m_pcActualTextureRight);
+		s_bDeviceInUseByProxy = true;
 		SAFE_RELEASE(m_pcOwningDevice);
+		s_bDeviceInUseByProxy = false;
 	}
 
 	/**
@@ -1346,7 +1362,9 @@ public:
 		else
 		{
 			*ppDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			return D3D_OK;
 		}
 	}
@@ -1515,7 +1533,7 @@ public:
 			IDirect3DSurface9* pActualSurfaceLevelRight = NULL;
 
 			HRESULT leftResult = m_pcActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelLeft);
-			
+
 			if (IsStereo())
 			{
 				HRESULT resultRight = m_pcActualTextureRight->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelRight);
@@ -1593,7 +1611,7 @@ public:
 			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 			{
-				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pOwningDevice->getActual()->CreateCubeTexture hr = 0x%0.8x", hr); OutputDebugString(buf); }
+				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcOwningDevice->getActual()->CreateCubeTexture hr = 0x%0.8x", hr); OutputDebugString(buf); }
 				return hr;
 			}
 		}
@@ -1763,7 +1781,9 @@ public:
 	{
 		if (!m_pcWrappedContainer)
 		{
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->Release();
+			s_bDeviceInUseByProxy = false;
 		}
 		SAFE_RELEASE(m_pcActualVolume);
 	}
@@ -1811,10 +1831,10 @@ public:
 			return m_pcWrappedContainer->Release();
 		}
 		else if (--m_unRefCount == 0)
-			{
-				delete this;
-				return 0;
-			}
+		{
+			delete this;
+			return 0;
+		}
 
 		return m_unRefCount;
 	}
@@ -1835,7 +1855,9 @@ public:
 		else
 		{
 			*ppDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			return D3D_OK;
 		}
 	}
@@ -1883,7 +1905,9 @@ public:
 	{
 		if (!m_pcWrappedContainer)
 		{
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			*ppContainer = m_pcOwningDevice;
 			return D3D_OK;
 		}
@@ -1984,7 +2008,9 @@ public:
 		SHOW_CALL("IDirect3DStereoVolumeTexture9::D3D9ProxyVolumeTexture");
 		assert(pcOwningDevice != NULL);
 
+		s_bDeviceInUseByProxy = true;
 		m_pcOwningDevice->AddRef();
+		s_bDeviceInUseByProxy = false;
 	}
 
 	/**
@@ -2008,8 +2034,10 @@ public:
 		if (lockableSysMemVolume)
 			lockableSysMemVolume->Release();
 
+		s_bDeviceInUseByProxy = true;
 		if (m_pcOwningDevice)
 			m_pcOwningDevice->Release();
+		s_bDeviceInUseByProxy = false;
 
 		if (m_pcActualTexture)
 			m_pcActualTexture->Release();
@@ -2065,7 +2093,9 @@ public:
 		else
 		{
 			*ppDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
 			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
 			return D3D_OK;
 		}
 	}
@@ -2282,8 +2312,10 @@ public:
 		HRESULT hr = D3DERR_INVALIDCALL;
 		if (!lockableSysMemVolume)
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = m_pcOwningDevice->CreateVolumeTexture(desc.Width, desc.Height, desc.Depth, 1, 0,
 				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemVolume, NULL);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 				return hr;
 		}
@@ -2312,45 +2344,18 @@ public:
 			return m_pcActualTexture->UnlockBox(Level);
 		}
 
-		//	IDirect3DVolume9 *pVolume= NULL;
-		//	HRESULT hr = lockableSysMemVolumes[Level] ? lockableSysMemVolumes[Level]->GetVolumeLevel(0, &pVolume) : D3DERR_INVALIDCALL;
-		//	if (FAILED(hr))
-		//		return hr;
-
+		// unlock the lockable resource
 		HRESULT hr = lockableSysMemVolume->UnlockBox(Level);
 		if (FAILED(hr))
 			return hr;
 
-		//	IDirect3DSurface9 *pActualSurface = NULL;
-		//	hr = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurface);
-		//	if (FAILED(hr))
-		//		return hr;
-		//	if (fullSurfaces[Level])
-		{
-			hr = m_pcOwningDevice->UpdateTexture(lockableSysMemVolume, m_pcActualTexture);
-			if (FAILED(hr))
-				return hr;
-		}
-		/*	else
-		{
-		std::vector<RECT>::iterator rectIter = lockedRects[Level].begin();
-		while (rectIter != lockedRects[Level].end())
-		{
-		POINT p;
-		p.x = rectIter->left;
-		p.y = rectIter->top;
-		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurface, &p);
+		// and update the actual resource by the lockable
+		s_bDeviceInUseByProxy = true;
+		hr = m_pcOwningDevice->UpdateTexture(lockableSysMemVolume, m_pcActualTexture);
+		s_bDeviceInUseByProxy = false;
 		if (FAILED(hr))
-		return hr;
-		rectIter++;
-		}
-		}*/
+			return hr;
 
-		//Release everything
-		//pActualSurface->Release();
-		//	pSurface->Release();
-
-		//	fullSurfaces[Level] = false;
 		return hr;
 	}
 
@@ -2395,7 +2400,261 @@ protected:
 	* The default pool of the resource.
 	***/
 	D3DPOOL const m_ePoolDefault;
-
-	//Special handling required for locking boxes if we are using Dx9Ex
+	/**
+	* Special handling required for locking boxes if we are using Dx9Ex
+	***/
 	IDirect3DVolumeTexture9* lockableSysMemVolume;
+};
+
+/**
+*  Direct 3D vertex buffer class.
+*  Overwrites IDirect3DVertexBuffer9 and imbeds the actual vertex buffer.
+*/
+class IDirect3DProxyVertexBuffer9 : public IDirect3DVertexBuffer9
+{
+public:
+	/**
+	* Constructor.
+	* @param pActualVertexBuffer Imbed actual vertex buffer.
+	* @param pOwningDevice Pointer to the device that owns the buffer.
+	***/
+	IDirect3DProxyVertexBuffer9::IDirect3DProxyVertexBuffer9(IDirect3DVertexBuffer9* pcActualVertexBuffer, IDirect3DDevice9* pcOwningDevice) :
+		m_pcActualVertexBuffer(pcActualVertexBuffer),
+		m_pcOwningDevice(pcOwningDevice),
+		lockableSysMemBuffer(nullptr),
+		m_unRefCount(1)
+	{
+		assert(pcActualVertexBuffer != NULL);
+		assert(pcOwningDevice != NULL);
+
+		pcOwningDevice->AddRef();
+	}
+
+	/**
+	* Destructor.
+	* Releases embedded vertex buffer.
+	***/
+	IDirect3DProxyVertexBuffer9::~IDirect3DProxyVertexBuffer9()
+	{
+		if (m_pcActualVertexBuffer)
+		{
+			m_pcActualVertexBuffer->Release();
+		}
+
+		if (m_pcOwningDevice)
+		{
+			s_bDeviceInUseByProxy = true;
+			m_pcOwningDevice->Release();
+			s_bDeviceInUseByProxy = false;
+		}
+	}
+
+	/**
+	* Base QueryInterface functionality.
+	***/
+	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
+	{
+		return m_pcActualVertexBuffer->QueryInterface(riid, ppv);
+	}
+
+	/**
+	* Base AddRef functionality.
+	***/
+	ULONG WINAPI AddRef()
+	{
+		return ++m_unRefCount;
+	}
+
+	/**
+	* Base Release functionality.
+	***/
+	ULONG WINAPI Release()
+	{
+		if (--m_unRefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+
+		return m_unRefCount;
+	}
+
+	/**
+	* Base GetDevice functionality.
+	***/
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
+	{
+		if (!m_pcOwningDevice)
+			return D3DERR_INVALIDCALL;
+		else
+		{
+			*ppDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
+			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
+			return D3D_OK;
+		}
+	}
+
+	/**
+	* Base SetPrivateData functionality.
+	***/
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+	{
+		return m_pcActualVertexBuffer->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	}
+
+	/**
+	* Base GetPrivateData functionality.
+	***/
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+	{
+		return m_pcActualVertexBuffer->GetPrivateData(refguid, pData, pSizeOfData);
+	}
+
+	/**
+	* Base FreePrivateData functionality.
+	***/
+	HRESULT WINAPI FreePrivateData(REFGUID refguid)
+	{
+		return m_pcActualVertexBuffer->FreePrivateData(refguid);
+	}
+
+	/**
+	* Base SetPriority functionality.
+	***/
+	DWORD WINAPI SetPriority(DWORD PriorityNew)
+	{
+		return m_pcActualVertexBuffer->SetPriority(PriorityNew);
+	}
+
+	/**
+	* Base GetPriority functionality.
+	***/
+	DWORD WINAPI GetPriority()
+	{
+		return m_pcActualVertexBuffer->GetPriority();
+	}
+
+	/**
+	* Base PreLoad functionality.
+	***/
+	void WINAPI PreLoad()
+	{
+		return m_pcActualVertexBuffer->PreLoad();
+	}
+
+	/**
+	* Base GetType functionality.
+	***/
+	D3DRESOURCETYPE WINAPI GetType()
+	{
+		return m_pcActualVertexBuffer->GetType();
+	}
+
+	/**
+	* Base Lock functionality.
+	***/
+	HRESULT WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags)
+	{
+		D3DVERTEXBUFFER_DESC sDesc = {};
+		m_pcActualVertexBuffer->GetDesc(&sDesc);
+		if (sDesc.Pool != D3DPOOL_DEFAULT)
+		{
+			// just lock on the original buffer
+			return m_pcActualVertexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
+		}
+
+		//Create lockable system memory surfaces
+		HRESULT nHr = D3DERR_INVALIDCALL;
+		if (!lockableSysMemBuffer)
+		{
+			s_bDeviceInUseByProxy = true;
+			nHr = m_pcOwningDevice->CreateVertexBuffer(sDesc.Size, sDesc.Usage, sDesc.FVF, D3DPOOL_SYSTEMMEM, &lockableSysMemBuffer, nullptr);
+			s_bDeviceInUseByProxy = false;
+			if (FAILED(nHr))
+				return nHr;
+		}
+
+		/*if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
+			nHr = m_pcActualTexture->AddDirtyBox(pBox);*/
+
+		nHr = lockableSysMemBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
+		if (FAILED(nHr))
+		{
+			OutputDebugString(L"[STS] Failed : IDirect3DVertexBuffer9->Lock() ");
+			return nHr;
+		}
+
+		return nHr;
+	}
+
+	/**
+	* Base Unlock functionality.
+	***/
+	HRESULT WINAPI Unlock()
+	{
+		D3DVERTEXBUFFER_DESC sDesc = {};
+		m_pcActualVertexBuffer->GetDesc(&sDesc);
+		if (sDesc.Pool != D3DPOOL_DEFAULT)
+		{
+			return m_pcActualVertexBuffer->Unlock();
+		}
+
+		// unlock the lockable resource
+		HRESULT nHr = lockableSysMemBuffer->Unlock();
+		if (FAILED(nHr))
+			return nHr;
+
+		// and update the actual resource by the lockable
+		s_bDeviceInUseByProxy = true;
+		IDirect3DVertexBuffer9* pcBufferOld = nullptr;
+		UINT unOffset = 0;
+		UINT unStride = 0;
+		m_pcOwningDevice->GetStreamSource(0, &pcBufferOld, &unOffset, &unStride);
+		m_pcOwningDevice->SetStreamSource(0, lockableSysMemBuffer, 0, sDesc.Size);
+		nHr = m_pcOwningDevice->ProcessVertices(0, 0, 1, m_pcActualVertexBuffer, nullptr, 0); // TODO !! CAN THIS WORK ??
+		m_pcOwningDevice->SetStreamSource(0, pcBufferOld, unOffset, unStride);
+		SAFE_RELEASE(pcBufferOld);
+		s_bDeviceInUseByProxy = false;
+		if (FAILED(nHr))
+			return nHr;
+
+		return nHr;
+	}
+
+	/**
+	* Base GetDesc functionality.
+	***/
+	HRESULT WINAPI GetDesc(D3DVERTEXBUFFER_DESC *pDesc)
+	{
+		return m_pcActualVertexBuffer->GetDesc(pDesc);
+	}
+
+	/**
+	* Returns the actual embedded buffer pointer.
+	***/
+	IDirect3DVertexBuffer9* GetActual()
+	{
+		return m_pcActualVertexBuffer;
+	}
+
+protected:
+	/**
+	* The actual vertex buffer embedded.
+	***/
+	IDirect3DVertexBuffer9* const m_pcActualVertexBuffer;
+	/**
+	* Pointer to the D3D device that owns the buffer.
+	***/
+	IDirect3DDevice9* m_pcOwningDevice;
+	/**
+	* Internal reference counter.
+	***/
+	ULONG m_unRefCount;
+	/**
+	* Special handling required for locking buffers if we are using Dx9Ex
+	***/
+	IDirect3DVertexBuffer9* lockableSysMemBuffer;
 };

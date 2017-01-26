@@ -2019,6 +2019,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   (*m_pePool) = D3DPOOL_DEFAULT;
 														   pcDirect3DDevice9Ex->Release();
 													   }
+
+													   IDirect3DVertexBuffer9* pActualBuffer = NULL;
+													   nHr = ((IDirect3DDevice9*)pThis)->CreateVertexBuffer(*m_punLength, *m_punUsage, *m_punFVF, *m_pePool, &pActualBuffer, *m_ppvSharedHandle);
+
+													   if (SUCCEEDED(nHr))
+														   *(*m_pppcVertexBuffer) = new IDirect3DProxyVertexBuffer9(pActualBuffer, ((IDirect3DDevice9*)pThis));
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
 												   }
 												   return nullptr;
 #pragma endregion
@@ -2264,13 +2274,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : SetStreamSource()");
-													   exit(99);
-
 													   if (!m_punStreamNumber) return nullptr; /**< ->SetStreamSource(), ->GetStreamSource() **/
 													   if (!m_ppcStreamData) return nullptr; /**< ->SetStreamSource(), **/
 													   if (!m_punOffsetInBytes) return nullptr; /**< ->SetStreamSource() **/
 													   if (!m_punStride) return nullptr; /**< ->SetStreamSource() **/
+
+													   // cast proxy
+													   IDirect3DProxyVertexBuffer9* pNewBuffer = static_cast<IDirect3DProxyVertexBuffer9*>(*m_ppcStreamData);
+
+													   // set actual buffer
+													   nHr = ((IDirect3DDevice9*)pThis)->SetStreamSource(*m_punStreamNumber, pNewBuffer->GetActual(), *m_punOffsetInBytes, *m_punStride);
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
