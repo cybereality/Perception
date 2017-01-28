@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<vector>
 #include<sstream>
 #include<ctime>
+#include<fstream>
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
@@ -371,7 +372,8 @@ public:
 		m_paunGeneralIndices(paunGeneralIndices),
 		m_pasShaderIndices(pasShaderIndices),
 		m_unRefCount(1),
-		m_eShaderType(eShaderType)
+		m_eShaderType(eShaderType),
+		m_bOutputShaderCode(false)
 	{
 		assert(pcActualVertexShader != NULL);
 		assert(pcOwningDevice != NULL);
@@ -814,6 +816,36 @@ private:
 
 		uint32_t unHash = 0;
 		MurmurHash3_x86_32(pnData, punSizeOfData, VIREIO_SEED, &unHash);
+
+		// output shader code ?
+		if (m_bOutputShaderCode)
+		{
+			// optionally, output shader code to "?S(hash).txt"
+			char buf[32]; ZeroMemory(&buf[0], 32);
+			switch (m_eShaderType)
+			{
+				case VertexShader:
+					sprintf_s(buf, "VS%u.txt", unHash);
+					break;
+				case PixelShader:
+					sprintf_s(buf, "PS%u.txt", unHash);
+					break;
+				default:
+					sprintf_s(buf, "UNKNOWN%u.txt", unHash);
+					break;
+			}
+			std::ofstream oLogFile(buf, std::ios::ate);
+
+			if (oLogFile.is_open())
+			{
+				LPD3DXBUFFER pcBuffer;
+				D3DXDisassembleShader(reinterpret_cast<DWORD*>(pnData), NULL, NULL, &pcBuffer);
+				oLogFile << static_cast<char*>(pcBuffer->GetBufferPointer()) << std::endl;
+				oLogFile << std::endl << std::endl;
+				oLogFile << "// Shader Hash   : " << unHash << std::endl;
+			}
+		}
+
 		delete[] pnData;
 		return unHash;
 	}
@@ -897,6 +929,11 @@ private:
 		}
 		else return E_NO_MATCH;
 	}
+
+	/**
+	* True if shader code should be saved in file.
+	***/
+	bool m_bOutputShaderCode;
 };
 #endif
 
