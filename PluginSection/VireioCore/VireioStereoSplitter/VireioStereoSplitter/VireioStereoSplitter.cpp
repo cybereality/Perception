@@ -1081,11 +1081,28 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetDepthStencilSurface
 											   case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
 
+												   SHOW_CALL("SetDepthStencilSurface");
+
 												   if (!m_ppcNewZStencil) return nullptr;
 
 												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 												   if (m_bUseD3D9Ex)
 												   {
+													   // null parameter ?
+													   if (!(*m_ppcNewZStencil))
+													   {
+														   if (m_pcActiveDepthStencilSurface[0])
+														   {
+															   m_pcActiveDepthStencilSurface[0]->Release();
+														   }
+														   m_pcActiveDepthStencilSurface[0] = nullptr;
+														   nHr = S_OK;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
+
 													   // cast proxy surface
 													   IDirect3DStereoSurface9* pNewDepthStencil = static_cast<IDirect3DStereoSurface9*>(*m_ppcNewZStencil);
 
@@ -1100,7 +1117,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   // Update actual depth stencil
 													   nHr = ((IDirect3DDevice9*)pThis)->SetDepthStencilSurface(pActualStencilForCurrentSide);
-
+													   
 													   // Update stored proxy depth stencil
 													   if (SUCCEEDED(nHr))
 													   {
@@ -1144,6 +1161,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetTexture
 											   case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
+
+												   SHOW_CALL("SetTexture");
+
 												   // get data
 												   if (!m_punSampler) return nullptr;
 												   if (!m_ppcTexture) return nullptr;
@@ -1152,7 +1172,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (m_bUseD3D9Ex)
 												   {
 													   // index too high ?
-													   if ((*m_punSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT) return nullptr;
+													   if ((*m_punSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT)
+													   {
+														   if (((*m_punSampler) == D3DDMAPSAMPLER) ||
+															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER0) ||
+															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER1) ||
+															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER2) ||
+															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER3))
+															   nHr = S_OK; // TODO !!
+														   else
+															   nHr = D3DERR_INVALIDCALL;
+
+														   // method replaced, immediately return
+														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+														   return (void*)&nHr;
+													   }
 
 													   // texture provided ?
 													   if (*m_ppcTexture)
@@ -1161,7 +1195,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   IDirect3DBaseTexture9* pActualRightTexture = NULL;
 
 														   UnWrapProxyTexture(*m_ppcTexture, &pActualLeftTexture, &pActualRightTexture);
-
+														   
 														   // Try and Update the actual devices textures -> use left (mono) if not stereo or one left side
 														   if ((pActualRightTexture == NULL) || (m_eCurrentRenderingSide == RenderPosition::Left))
 															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, pActualLeftTexture);
@@ -1666,7 +1700,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!pcTargetToReturn)
 													   {
 														   nHr = D3DERR_NOTFOUND;
-
+														   														   
 														   // method replaced, immediately return
 														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 														   return (void*)&nHr;
@@ -1701,9 +1735,11 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   SHOW_CALL("GetDepthStencilSurface");
 
 													   if (!m_pppcZStencilSurface) return nullptr;
+													   if (!(*m_pppcZStencilSurface)) return nullptr;
 
 													   if (!m_pcActiveDepthStencilSurface[0])
 													   {
+														   *m_pppcZStencilSurface = nullptr;
 														   nHr = D3DERR_NOTFOUND;
 
 														   // method replaced, immediately return
@@ -1711,9 +1747,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   return (void*)&nHr;
 													   }
 
+													   // return stored depth stencil
 													   *(*m_pppcZStencilSurface) = m_pcActiveDepthStencilSurface[0];
 													   (*(*m_pppcZStencilSurface))->AddRef();
-
 													   nHr = D3D_OK;
 
 													   // method replaced, immediately return
@@ -2251,7 +2287,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   return nullptr;
 #pragma endregion
 #pragma region ProcessVertices
-											   case METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES :
+											   case METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES:
 												   if (m_bUseD3D9Ex)
 												   {
 													   OutputDebugString(L"[STS] NOT IMPLEMENTED : ProcessVertices()");
@@ -2278,6 +2314,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_ppcStreamData) return nullptr; /**< ->SetStreamSource(), **/
 													   if (!m_punOffsetInBytes) return nullptr; /**< ->SetStreamSource() **/
 													   if (!m_punStride) return nullptr; /**< ->SetStreamSource() **/
+													   if (!(*m_ppcStreamData)) return nullptr;
 
 													   // cast proxy
 													   IDirect3DProxyVertexBuffer9* pNewBuffer = static_cast<IDirect3DProxyVertexBuffer9*>(*m_ppcStreamData);
@@ -2292,7 +2329,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   return nullptr;
 #pragma endregion
 #pragma region GetStreamSource
-											   case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE :
+											   case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE:
 												   if (m_bUseD3D9Ex)
 												   {
 													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetStreamSource()");
@@ -2313,14 +2350,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_SETINDICES:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : SetIndices()");
-													   exit(99);
-
-													   if (!m_ppcIndexData) return nullptr; /**< ->SetIndices() **/
-
-													   // method replaced, immediately return
-													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-													   return (void*)&nHr;
 												   }
 												   return nullptr;
 #pragma endregion
@@ -2328,14 +2357,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_GETINDICES:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetIndices()");
-													   exit(99);
-
-													   if (!m_pppcIndexData) return nullptr; /**< ->GetIndices() **/
-
-													   // method replaced, immediately return
-													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-													   return (void*)&nHr;
 												   }
 												   return nullptr;
 #pragma endregion
@@ -2464,6 +2485,32 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 				exit(99);
 			}
 
+			// is there a depth stencil set from startup ?
+			IDirect3DSurface9* pcDepthStencil = nullptr;
+			pcDevice->GetDepthStencilSurface(&pcDepthStencil);
+
+			if (pcDepthStencil)
+			{
+				// create stereo proxy back buffer
+				D3DSURFACE_DESC sDesc = {};
+				pcDepthStencil->GetDesc(&sDesc);
+				IDirect3DSurface9* pcDepthStencilRight = nullptr;
+				HRESULT hr = pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcDepthStencilRight, nullptr);
+				if (FAILED(hr))
+				{
+					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pcDevice->CreateDepthStencilSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
+					hr = pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &pcDepthStencilRight, nullptr);
+					if (FAILED(hr))
+					{
+						{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pcDevice->CreateDepthStencilSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
+						exit(99);
+					}
+				}
+				IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcDepthStencil, pcDepthStencilRight, pcDevice, nullptr, nullptr, nullptr);
+				m_pcActiveDepthStencilSurface[0] = pcBackBufferStereo;
+
+				pcDepthStencil->Release();
+			}
 		}
 		else
 		{

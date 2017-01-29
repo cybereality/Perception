@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma region defines/types
 #define IF_GUID(riid,a,b,c,d,e,f,g) if ((riid.Data1==a)&&(riid.Data2==b)&&(riid.Data3==c)&&(riid.Data4[0]==d)&&(riid.Data4[1]==e)&&(riid.Data4[2]==f)&&(riid.Data4[3]==g))
-#define SHOW_CALL(name) // OutputDebugStringA(name) // CallLogger call(name)
+#define SHOW_CALL(name) OutputDebugStringA(name) // CallLogger call(name)
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 inline void _assert(const char* expression, const char* file, int line)
 {
@@ -156,7 +156,7 @@ public:
 	ULONG WINAPI AddRef()
 	{
 		SHOW_CALL("D3D9ProxySurface::AddRef()");
-
+		
 		// if surface is in a container increase count on container instead of the surface
 		if (m_pcWrappedContainer)
 		{
@@ -2424,6 +2424,8 @@ public:
 		lockableSysMemBuffer(nullptr),
 		m_unRefCount(1)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::IDirect3DProxyVertexBuffer9");
+
 		assert(pcActualVertexBuffer != NULL);
 		assert(pcOwningDevice != NULL);
 
@@ -2436,6 +2438,8 @@ public:
 	***/
 	IDirect3DProxyVertexBuffer9::~IDirect3DProxyVertexBuffer9()
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::~IDirect3DProxyVertexBuffer9");
+
 		if (m_pcActualVertexBuffer)
 		{
 			m_pcActualVertexBuffer->Release();
@@ -2454,6 +2458,8 @@ public:
 	***/
 	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::QueryInterface");
+
 		return m_pcActualVertexBuffer->QueryInterface(riid, ppv);
 	}
 
@@ -2462,6 +2468,8 @@ public:
 	***/
 	ULONG WINAPI AddRef()
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::AddRef");
+
 		return ++m_unRefCount;
 	}
 
@@ -2470,6 +2478,8 @@ public:
 	***/
 	ULONG WINAPI Release()
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::Release");
+
 		if (--m_unRefCount == 0)
 		{
 			delete this;
@@ -2484,6 +2494,8 @@ public:
 	***/
 	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::GetDevice");
+
 		if (!m_pcOwningDevice)
 			return D3DERR_INVALIDCALL;
 		else
@@ -2501,6 +2513,8 @@ public:
 	***/
 	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::SetPrivateData");
+
 		return m_pcActualVertexBuffer->SetPrivateData(refguid, pData, SizeOfData, Flags);
 	}
 
@@ -2509,6 +2523,8 @@ public:
 	***/
 	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::GetPrivateData");
+
 		return m_pcActualVertexBuffer->GetPrivateData(refguid, pData, pSizeOfData);
 	}
 
@@ -2517,6 +2533,8 @@ public:
 	***/
 	HRESULT WINAPI FreePrivateData(REFGUID refguid)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::FreePrivateData");
+
 		return m_pcActualVertexBuffer->FreePrivateData(refguid);
 	}
 
@@ -2525,6 +2543,8 @@ public:
 	***/
 	DWORD WINAPI SetPriority(DWORD PriorityNew)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::SetPriority");
+
 		return m_pcActualVertexBuffer->SetPriority(PriorityNew);
 	}
 
@@ -2533,6 +2553,7 @@ public:
 	***/
 	DWORD WINAPI GetPriority()
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::GetPriority");
 		return m_pcActualVertexBuffer->GetPriority();
 	}
 
@@ -2541,6 +2562,8 @@ public:
 	***/
 	void WINAPI PreLoad()
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::PreLoad");
+
 		return m_pcActualVertexBuffer->PreLoad();
 	}
 
@@ -2549,6 +2572,8 @@ public:
 	***/
 	D3DRESOURCETYPE WINAPI GetType()
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::GetType");
+
 		return m_pcActualVertexBuffer->GetType();
 	}
 
@@ -2557,37 +2582,41 @@ public:
 	***/
 	HRESULT WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags)
 	{
-		D3DVERTEXBUFFER_DESC sDesc = {};
-		m_pcActualVertexBuffer->GetDesc(&sDesc);
-		if (sDesc.Pool != D3DPOOL_DEFAULT)
-		{
-			// just lock on the original buffer
-			return m_pcActualVertexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
-		}
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::Lock");
 
-		//Create lockable system memory surfaces
-		HRESULT nHr = D3DERR_INVALIDCALL;
-		if (!lockableSysMemBuffer)
-		{
-			s_bDeviceInUseByProxy = true;
-			nHr = m_pcOwningDevice->CreateVertexBuffer(sDesc.Size, sDesc.Usage, sDesc.FVF, D3DPOOL_SYSTEMMEM, &lockableSysMemBuffer, nullptr);
-			s_bDeviceInUseByProxy = false;
-			if (FAILED(nHr))
-				return nHr;
-		}
+		return m_pcActualVertexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
 
-		/*if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
-			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
-			nHr = m_pcActualTexture->AddDirtyBox(pBox);*/
+		//D3DVERTEXBUFFER_DESC sDesc = {};
+		//m_pcActualVertexBuffer->GetDesc(&sDesc);
+		//if (sDesc.Pool != D3DPOOL_DEFAULT)
+		//{
+		//	// just lock on the original buffer
+		//	return m_pcActualVertexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
+		//}
 
-		nHr = lockableSysMemBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
-		if (FAILED(nHr))
-		{
-			OutputDebugString(L"[STS] Failed : IDirect3DVertexBuffer9->Lock() ");
-			return nHr;
-		}
+		////Create lockable system memory surfaces
+		//HRESULT nHr = D3DERR_INVALIDCALL;
+		//if (!lockableSysMemBuffer)
+		//{
+		//	s_bDeviceInUseByProxy = true;
+		//	nHr = m_pcOwningDevice->CreateVertexBuffer(sDesc.Size, sDesc.Usage, sDesc.FVF, D3DPOOL_SYSTEMMEM, &lockableSysMemBuffer, nullptr);
+		//	s_bDeviceInUseByProxy = false;
+		//	if (FAILED(nHr))
+		//		return nHr;
+		//}
 
-		return nHr;
+		///*if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+		//	((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
+		//	nHr = m_pcActualTexture->AddDirtyBox(pBox);*/
+
+		//nHr = lockableSysMemBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
+		//if (FAILED(nHr))
+		//{
+		//	OutputDebugString(L"[STS] Failed : IDirect3DVertexBuffer9->Lock() ");
+		//	return nHr;
+		//}
+
+		//return nHr;
 	}
 
 	/**
@@ -2595,33 +2624,37 @@ public:
 	***/
 	HRESULT WINAPI Unlock()
 	{
-		D3DVERTEXBUFFER_DESC sDesc = {};
-		m_pcActualVertexBuffer->GetDesc(&sDesc);
-		if (sDesc.Pool != D3DPOOL_DEFAULT)
-		{
-			return m_pcActualVertexBuffer->Unlock();
-		}
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::Unlock");
 
-		// unlock the lockable resource
-		HRESULT nHr = lockableSysMemBuffer->Unlock();
-		if (FAILED(nHr))
-			return nHr;
+		return m_pcActualVertexBuffer->Unlock();
 
-		// and update the actual resource by the lockable
-		s_bDeviceInUseByProxy = true;
-		IDirect3DVertexBuffer9* pcBufferOld = nullptr;
-		UINT unOffset = 0;
-		UINT unStride = 0;
-		m_pcOwningDevice->GetStreamSource(0, &pcBufferOld, &unOffset, &unStride);
-		m_pcOwningDevice->SetStreamSource(0, lockableSysMemBuffer, 0, sDesc.Size);
-		nHr = m_pcOwningDevice->ProcessVertices(0, 0, 1, m_pcActualVertexBuffer, nullptr, 0); // TODO !! CAN THIS WORK ??
-		m_pcOwningDevice->SetStreamSource(0, pcBufferOld, unOffset, unStride);
-		SAFE_RELEASE(pcBufferOld);
-		s_bDeviceInUseByProxy = false;
-		if (FAILED(nHr))
-			return nHr;
+		//D3DVERTEXBUFFER_DESC sDesc = {};
+		//m_pcActualVertexBuffer->GetDesc(&sDesc);
+		//if (sDesc.Pool != D3DPOOL_DEFAULT)
+		//{
+		//	return m_pcActualVertexBuffer->Unlock();
+		//}
 
-		return nHr;
+		//// unlock the lockable resource
+		//HRESULT nHr = lockableSysMemBuffer->Unlock();
+		//if (FAILED(nHr))
+		//	return nHr;
+
+		//// and update the actual resource by the lockable
+		//s_bDeviceInUseByProxy = true;
+		//IDirect3DVertexBuffer9* pcBufferOld = nullptr;
+		//UINT unOffset = 0;
+		//UINT unStride = 0;
+		//m_pcOwningDevice->GetStreamSource(0, &pcBufferOld, &unOffset, &unStride);
+		//m_pcOwningDevice->SetStreamSource(0, lockableSysMemBuffer, 0, sDesc.Size);
+		//nHr = m_pcOwningDevice->ProcessVertices(0, 0, 1, m_pcActualVertexBuffer, nullptr, 0); // TODO !! CAN THIS WORK ??
+		//m_pcOwningDevice->SetStreamSource(0, pcBufferOld, unOffset, unStride);
+		//SAFE_RELEASE(pcBufferOld);
+		//s_bDeviceInUseByProxy = false;
+		//if (FAILED(nHr))
+		//	return nHr;
+
+		// return nHr;
 	}
 
 	/**
@@ -2629,6 +2662,8 @@ public:
 	***/
 	HRESULT WINAPI GetDesc(D3DVERTEXBUFFER_DESC *pDesc)
 	{
+		SHOW_CALL("IDirect3DProxyVertexBuffer9::GetDesc");
+
 		return m_pcActualVertexBuffer->GetDesc(pDesc);
 	}
 
