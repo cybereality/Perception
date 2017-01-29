@@ -2609,7 +2609,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// set back modified constants... TODO !! make this optionally... shouldn't need that maybe
 						// if (m_pcActiveVertexShader)
 						// m_pcActiveVertexShader->SetShaderOld((IDirect3DDevice9*)pThis, &m_afRegistersVertex[0]);
-
+						
 						// set new active shader
 						m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*>(*m_ppcShader_Vertex);
 
@@ -2618,7 +2618,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// replace call, set actual shader
 						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
-
+						
 						// update shader constants for active side
 						m_pcActiveVertexShader->SetShader(&m_afRegistersVertex[0]);
 
@@ -2675,7 +2675,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF((*m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_pasPSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
 						}
 					}
-
+					
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					return (void*)&nHr;
@@ -2981,7 +2981,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// create the actual shader
 						IDirect3DVertexShader9* pcActualVShader = NULL;
 						nHr = ((IDirect3DDevice9*)pThis)->CreateVertexShader(*m_ppunFunction, &pcActualVShader);
-
+						
 						// create the proxy shader
 						if (SUCCEEDED(nHr))
 						{
@@ -3012,15 +3012,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								sShaderDesc.dwHashCode = unHash;
 
 								// get the constant descriptions from that shader
-								std::vector<D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*)**m_pppcShader_Vertex)->GetConstantDescriptions();
-								sShaderDesc.asConstantDescriptions = std::vector<D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
+								std::vector<SAFE_D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*)**m_pppcShader_Vertex)->GetConstantDescriptions();
+								sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
 
 								// copy the name (LPCSTR) to a new string
 								for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
 								{
 									// copy name string
-									sShaderDesc.asConstantDescriptions[unI].Name = new char[strlen((*pasConstants)[unI].Name)];
-									memcpy((void*)sShaderDesc.asConstantDescriptions[unI].Name, (void*)(*pasConstants)[unI].Name, (strlen((*pasConstants)[unI].Name) + 1) * sizeof(char));
+									sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
 								}
 								m_asVShaders.push_back(sShaderDesc);
 							}
@@ -3072,15 +3071,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								sShaderDesc.dwHashCode = unHash;
 
 								// get the constant descriptions from that shader
-								std::vector<D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*)**m_pppcShader_Pixel)->GetConstantDescriptions();
-								sShaderDesc.asConstantDescriptions = std::vector<D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
+								std::vector<SAFE_D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*)**m_pppcShader_Pixel)->GetConstantDescriptions();
+								sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
 
 								// copy the name (LPCSTR) to a new string
 								for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
 								{
 									// copy name string
-									sShaderDesc.asConstantDescriptions[unI].Name = new char[strlen((*pasConstants)[unI].Name)];
-									memcpy((void*)sShaderDesc.asConstantDescriptions[unI].Name, (void*)(*pasConstants)[unI].Name, (strlen((*pasConstants)[unI].Name) + 1) * sizeof(char));
+									sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
 								}
 								m_asPShaders.push_back(sShaderDesc);
 							}

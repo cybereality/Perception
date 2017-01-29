@@ -387,12 +387,35 @@ struct Vireio_Shader
 };
 
 /**
+* Simple copy of the d3d x constant structure.
+* With a std::string name and without a default value pointer.
+***/
+typedef struct _SAFE_D3DXCONSTANT_DESC
+{
+	std::string Name;                   /**< Constant name ***/
+
+	D3DXREGISTER_SET RegisterSet;       /**< Register set ***/
+	UINT RegisterIndex;                 /**< Register index ***/
+	UINT RegisterCount;                 /**< Number of registers occupied ***/
+
+	D3DXPARAMETER_CLASS Class;          /**<  Class ***/
+	D3DXPARAMETER_TYPE Type;            /**<  Component type ***/
+
+	UINT Rows;                          /**<  Number of rows ***/
+	UINT Columns;                       /**<  Number of columns ***/
+	UINT Elements;                      /**<  Number of array elements ***/
+	UINT StructMembers;                 /**<  Number of structure member sub-parameters ***/
+
+	UINT Bytes;                         /**<  Data size, in bytes ***/
+} SAFE_D3DXCONSTANT_DESC;
+
+/**
 * Vireio D3D9 shader description.
 * Structure containing all necessary data for the IDirect3D(X)Shader9 interfaces.
 ***/
 struct Vireio_D3D9_Shader : public Vireio_Shader
 {
-	std::vector<D3DXCONSTANT_DESC>                        asConstantDescriptions;                       /**< Shader constant descriptions. ***/
+	std::vector<SAFE_D3DXCONSTANT_DESC>                   asConstantDescriptions;                       /**< Shader constant descriptions. ***/
 };
 
 /**

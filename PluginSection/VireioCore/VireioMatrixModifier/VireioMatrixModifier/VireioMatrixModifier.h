@@ -391,7 +391,7 @@ public:
 		m_afRegisterBuffer = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
 
 		// init the shader rules, first clear constants vector
-		m_asConstantDesc = std::vector<D3DXCONSTANT_DESC>();
+		m_asConstantDesc = std::vector<SAFE_D3DXCONSTANT_DESC>();
 		InitShaderRules();
 	}
 	/**
@@ -511,7 +511,19 @@ public:
 				for (UINT unJ = 0; unJ < unConstantNum; unJ++)
 				{
 					// add to constant vector
-					m_asConstantDesc.push_back(pConstantDesc[unJ]);
+					SAFE_D3DXCONSTANT_DESC sDesc = {};
+					sDesc.Name = std::string(pConstantDesc[unJ].Name);
+					sDesc.RegisterSet = pConstantDesc[unJ].RegisterSet;
+					sDesc.RegisterIndex = pConstantDesc[unJ].RegisterIndex;
+					sDesc.RegisterCount = pConstantDesc[unJ].RegisterCount;
+					sDesc.Class = pConstantDesc[unJ].Class;
+					sDesc.Type = pConstantDesc[unJ].Type;
+					sDesc.Rows = pConstantDesc[unJ].Rows;
+					sDesc.Columns = pConstantDesc[unJ].Columns;
+					sDesc.Elements = pConstantDesc[unJ].Elements;
+					sDesc.StructMembers = pConstantDesc[unJ].StructMembers;
+					sDesc.Bytes = pConstantDesc[unJ].Bytes;
+					m_asConstantDesc.push_back(sDesc);
 
 					// register count 1 (= vector) and 4 (= matrix) supported
 					if (((pConstantDesc[unJ].Class == D3DXPC_VECTOR) && (pConstantDesc[unJ].RegisterCount == 1))
@@ -737,7 +749,7 @@ public:
 	/***
 	* @returns: The constant list.
 	***/
-	std::vector<D3DXCONSTANT_DESC>* GetConstantDescriptions() { return &m_asConstantDesc; }
+	std::vector<SAFE_D3DXCONSTANT_DESC>* GetConstantDescriptions() { return &m_asConstantDesc; }
 
 	/**
 	* The indices of the shader rules assigned to that shader.
@@ -795,7 +807,7 @@ protected:
 	/**
 	* The constant descriptions for that shader.
 	***/
-	std::vector<D3DXCONSTANT_DESC> m_asConstantDesc;
+	std::vector<SAFE_D3DXCONSTANT_DESC> m_asConstantDesc;
 
 private:
 	/**
