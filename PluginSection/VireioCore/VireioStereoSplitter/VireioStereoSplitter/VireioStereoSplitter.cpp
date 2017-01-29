@@ -1117,7 +1117,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   // Update actual depth stencil
 													   nHr = ((IDirect3DDevice9*)pThis)->SetDepthStencilSurface(pActualStencilForCurrentSide);
-													   
+
 													   // Update stored proxy depth stencil
 													   if (SUCCEEDED(nHr))
 													   {
@@ -1195,7 +1195,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   IDirect3DBaseTexture9* pActualRightTexture = NULL;
 
 														   UnWrapProxyTexture(*m_ppcTexture, &pActualLeftTexture, &pActualRightTexture);
-														   
+
 														   // Try and Update the actual devices textures -> use left (mono) if not stereo or one left side
 														   if ((pActualRightTexture == NULL) || (m_eCurrentRenderingSide == RenderPosition::Left))
 															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, pActualLeftTexture);
@@ -1518,6 +1518,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (!(*m_ppcSourceSurface_StretchRect)) return nullptr;
 												   if (!(*m_ppcDestSurface_StretchRect)) return nullptr;
 												   {
+													   SHOW_CALL("StrechRect");
+
 													   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 													   if (m_bUseD3D9Ex)
 													   {
@@ -1700,7 +1702,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!pcTargetToReturn)
 													   {
 														   nHr = D3DERR_NOTFOUND;
-														   														   
+
 														   // method replaced, immediately return
 														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 														   return (void*)&nHr;
@@ -2114,7 +2116,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   HANDLE sharedHandleLeft = NULL;
 													   HANDLE sharedHandleRight = NULL;
 
-													   // Override multisampling if DX9Ex
+													   // Override multisampling and compressed formats if DX9Ex
+													   D3DFORMAT newFormat = *m_peFormat;
 													   D3DMULTISAMPLE_TYPE newMultiSample = *m_peMultiSample;
 													   DWORD newMultisampleQuality = *m_punMultisampleQuality;
 
@@ -2124,9 +2127,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   *m_ppvSharedHandle = &sharedHandleLeft;
 														   newMultiSample = D3DMULTISAMPLE_NONE;
 														   newMultisampleQuality = 0;
+
+														   // compressed formats not working in d3d9ex ?? verify this !!
+														   if ((newFormat == D3DFORMAT::D3DFMT_DXT1) ||
+															   (newFormat == D3DFORMAT::D3DFMT_DXT2) ||
+															   (newFormat == D3DFORMAT::D3DFMT_DXT3) ||
+															   (newFormat == D3DFORMAT::D3DFMT_DXT4) ||
+															   (newFormat == D3DFORMAT::D3DFMT_DXT5))
+															   newFormat = D3DFORMAT::D3DFMT_X8R8G8B8;
 													   }
 
-													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pLeftRenderTarget, *m_ppvSharedHandle)))
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, newFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pLeftRenderTarget, *m_ppvSharedHandle)))
 													   {
 														   /* "If Needed" heuristic is the complicated part here.
 														   Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
@@ -2137,7 +2148,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   if (pcDirect3DDevice9Ex)
 																   *m_ppvSharedHandle = &sharedHandleRight;
 
-															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pRightRenderTarget, *m_ppvSharedHandle)))
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, newFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pRightRenderTarget, *m_ppvSharedHandle)))
 															   {
 																   OutputDebugString(L"[STS] Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 																   pRightRenderTarget = NULL;
@@ -2147,6 +2158,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   else
 													   {
 														   OutputDebugString(L"[STS] Failed to create render target\n");
+#ifdef _DEBUGTHIS
+														   wchar_t buf[32];
+														   wsprintf(buf, L"Width %u", *m_punWidth); OutputDebugString(buf);
+														   wsprintf(buf, L"Height %u", *m_punHeight); OutputDebugString(buf);
+														   wsprintf(buf, L"Format %x", newFormat); OutputDebugString(buf);
+														   wsprintf(buf, L"MultiSampleType %u", newMultiSample); OutputDebugString(buf);
+														   wsprintf(buf, L"MultiSampleQuality %u", newMultisampleQuality); OutputDebugString(buf);
+														   wsprintf(buf, L"Lockable %u", *m_pnLockable); OutputDebugString(buf);
+														   wsprintf(buf, L"SharedHandle %x", *m_ppvSharedHandle); OutputDebugString(buf);
+														   wsprintf(buf, L"HRESULT %x", nHr); OutputDebugString(buf);
+#endif
 													   }
 
 													   if (SUCCEEDED(nHr))
