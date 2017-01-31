@@ -1906,24 +1906,26 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   IDirect3DTexture9* pLeftTexture = NULL;
 													   IDirect3DTexture9* pRightTexture = NULL;
 
-													   D3DPOOL newPool = *m_pePool;
+													   D3DPOOL ePool = *m_pePool;
+													   D3DFORMAT eFormat = *m_peFormat;
 
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
-														   newPool = D3DPOOL_DEFAULT;
+														   ePool = D3DPOOL_DEFAULT;
+														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 														   pDirect3DDevice9Ex->Release();
 													   }
 
 													   // try and create left
-													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pLeftTexture, *m_ppvSharedHandle)))
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, &pLeftTexture, *m_ppvSharedHandle)))
 													   {
 														   // Does this Texture need duplicating?
 														   if (ShouldDuplicateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool))
 														   {
-															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pRightTexture, *m_ppvSharedHandle)))
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, &pRightTexture, *m_ppvSharedHandle)))
 															   {
 																   OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 																   pRightTexture = NULL;
@@ -1962,18 +1964,25 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
 													   D3DPOOL ePool = D3DPOOL_DEFAULT;
+													   D3DFORMAT eFormat = *m_peFormat;
+
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
 														   ePool = D3DPOOL_DEFAULT;
+														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 														   pcDirect3DDevice9Ex->Release();
 													   }
 
 													   IDirect3DVolumeTexture9* pActualTexture = NULL;
-													   nHr = ((IDirect3DDevice9*)pThis)->CreateVolumeTexture(*m_punWidth, *m_punHeight, *m_punDepth, *m_punLevels, *m_punUsage, *m_peFormat, ePool, &pActualTexture, *m_ppvSharedHandle);
+													   nHr = ((IDirect3DDevice9*)pThis)->CreateVolumeTexture(*m_punWidth, *m_punHeight, *m_punDepth, *m_punLevels, *m_punUsage, eFormat, ePool, &pActualTexture, *m_ppvSharedHandle);
 
 													   if (SUCCEEDED(nHr))
 														   *(*m_pppcVolumeTexture) = new IDirect3DStereoVolumeTexture9(pActualTexture, ((IDirect3DDevice9*)pThis), (*m_pePool));
+													   else
+													   {
+														   OutputDebugString(L"[STS] Failed to create texture IDirect3DVolumeTexture9\n");
+													   }
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1993,14 +2002,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_pppcCubeTexture) return nullptr;
 													   if (!m_ppvSharedHandle) return nullptr;
 
-													   D3DPOOL newPool = *m_pePool;
+													   D3DPOOL ePool = *m_pePool;
+													   D3DFORMAT eFormat = *m_peFormat;
 
 													   // query d3d9ex device
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))) &&
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
-														   newPool = D3DPOOL_DEFAULT;
+														   ePool = D3DPOOL_DEFAULT;
+														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 														   pcDirect3DDevice9Ex->Release();
 													   }
 
@@ -2008,14 +2019,14 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   IDirect3DCubeTexture9* pRightCubeTexture = NULL;
 
 													   // try and create left
-													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pLeftCubeTexture, *m_ppvSharedHandle)))
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, eFormat, ePool, &pLeftCubeTexture, *m_ppvSharedHandle)))
 													   {
 
 														   // Does this Texture need duplicating?
 														   if (ShouldDuplicateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool))
 														   {
 
-															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, *m_peFormat, newPool, &pRightCubeTexture, *m_ppvSharedHandle)))
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, eFormat, ePool, &pRightCubeTexture, *m_ppvSharedHandle)))
 															   {
 																   OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 																   pRightCubeTexture = NULL;
@@ -2075,13 +2086,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   if (m_bUseD3D9Ex)
 												   {
 													   SHOW_CALL("CreateIndexBuffer");
-
-													   if (!m_punLength) return nullptr;
-													   if (!m_punUsage) return nullptr;
-													   if (!m_peFormat) return nullptr;
 													   if (!m_pePool) return nullptr;
-													   if (!m_pppcIndexBuffer) return nullptr;
-													   if (!m_ppvSharedHandle) return nullptr;
 
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
@@ -2117,38 +2122,33 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   HANDLE sharedHandleRight = NULL;
 
 													   // Override multisampling and compressed formats if DX9Ex
-													   D3DFORMAT newFormat = *m_peFormat;
-													   D3DMULTISAMPLE_TYPE newMultiSample = *m_peMultiSample;
-													   DWORD newMultisampleQuality = *m_punMultisampleQuality;
+													   D3DFORMAT eFormat = *m_peFormat;
+													   D3DMULTISAMPLE_TYPE eMultiSample = *m_peMultiSample;
+													   DWORD eMultiSampleQuality = *m_punMultisampleQuality;
 
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
 													   {
 														   *m_ppvSharedHandle = &sharedHandleLeft;
-														   newMultiSample = D3DMULTISAMPLE_NONE;
-														   newMultisampleQuality = 0;
+														   eMultiSample = D3DMULTISAMPLE_NONE;
+														   eMultiSampleQuality = 0;
 
 														   // compressed formats not working in d3d9ex ?? verify this !!
-														   if ((newFormat == D3DFORMAT::D3DFMT_DXT1) ||
-															   (newFormat == D3DFORMAT::D3DFMT_DXT2) ||
-															   (newFormat == D3DFORMAT::D3DFMT_DXT3) ||
-															   (newFormat == D3DFORMAT::D3DFMT_DXT4) ||
-															   (newFormat == D3DFORMAT::D3DFMT_DXT5))
-															   newFormat = D3DFORMAT::D3DFMT_X8R8G8B8;
+														   eFormat = GetD3D9ExFormat(*m_peFormat);
 													   }
 
-													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, newFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pLeftRenderTarget, *m_ppvSharedHandle)))
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnLockable, &pLeftRenderTarget, *m_ppvSharedHandle)))
 													   {
 														   /* "If Needed" heuristic is the complicated part here.
 														   Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 
 														   // TODO Should we duplicate this Render Target? Replace "true" with heuristic
-														   if (ShouldDuplicateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, false))
+														   if (ShouldDuplicateRenderTarget(*m_punWidth, *m_punHeight, *m_peFormat, eMultiSample, eMultiSampleQuality, *m_pnLockable, false))
 														   {
 															   if (pcDirect3DDevice9Ex)
 																   *m_ppvSharedHandle = &sharedHandleRight;
 
-															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, newFormat, newMultiSample, newMultisampleQuality, *m_pnLockable, &pRightRenderTarget, *m_ppvSharedHandle)))
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnLockable, &pRightRenderTarget, *m_ppvSharedHandle)))
 															   {
 																   OutputDebugString(L"[STS] Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 																   pRightRenderTarget = NULL;
@@ -2158,17 +2158,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   else
 													   {
 														   OutputDebugString(L"[STS] Failed to create render target\n");
-#ifdef _DEBUGTHIS
+//#ifdef _DEBUGTHIS
 														   wchar_t buf[32];
 														   wsprintf(buf, L"Width %u", *m_punWidth); OutputDebugString(buf);
 														   wsprintf(buf, L"Height %u", *m_punHeight); OutputDebugString(buf);
-														   wsprintf(buf, L"Format %x", newFormat); OutputDebugString(buf);
-														   wsprintf(buf, L"MultiSampleType %u", newMultiSample); OutputDebugString(buf);
-														   wsprintf(buf, L"MultiSampleQuality %u", newMultisampleQuality); OutputDebugString(buf);
+														   wsprintf(buf, L"Format %x", eFormat); OutputDebugString(buf);
+														   wsprintf(buf, L"MultiSampleType %u", eMultiSample); OutputDebugString(buf);
+														   wsprintf(buf, L"MultiSampleQuality %u", eMultiSampleQuality); OutputDebugString(buf);
 														   wsprintf(buf, L"Lockable %u", *m_pnLockable); OutputDebugString(buf);
 														   wsprintf(buf, L"SharedHandle %x", *m_ppvSharedHandle); OutputDebugString(buf);
 														   wsprintf(buf, L"HRESULT %x", nHr); OutputDebugString(buf);
-#endif
+//#endif
 													   }
 
 													   if (SUCCEEDED(nHr))
@@ -2204,24 +2204,26 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
 
 													   // Override multisampling if DX9Ex
-													   D3DMULTISAMPLE_TYPE newMultiSample = *m_peMultiSample;
-													   DWORD newMultisampleQuality = *m_punMultisampleQuality;
+													   D3DMULTISAMPLE_TYPE eMultiSample = *m_peMultiSample;
+													   DWORD eMultiSampleQuality = *m_punMultisampleQuality;
+													   D3DFORMAT eFormat = *m_peFormat;
 
 													   IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
 													   {
-														   newMultiSample = D3DMULTISAMPLE_NONE;
-														   newMultisampleQuality = 0;
+														   eMultiSample = D3DMULTISAMPLE_NONE;
+														   eMultiSampleQuality = 0;
+														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 													   }
 
 													   // create left/mono
-													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnDiscard, &pDepthStencilSurfaceLeft, *m_ppvSharedHandle)))
+													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnDiscard, &pDepthStencilSurfaceLeft, *m_ppvSharedHandle)))
 													   {
 
 														   // TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-														   if (ShouldDuplicateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnDiscard))
+														   if (ShouldDuplicateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, eMultiSample, eMultiSampleQuality, *m_pnDiscard))
 														   {
-															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, newMultiSample, newMultisampleQuality, *m_pnDiscard, &pDepthStencilSurfaceRight, *m_ppvSharedHandle)))
+															   if (FAILED(((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnDiscard, &pDepthStencilSurfaceRight, *m_ppvSharedHandle)))
 															   {
 																   OutputDebugString(L"[STS] Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
 																   pDepthStencilSurfaceRight = NULL;
@@ -2255,21 +2257,27 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   SHOW_CALL("CreateOffscreenPlainSurface");
 
-													   D3DPOOL newPool = *m_pePool;
+													   D3DPOOL ePool = *m_pePool;
+													   D3DFORMAT eFormat = *m_peFormat;
 
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
 														   Pool == D3DPOOL_MANAGED)
 													   {
-														   newPool = D3DPOOL_DEFAULT;
+														   ePool = D3DPOOL_DEFAULT;
 														   pDirect3DDevice9Ex->Release();
+														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 													   }
 
 													   IDirect3DSurface9* pActualSurface = NULL;
-													   HRESULT creationResult = ((IDirect3DDevice9*)pThis)->CreateOffscreenPlainSurface(*m_punWidth, *m_punHeight, *m_peFormat, newPool, &pActualSurface, *m_ppvSharedHandle);
+													   HRESULT creationResult = ((IDirect3DDevice9*)pThis)->CreateOffscreenPlainSurface(*m_punWidth, *m_punHeight, eFormat, ePool, &pActualSurface, *m_ppvSharedHandle);
 													   if (SUCCEEDED(creationResult))
 														   *(*m_pppcSurfaceCreate) = new IDirect3DStereoSurface9(pActualSurface, NULL, (IDirect3DDevice9*)pThis, NULL, NULL, NULL);
+													   else
+													   {
+														   OutputDebugString(L"[STS] Failed to create surface IDirect3DSurface9\n");
+													   }
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -3707,4 +3715,148 @@ void StereoSplitter::EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwa
 	m_apcActiveSwapChains.push_back(pcSwapChain);
 	m_aapcActiveProxyBackBufferSurfaces.push_back(apcProxyBackBuffers);
 	pcSwapChain->Release();
+}
+
+/**
+* Converts D3D9 formats to D3D9Ex formats.
+* In case compressed formats and bump mapping formats get converted.
+***/
+D3DFORMAT StereoSplitter::GetD3D9ExFormat(D3DFORMAT eFormat)
+{
+	switch (eFormat)
+	{
+		case D3DFMT_UNKNOWN:
+			return D3DFORMAT::D3DFMT_UNKNOWN;
+		case D3DFMT_R8G8B8:
+			return D3DFORMAT::D3DFMT_R8G8B8;
+		case D3DFMT_A8R8G8B8:
+			return D3DFORMAT::D3DFMT_A8R8G8B8;
+		case D3DFMT_X8R8G8B8:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_R5G6B5:
+			return D3DFORMAT::D3DFMT_R5G6B5;
+		case D3DFMT_X1R5G5B5:
+			return D3DFORMAT::D3DFMT_X1R5G5B5;
+		case D3DFMT_A1R5G5B5:
+			return D3DFORMAT::D3DFMT_A1R5G5B5;
+		case D3DFMT_A4R4G4B4:
+			return D3DFORMAT::D3DFMT_A4R4G4B4;
+		case D3DFMT_R3G3B2:
+			return D3DFORMAT::D3DFMT_R3G3B2;
+		case D3DFMT_A8:
+			return D3DFORMAT::D3DFMT_A8;
+		case D3DFMT_A8R3G3B2:
+			return D3DFORMAT::D3DFMT_A8R3G3B2;
+		case D3DFMT_X4R4G4B4:
+			return D3DFORMAT::D3DFMT_X4R4G4B4;
+		case D3DFMT_A2B10G10R10:
+			return D3DFORMAT::D3DFMT_A2B10G10R10;
+		case D3DFMT_A8B8G8R8:
+			return D3DFORMAT::D3DFMT_A8B8G8R8;
+		case D3DFMT_X8B8G8R8:
+			return D3DFORMAT::D3DFMT_X8B8G8R8;
+		case D3DFMT_G16R16:
+			return D3DFORMAT::D3DFMT_G16R16;
+		case D3DFMT_A2R10G10B10:
+			return D3DFORMAT::D3DFMT_A2R10G10B10;
+		case D3DFMT_A16B16G16R16:
+			return D3DFORMAT::D3DFMT_A16B16G16R16;
+		case D3DFMT_A8P8:
+			return D3DFORMAT::D3DFMT_A8P8;
+		case D3DFMT_P8:
+			return D3DFORMAT::D3DFMT_P8;
+		case D3DFMT_L8:
+			return D3DFORMAT::D3DFMT_L8;
+		case D3DFMT_A8L8:
+			return D3DFORMAT::D3DFMT_A8L8;
+		case D3DFMT_A4L4:
+			return D3DFORMAT::D3DFMT_A4L4;
+		case D3DFMT_V8U8:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_L6V5U5:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_X8L8V8U8:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_Q8W8V8U8:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_V16U16:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_A2W10V10U10:
+			return D3DFORMAT::D3DFMT_A2W10V10U10;
+		case D3DFMT_UYVY:
+			return D3DFORMAT::D3DFMT_UYVY;
+		case D3DFMT_R8G8_B8G8:
+			return D3DFORMAT::D3DFMT_R8G8_B8G8;
+		case D3DFMT_YUY2:
+			return D3DFORMAT::D3DFMT_YUY2;
+		case D3DFMT_G8R8_G8B8:
+			return D3DFORMAT::D3DFMT_G8R8_G8B8;
+		case D3DFMT_DXT1:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_DXT2:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_DXT3:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_DXT4:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_DXT5:
+			return D3DFORMAT::D3DFMT_X8R8G8B8;
+		case D3DFMT_D16_LOCKABLE:
+			return D3DFORMAT::D3DFMT_D16_LOCKABLE;
+		case D3DFMT_D32:
+			return D3DFORMAT::D3DFMT_D32;
+		case D3DFMT_D15S1:
+			return D3DFORMAT::D3DFMT_D15S1;
+		case D3DFMT_D24S8:
+			return D3DFORMAT::D3DFMT_D24S8;
+		case D3DFMT_D24X8:
+			return D3DFORMAT::D3DFMT_D24X8;
+		case D3DFMT_D24X4S4:
+			return D3DFORMAT::D3DFMT_D24X4S4;
+		case D3DFMT_D16:
+			return D3DFORMAT::D3DFMT_D16;
+		case D3DFMT_D32F_LOCKABLE:
+			return D3DFORMAT::D3DFMT_D32F_LOCKABLE;
+		case D3DFMT_D24FS8:
+			return D3DFORMAT::D3DFMT_D24FS8;
+		case D3DFMT_D32_LOCKABLE:
+			return D3DFORMAT::D3DFMT_D32_LOCKABLE;
+		case D3DFMT_S8_LOCKABLE:
+			return D3DFORMAT::D3DFMT_S8_LOCKABLE;
+		case D3DFMT_L16:
+			return D3DFORMAT::D3DFMT_L16;
+		case D3DFMT_VERTEXDATA:
+			return D3DFORMAT::D3DFMT_VERTEXDATA;
+		case D3DFMT_INDEX16:
+			return D3DFORMAT::D3DFMT_INDEX16;
+		case D3DFMT_INDEX32:
+			return D3DFORMAT::D3DFMT_INDEX32;
+		case D3DFMT_Q16W16V16U16:
+			return D3DFORMAT::D3DFMT_Q16W16V16U16;
+		case D3DFMT_MULTI2_ARGB8:
+			return D3DFORMAT::D3DFMT_MULTI2_ARGB8;
+		case D3DFMT_R16F:
+			return D3DFORMAT::D3DFMT_R16F;
+		case D3DFMT_G16R16F:
+			return D3DFORMAT::D3DFMT_G16R16F;
+		case D3DFMT_A16B16G16R16F:
+			return D3DFORMAT::D3DFMT_A16B16G16R16F;
+		case D3DFMT_R32F:
+			return D3DFORMAT::D3DFMT_R32F;
+		case D3DFMT_G32R32F:
+			return D3DFORMAT::D3DFMT_G32R32F;
+		case D3DFMT_A32B32G32R32F:
+			return D3DFORMAT::D3DFMT_A32B32G32R32F;
+		case D3DFMT_CxV8U8:
+			return D3DFORMAT::D3DFMT_CxV8U8;
+		case D3DFMT_A1:
+			return D3DFORMAT::D3DFMT_A1;
+		case D3DFMT_A2B10G10R10_XR_BIAS:
+			return D3DFORMAT::D3DFMT_A2B10G10R10_XR_BIAS;
+		case D3DFMT_BINARYBUFFER:
+			return D3DFORMAT::D3DFMT_BINARYBUFFER;
+		case D3DFMT_FORCE_DWORD:
+			return D3DFORMAT::D3DFMT_FORCE_DWORD;
+	}
+	return eFormat;
 }

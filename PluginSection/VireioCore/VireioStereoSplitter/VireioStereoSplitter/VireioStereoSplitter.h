@@ -75,6 +75,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DFMT_YV12 ((D3DFORMAT)MAKEFOURCC('Y','V','1','2'))
 #define D3DFMT_RAWZ ((D3DFORMAT)MAKEFOURCC('R','A','W','Z'))
 #define D3DFMT_RESZ ((D3DFORMAT)MAKEFOURCC('R','E','S','Z'))
+#define FOURCC_NULL ((D3DFORMAT)(MAKEFOURCC('N','U','L','L')))
 #define RESZ_CODE 0x7fa05000
 
 #define GUI_WIDTH                                   1024                      
@@ -368,6 +369,7 @@ private:
 	void                    CreateGUI();
 	void                    UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	void                    EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwapChain9* pcSwapChain, UINT unIndex);
+	D3DFORMAT               GetD3D9ExFormat(D3DFORMAT eFormat);
 
 	/**
 	* Input pointers.
