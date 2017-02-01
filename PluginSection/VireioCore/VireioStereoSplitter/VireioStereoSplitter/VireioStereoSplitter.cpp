@@ -2263,7 +2263,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   HRESULT hr = S_OK;
 													   IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-														   Pool == D3DPOOL_MANAGED)
+														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
 														   ePool = D3DPOOL_DEFAULT;
 														   pDirect3DDevice9Ex->Release();
