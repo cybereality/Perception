@@ -1132,6 +1132,26 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   m_pcActiveDepthStencilSurface[0]->AddRef();
 														   }
 													   }
+													   else
+													   {
+														   { wchar_t buf[128]; wsprintf(buf, L"[STS] Failed to set depth stencil surface - Error %x - Ifc %x", nHr, pActualStencilForCurrentSide); OutputDebugString(buf); }
+#ifdef _DEBUGTHIS
+														   if (pActualStencilForCurrentSide)
+														   {
+															   D3DSURFACE_DESC sDesc = {};
+															   pActualStencilForCurrentSide->GetDesc(&sDesc);
+															   wchar_t buf[32];
+															   wsprintf(buf, L"Width %u", sDesc.Width); OutputDebugString(buf);
+															   wsprintf(buf, L"Height %u", sDesc.Height); OutputDebugString(buf);
+															   wsprintf(buf, L"Format %u", sDesc.Format); OutputDebugString(buf);
+															   wsprintf(buf, L"MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
+															   wsprintf(buf, L"MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
+															   wsprintf(buf, L"Pool %u", sDesc.Pool); OutputDebugString(buf);
+															   wsprintf(buf, L"Type %u", sDesc.Type); OutputDebugString(buf);
+															   wsprintf(buf, L"Usage %u", sDesc.Usage); OutputDebugString(buf);
+														   }
+#endif
+													   }
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -2158,7 +2178,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   else
 													   {
 														   OutputDebugString(L"[STS] Failed to create render target\n");
-//#ifdef _DEBUGTHIS
+#ifdef _DEBUGTHIS
 														   wchar_t buf[32];
 														   wsprintf(buf, L"Width %u", *m_punWidth); OutputDebugString(buf);
 														   wsprintf(buf, L"Height %u", *m_punHeight); OutputDebugString(buf);
@@ -2168,7 +2188,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   wsprintf(buf, L"Lockable %u", *m_pnLockable); OutputDebugString(buf);
 														   wsprintf(buf, L"SharedHandle %x", *m_ppvSharedHandle); OutputDebugString(buf);
 														   wsprintf(buf, L"HRESULT %x", nHr); OutputDebugString(buf);
-//#endif
+#endif
 													   }
 
 													   if (SUCCEEDED(nHr))
@@ -2219,7 +2239,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   // create left/mono
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnDiscard, &pDepthStencilSurfaceLeft, *m_ppvSharedHandle)))
 													   {
-
 														   // TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
 														   if (ShouldDuplicateDepthStencilSurface(*m_punWidth, *m_punHeight, *m_peFormat, eMultiSample, eMultiSampleQuality, *m_pnDiscard))
 														   {
@@ -2273,7 +2292,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   IDirect3DSurface9* pActualSurface = NULL;
 													   HRESULT creationResult = ((IDirect3DDevice9*)pThis)->CreateOffscreenPlainSurface(*m_punWidth, *m_punHeight, eFormat, ePool, &pActualSurface, *m_ppvSharedHandle);
 													   if (SUCCEEDED(creationResult))
+													   {
 														   *(*m_pppcSurfaceCreate) = new IDirect3DStereoSurface9(pActualSurface, NULL, (IDirect3DDevice9*)pThis, NULL, NULL, NULL);
+													   }
 													   else
 													   {
 														   OutputDebugString(L"[STS] Failed to create surface IDirect3DSurface9\n");
@@ -2541,6 +2562,88 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 
 				pcDepthStencil->Release();
 			}
+
+#ifdef _DEBUGTHIS
+			// check device formats debug option
+			IDirect3D9* pD3D = nullptr;
+			pcDevice->GetDirect3D(&pD3D);
+			if (pD3D)
+			{
+				DWORD unUsage = D3DUSAGE_RENDERTARGET;
+
+				wchar_t buf[128]; wsprintf(buf, L"[STS] Check device formats usage %u", unUsage); OutputDebugString(buf);
+
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_UNKNOWN) == S_OK) OutputDebugString(L"D3DFMT_UNKNOWN");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_R8G8B8) == S_OK) OutputDebugString(L"D3DFMT_R8G8B8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A8R8G8B8) == S_OK) OutputDebugString(L"D3DFMT_A8R8G8B8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_X8R8G8B8) == S_OK) OutputDebugString(L"D3DFMT_X8R8G8B8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_R5G6B5) == S_OK) OutputDebugString(L"D3DFMT_R5G6B5");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_X1R5G5B5) == S_OK) OutputDebugString(L"D3DFMT_X1R5G5B5");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A1R5G5B5) == S_OK) OutputDebugString(L"D3DFMT_A1R5G5B5");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A4R4G4B4) == S_OK) OutputDebugString(L"D3DFMT_A4R4G4B4");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_R3G3B2) == S_OK) OutputDebugString(L"D3DFMT_R3G3B2");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A8) == S_OK) OutputDebugString(L"D3DFMT_A8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A8R3G3B2) == S_OK) OutputDebugString(L"D3DFMT_A8R3G3B2");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_X4R4G4B4) == S_OK) OutputDebugString(L"D3DFMT_X4R4G4B4");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A2B10G10R10) == S_OK) OutputDebugString(L"D3DFMT_A2B10G10R10");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A8B8G8R8) == S_OK) OutputDebugString(L"D3DFMT_A8B8G8R8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_X8B8G8R8) == S_OK) OutputDebugString(L"D3DFMT_X8B8G8R8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_G16R16) == S_OK) OutputDebugString(L"D3DFMT_G16R16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A2R10G10B10) == S_OK) OutputDebugString(L"D3DFMT_A2R10G10B10");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A16B16G16R16) == S_OK) OutputDebugString(L"D3DFMT_A16B16G16R16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A8P8) == S_OK) OutputDebugString(L"D3DFMT_A8P8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_P8) == S_OK) OutputDebugString(L"D3DFMT_P8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_L8) == S_OK) OutputDebugString(L"D3DFMT_L8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A8L8) == S_OK) OutputDebugString(L"D3DFMT_A8L8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A4L4) == S_OK) OutputDebugString(L"D3DFMT_A4L4");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_V8U8) == S_OK) OutputDebugString(L"D3DFMT_V8U8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_L6V5U5) == S_OK) OutputDebugString(L"D3DFMT_L6V5U5");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_X8L8V8U8) == S_OK) OutputDebugString(L"D3DFMT_X8L8V8U8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_Q8W8V8U8) == S_OK) OutputDebugString(L"D3DFMT_Q8W8V8U8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_V16U16) == S_OK) OutputDebugString(L"D3DFMT_V16U16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A2W10V10U10) == S_OK) OutputDebugString(L"D3DFMT_V16U16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_UYVY) == S_OK) OutputDebugString(L"D3DFMT_UYVY");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_R8G8_B8G8) == S_OK) OutputDebugString(L"D3DFMT_R8G8_B8G8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_YUY2) == S_OK) OutputDebugString(L"D3DFMT_YUY2");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_G8R8_G8B8) == S_OK) OutputDebugString(L"D3DFMT_G8R8_G8B8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_DXT1) == S_OK) OutputDebugString(L"D3DFMT_DXT1");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_DXT2) == S_OK) OutputDebugString(L"D3DFMT_DXT2");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_DXT3) == S_OK) OutputDebugString(L"D3DFMT_DXT3");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_DXT4) == S_OK) OutputDebugString(L"D3DFMT_DXT4");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_DXT5) == S_OK) OutputDebugString(L"D3DFMT_DXT5");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D16_LOCKABLE) == S_OK) OutputDebugString(L"D3DFMT_D16_LOCKABLE");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D32) == S_OK) OutputDebugString(L"D3DFMT_D32");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D15S1) == S_OK) OutputDebugString(L"D3DFMT_D15S1");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D24S8) == S_OK) OutputDebugString(L"D3DFMT_D24S8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D24X8) == S_OK) OutputDebugString(L"D3DFMT_D24X8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D24X4S4) == S_OK) OutputDebugString(L"D3DFMT_D24X4S4");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D16) == S_OK) OutputDebugString(L"D3DFMT_D16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D32F_LOCKABLE) == S_OK) OutputDebugString(L"D3DFMT_D32F_LOCKABLE");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D24FS8) == S_OK) OutputDebugString(L"D3DFMT_D24FS8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_D32_LOCKABLE) == S_OK) OutputDebugString(L"D3DFMT_D32_LOCKABLE");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_S8_LOCKABLE) == S_OK) OutputDebugString(L"D3DFMT_S8_LOCKABLE");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_L16) == S_OK) OutputDebugString(L"D3DFMT_L16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_VERTEXDATA) == S_OK) OutputDebugString(L"D3DFMT_VERTEXDATA");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_INDEX16) == S_OK) OutputDebugString(L"D3DFMT_INDEX16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_INDEX32) == S_OK) OutputDebugString(L"D3DFMT_INDEX32");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_Q16W16V16U16) == S_OK) OutputDebugString(L"D3DFMT_Q16W16V16U16");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_MULTI2_ARGB8) == S_OK) OutputDebugString(L"D3DFMT_MULTI2_ARGB8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_R16F) == S_OK) OutputDebugString(L"D3DFMT_R16F");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_G16R16F) == S_OK) OutputDebugString(L"D3DFMT_G16R16F");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A16B16G16R16F) == S_OK) OutputDebugString(L"D3DFMT_A16B16G16R16F");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_R32F) == S_OK) OutputDebugString(L"D3DFMT_R32F");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_G32R32F) == S_OK) OutputDebugString(L"D3DFMT_G32R32F");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A32B32G32R32F) == S_OK) OutputDebugString(L"D3DFMT_A32B32G32R32F");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_CxV8U8) == S_OK) OutputDebugString(L"D3DFMT_CxV8U8");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A1) == S_OK) OutputDebugString(L"D3DFMT_A1");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_A2B10G10R10_XR_BIAS) == S_OK) OutputDebugString(L"D3DFMT_A2B10G10R10_XR_BIAS");
+				if (pD3D->CheckDeviceFormat(0, D3DDEVTYPE_HAL, D3DFORMAT::D3DFMT_X8R8G8B8, unUsage, D3DRESOURCETYPE::D3DRTYPE_SURFACE, D3DFORMAT::D3DFMT_BINARYBUFFER) == S_OK) OutputDebugString(L"D3DFMT_BINARYBUFFER");
+
+				pD3D->Release();
+			}
+			else
+				OutputDebugString(L"[STS] Failed to get D3D Device");
+#endif
 		}
 		else
 		{
@@ -3792,15 +3895,15 @@ D3DFORMAT StereoSplitter::GetD3D9ExFormat(D3DFORMAT eFormat)
 		case D3DFMT_G8R8_G8B8:
 			return D3DFORMAT::D3DFMT_G8R8_G8B8;
 		case D3DFMT_DXT1:
-			return D3DFORMAT::D3DFMT_X8R8G8B8;
+			return D3DFMT_UNKNOWN;
 		case D3DFMT_DXT2:
-			return D3DFORMAT::D3DFMT_X8R8G8B8;
+			return D3DFMT_UNKNOWN;
 		case D3DFMT_DXT3:
-			return D3DFORMAT::D3DFMT_X8R8G8B8;
+			return D3DFMT_UNKNOWN;
 		case D3DFMT_DXT4:
-			return D3DFORMAT::D3DFMT_X8R8G8B8;
+			return D3DFMT_UNKNOWN;
 		case D3DFMT_DXT5:
-			return D3DFORMAT::D3DFMT_X8R8G8B8;
+			return D3DFMT_UNKNOWN;
 		case D3DFMT_D16_LOCKABLE:
 			return D3DFORMAT::D3DFMT_D16_LOCKABLE;
 		case D3DFMT_D32:
