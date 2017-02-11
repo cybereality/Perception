@@ -1672,6 +1672,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_peType) return nullptr;
 													   if (!m_pppcBackBuffer) return nullptr;
 
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
+
 													   // swapchain index not present ?
 													   if ((*m_punISwapChain) >= (UINT)m_apcActiveSwapChains.size())
 													   {
@@ -1787,6 +1790,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_pppcZStencilSurface) return nullptr;
 													   if (!(*m_pppcZStencilSurface)) return nullptr;
 
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
+
 													   if (!m_pcActiveDepthStencilSurface[0])
 													   {
 														   *m_pppcZStencilSurface = nullptr;
@@ -1821,6 +1827,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   if (!m_punSampler) return nullptr;
 													   if (!m_pppcTexture) return nullptr;
+
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
 
 													   bool bDisplacement = false;
 													   UINT unSampler = *m_punSampler;
