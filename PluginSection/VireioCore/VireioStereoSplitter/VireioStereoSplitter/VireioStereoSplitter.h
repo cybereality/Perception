@@ -114,6 +114,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 #define D3D9_SIMULTANEAOUS_TEXTURE_COUNT                16
 /**
+* Maximum simultaneous displacement textures : 5 {D3DDMAPSAMPLER+D3DVERTEXTEXTURESAMPLER0..3}
+***/
+#define D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT   5
+/**
 * Maximum simultaneous render targets ?
 ***/
 #define D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT            D3D_FL9_3_SIMULTANEOUS_RENDER_TARGET_COUNT 
@@ -464,6 +468,14 @@ private:
 	* D3D9_SIMULTANEOUS_TEXTURE_COUNT -------> D3D9_SIMULTANEOUS_TEXTURE_COUNT * 2 - Right render target views
 	***/
 	std::vector<IDirect3DBaseTexture9*> m_apcActiveTextures;
+	/**
+	* Active stored displacement textures.
+	* The displacement textures that are currently in use.
+	* DX9 :
+	* 0----------------------------------------------> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT     ----- Left render target views
+	* D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT -> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT * 2 ----- Right render target views
+	***/
+	std::vector<IDirect3DBaseTexture9*> m_apcActiveTexturesDisplacement; 
 	/**
 	* Active stored depth stencil.
 	* The depth stencil surface that are currently in use.

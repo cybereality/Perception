@@ -97,6 +97,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 StereoSplitter::StereoSplitter() :AQU_Nodus(),
 m_apcActiveRenderTargets(D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT * 2, nullptr),
 m_apcActiveTextures(D3D9_SIMULTANEAOUS_TEXTURE_COUNT * 2, nullptr),
+m_apcActiveTexturesDisplacement(D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT * 2, nullptr),
 m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
 m_hFont(nullptr),
@@ -1191,21 +1192,29 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 												   if (m_bUseD3D9Ex)
 												   {
+													   bool bDisplacement = false;
+													   UINT unSampler = *m_punSampler;
+
 													   // index too high ?
-													   if ((*m_punSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT)
+													   if ((unSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT)
 													   {
-														   if (((*m_punSampler) == D3DDMAPSAMPLER) ||
-															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER0) ||
-															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER1) ||
-															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER2) ||
-															   ((*m_punSampler) == D3DVERTEXTEXTURESAMPLER3))
-															   nHr = S_OK; // TODO !!
+														   if (((unSampler) == D3DDMAPSAMPLER) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER0) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER1) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER2) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER3))
+														   {
+															   // displacement map
+															   bDisplacement = true;
+														   }
 														   else
+														   {
 															   nHr = D3DERR_INVALIDCALL;
 
-														   // method replaced, immediately return
-														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-														   return (void*)&nHr;
+															   // method replaced, immediately return
+															   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+															   return (void*)&nHr;
+														   }
 													   }
 
 													   // texture provided ?
@@ -1218,38 +1227,47 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 														   // Try and Update the actual devices textures -> use left (mono) if not stereo or one left side
 														   if ((pActualRightTexture == NULL) || (m_eCurrentRenderingSide == RenderPosition::Left))
-															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, pActualLeftTexture);
+															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(unSampler, pActualLeftTexture);
 														   else
-															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, pActualRightTexture);
+															   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(unSampler, pActualRightTexture);
 
 													   }
 													   else
 													   {
-														   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(*m_punSampler, NULL);
+														   nHr = ((IDirect3DDevice9*)pThis)->SetTexture(unSampler, NULL);
 													   }
 
 													   // Update m_activeTextureStages if new texture was successfully set
 													   if (SUCCEEDED(nHr))
 													   {
-														   // If in a Begin-End StateBlock pair update the block state rather than the current proxy device state... TODO !!
-														   /*if (m_pCapturingStateTo)
+														   if (bDisplacement)
 														   {
-														   m_pCapturingStateTo->SelectAndCaptureState(*m_punSampler, pTexture);
-														   }
-														   else*/
-														   {
+															   // set sampler index zero based
+															   unSampler -= D3DDMAPSAMPLER;
 
 															   // remove existing texture that was active at Stage if there is one
-															   if (m_apcActiveTextures[*m_punSampler])
+															   if (m_apcActiveTexturesDisplacement[unSampler])
 															   {
-
-																   m_apcActiveTextures[*m_punSampler]->Release();
-																   m_apcActiveTextures[*m_punSampler] = nullptr;
+																   m_apcActiveTexturesDisplacement[unSampler]->Release();
+																   m_apcActiveTexturesDisplacement[unSampler] = nullptr;
 															   }
 
 															   // insert new texture (can be a NULL pointer, this is important for StateBlock tracking)
-															   m_apcActiveTextures[*m_punSampler] = *m_ppcTexture;
-															   if (m_apcActiveTextures[*m_punSampler]) m_apcActiveTextures[*m_punSampler]->AddRef();
+															   m_apcActiveTexturesDisplacement[unSampler] = *m_ppcTexture;
+															   if (m_apcActiveTexturesDisplacement[unSampler]) m_apcActiveTexturesDisplacement[unSampler]->AddRef();
+														   }
+														   else
+														   {
+															   // remove existing texture that was active at Stage if there is one
+															   if (m_apcActiveTextures[unSampler])
+															   {
+																   m_apcActiveTextures[unSampler]->Release();
+																   m_apcActiveTextures[unSampler] = nullptr;
+															   }
+
+															   // insert new texture (can be a NULL pointer, this is important for StateBlock tracking)
+															   m_apcActiveTextures[unSampler] = *m_ppcTexture;
+															   if (m_apcActiveTextures[unSampler]) m_apcActiveTextures[unSampler]->AddRef();
 														   }
 													   }
 
@@ -1259,6 +1277,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   }
 												   else if (m_bPresent)
 												   {
+													   // TODO !! DISPLACEMENT MAPPING !!
+
 													   // call method
 													   SetTexture((LPDIRECT3DDEVICE9)pThis, *m_punSampler, *m_ppcTexture);
 
@@ -1794,10 +1814,45 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_punSampler) return nullptr;
 													   if (!m_pppcTexture) return nullptr;
 
-													   // index too high ?
-													   if ((*m_punSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT) return nullptr;
+													   bool bDisplacement = false;
+													   UINT unSampler = *m_punSampler;
 
-													   *(*m_pppcTexture) = m_apcActiveTextures[*m_punSampler];
+													   // index too high ?
+													   if ((unSampler) >= D3D9_SIMULTANEAOUS_TEXTURE_COUNT)
+													   {
+														   if (((unSampler) == D3DDMAPSAMPLER) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER0) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER1) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER2) ||
+															   ((unSampler) == D3DVERTEXTEXTURESAMPLER3))
+														   {
+															   // displacement map
+															   bDisplacement = true;
+														   }
+														   else
+														   {
+															   nHr = D3DERR_INVALIDCALL;
+
+															   // method replaced, immediately return
+															   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+															   return (void*)&nHr;
+														   }
+													   }
+
+													   if (bDisplacement)
+													   {
+														   // set sampler index zero based
+														   unSampler -= D3DDMAPSAMPLER;
+
+														   // displacement texture
+														   *(*m_pppcTexture) = m_apcActiveTexturesDisplacement[unSampler];
+													   }
+													   else
+													   {
+														   // casual texture
+														   *(*m_pppcTexture) = m_apcActiveTextures[unSampler];
+													   }
+
 													   if (*(*m_pppcTexture))
 														   (*(*m_pppcTexture))->AddRef();
 
