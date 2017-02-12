@@ -949,7 +949,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// instantly return if the device is in use by a proxy class;
 	if ((m_bUseD3D9Ex) && (s_bDeviceInUseByProxy)) return nullptr;
 
-	// #define _DEBUG_STEREO_SPLITTER
+	//#define _DEBUG_STEREO_SPLITTER
+	//#define _DEBUGTHIS
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
@@ -993,6 +994,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
+
 													   // cast proxy surface
 													   IDirect3DStereoSurface9* newRenderTarget = static_cast<IDirect3DStereoSurface9*>(*m_ppcRenderTarget);
 
@@ -1094,6 +1098,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
+
 													   // null parameter ?
 													   if (!(*m_ppcNewZStencil))
 													   {
@@ -1120,6 +1127,13 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   else
 															   pActualStencilForCurrentSide = pNewDepthStencil->GetActualRight();
 													   }
+
+#ifdef _DEBUGTHIS
+													   D3DSURFACE_DESC sDesc = {};
+													   if (pActualStencilForCurrentSide) pActualStencilForCurrentSide->GetDesc(&sDesc);
+													   DEBUG_UINT(sDesc.Format);
+													   DEBUG_HEX(sDesc.Format);
+#endif
 
 													   // Update actual depth stencil
 													   nHr = ((IDirect3DDevice9*)pThis)->SetDepthStencilSurface(pActualStencilForCurrentSide);
@@ -1197,6 +1211,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 												   if (m_bUseD3D9Ex)
 												   {
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
+
 													   bool bDisplacement = false;
 													   UINT unSampler = *m_punSampler;
 
@@ -2010,9 +2027,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
 														   ePool = D3DPOOL_DEFAULT;
-														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
+
+													   if ((*m_punUsage) & D3DUSAGE_RENDERTARGET)
+													   {
+														   // compressed formats not working in d3d9ex ?? verify this !!
+														   eFormat = GetD3D9ExFormat(*m_peFormat);
+													   }
+
+													   // INTZ not supported in IDirect3DDevice9Ex ??
+													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+
+#ifdef _DEBUGTHIS
+													   OutputDebugString(L"[STS] Create texture format :");
+													   DEBUG_UINT(eFormat);
+													   DEBUG_HEX(eFormat);
+#endif
 
 													   // try and create left
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, &s_pcLeftTexture, *m_ppvSharedHandle)))
@@ -2066,9 +2097,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
 														   ePool = D3DPOOL_DEFAULT;
-														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
+
+													   if ((*m_punUsage) & D3DUSAGE_RENDERTARGET)
+													   {
+														   // compressed formats not working in d3d9ex ?? verify this !!
+														   eFormat = GetD3D9ExFormat(*m_peFormat);
+													   }
+
+													   // INTZ not supported in IDirect3DDevice9Ex ??
+													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+
+#ifdef _DEBUGTHIS
+													   OutputDebugString(L"[STS] Create volume texture format :");
+													   DEBUG_UINT(eFormat);
+													   DEBUG_HEX(eFormat);
+#endif
 
 													   static IDirect3DVolumeTexture9* s_pcActualTexture = NULL;
 													   s_pcActualTexture = NULL;
@@ -2109,14 +2154,28 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   (*m_pePool) == D3DPOOL_MANAGED)
 													   {
 														   ePool = D3DPOOL_DEFAULT;
-														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
+
+													   if ((*m_punUsage) & D3DUSAGE_RENDERTARGET)
+													   {
+														   // compressed formats not working in d3d9ex ?? verify this !!
+														   eFormat = GetD3D9ExFormat(*m_peFormat);
+													   }
+
+													   // INTZ not supported in IDirect3DDevice9Ex ??
+													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 
 													   static IDirect3DCubeTexture9* s_pcLeftCubeTexture = NULL;
 													   s_pcLeftCubeTexture = NULL;
 													   static IDirect3DCubeTexture9* s_pcRightCubeTexture = NULL;
 													   s_pcRightCubeTexture = NULL;
+
+#ifdef _DEBUGTHIS
+													   OutputDebugString(L"[STS] Create cube texture format :");
+													   DEBUG_UINT(eFormat);
+													   DEBUG_HEX(eFormat);
+#endif
 
 													   // try and create left
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateCubeTexture(*m_punEdgeLength, *m_punLevels, *m_punUsage, eFormat, ePool, &s_pcLeftCubeTexture, *m_ppvSharedHandle)))
@@ -2241,7 +2300,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 														   // compressed formats not working in d3d9ex ?? verify this !!
 														   eFormat = GetD3D9ExFormat(*m_peFormat);
+
+														   // INTZ not supported in IDirect3DDevice9Ex ??
+														   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 													   }
+
+#ifdef _DEBUGTHIS
+													   OutputDebugString(L"[STS] Create render target format :");
+													   DEBUG_UINT(eFormat);
+													   DEBUG_HEX(eFormat);
+#endif
 
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnLockable, &s_pcLeftRenderTarget, *m_ppvSharedHandle)))
 													   {
@@ -2322,8 +2390,18 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   {
 														   eMultiSample = D3DMULTISAMPLE_NONE;
 														   eMultiSampleQuality = 0;
-														   // eFormat = GetD3D9ExFormat(*m_peFormat);
+
+														   // INTZ not supported in IDirect3DDevice9Ex ??
+														   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+
+														   s_pcDirect3DDevice9Ex->Release();
 													   }
+
+#ifdef _DEBUGTHIS
+													   OutputDebugString(L"[STS] Create depth stencil format :");
+													   DEBUG_UINT(eFormat);
+													   DEBUG_HEX(eFormat);
+#endif
 
 													   // create left/mono
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateDepthStencilSurface(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnDiscard, &s_pcDepthStencilSurfaceLeft, *m_ppvSharedHandle)))
@@ -2376,8 +2454,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   {
 														   ePool = D3DPOOL_DEFAULT;
 														   s_pcDirect3DDevice9Ex->Release();
-														   // eFormat = GetD3D9ExFormat(*m_peFormat);
 													   }
+
+													   // INTZ not supported in IDirect3DDevice9Ex ??
+													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+
+#ifdef _DEBUGTHIS
+													   OutputDebugString(L"[STS] Create offscreen plain format :");
+													   DEBUG_UINT(eFormat);
+													   DEBUG_HEX(eFormat);
+#endif
 
 													   static IDirect3DSurface9* s_pcActualSurface = NULL;
 													   s_pcActualSurface = NULL;
@@ -2652,6 +2738,12 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 				m_pcActiveDepthStencilSurface[0] = pcBackBufferStereo;
 
 				pcDepthStencil->Release();
+
+#ifdef _DEBUGTHIS
+				OutputDebugString(L"[STS] Default back buffer format :");
+				DEBUG_UINT(sDesc.Format);
+				DEBUG_HEX(sDesc.Format);
+#endif
 			}
 
 #ifdef _DEBUGTHIS
@@ -3914,7 +4006,7 @@ void StereoSplitter::EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwa
 }
 
 /**
-* Converts D3D9 formats to D3D9Ex formats.
+* Converts D3D9 render target formats to D3D9Ex formats.
 * In case compressed formats and bump mapping formats get converted.
 ***/
 D3DFORMAT StereoSplitter::GetD3D9ExFormat(D3DFORMAT eFormat)
@@ -3988,15 +4080,16 @@ D3DFORMAT StereoSplitter::GetD3D9ExFormat(D3DFORMAT eFormat)
 		case D3DFMT_G8R8_G8B8:
 			return D3DFORMAT::D3DFMT_G8R8_G8B8;
 		case D3DFMT_DXT1:
-			return D3DFMT_UNKNOWN;
+			// Texture format DXT1 is for textures that are opaque or have a single transparent color. D3DFMT_X4R4G4B4 ??
+			return D3DFORMAT::D3DFMT_X1R5G5B5;
 		case D3DFMT_DXT2:
-			return D3DFMT_UNKNOWN;
+			return D3DFMT_X8R8G8B8;
 		case D3DFMT_DXT3:
-			return D3DFMT_UNKNOWN;
+			return D3DFMT_X8R8G8B8;
 		case D3DFMT_DXT4:
-			return D3DFMT_UNKNOWN;
+			return D3DFMT_X8R8G8B8;
 		case D3DFMT_DXT5:
-			return D3DFMT_UNKNOWN;
+			return D3DFMT_X8R8G8B8;
 		case D3DFMT_D16_LOCKABLE:
 			return D3DFORMAT::D3DFMT_D16_LOCKABLE;
 		case D3DFMT_D32:
