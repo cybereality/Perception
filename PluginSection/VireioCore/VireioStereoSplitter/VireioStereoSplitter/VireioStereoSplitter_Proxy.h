@@ -831,11 +831,23 @@ protected:
 	/**
 	* The actual texture.
 	***/
-	IDirect3DBaseTexture9* m_pcActualTexture;
+	union
+	{
+		IDirect3DBaseTexture9* m_pcActualTexture;
+		IDirect3DTexture9* m_pcActualTextureT;
+		IDirect3DCubeTexture9* m_pcActualTextureC;
+		IDirect3DVolumeTexture9* m_pcActualTextureV;
+	};
 	/**
 	* The actual right texture embedded.
 	***/
-	IDirect3DBaseTexture9* m_pcActualTextureRight;
+	union
+	{
+		IDirect3DBaseTexture9* m_pcActualTextureRight;
+		IDirect3DTexture9* m_pcActualTextureRightT;
+		IDirect3DCubeTexture9* m_pcActualTextureRightC;
+		IDirect3DVolumeTexture9* m_pcActualTextureRightV;
+	};
 	/**
 	* Pointer to the owning D3D device.
 	***/
@@ -958,7 +970,7 @@ public:
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
 	{
 		SHOW_CALL("D3D9ProxyTexture::GetLevelDesc");
-		return ((IDirect3DTexture9*)m_pcActualTexture)->GetLevelDesc(Level, pDesc);
+		return m_pcActualTextureT->GetLevelDesc(Level, pDesc);
 	}
 
 	/**
@@ -968,6 +980,7 @@ public:
 	HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 	{
 		SHOW_CALL("D3D9ProxyTexture::GetSurfaceLevel");
+
 		HRESULT finalResult;
 
 		// Have we already got a Proxy for this surface level ??
@@ -987,20 +1000,23 @@ public:
 		{
 			// Get underlying surfaces (stereo pair made from the surfaces at the same level in the left and right textues), 
 			// wrap, then store in m_wrappedSurfaceLevels and return the wrapped surface
-			IDirect3DSurface9* pcActualSurfaceLevelLeft = NULL;
-			IDirect3DSurface9* pcActualSurfaceLevelRight = NULL;
+			static IDirect3DSurface9* pcActualSurfaceLevelLeft = NULL;
+			pcActualSurfaceLevelLeft = NULL;
+			static IDirect3DSurface9* pcActualSurfaceLevelRight = NULL;
+			pcActualSurfaceLevelRight = NULL;
 
-			HRESULT leftResult = ((IDirect3DTexture9*)m_pcActualTexture)->GetSurfaceLevel(Level, &pcActualSurfaceLevelLeft);
-
+			HRESULT leftResult = m_pcActualTextureT->GetSurfaceLevel(Level, &pcActualSurfaceLevelLeft);
+			
 			if (IsStereo() && m_pcActualTextureRight)
 			{
-				HRESULT resultRight = ((IDirect3DTexture9*)m_pcActualTextureRight)->GetSurfaceLevel(Level, &pcActualSurfaceLevelRight);
+				HRESULT resultRight = m_pcActualTextureRightT->GetSurfaceLevel(Level, &pcActualSurfaceLevelRight);
 				assert(leftResult == resultRight);
 			}
 
 			if (SUCCEEDED(leftResult))
 			{
-				IDirect3DStereoSurface9* pcWrappedSurfaceLevel = new IDirect3DStereoSurface9(pcActualSurfaceLevelLeft, pcActualSurfaceLevelRight, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this, NULL, NULL);
+				static IDirect3DStereoSurface9* pcWrappedSurfaceLevel = NULL;
+				pcWrappedSurfaceLevel = new IDirect3DStereoSurface9(pcActualSurfaceLevelLeft, pcActualSurfaceLevelRight, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this, NULL, NULL);
 
 				if (m_aaWrappedSurfaceLevels.insert(std::pair<ULONG, IDirect3DStereoSurface9*>(Level, pcWrappedSurfaceLevel)).second)
 				{
@@ -1041,12 +1057,13 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyTexture::LockRect");
 
-		D3DSURFACE_DESC desc;
-		((IDirect3DTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
+		static D3DSURFACE_DESC desc;
+		ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+		m_pcActualTextureT->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
 			//Can't really handle stereo for this, so just lock on the original texture
-			return ((IDirect3DTexture9*)m_pcActualTexture)->LockRect(Level, pLockedRect, pRect, Flags);
+			return m_pcActualTextureT->LockRect(Level, pLockedRect, pRect, Flags);
 		}
 
 		//Guard against multithreaded access as this could be causing us problems
@@ -1107,7 +1124,7 @@ public:
 		if (newTexture)
 		{
 			IDirect3DSurface9 *pActualSurface = NULL;
-			hr = ((IDirect3DTexture9*)m_pcActualTexture)->GetSurfaceLevel(Level, &pActualSurface);
+			hr = m_pcActualTextureT->GetSurfaceLevel(Level, &pActualSurface);
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcActualTexture->GetSurfaceLevel hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1130,7 +1147,7 @@ public:
 		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
 		{
-			hr = ((IDirect3DTexture9*)m_pcActualTexture)->AddDirtyRect(pRect);
+			hr = m_pcActualTextureT->AddDirtyRect(pRect);
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcActualTexture->AddDirtyRect hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1156,11 +1173,12 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyTexture::UnlockRect");
 
-		D3DSURFACE_DESC desc;
-		((IDirect3DTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
+		static D3DSURFACE_DESC desc;
+		ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+		m_pcActualTextureT->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
-			return ((IDirect3DTexture9*)m_pcActualTexture)->UnlockRect(Level);
+			return m_pcActualTextureT->UnlockRect(Level);
 		}
 
 		//Guard against multithreaded access as this could be causing us problems
@@ -1226,7 +1244,7 @@ public:
 		}
 
 		IDirect3DSurface9 *pActualSurface = NULL;
-		hr = ((IDirect3DTexture9*)m_pcActualTexture)->GetSurfaceLevel(Level, &pActualSurface);
+		hr = m_pcActualTextureT->GetSurfaceLevel(Level, &pActualSurface);
 		if (FAILED(hr))
 			return hr;
 		if (fullSurfaces[Level])
@@ -1286,7 +1304,7 @@ public:
 		if (IsStereo() && m_pcActualTextureRight)
 			((IDirect3DTexture9*)m_pcActualTextureRight)->AddDirtyRect(pDirtyRect);
 
-		return ((IDirect3DTexture9*)m_pcActualTexture)->AddDirtyRect(pDirtyRect);
+		return m_pcActualTextureT->AddDirtyRect(pDirtyRect);
 	}
 
 	/*** IDirect3DStereoTexture9 methods ***/
@@ -1391,7 +1409,7 @@ public:
 	***/
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
 	{
-		return ((IDirect3DCubeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, pDesc);
+		return m_pcActualTextureC->GetLevelDesc(Level, pDesc);
 	}
 
 	/**
@@ -1417,21 +1435,24 @@ public:
 		{
 			// Get underlying surfaces (stereo pair made from the surfaces at the same level in the left and right textues), 
 			// wrap, then store in m_wrappedSurfaceLevels and return the wrapped surface
-			IDirect3DSurface9* pActualSurfaceLevelLeft = NULL;
-			IDirect3DSurface9* pActualSurfaceLevelRight = NULL;
+			static IDirect3DSurface9* pActualSurfaceLevelLeft = NULL;
+			pActualSurfaceLevelLeft = NULL;
+			static IDirect3DSurface9* pActualSurfaceLevelRight = NULL;
+			pActualSurfaceLevelRight = NULL;
 
-			HRESULT leftResult = ((IDirect3DCubeTexture9*)m_pcActualTexture)->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelLeft);
+			HRESULT leftResult = m_pcActualTextureC->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelLeft);
 
 			if (IsStereo())
 			{
-				HRESULT resultRight = ((IDirect3DCubeTexture9*)m_pcActualTextureRight)->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelRight);
+				HRESULT resultRight = m_pcActualTextureC->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelRight);
 				assert(leftResult == resultRight);
 			}
 
 			if (SUCCEEDED(leftResult))
 			{
 
-				IDirect3DStereoSurface9* pWrappedSurfaceLevel = new IDirect3DStereoSurface9(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this, NULL, NULL);
+				static IDirect3DStereoSurface9* pWrappedSurfaceLevel = NULL;
+				pWrappedSurfaceLevel = new IDirect3DStereoSurface9(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this, NULL, NULL);
 
 				if (m_aaWrappedSurfaceLevels.insert(std::pair<CubeSurfaceKey, IDirect3DStereoSurface9*>(key, pWrappedSurfaceLevel)).second)
 				{
@@ -1473,11 +1494,11 @@ public:
 		SHOW_CALL("D3D9ProxyCubeTexture::LockRect");
 
 		D3DSURFACE_DESC desc;
-		((IDirect3DCubeTexture9*)m_pcActualTexture)->GetLevelDesc(0, &desc);
+		m_pcActualTextureC->GetLevelDesc(0, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
 			// Can't really handle stereo for this, so just lock on the original texture
-			return ((IDirect3DCubeTexture9*)m_pcActualTexture)->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
+			return m_pcActualTextureC->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
 		}
 
 		// Guard against multithreaded access as this could be causing us problems
@@ -1507,7 +1528,7 @@ public:
 		if (newSurface[key])
 		{
 			IDirect3DSurface9 *pActualSurface = NULL;
-			hr = ((IDirect3DCubeTexture9*)m_pcActualTexture)->GetCubeMapSurface(FaceType, Level, &pActualSurface);
+			hr = m_pcActualTextureC->GetCubeMapSurface(FaceType, Level, &pActualSurface);
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pActualTexture->GetCubeMapSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1535,7 +1556,7 @@ public:
 
 		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
-			hr = ((IDirect3DCubeTexture9*)m_pcActualTexture)->AddDirtyRect(FaceType, pRect);
+			hr = m_pcActualTextureC->AddDirtyRect(FaceType, pRect);
 
 		hr = lockableSysMemTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
 		if (FAILED(hr))
@@ -1554,10 +1575,10 @@ public:
 		SHOW_CALL("D3D9ProxyCubeTexture::UnlockRect");
 
 		D3DSURFACE_DESC desc;
-		((IDirect3DCubeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
+		m_pcActualTextureC->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
-			return ((IDirect3DCubeTexture9*)m_pcActualTexture)->UnlockRect(FaceType, Level);
+			return m_pcActualTextureC->UnlockRect(FaceType, Level);
 		}
 
 		//Guard against multithreaded access as this could be causing us problems
@@ -1595,9 +1616,9 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyCubeTexture::AddDirtyRect");
 		if (IsStereo())
-			((IDirect3DCubeTexture9*)m_pcActualTextureRight)->AddDirtyRect(FaceType, pDirtyRect);
+			m_pcActualTextureC->AddDirtyRect(FaceType, pDirtyRect);
 
-		return ((IDirect3DCubeTexture9*)m_pcActualTexture)->AddDirtyRect(FaceType, pDirtyRect);
+		return m_pcActualTextureC->AddDirtyRect(FaceType, pDirtyRect);
 	}
 
 	/*** IDirect3DStereoCubeTexture methods ***/
@@ -1931,7 +1952,7 @@ public:
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
 	{
 		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLevelDesc");
-		HRESULT nHr = ((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, pDesc);
+		HRESULT nHr = m_pcActualTextureV->GetLevelDesc(Level, pDesc);
 		pDesc->Pool = m_ePoolDefault;
 		return nHr;
 	}
@@ -1961,13 +1982,15 @@ public:
 		{
 			// Get underlying surfaces (stereo pair made from the surfaces at the same level in the left and right textues), 
 			//  wrap, then store in m_wrappedSurfaceLevels and return the wrapped surface
-			IDirect3DVolume9* pActualVolumeLevel = NULL;
+			static IDirect3DVolume9* pActualVolumeLevel = NULL;
+			pActualVolumeLevel = NULL;
 
-			HRESULT result = ((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetVolumeLevel(Level, &pActualVolumeLevel);
+			HRESULT result = m_pcActualTextureV->GetVolumeLevel(Level, &pActualVolumeLevel);
 
 			if (SUCCEEDED(result))
 			{
-				IDirect3DStereoVolume9* pWrappedVolumeLevel = new IDirect3DStereoVolume9(pActualVolumeLevel, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this);
+				static IDirect3DStereoVolume9* pWrappedVolumeLevel = NULL;
+				pWrappedVolumeLevel = new IDirect3DStereoVolume9(pActualVolumeLevel, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this);
 
 				if (m_aaWrappedVolumeLevels.insert(std::pair<ULONG, IDirect3DStereoVolume9*>(Level, pWrappedVolumeLevel)).second)
 				{
@@ -2009,11 +2032,11 @@ public:
 		SHOW_CALL("D3D9ProxyVolumeTexture::LockBox");
 
 		D3DVOLUME_DESC desc;
-		((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
+		m_pcActualTextureV->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
 			//Can't really handle stereo for this, so just lock on the original texture
-			return ((IDirect3DVolumeTexture9*)m_pcActualTexture)->LockBox(Level, pLockedVolume, pBox, Flags);
+			return m_pcActualTextureV->LockBox(Level, pLockedVolume, pBox, Flags);
 		}
 
 		//Create lockable system memory surfaces
@@ -2030,7 +2053,7 @@ public:
 
 		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
-			hr = ((IDirect3DVolumeTexture9*)m_pcActualTexture)->AddDirtyBox(pBox);
+			hr = m_pcActualTextureV->AddDirtyBox(pBox);
 
 		hr = lockableSysMemVolume->LockBox(Level, pLockedVolume, pBox, Flags);
 		if (FAILED(hr))
@@ -2046,10 +2069,10 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyVolumeTexture::UnlockBox");
 		D3DVOLUME_DESC desc;
-		((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
+		m_pcActualTextureV->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
-			return ((IDirect3DVolumeTexture9*)m_pcActualTexture)->UnlockBox(Level);
+			return m_pcActualTextureV->UnlockBox(Level);
 		}
 
 		// unlock the lockable resource
@@ -2073,7 +2096,7 @@ public:
 	HRESULT WINAPI AddDirtyBox(const D3DBOX *pDirtyBox)
 	{
 		SHOW_CALL("D3D9ProxyVolumeTexture::AddDirtyBox");
-		return ((IDirect3DVolumeTexture9*)m_pcActualTexture)->AddDirtyBox(pDirtyBox);
+		return m_pcActualTextureV->AddDirtyBox(pDirtyBox);
 	}
 
 	/**
