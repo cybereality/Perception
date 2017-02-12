@@ -156,7 +156,7 @@ public:
 	ULONG WINAPI AddRef()
 	{
 		SHOW_CALL("D3D9ProxySurface::AddRef()");
-		
+
 		// if surface is in a container increase count on container instead of the surface
 		if (m_pcWrappedContainer)
 		{
@@ -599,22 +599,20 @@ protected:
 };
 
 /**
-*  Direct 3D proxy texture class.
-*  Overwrites IDirect3DTexture9 and imbeds the additional right texture pointer.
+*  Direct 3D proxy base texture class.
+*  Overwrites IDirect3DBaseTexture9 and imbeds the additional right texture pointer.
 */
-class IDirect3DStereoTexture9 : public IDirect3DTexture9
+class IDirect3DStereoBaseTexture9 : public IDirect3DBaseTexture9
 {
 public:
 	/**
 	* Constructor.
 	* @param pcActualTexture Imbed actual texture.
 	***/
-	IDirect3DStereoTexture9(IDirect3DTexture9* pcActualTextureLeft, IDirect3DTexture9* pcActualTextureRight, IDirect3DDevice9* pcOwningDevice) :
+	IDirect3DStereoBaseTexture9(IDirect3DBaseTexture9* pcActualTextureLeft, IDirect3DBaseTexture9* pcActualTextureRight, IDirect3DDevice9* pcOwningDevice) :
 		m_pcActualTexture(pcActualTextureLeft),
 		m_pcActualTextureRight(pcActualTextureRight),
-		m_aaWrappedSurfaceLevels(),
 		m_pcOwningDevice(pcOwningDevice),
-		lockableSysMemTexture(NULL),
 		m_unRefCount(1)
 	{
 		SHOW_CALL("D3D9ProxyTexture::D3D9ProxyTexture");
@@ -624,6 +622,248 @@ public:
 		m_pcOwningDevice->AddRef();
 		s_bDeviceInUseByProxy = false;
 	}
+	/**
+	* Destructor.
+	* Releases embedded texture.
+	***/
+	virtual ~IDirect3DStereoBaseTexture9()
+	{
+		SHOW_CALL("D3D9ProxyTexture::~D3D9ProxyTexture");
+
+		SAFE_RELEASE(m_pcActualTexture);
+		SAFE_RELEASE(m_pcActualTextureRight);
+		s_bDeviceInUseByProxy = true;
+		SAFE_RELEASE(m_pcOwningDevice);
+		s_bDeviceInUseByProxy = false;
+	}
+
+	/*** IUnknown methods ***/
+
+	/**
+	* Base QueryInterface method.
+	***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::QueryInterface");
+		return m_pcActualTexture->QueryInterface(riid, ppv);
+	}
+
+	/**
+	* Base AddRef functionality.
+	***/
+	virtual ULONG WINAPI AddRef()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::AddRef()");
+		return ++m_unRefCount;
+	}
+
+	/**
+	* Base Release functionality.
+	***/
+	virtual ULONG WINAPI Release()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::Release()");
+		if (--m_unRefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+		return m_unRefCount;
+	}
+
+	/**
+	* Base GetDevice functionality.
+	***/
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetDevice()");
+		if (!m_pcOwningDevice)
+			return D3DERR_INVALIDCALL;
+		else
+		{
+			*ppcDevice = m_pcOwningDevice;
+			s_bDeviceInUseByProxy = true;
+			m_pcOwningDevice->AddRef();
+			s_bDeviceInUseByProxy = false;
+			return D3D_OK;
+		}
+	}
+
+	/**
+	* Base SetPrivateData functionality.
+	***/
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::SetPrivateData");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
+
+		return m_pcActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	}
+
+	/**
+	* Base GetPrivateData functionality.
+	***/
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetPrivateData()");
+		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
+	}
+
+	/**
+	* FreePrivateData left/right.
+	***/
+	HRESULT WINAPI FreePrivateData(REFGUID refguid)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::FreePrivateData");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->FreePrivateData(refguid);
+
+		return m_pcActualTexture->FreePrivateData(refguid);
+	}
+
+	/**
+	* Sets priority on both (left/right) textures.
+	***/
+	DWORD WINAPI SetPriority(DWORD PriorityNew)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::SetPriority");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->SetPriority(PriorityNew);
+
+		return m_pcActualTexture->SetPriority(PriorityNew);
+	}
+
+	/**
+	* Base GetPriority functionality.
+	***/
+	DWORD WINAPI GetPriority()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetPriority()");
+		return m_pcActualTexture->GetPriority();
+	}
+
+	/**
+	* Calls method on both (left/right) textures.
+	***/
+	void WINAPI PreLoad()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::PreLoad");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->PreLoad();
+
+		return m_pcActualTexture->PreLoad();
+	}
+
+	/**
+	* Base GetType functionality.
+	***/
+	D3DRESOURCETYPE WINAPI GetType()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetType()");
+		return m_pcActualTexture->GetType();
+	}
+
+	/**
+	* Base SetLOD functionality.
+	***/
+	DWORD WINAPI SetLOD(DWORD LODNew)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::SetLOD");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->SetLOD(LODNew);
+
+		return m_pcActualTexture->SetLOD(LODNew);
+	}
+
+	/**
+	* Base GetLOD functionality.
+	***/
+	DWORD WINAPI GetLOD()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetLOD()");
+		return m_pcActualTexture->GetLOD();
+	}
+
+	/**
+	* Base GetLevelCount functionality.
+	***/
+	DWORD WINAPI GetLevelCount()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetLevelCount()");
+		return m_pcActualTexture->GetLevelCount();
+	}
+
+	/**
+	* Base SetAutoGenFilterType functionality.
+	***/
+	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::SetAutoGenFilterType");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->SetAutoGenFilterType(FilterType);
+
+		return m_pcActualTexture->SetAutoGenFilterType(FilterType);
+	}
+
+	/**
+	* Base GetAutoGenFilterType functionality.
+	***/
+	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GetAutoGenFilterType");
+		return m_pcActualTexture->GetAutoGenFilterType();
+	}
+
+	/**
+	* Base GenerateMipSubLevels functionality.
+	***/
+	void WINAPI GenerateMipSubLevels()
+	{
+		SHOW_CALL("IDirect3DStereoBaseTexture9::GenerateMipSubLevels");
+		if (m_pcActualTextureRight)
+			m_pcActualTextureRight->GenerateMipSubLevels();
+
+		m_pcActualTexture->GenerateMipSubLevels();
+	}
+
+protected:
+	/**
+	* The actual texture.
+	***/
+	IDirect3DBaseTexture9* m_pcActualTexture;
+	/**
+	* The actual right texture embedded.
+	***/
+	IDirect3DBaseTexture9* m_pcActualTextureRight;
+	/**
+	* Pointer to the owning D3D device.
+	***/
+	IDirect3DDevice9* m_pcOwningDevice;
+	/**
+	* Internal reference counter.
+	***/
+	ULONG m_unRefCount;
+};
+
+/**
+*  Direct 3D proxy texture class.
+*  Overwrites IDirect3DTexture9 and imbeds the additional right texture pointer.
+*/
+class IDirect3DStereoTexture9 : public IDirect3DTexture9, public IDirect3DStereoBaseTexture9
+{
+public:
+	/**
+	* Constructor.
+	* @param pcActualTexture Imbed actual texture.
+	***/
+	IDirect3DStereoTexture9(IDirect3DTexture9* pcActualTextureLeft, IDirect3DTexture9* pcActualTextureRight, IDirect3DDevice9* pcOwningDevice) :
+		IDirect3DStereoBaseTexture9(pcActualTextureLeft, pcActualTextureRight, pcOwningDevice),
+		m_aaWrappedSurfaceLevels(),
+		lockableSysMemTexture(NULL)
+	{
+	}
+
 	/**
 	* Destructor.
 	* Releases embedded texture.
@@ -650,11 +890,8 @@ public:
 			++it2;
 		}
 
-		SAFE_RELEASE(m_pcActualTexture);
-		SAFE_RELEASE(m_pcActualTextureRight);
-		s_bDeviceInUseByProxy = true;
-		SAFE_RELEASE(m_pcOwningDevice);
-		s_bDeviceInUseByProxy = false;
+		// call base desctructor
+		IDirect3DStereoBaseTexture9::~IDirect3DStereoBaseTexture9();
 	}
 
 	/*** IUnknown methods ***/
@@ -674,7 +911,7 @@ public:
 		IF_GUID(riid, 0x85c31227, 0x3de5, 0x4f00, 0x9b, 0x3a, 0xf1, 0x1a)
 		{
 			*ppv = (LPVOID)this;
-			this->AddRef();
+			IDirect3DStereoBaseTexture9::AddRef();
 			return S_OK;
 		}
 
@@ -683,7 +920,7 @@ public:
 		IF_GUID(riid, 0x580ca87e, 0x1d3c, 0x4d54, 0x99, 0x1d, 0xb7, 0xd3)//, 0xe3, 0xc2, 0x98, 0xce)
 		{
 			*ppv = (LPVOID)this;
-			this->AddRef();
+			IDirect3DStereoBaseTexture9::AddRef();
 			return S_OK;
 		}
 
@@ -695,185 +932,25 @@ public:
 		return m_pcActualTexture->QueryInterface(riid, ppv);
 	}
 
-	/**
-	* Base AddRef functionality.
-	***/
-	virtual ULONG WINAPI AddRef()
-	{
-		SHOW_CALL("D3D9ProxyTexture::AddRef()");
-		return ++m_unRefCount;
-	}
+	virtual ULONG WINAPI AddRef() { return IDirect3DStereoBaseTexture9::AddRef(); }
+	virtual ULONG WINAPI Release() { return IDirect3DStereoBaseTexture9::Release(); }
 
-	/**
-	* Base Release functionality.
-	***/
-	virtual ULONG WINAPI Release()
-	{
-		SHOW_CALL("D3D9ProxyTexture::Release()");
-		if (--m_unRefCount == 0)
-		{
-			delete this;
-			return 0;
-		}
-		return m_unRefCount;
-	}
+	/*** IDirect3DBaseTexture9 methods	***/
 
-	/**
-	* Base GetDevice functionality.
-	***/
-	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice)
-	{
-		SHOW_CALL("D3D9ProxyTexture::GetDevice()");
-		if (!m_pcOwningDevice)
-			return D3DERR_INVALIDCALL;
-		else
-		{
-			*ppcDevice = m_pcOwningDevice;
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->AddRef();
-			s_bDeviceInUseByProxy = false;
-			return D3D_OK;
-		}
-	}
-
-	/**
-	* Base SetPrivateData functionality.
-	***/
-	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-	{
-		SHOW_CALL("D3D9ProxyTexture::SetPrivateData");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
-
-		return m_pcActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
-	}
-
-	/**
-	* Base GetPrivateData functionality.
-	***/
-	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-	{
-		SHOW_CALL("D3D9ProxyTexture::GetPrivateData()");
-		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
-	}
-
-	/**
-	* FreePrivateData left/right.
-	***/
-	HRESULT WINAPI FreePrivateData(REFGUID refguid)
-	{
-		SHOW_CALL("D3D9ProxyTexture::FreePrivateData");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->FreePrivateData(refguid);
-
-		return m_pcActualTexture->FreePrivateData(refguid);
-	}
-
-	/**
-	* Sets priority on both (left/right) textures.
-	***/
-	DWORD WINAPI SetPriority(DWORD PriorityNew)
-	{
-		SHOW_CALL("D3D9ProxyTexture::SetPriority");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->SetPriority(PriorityNew);
-
-		return m_pcActualTexture->SetPriority(PriorityNew);
-	}
-
-	/**
-	* Base GetPriority functionality.
-	***/
-	DWORD WINAPI GetPriority()
-	{
-		SHOW_CALL("D3D9ProxyTexture::GetPriority()");
-		return m_pcActualTexture->GetPriority();
-	}
-
-	/**
-	* Calls method on both (left/right) textures.
-	***/
-	void WINAPI PreLoad()
-	{
-		SHOW_CALL("D3D9ProxyTexture::PreLoad");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->PreLoad();
-
-		return m_pcActualTexture->PreLoad();
-	}
-
-	/**
-	* Base GetType functionality.
-	***/
-	D3DRESOURCETYPE WINAPI GetType()
-	{
-		SHOW_CALL("D3D9ProxyTexture::GetType()");
-
-		return m_pcActualTexture->GetType();
-	}
-
-	/**
-	* Base SetLOD functionality.
-	***/
-	DWORD WINAPI SetLOD(DWORD LODNew)
-	{
-		SHOW_CALL("D3D9ProxyTexture::SetLOD");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->SetLOD(LODNew);
-
-		return m_pcActualTexture->SetLOD(LODNew);
-	}
-
-	/**
-	* Base GetLOD functionality.
-	***/
-	DWORD WINAPI GetLOD()
-	{
-		SHOW_CALL("D3D9ProxyTexture::GetLOD()");
-		return m_pcActualTexture->GetLOD();
-	}
-
-	/**
-	* Base GetLevelCount functionality.
-	***/
-	DWORD WINAPI GetLevelCount()
-	{
-		SHOW_CALL("D3D9ProxySurface::GetLevelCount()");
-		return m_pcActualTexture->GetLevelCount();
-	}
-
-	/**
-	* Base SetAutoGenFilterType functionality.
-	***/
-	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
-	{
-		SHOW_CALL("D3D9ProxyTexture::SetAutoGenFilterType");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->SetAutoGenFilterType(FilterType);
-
-		return m_pcActualTexture->SetAutoGenFilterType(FilterType);
-	}
-
-	/**
-	* Base GetAutoGenFilterType functionality.
-	***/
-	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
-	{
-		SHOW_CALL("D3D9ProxyTexture::GetAutoGenFilterType");
-		return m_pcActualTexture->GetAutoGenFilterType();
-	}
-
-	/**
-	* Base GenerateMipSubLevels functionality.
-	***/
-	void WINAPI GenerateMipSubLevels()
-	{
-		SHOW_CALL("D3D9ProxyTexture::GenerateMipSubLevels");
-		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->GenerateMipSubLevels();
-
-		return m_pcActualTexture->GenerateMipSubLevels();
-	}
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice) { return IDirect3DStereoBaseTexture9::GetDevice(ppcDevice); }
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags) { return IDirect3DStereoBaseTexture9::SetPrivateData(refguid, pData, SizeOfData, Flags); }
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData) { return IDirect3DStereoBaseTexture9::GetPrivateData(refguid, pData, pSizeOfData); }
+	HRESULT WINAPI FreePrivateData(REFGUID refguid) { return IDirect3DStereoBaseTexture9::FreePrivateData(refguid); }
+	DWORD WINAPI SetPriority(DWORD PriorityNew) { return IDirect3DStereoBaseTexture9::SetPriority(PriorityNew); }
+	DWORD WINAPI GetPriority() { return IDirect3DStereoBaseTexture9::GetPriority(); }
+	void WINAPI PreLoad() { IDirect3DStereoBaseTexture9::PreLoad(); }
+	D3DRESOURCETYPE WINAPI GetType() { return IDirect3DStereoBaseTexture9::GetType(); }
+	DWORD WINAPI SetLOD(DWORD LODNew) { return IDirect3DStereoBaseTexture9::SetLOD(LODNew); }
+	DWORD WINAPI GetLOD() { return IDirect3DStereoBaseTexture9::GetLOD(); }
+	DWORD WINAPI GetLevelCount() { return IDirect3DStereoBaseTexture9::GetLevelCount(); }
+	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType) { return IDirect3DStereoBaseTexture9::SetAutoGenFilterType(FilterType); }
+	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType() { return IDirect3DStereoBaseTexture9::GetAutoGenFilterType(); }
+	void WINAPI GenerateMipSubLevels() { IDirect3DStereoBaseTexture9::GenerateMipSubLevels(); }
 
 	/**
 	* Base GetLevelDesc functionality.
@@ -881,7 +958,7 @@ public:
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
 	{
 		SHOW_CALL("D3D9ProxyTexture::GetLevelDesc");
-		return m_pcActualTexture->GetLevelDesc(Level, pDesc);
+		return ((IDirect3DTexture9*)m_pcActualTexture)->GetLevelDesc(Level, pDesc);
 	}
 
 	/**
@@ -913,18 +990,17 @@ public:
 			IDirect3DSurface9* pcActualSurfaceLevelLeft = NULL;
 			IDirect3DSurface9* pcActualSurfaceLevelRight = NULL;
 
-			HRESULT leftResult = m_pcActualTexture->GetSurfaceLevel(Level, &pcActualSurfaceLevelLeft);
+			HRESULT leftResult = ((IDirect3DTexture9*)m_pcActualTexture)->GetSurfaceLevel(Level, &pcActualSurfaceLevelLeft);
 
 			if (IsStereo() && m_pcActualTextureRight)
 			{
-				HRESULT resultRight = m_pcActualTextureRight->GetSurfaceLevel(Level, &pcActualSurfaceLevelRight);
+				HRESULT resultRight = ((IDirect3DTexture9*)m_pcActualTextureRight)->GetSurfaceLevel(Level, &pcActualSurfaceLevelRight);
 				assert(leftResult == resultRight);
 			}
 
 			if (SUCCEEDED(leftResult))
 			{
-
-				IDirect3DStereoSurface9* pcWrappedSurfaceLevel = new IDirect3DStereoSurface9(pcActualSurfaceLevelLeft, pcActualSurfaceLevelRight, m_pcOwningDevice, this, NULL, NULL);
+				IDirect3DStereoSurface9* pcWrappedSurfaceLevel = new IDirect3DStereoSurface9(pcActualSurfaceLevelLeft, pcActualSurfaceLevelRight, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this, NULL, NULL);
 
 				if (m_aaWrappedSurfaceLevels.insert(std::pair<ULONG, IDirect3DStereoSurface9*>(Level, pcWrappedSurfaceLevel)).second)
 				{
@@ -966,11 +1042,11 @@ public:
 		SHOW_CALL("D3D9ProxyTexture::LockRect");
 
 		D3DSURFACE_DESC desc;
-		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		((IDirect3DTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
 			//Can't really handle stereo for this, so just lock on the original texture
-			return m_pcActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
+			return ((IDirect3DTexture9*)m_pcActualTexture)->LockRect(Level, pLockedRect, pRect, Flags);
 		}
 
 		//Guard against multithreaded access as this could be causing us problems
@@ -1031,7 +1107,7 @@ public:
 		if (newTexture)
 		{
 			IDirect3DSurface9 *pActualSurface = NULL;
-			hr = m_pcActualTexture->GetSurfaceLevel(Level, &pActualSurface);
+			hr = ((IDirect3DTexture9*)m_pcActualTexture)->GetSurfaceLevel(Level, &pActualSurface);
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcActualTexture->GetSurfaceLevel hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1054,7 +1130,7 @@ public:
 		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
 		{
-			hr = m_pcActualTexture->AddDirtyRect(pRect);
+			hr = ((IDirect3DTexture9*)m_pcActualTexture)->AddDirtyRect(pRect);
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pcActualTexture->AddDirtyRect hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1081,10 +1157,10 @@ public:
 		SHOW_CALL("D3D9ProxyTexture::UnlockRect");
 
 		D3DSURFACE_DESC desc;
-		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		((IDirect3DTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
-			return m_pcActualTexture->UnlockRect(Level);
+			return ((IDirect3DTexture9*)m_pcActualTexture)->UnlockRect(Level);
 		}
 
 		//Guard against multithreaded access as this could be causing us problems
@@ -1103,7 +1179,7 @@ public:
 		if (IsStereo())
 		{
 			IDirect3DSurface9 *pActualSurfaceRight = NULL;
-			hr = m_pcActualTextureRight->GetSurfaceLevel(Level, &pActualSurfaceRight);
+			hr = ((IDirect3DTexture9*)m_pcActualTextureRight)->GetSurfaceLevel(Level, &pActualSurfaceRight);
 			if (FAILED(hr))
 				return hr;
 
@@ -1150,7 +1226,7 @@ public:
 		}
 
 		IDirect3DSurface9 *pActualSurface = NULL;
-		hr = m_pcActualTexture->GetSurfaceLevel(Level, &pActualSurface);
+		hr = ((IDirect3DTexture9*)m_pcActualTexture)->GetSurfaceLevel(Level, &pActualSurface);
 		if (FAILED(hr))
 			return hr;
 		if (fullSurfaces[Level])
@@ -1208,15 +1284,15 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyTexture::AddDirtyRect");
 		if (IsStereo() && m_pcActualTextureRight)
-			m_pcActualTextureRight->AddDirtyRect(pDirtyRect);
+			((IDirect3DTexture9*)m_pcActualTextureRight)->AddDirtyRect(pDirtyRect);
 
-		return m_pcActualTexture->AddDirtyRect(pDirtyRect);
+		return ((IDirect3DTexture9*)m_pcActualTexture)->AddDirtyRect(pDirtyRect);
 	}
 
 	/*** IDirect3DStereoTexture9 methods ***/
 	IDirect3DTexture9* GetActualMono() { return GetActualLeft(); }
-	IDirect3DTexture9* GetActualLeft() { return m_pcActualTexture; }
-	IDirect3DTexture9* GetActualRight() { return m_pcActualTextureRight; }
+	IDirect3DTexture9* GetActualLeft() { return (IDirect3DTexture9*)m_pcActualTexture; }
+	IDirect3DTexture9* GetActualRight() { return (IDirect3DTexture9*)m_pcActualTextureRight; }
 	bool IsStereo() { return (m_pcActualTextureRight != NULL); }
 	void WriteDesc(UINT Level, D3DSURFACE_DESC &desc)
 	{
@@ -1235,22 +1311,6 @@ public:
 
 protected:
 	/**
-	* The actual texture.
-	***/
-	IDirect3DTexture9* m_pcActualTexture;
-	/**
-	* The actual right texture embedded.
-	***/
-	IDirect3DTexture9* m_pcActualTextureRight;
-	/**
-	* Pointer to the owning D3D device.
-	***/
-	IDirect3DDevice9* m_pcOwningDevice;
-	/**
-	* Internal reference counter.
-	***/
-	ULONG m_unRefCount;
-	/**
 	* Wrapped Surface levels.
 	***/
 	std::unordered_map<UINT, IDirect3DStereoSurface9*> m_aaWrappedSurfaceLevels;
@@ -1267,7 +1327,7 @@ protected:
 *  Direct 3D proxy stereo cube texture class.
 *  Imbeds the actual texture cube.
 */
-class IDirect3DStereoCubeTexture9 : public IDirect3DCubeTexture9
+class IDirect3DStereoCubeTexture9 : public IDirect3DCubeTexture9, public IDirect3DStereoBaseTexture9
 {
 public:
 	/**
@@ -1275,19 +1335,10 @@ public:
 	* @param pcActualTexture Imbed actual texture.
 	***/
 	IDirect3DStereoCubeTexture9(IDirect3DCubeTexture9* pcActualTextureLeft, IDirect3DCubeTexture9* pcActualTextureRight, IDirect3DDevice9* pcOwningDevice) :
-		m_pcActualTexture(pcActualTextureLeft),
-		m_unRefCount(1),
-		m_pcActualTextureRight(pcActualTextureRight),
+		IDirect3DStereoBaseTexture9(pcActualTextureLeft, pcActualTextureRight, pcOwningDevice),
 		m_aaWrappedSurfaceLevels(),
-		m_pcOwningDevice(pcOwningDevice),
 		lockableSysMemTexture(NULL)
 	{
-		SHOW_CALL("D3D9ProxyCubeTexture()");
-		assert(pcOwningDevice != NULL);
-
-		s_bDeviceInUseByProxy = true;
-		m_pcOwningDevice->AddRef();
-		s_bDeviceInUseByProxy = false;
 	}
 
 	/**
@@ -1308,202 +1359,39 @@ public:
 			it = m_aaWrappedSurfaceLevels.erase(it);
 		}
 
-		SAFE_RELEASE(m_pcActualTexture);
-		SAFE_RELEASE(m_pcActualTextureRight);
-		s_bDeviceInUseByProxy = true;
-		SAFE_RELEASE(m_pcOwningDevice);
-		s_bDeviceInUseByProxy = false;
+		// call base desctructor
+		IDirect3DStereoBaseTexture9::~IDirect3DStereoBaseTexture9();
 	}
 
-	/**
-	* Base QueryInterface functionality.
-	***/
-	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
-	{
-		return m_pcActualTexture->QueryInterface(riid, ppv);
-	}
+	/*** IUnknown methods ***/
 
-	/**
-	* Base AddRef functionality.
-	***/
-	ULONG WINAPI AddRef()
-	{
-		return ++m_unRefCount;
-	}
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv) { return IDirect3DStereoBaseTexture9::QueryInterface(riid, ppv); }
+	virtual ULONG WINAPI AddRef() { return IDirect3DStereoBaseTexture9::AddRef(); }
+	virtual ULONG WINAPI Release() { return IDirect3DStereoBaseTexture9::Release(); }
 
-	/**
-	* Base Release functionality.
-	***/
-	ULONG WINAPI Release()
-	{
-		if (--m_unRefCount == 0)
-		{
-			delete this;
-			return 0;
-		}
+	/*** IDirect3DBaseTexture9 methods	***/
 
-		return m_unRefCount;
-	}
-
-	/**
-	* GetDevice on the underlying IDirect3DCubeTexture9 will return the device used to create it.
-	* Which is the actual device and not the wrapper. Therefore we have to keep track of the
-	* wrapper device and return that instead.
-	*
-	* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface.
-	* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a
-	* memory leak.
-	*/
-	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::GetDevice()");
-		if (!m_pcOwningDevice)
-			return D3DERR_INVALIDCALL;
-		else
-		{
-			*ppDevice = m_pcOwningDevice;
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->AddRef();
-			s_bDeviceInUseByProxy = false;
-			return D3D_OK;
-		}
-	}
-
-	/**
-	* Sets private data on both (left/right) textures.
-	***/
-	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::SetPrivateData");
-		if (IsStereo())
-			m_pcActualTextureRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
-
-		return m_pcActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
-	}
-
-	/**
-	* Base GetPrivateData functionality.
-	***/
-	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-	{
-		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
-	}
-
-	/**
-	* Frees private data on both (left/right) textures.
-	* Base FreePrivateData functionality.
-	***/
-	HRESULT WINAPI FreePrivateData(REFGUID refguid)
-	{
-		return m_pcActualTexture->FreePrivateData(refguid);
-	}
-
-	/**
-	* Sets priority on both (left/right) textures.
-	***/
-	DWORD WINAPI SetPriority(DWORD PriorityNew)
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::SetPriority");
-		if (IsStereo())
-			m_pcActualTextureRight->SetPriority(PriorityNew);
-
-		return m_pcActualTexture->SetPriority(PriorityNew);
-	}
-
-	/**
-	* Base GetPriority functionality.
-	***/
-	DWORD WINAPI GetPriority()
-	{
-		return m_pcActualTexture->GetPriority();
-	}
-
-	/**
-	* Calls method on both (left/right) textures.
-	***/
-	void WINAPI PreLoad()
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::PreLoad");
-		if (IsStereo())
-			m_pcActualTextureRight->PreLoad();
-
-		return m_pcActualTexture->PreLoad();
-	}
-
-	/**
-	* Base GetType functionality.
-	***/
-	D3DRESOURCETYPE WINAPI GetType()
-	{
-		return m_pcActualTexture->GetType();
-	}
-
-	/**
-	* Sets LOD on both (left/right) texture.
-	***/
-	DWORD WINAPI SetLOD(DWORD LODNew)
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::SetLOD");
-		if (IsStereo())
-			m_pcActualTextureRight->SetLOD(LODNew);
-
-		return m_pcActualTexture->SetLOD(LODNew);
-	}
-
-	/**
-	* Base GetLOD functionality.
-	***/
-	DWORD WINAPI GetLOD()
-	{
-		return m_pcActualTexture->GetLOD();
-	}
-
-	/**
-	* Base GetLevelCount functionality.
-	***/
-	DWORD WINAPI GetLevelCount()
-	{
-		return m_pcActualTexture->GetLevelCount();
-	}
-
-	/**
-	* Sets filter type on both (left/right) texture.
-	***/
-	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::SetAutoGenFilterType");
-		if (IsStereo())
-			m_pcActualTextureRight->SetAutoGenFilterType(FilterType);
-
-		return m_pcActualTexture->SetAutoGenFilterType(FilterType);
-	}
-
-	/**
-	* Base GetAutoGenFilterType functionality.
-	***/
-	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
-	{
-		return m_pcActualTexture->GetAutoGenFilterType();
-	}
-
-	/**
-	* Generates sub levels on both (left/right) texture.
-	***/
-	void WINAPI GenerateMipSubLevels()
-	{
-		SHOW_CALL("D3D9ProxyCubeTexture::GenerateMipSubLevels");
-		if (IsStereo())
-			m_pcActualTextureRight->GenerateMipSubLevels();
-
-		return m_pcActualTexture->GenerateMipSubLevels();
-	}
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice) { return IDirect3DStereoBaseTexture9::GetDevice(ppcDevice); }
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags) { return IDirect3DStereoBaseTexture9::SetPrivateData(refguid, pData, SizeOfData, Flags); }
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData) { return IDirect3DStereoBaseTexture9::GetPrivateData(refguid, pData, pSizeOfData); }
+	HRESULT WINAPI FreePrivateData(REFGUID refguid) { return IDirect3DStereoBaseTexture9::FreePrivateData(refguid); }
+	DWORD WINAPI SetPriority(DWORD PriorityNew) { return IDirect3DStereoBaseTexture9::SetPriority(PriorityNew); }
+	DWORD WINAPI GetPriority() { return IDirect3DStereoBaseTexture9::GetPriority(); }
+	void WINAPI PreLoad() { IDirect3DStereoBaseTexture9::PreLoad(); }
+	D3DRESOURCETYPE WINAPI GetType() { return IDirect3DStereoBaseTexture9::GetType(); }
+	DWORD WINAPI SetLOD(DWORD LODNew) { return IDirect3DStereoBaseTexture9::SetLOD(LODNew); }
+	DWORD WINAPI GetLOD() { return IDirect3DStereoBaseTexture9::GetLOD(); }
+	DWORD WINAPI GetLevelCount() { return IDirect3DStereoBaseTexture9::GetLevelCount(); }
+	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType) { return IDirect3DStereoBaseTexture9::SetAutoGenFilterType(FilterType); }
+	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType() { return IDirect3DStereoBaseTexture9::GetAutoGenFilterType(); }
+	void WINAPI GenerateMipSubLevels() { IDirect3DStereoBaseTexture9::GenerateMipSubLevels(); }
 
 	/**
 	* Base GetLevelDesc functionality.
 	***/
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
 	{
-		return m_pcActualTexture->GetLevelDesc(Level, pDesc);
+		return ((IDirect3DCubeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, pDesc);
 	}
 
 	/**
@@ -1532,18 +1420,18 @@ public:
 			IDirect3DSurface9* pActualSurfaceLevelLeft = NULL;
 			IDirect3DSurface9* pActualSurfaceLevelRight = NULL;
 
-			HRESULT leftResult = m_pcActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelLeft);
+			HRESULT leftResult = ((IDirect3DCubeTexture9*)m_pcActualTexture)->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelLeft);
 
 			if (IsStereo())
 			{
-				HRESULT resultRight = m_pcActualTextureRight->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelRight);
+				HRESULT resultRight = ((IDirect3DCubeTexture9*)m_pcActualTextureRight)->GetCubeMapSurface(FaceType, Level, &pActualSurfaceLevelRight);
 				assert(leftResult == resultRight);
 			}
 
 			if (SUCCEEDED(leftResult))
 			{
 
-				IDirect3DStereoSurface9* pWrappedSurfaceLevel = new IDirect3DStereoSurface9(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pcOwningDevice, this, NULL, NULL);
+				IDirect3DStereoSurface9* pWrappedSurfaceLevel = new IDirect3DStereoSurface9(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this, NULL, NULL);
 
 				if (m_aaWrappedSurfaceLevels.insert(std::pair<CubeSurfaceKey, IDirect3DStereoSurface9*>(key, pWrappedSurfaceLevel)).second)
 				{
@@ -1585,11 +1473,11 @@ public:
 		SHOW_CALL("D3D9ProxyCubeTexture::LockRect");
 
 		D3DSURFACE_DESC desc;
-		m_pcActualTexture->GetLevelDesc(0, &desc);
+		((IDirect3DCubeTexture9*)m_pcActualTexture)->GetLevelDesc(0, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
 			// Can't really handle stereo for this, so just lock on the original texture
-			return m_pcActualTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
+			return ((IDirect3DCubeTexture9*)m_pcActualTexture)->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
 		}
 
 		// Guard against multithreaded access as this could be causing us problems
@@ -1619,7 +1507,7 @@ public:
 		if (newSurface[key])
 		{
 			IDirect3DSurface9 *pActualSurface = NULL;
-			hr = m_pcActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurface);
+			hr = ((IDirect3DCubeTexture9*)m_pcActualTexture)->GetCubeMapSurface(FaceType, Level, &pActualSurface);
 			if (FAILED(hr))
 			{
 				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: m_pActualTexture->GetCubeMapSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
@@ -1647,7 +1535,7 @@ public:
 
 		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
-			hr = m_pcActualTexture->AddDirtyRect(FaceType, pRect);
+			hr = ((IDirect3DCubeTexture9*)m_pcActualTexture)->AddDirtyRect(FaceType, pRect);
 
 		hr = lockableSysMemTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
 		if (FAILED(hr))
@@ -1666,10 +1554,10 @@ public:
 		SHOW_CALL("D3D9ProxyCubeTexture::UnlockRect");
 
 		D3DSURFACE_DESC desc;
-		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		((IDirect3DCubeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
-			return m_pcActualTexture->UnlockRect(FaceType, Level);
+			return ((IDirect3DCubeTexture9*)m_pcActualTexture)->UnlockRect(FaceType, Level);
 		}
 
 		//Guard against multithreaded access as this could be causing us problems
@@ -1707,33 +1595,17 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyCubeTexture::AddDirtyRect");
 		if (IsStereo())
-			m_pcActualTextureRight->AddDirtyRect(FaceType, pDirtyRect);
+			((IDirect3DCubeTexture9*)m_pcActualTextureRight)->AddDirtyRect(FaceType, pDirtyRect);
 
-		return m_pcActualTexture->AddDirtyRect(FaceType, pDirtyRect);
+		return ((IDirect3DCubeTexture9*)m_pcActualTexture)->AddDirtyRect(FaceType, pDirtyRect);
 	}
 
 	/*** IDirect3DStereoCubeTexture methods ***/
 	IDirect3DCubeTexture9* GetActualMono() { return GetActualLeft(); }
-	IDirect3DCubeTexture9* GetActualLeft() { return m_pcActualTexture; }
-	IDirect3DCubeTexture9* GetActualRight() { return m_pcActualTextureRight; }
+	IDirect3DCubeTexture9* GetActualLeft() { return (IDirect3DCubeTexture9*)m_pcActualTexture; }
+	IDirect3DCubeTexture9* GetActualRight() { return (IDirect3DCubeTexture9*)m_pcActualTextureRight; }
 	bool IsStereo() { return (m_pcActualTextureRight != NULL); }
 protected:
-	/**
-	* The actual texture.
-	***/
-	IDirect3DCubeTexture9* m_pcActualTexture;
-	/**
-	* The actual right texture embedded.
-	***/
-	IDirect3DCubeTexture9* m_pcActualTextureRight;
-	/**
-	* Pointer to the owning D3D device.
-	***/
-	IDirect3DDevice9* m_pcOwningDevice;
-	/**
-	* Internal reference counter.
-	***/
-	ULONG m_unRefCount;
 	/**
 	* Wrapped Surface levels.
 	***/
@@ -1990,7 +1862,7 @@ protected:
 *  Direct 3D proxy stereo volume texture class.
 *  Imbeds wrapped volume levels.
 */
-class IDirect3DStereoVolumeTexture9 : public IDirect3DVolumeTexture9
+class IDirect3DStereoVolumeTexture9 : public IDirect3DVolumeTexture9, public IDirect3DStereoBaseTexture9
 {
 public:
 	/**
@@ -1998,19 +1870,11 @@ public:
 	* @param pcActualTexture Imbed actual texture.
 	***/
 	IDirect3DStereoVolumeTexture9(IDirect3DVolumeTexture9* pcActualTexture, IDirect3DDevice9* pcOwningDevice, D3DPOOL ePoolDefault) :
-		m_pcActualTexture(pcActualTexture),
-		m_unRefCount(1),
+		IDirect3DStereoBaseTexture9(pcActualTexture, NULL, pcOwningDevice),
 		m_aaWrappedVolumeLevels(),
-		m_pcOwningDevice(pcOwningDevice),
 		lockableSysMemVolume(NULL),
 		m_ePoolDefault(ePoolDefault)
 	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::D3D9ProxyVolumeTexture");
-		assert(pcOwningDevice != NULL);
-
-		s_bDeviceInUseByProxy = true;
-		m_pcOwningDevice->AddRef();
-		s_bDeviceInUseByProxy = false;
 	}
 
 	/**
@@ -2034,188 +1898,32 @@ public:
 		if (lockableSysMemVolume)
 			lockableSysMemVolume->Release();
 
-		s_bDeviceInUseByProxy = true;
-		if (m_pcOwningDevice)
-			m_pcOwningDevice->Release();
-		s_bDeviceInUseByProxy = false;
-
-		if (m_pcActualTexture)
-			m_pcActualTexture->Release();
+		// call base desctructor
+		IDirect3DStereoBaseTexture9::~IDirect3DStereoBaseTexture9();
 	}
 
-	/**
-	* Base QueryInterface functionality.
-	***/
-	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::QueryInterface");
-		return m_pcActualTexture->QueryInterface(riid, ppv);
-	}
+	/*** IUnknown methods ***/
 
-	/**
-	* Base AddRef functionality.
-	***/
-	ULONG WINAPI AddRef()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::AddRef");
-		return ++m_unRefCount;
-	}
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv) { return IDirect3DStereoBaseTexture9::QueryInterface(riid, ppv); }
+	virtual ULONG WINAPI AddRef() { return IDirect3DStereoBaseTexture9::AddRef(); }
+	virtual ULONG WINAPI Release() { return IDirect3DStereoBaseTexture9::Release(); }
 
-	/**
-	* Base Release functionality.
-	***/
-	ULONG WINAPI Release()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::Release");
-		if (--m_unRefCount == 0)
-		{
-			delete this;
-			return 0;
-		}
+	/*** IDirect3DBaseTexture9 methods	***/
 
-		return m_unRefCount;
-	}
-
-	/**
-	* GetDevice on the underlying IDirect3DVolumeTexture9 will return the device used to create it.
-	* Which is the actual device and not the wrapper. Therefore we have to keep track of the
-	* wrapper device and return that instead.
-	*
-	* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface.
-	* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a
-	* memory leak.
-	*/
-	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetDevice");
-		if (!m_pcOwningDevice)
-			return D3DERR_INVALIDCALL;
-		else
-		{
-			*ppDevice = m_pcOwningDevice;
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->AddRef();
-			s_bDeviceInUseByProxy = false;
-			return D3D_OK;
-		}
-	}
-
-	/**
-	* Base SetPrivateData functionality.
-	***/
-	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetPrivateData");
-		return m_pcActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
-	}
-
-	/**
-	* Base GetPrivateData functionality.
-	***/
-	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetPrivateData");
-		return m_pcActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
-	}
-
-	/**
-	* Base FreePrivateData functionality.
-	***/
-	HRESULT WINAPI FreePrivateData(REFGUID refguid)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::FreePrivateData");
-		return m_pcActualTexture->FreePrivateData(refguid);
-	}
-
-	/**
-	* Base SetPriority functionality.
-	***/
-	DWORD WINAPI SetPriority(DWORD PriorityNew)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetPriority");
-		return m_pcActualTexture->SetPriority(PriorityNew);
-	}
-
-	/**
-	* Base GetPriority functionality.
-	***/
-	DWORD WINAPI GetPriority()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetPriority");
-		return m_pcActualTexture->GetPriority();
-	}
-
-	/**
-	* Base PreLoad functionality.
-	***/
-	void WINAPI PreLoad()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::PreLoad");
-		return m_pcActualTexture->PreLoad();
-	}
-
-	/**
-	* Base GetType functionality.
-	***/
-	D3DRESOURCETYPE WINAPI GetType()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetType");
-		return m_pcActualTexture->GetType();
-	}
-
-	/**
-	* Base SetLOD functionality.
-	***/
-	DWORD WINAPI SetLOD(DWORD LODNew)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetLOD");
-		return m_pcActualTexture->SetLOD(LODNew);
-	}
-
-	/**
-	* Base GetLOD functionality.
-	***/
-	DWORD WINAPI GetLOD()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLOD");
-		return m_pcActualTexture->GetLOD();
-	}
-
-	/**
-	* Base GetLevelCount functionality.
-	***/
-	DWORD WINAPI GetLevelCount()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLevelCount");
-		return m_pcActualTexture->GetLevelCount();
-	}
-
-	/**
-	* Base SetAutoGenFilterType functionality.
-	***/
-	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::SetAutoGenFilterType");
-		return m_pcActualTexture->SetAutoGenFilterType(FilterType);
-	}
-
-	/**
-	* Base GetAutoGenFilterType functionality.
-	***/
-	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetAutoGenFilterType");
-		return m_pcActualTexture->GetAutoGenFilterType();
-	}
-
-	/**
-	* Base GenerateMipSubLevels functionality.
-	***/
-	void WINAPI GenerateMipSubLevels()
-	{
-		SHOW_CALL("IDirect3DStereoVolumeTexture9::GenerateMipSubLevels");
-		return m_pcActualTexture->GenerateMipSubLevels();
-	}
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice) { return IDirect3DStereoBaseTexture9::GetDevice(ppcDevice); }
+	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags) { return IDirect3DStereoBaseTexture9::SetPrivateData(refguid, pData, SizeOfData, Flags); }
+	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData) { return IDirect3DStereoBaseTexture9::GetPrivateData(refguid, pData, pSizeOfData); }
+	HRESULT WINAPI FreePrivateData(REFGUID refguid) { return IDirect3DStereoBaseTexture9::FreePrivateData(refguid); }
+	DWORD WINAPI SetPriority(DWORD PriorityNew) { return IDirect3DStereoBaseTexture9::SetPriority(PriorityNew); }
+	DWORD WINAPI GetPriority() { return IDirect3DStereoBaseTexture9::GetPriority(); }
+	void WINAPI PreLoad() { IDirect3DStereoBaseTexture9::PreLoad(); }
+	D3DRESOURCETYPE WINAPI GetType() { return IDirect3DStereoBaseTexture9::GetType(); }
+	DWORD WINAPI SetLOD(DWORD LODNew) { return IDirect3DStereoBaseTexture9::SetLOD(LODNew); }
+	DWORD WINAPI GetLOD() { return IDirect3DStereoBaseTexture9::GetLOD(); }
+	DWORD WINAPI GetLevelCount() { return IDirect3DStereoBaseTexture9::GetLevelCount(); }
+	HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType) { return IDirect3DStereoBaseTexture9::SetAutoGenFilterType(FilterType); }
+	D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType() { return IDirect3DStereoBaseTexture9::GetAutoGenFilterType(); }
+	void WINAPI GenerateMipSubLevels() { IDirect3DStereoBaseTexture9::GenerateMipSubLevels(); }
 
 	/**
 	* Base GetLevelDesc functionality.
@@ -2223,7 +1931,7 @@ public:
 	HRESULT WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
 	{
 		SHOW_CALL("IDirect3DStereoVolumeTexture9::GetLevelDesc");
-		HRESULT nHr = m_pcActualTexture->GetLevelDesc(Level, pDesc);
+		HRESULT nHr = ((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, pDesc);
 		pDesc->Pool = m_ePoolDefault;
 		return nHr;
 	}
@@ -2255,11 +1963,11 @@ public:
 			//  wrap, then store in m_wrappedSurfaceLevels and return the wrapped surface
 			IDirect3DVolume9* pActualVolumeLevel = NULL;
 
-			HRESULT result = m_pcActualTexture->GetVolumeLevel(Level, &pActualVolumeLevel);
+			HRESULT result = ((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetVolumeLevel(Level, &pActualVolumeLevel);
 
 			if (SUCCEEDED(result))
 			{
-				IDirect3DStereoVolume9* pWrappedVolumeLevel = new IDirect3DStereoVolume9(pActualVolumeLevel, m_pcOwningDevice, (IUnknown*)this);
+				IDirect3DStereoVolume9* pWrappedVolumeLevel = new IDirect3DStereoVolume9(pActualVolumeLevel, m_pcOwningDevice, (IDirect3DStereoBaseTexture9*)this);
 
 				if (m_aaWrappedVolumeLevels.insert(std::pair<ULONG, IDirect3DStereoVolume9*>(Level, pWrappedVolumeLevel)).second)
 				{
@@ -2301,11 +2009,11 @@ public:
 		SHOW_CALL("D3D9ProxyVolumeTexture::LockBox");
 
 		D3DVOLUME_DESC desc;
-		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
 			//Can't really handle stereo for this, so just lock on the original texture
-			return m_pcActualTexture->LockBox(Level, pLockedVolume, pBox, Flags);
+			return ((IDirect3DVolumeTexture9*)m_pcActualTexture)->LockBox(Level, pLockedVolume, pBox, Flags);
 		}
 
 		//Create lockable system memory surfaces
@@ -2322,7 +2030,7 @@ public:
 
 		if (((Flags | D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 			((Flags | D3DLOCK_READONLY) != D3DLOCK_READONLY))
-			hr = m_pcActualTexture->AddDirtyBox(pBox);
+			hr = ((IDirect3DVolumeTexture9*)m_pcActualTexture)->AddDirtyBox(pBox);
 
 		hr = lockableSysMemVolume->LockBox(Level, pLockedVolume, pBox, Flags);
 		if (FAILED(hr))
@@ -2338,10 +2046,10 @@ public:
 	{
 		SHOW_CALL("D3D9ProxyVolumeTexture::UnlockBox");
 		D3DVOLUME_DESC desc;
-		m_pcActualTexture->GetLevelDesc(Level, &desc);
+		((IDirect3DVolumeTexture9*)m_pcActualTexture)->GetLevelDesc(Level, &desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
 		{
-			return m_pcActualTexture->UnlockBox(Level);
+			return ((IDirect3DVolumeTexture9*)m_pcActualTexture)->UnlockBox(Level);
 		}
 
 		// unlock the lockable resource
@@ -2365,7 +2073,7 @@ public:
 	HRESULT WINAPI AddDirtyBox(const D3DBOX *pDirtyBox)
 	{
 		SHOW_CALL("D3D9ProxyVolumeTexture::AddDirtyBox");
-		return m_pcActualTexture->AddDirtyBox(pDirtyBox);
+		return ((IDirect3DVolumeTexture9*)m_pcActualTexture)->AddDirtyBox(pDirtyBox);
 	}
 
 	/**
@@ -2373,25 +2081,9 @@ public:
 	***/
 	IDirect3DVolumeTexture9* GetActual()
 	{
-		return m_pcActualTexture;
+		return (IDirect3DVolumeTexture9*)m_pcActualTexture;
 	}
 protected:
-	/**
-	* The actual texture.
-	***/
-	IDirect3DVolumeTexture9* m_pcActualTexture;
-	/**
-	* The actual right texture embedded.
-	***/
-	IDirect3DVolumeTexture9* m_pcActualTextureRight;
-	/**
-	* Pointer to the owning D3D device.
-	***/
-	IDirect3DDevice9* m_pcOwningDevice;
-	/**
-	* Internal reference counter.
-	***/
-	ULONG m_unRefCount;
 	/**
 	* Wrapped Volume levels.
 	***/

@@ -3916,7 +3916,7 @@ void StereoSplitter::UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, 
 	{
 		case D3DRTYPE_TEXTURE:
 		{
-								 IDirect3DStereoTexture9* pDerivedTexture = static_cast<IDirect3DStereoTexture9*> (pWrappedTexture);
+								 IDirect3DStereoTexture9* pDerivedTexture = static_cast<IDirect3DStereoTexture9*>((IDirect3DTexture9*)pWrappedTexture);
 								 *ppActualLeftTexture = pDerivedTexture->GetActualLeft();
 								 *ppActualRightTexture = pDerivedTexture->GetActualRight();
 
@@ -3924,13 +3924,13 @@ void StereoSplitter::UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, 
 		}
 		case D3DRTYPE_VOLUMETEXTURE:
 		{
-									   IDirect3DStereoVolumeTexture9* pDerivedTexture = static_cast<IDirect3DStereoVolumeTexture9*>(pWrappedTexture);
+									   IDirect3DStereoVolumeTexture9* pDerivedTexture = static_cast<IDirect3DStereoVolumeTexture9*>((IDirect3DVolumeTexture9*)pWrappedTexture);
 									   *ppActualLeftTexture = pDerivedTexture->GetActual();
 									   break;
 		}
 		case D3DRTYPE_CUBETEXTURE:
 		{
-									 IDirect3DStereoTexture9* pDerivedTexture = static_cast<IDirect3DStereoTexture9*> (pWrappedTexture);
+									 IDirect3DStereoCubeTexture9* pDerivedTexture = static_cast<IDirect3DStereoCubeTexture9*>((IDirect3DCubeTexture9*)pWrappedTexture);
 									 *ppActualLeftTexture = pDerivedTexture->GetActualLeft();
 									 *ppActualRightTexture = pDerivedTexture->GetActualRight();
 									 break;
