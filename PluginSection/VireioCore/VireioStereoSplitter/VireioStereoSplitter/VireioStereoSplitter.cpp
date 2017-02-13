@@ -1707,6 +1707,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 															   {
 																   // enumerate this swapchain
 																   EnumerateSwapchain((IDirect3DDevice9*)pThis, s_pcSwapChain, unI);
+																   s_pcSwapChain->Release();
 															   }
 															   else
 															   {
@@ -2702,9 +2703,11 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 			{
 				// ...and enumerate it internally
 				EnumerateSwapchain(pcDevice, pcSwapChain, 0);
+				pcSwapChain->Release();
 
 				// set the first proxy render target internally
 				m_apcActiveRenderTargets[0] = m_aapcActiveProxyBackBufferSurfaces[0][0];
+				if (m_apcActiveRenderTargets[0]) m_apcActiveRenderTargets[0]->AddRef();
 			}
 			else
 			{
@@ -2735,9 +2738,10 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 					}
 				}
 				IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcDepthStencil, pcDepthStencilRight, pcDevice, nullptr, nullptr, nullptr);
-				m_pcActiveDepthStencilSurface[0] = pcBackBufferStereo;
 
-				pcDepthStencil->Release();
+				// ...and set active, do not release the actual buffer since the stereo buffer keeps a reference
+				m_pcActiveDepthStencilSurface[0] = pcBackBufferStereo;
+				if (m_pcActiveDepthStencilSurface[0]) m_pcActiveDepthStencilSurface[0]->AddRef();
 
 #ifdef _DEBUGTHIS
 				OutputDebugString(L"[STS] Default back buffer format :");
@@ -3958,7 +3962,7 @@ void StereoSplitter::EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwa
 	pcSwapChain->GetPresentParameters(&sParams);
 
 	// create back buffer vector
-	std::vector<IDirect3DStereoSurface9*> apcProxyBackBuffers = std::vector<IDirect3DStereoSurface9*>();
+	static std::vector<IDirect3DStereoSurface9*> s_apcProxyBackBuffers = std::vector<IDirect3DStereoSurface9*>();
 
 	// loop through backbuffers, add them
 	for (UINT unJ = 0; unJ < sParams.BackBufferCount; unJ++)
@@ -3985,24 +3989,26 @@ void StereoSplitter::EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwa
 					exit(99);
 				}
 			}
+
+			// add a reference to the swapchain since we set it as container here
+			pcSwapChain->AddRef();
 			IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcBackBuffer, s_pcBackBufferRight, pcDevice, (IUnknown*)pcSwapChain, nullptr, nullptr);
 
-			// add backbuffer to vector and release
-			apcProxyBackBuffers.push_back(pcBackBufferStereo);
-			pcBackBuffer->Release();
+			// add backbuffer to vector and add a reference, to not release the backbuffer since the stereo buffer keeps a reference
+			pcBackBufferStereo->AddRef();
+			s_apcProxyBackBuffers.push_back(pcBackBufferStereo);
 		}
 		else
 		{
 			// actually, we shouldn't come here
 			OutputDebugString(L"[STS] D3DPRESTENT_PARAMETERS struct is invalid !");
-			apcProxyBackBuffers.push_back(nullptr);
+			s_apcProxyBackBuffers.push_back(nullptr);
 		}
 	}
 
-	// add backbuffer vector and swapchain, release swapchain
+	// add backbuffer vector and swapchain
 	m_apcActiveSwapChains.push_back(pcSwapChain);
-	m_aapcActiveProxyBackBufferSurfaces.push_back(apcProxyBackBuffers);
-	pcSwapChain->Release();
+	m_aapcActiveProxyBackBufferSurfaces.push_back(s_apcProxyBackBuffers);
 }
 
 /**
