@@ -82,7 +82,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RESZ_CODE 0x7fa05000
 
 #define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  5000
+#define GUI_HEIGHT                                  7500
 #define GUI_CONTROL_BORDER                            64
 #define GUI_CONTROL_FONTSIZE                          64
 #define GUI_CONTROL_FONTBORDER                        16
@@ -91,7 +91,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_SPINSIZE                         980
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        70
+#define NUMBER_OF_DECOMMANDERS                       113
 
 #define DUPLICATE_RENDERTARGET_POS_X                  16
 #define DUPLICATE_RENDERTARGET_POS_Y                  64
@@ -206,6 +206,121 @@ enum STS_Decommanders
 	peDrawingSide,                /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	pasVShaderConstantIndices,    /**< The constant rule indices for the actual vertex shader. ***/
 	pasPShaderConstantIndices,    /**< The constant rule indices for the actual pixel shader. ***/
+	pDestBox,                     /**< D3DX9 method types ***/
+	pSrcBox,
+	ColorKey,
+	SrcFormat,
+	DestFormat,
+	pSrcInfo,
+	Channel,
+	Filter,
+	MipFilter,
+	Amplitude,
+	hSrcModule,
+	pDestFile,
+	pSrcFile,
+	pSrcResource,
+	pSrcData,
+	pSrcMemory,
+	pDestFileW,
+	pSrcFileW,
+	pSrcResourceW,
+	ppDestBuf,
+	pFunction,
+	pTextureShader,
+	pBaseTexture,
+	pSrcBaseTexture,
+	pCubeTexture,
+	pSrcSurface,
+	pSrcTexture,
+	pDestVolume,
+	pSrcVolume,
+	pVolumeTexture,
+	pData_Enum,
+	pDestPalette,
+	pPalette,
+	pSrcPalette,
+	pDestRect,
+	pSrcRect,
+	MipLevels,
+	Size,
+	SrcDataSize,
+	SrcLevel,
+	SrcPitch,
+	SrcRowPitch,
+	SrcSlicePitch,
+};
+
+/**
+* Methods table of D3DX9 methods.
+* Provided method ids by Aquilinus.
+***/
+enum MT_D3DX9
+{
+	D3D9_D3DXLoadSurfaceFromFileA,
+	D3D9_D3DXLoadSurfaceFromFileW,
+	D3D9_D3DXLoadSurfaceFromResourceA,
+	D3D9_D3DXLoadSurfaceFromResourceW,
+	D3D9_D3DXLoadSurfaceFromFileInMemory,
+	D3D9_D3DXLoadSurfaceFromSurface,
+	D3D9_D3DXLoadSurfaceFromMemory,
+	D3D9_D3DXSaveSurfaceToFileA,
+	D3D9_D3DXSaveSurfaceToFileW,
+	D3D9_D3DXSaveSurfaceToFileInMemory,
+	D3D9_D3DXLoadVolumeFromFileA,
+	D3D9_D3DXLoadVolumeFromFileW,
+	D3D9_D3DXLoadVolumeFromResourceA,
+	D3D9_D3DXLoadVolumeFromResourceW,
+	D3D9_D3DXLoadVolumeFromFileInMemory,
+	D3D9_D3DXLoadVolumeFromVolume,
+	D3D9_D3DXLoadVolumeFromMemory,
+	D3D9_D3DXSaveVolumeToFileA,
+	D3D9_D3DXSaveVolumeToFileW,
+	D3D9_D3DXSaveVolumeToFileInMemory,
+	D3D9_D3DXCreateTexture,
+	D3D9_D3DXCreateCubeTexture,
+	D3D9_D3DXCreateVolumeTexture,
+	D3D9_D3DXCreateTextureFromFileA,
+	D3D9_D3DXCreateTextureFromFileW,
+	D3D9_D3DXCreateCubeTextureFromFileA,
+	D3D9_D3DXCreateCubeTextureFromFileW,
+	D3D9_D3DXCreateVolumeTextureFromFileA,
+	D3D9_D3DXCreateVolumeTextureFromFileW,
+	D3D9_D3DXCreateTextureFromResourceA,
+	D3D9_D3DXCreateTextureFromResourceW,
+	D3D9_D3DXCreateCubeTextureFromResourceA,
+	D3D9_D3DXCreateCubeTextureFromResourceW,
+	D3D9_D3DXCreateVolumeTextureFromResourceA,
+	D3D9_D3DXCreateVolumeTextureFromResourceW,
+	D3D9_D3DXCreateTextureFromFileExA,
+	D3D9_D3DXCreateTextureFromFileExW,
+	D3D9_D3DXCreateCubeTextureFromFileExA,
+	D3D9_D3DXCreateCubeTextureFromFileExW,
+	D3D9_D3DXCreateVolumeTextureFromFileExA,
+	D3D9_D3DXCreateVolumeTextureFromFileExW,
+	D3D9_D3DXCreateTextureFromResourceExA,
+	D3D9_D3DXCreateTextureFromResourceExW,
+	D3D9_D3DXCreateCubeTextureFromResourceExA,
+	D3D9_D3DXCreateCubeTextureFromResourceExW,
+	D3D9_D3DXCreateVolumeTextureFromResourceExA,
+	D3D9_D3DXCreateVolumeTextureFromResourceExW,
+	D3D9_D3DXCreateTextureFromFileInMemory,
+	D3D9_D3DXCreateCubeTextureFromFileInMemory,
+	D3D9_D3DXCreateVolumeTextureFromFileInMemory,
+	D3D9_D3DXCreateTextureFromFileInMemoryEx,
+	D3D9_D3DXCreateCubeTextureFromFileInMemoryEx,
+	D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx,
+	D3D9_D3DXSaveTextureToFileA,
+	D3D9_D3DXSaveTextureToFileW,
+	D3D9_D3DXSaveTextureToFileInMemory,
+	D3D9_D3DXFilterTexture,
+	D3D9_D3DXFillTexture,
+	D3D9_D3DXFillCubeTexture,
+	D3D9_D3DXFillVolumeTexture,
+	D3D9_D3DXFillTextureTX,
+	D3D9_D3DXFillCubeTextureTX,
+	D3D9_D3DXFillVolumeTextureTX,
+	D3D9_D3DXComputeNormalMap,
 };
 
 /**
@@ -451,6 +566,47 @@ private:
 	RenderPosition*                               m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current vertex shader ***/
 	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current pixel shader ***/
+	D3DBOX** m_ppsDestBox;
+	D3DBOX** m_ppsSrcBox;
+	D3DCOLOR* m_punColorKey;
+	D3DFORMAT* m_peSrcFormat;
+	D3DXIMAGE_FILEFORMAT* m_peDestFormat;
+	D3DXIMAGE_INFO** m_ppsSrcInfo;
+	DWORD* m_punChannel;
+	DWORD* m_punFilter;
+	DWORD* m_punMipFilter;
+	FLOAT* m_pfAmplitude;
+	HMODULE* m_ppsSrcModule;
+	LPCSTR* m_pszhSrcFile;
+	LPCSTR* m_pszhSrcResource;
+	LPCVOID* m_ppSrcData;
+	LPCVOID* m_ppSrcMemory;
+	LPCWSTR* m_pszDestFile;
+	LPCWSTR* m_pszSrcFile;
+	LPCWSTR* m_pszSrcResource;
+	LPD3DXBUFFER** m_pppcDestBuf;
+	LPD3DXFILL2D* m_ppFunction;
+	LPD3DXTEXTURESHADER* m_ppcTextureShader;
+	LPDIRECT3DBASETEXTURE9* m_ppcBaseTexture;
+	LPDIRECT3DBASETEXTURE9* m_ppcSrcTexture;
+	LPDIRECT3DCUBETEXTURE9* m_ppcCubeTexture;
+	LPDIRECT3DSURFACE9* m_ppcSrcSurface;
+	LPDIRECT3DVOLUME9* m_ppcDestVolume;
+	LPDIRECT3DVOLUME9* m_ppcSrcVolume;
+	LPDIRECT3DVOLUMETEXTURE9* m_ppcVolumeTexture;
+	LPVOID* m_ppData;
+	PALETTEENTRY** m_ppsDestPalette;
+	PALETTEENTRY** m_ppsPalette;
+	PALETTEENTRY** m_ppsSrcPalette;
+	RECT** m_ppsDestRect;
+	RECT** m_ppsSrcRect;
+	UINT* m_punMipLevels;
+	UINT* m_punSize;
+	UINT* m_punSrcDataSize;
+	UINT* m_punSrcLevel;
+	UINT* m_punSrcPitch;
+	UINT* m_punSrcRowPitch;
+	UINT* m_punSrcSlicePitch;
 
 	/**
 	* Active stored render target views.

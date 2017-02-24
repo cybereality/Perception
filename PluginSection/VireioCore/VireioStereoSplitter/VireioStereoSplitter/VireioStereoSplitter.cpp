@@ -47,6 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDIRECT3DDEVICE9                           8
 #define INTERFACE_IDIRECT3DSTATEBLOCK9                      13
 #define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
+#define INTERFACE_D3DX9                                     29
 #define METHOD_IDIRECT3DDEVICE9_RESET                       16
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
 #define METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER               18 
@@ -149,7 +150,48 @@ m_pppcTextureCreate(nullptr),
 m_pppcVolumeTexture(nullptr),
 m_pppcCubeTexture(nullptr),
 m_pppcSurfaceCreate(nullptr),
-m_ppvSharedHandle(nullptr)
+m_ppvSharedHandle(nullptr),
+m_ppsDestBox(nullptr),
+m_ppsSrcBox(nullptr),
+m_punColorKey(nullptr),
+m_peSrcFormat(nullptr),
+m_peDestFormat(nullptr),
+m_ppsSrcInfo(nullptr),
+m_punChannel(nullptr),
+m_punFilter(nullptr),
+m_punMipFilter(nullptr),
+m_pfAmplitude(nullptr),
+m_ppsSrcModule(nullptr),
+m_pszhSrcFile(nullptr),
+m_pszhSrcResource(nullptr),
+m_ppSrcData(nullptr),
+m_ppSrcMemory(nullptr),
+m_pszDestFile(nullptr),
+m_pszSrcFile(nullptr),
+m_pszSrcResource(nullptr),
+m_pppcDestBuf(nullptr),
+m_ppFunction(nullptr),
+m_ppcTextureShader(nullptr),
+m_ppcBaseTexture(nullptr),
+m_ppcSrcTexture(nullptr),
+m_ppcCubeTexture(nullptr),
+m_ppcSrcSurface(nullptr),
+m_ppcDestVolume(nullptr),
+m_ppcSrcVolume(nullptr),
+m_ppcVolumeTexture(nullptr),
+m_ppData(nullptr),
+m_ppsDestPalette(nullptr),
+m_ppsPalette(nullptr),
+m_ppsSrcPalette(nullptr),
+m_ppsDestRect(nullptr),
+m_ppsSrcRect(nullptr),
+m_punMipLevels(nullptr),
+m_punSize(nullptr),
+m_punSrcDataSize(nullptr),
+m_punSrcLevel(nullptr),
+m_punSrcPitch(nullptr),
+m_punSrcRowPitch(nullptr),
+m_punSrcSlicePitch(nullptr)
 {
 	m_pcActiveDepthStencilSurface[0] = nullptr;
 	m_pcActiveDepthStencilSurface[1] = nullptr;
@@ -470,9 +512,95 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"pasVShaderConstantIndices";
 		case pasPShaderConstantIndices:
 			return L"pasPShaderConstantIndices";
+		case pDestBox:
+			break;
+		case pSrcBox:
+			break;
+		case ColorKey:
+			return L"ColorKey";
+		case SrcFormat:
+			break;
+		case DestFormat:
+			break;
+		case pSrcInfo:
+			break;
+		case Channel:
+			break;
+		case Filter:
+			return L"Filter";
+		case MipFilter:
+			break;
+		case Amplitude:
+			break;
+		case hSrcModule:
+			break;
+		case pDestFile:
+			break;
+		case pSrcFile:
+			break;
+		case pSrcResource:
+			break;
+		case pSrcData:
+			break;
+		case pSrcMemory:
+			break;
+		case pDestFileW:
+			break;
+		case pSrcFileW:
+			break;
+		case pSrcResourceW:
+			break;
+		case ppDestBuf:
+			break;
+		case pFunction:
+			break;
+		case pTextureShader:
+			break;
+		case pBaseTexture:
+			break;
+		case pSrcBaseTexture:
+			break;
+		case pCubeTexture:
+			break;
+		case pSrcSurface:
+			return L"pSrcSurface";
+		case pSrcTexture:
+			break;
+		case pDestVolume:
+			break;
+		case pSrcVolume:
+			break;
+		case pVolumeTexture:
+			break;
+		case pData_Enum:
+			break;
+		case pDestPalette:
+			return L"pDestPalette";
+		case pPalette:
+			break;
+		case pSrcPalette:
+			return L"pSrcPalette";
+		case pDestRect:
+			return L"pDestRect";
+		case pSrcRect:
+			return L"pSrcRect";
+		case MipLevels:
+			break;
+		case Size:
+			break;
+		case SrcDataSize:
+			break;
+		case SrcLevel:
+			break;
+		case SrcPitch:
+			break;
+		case SrcRowPitch:
+			break;
+		case SrcSlicePitch:
+			break;
 	}
 
-	return L"";
+	return L"x";
 }
 
 /**
@@ -630,6 +758,92 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_VOID;
 		case pasPShaderConstantIndices:
 			return NOD_Plugtype::AQU_VOID;
+		case pDestBox:
+			break;
+		case pSrcBox:
+			break;
+		case ColorKey:
+			return AQU_D3DCOLOR;
+		case SrcFormat:
+			break;
+		case DestFormat:
+			break;
+		case pSrcInfo:
+			break;
+		case Channel:
+			break;
+		case Filter:
+			return AQU_UINT;
+		case MipFilter:
+			break;
+		case Amplitude:
+			break;
+		case hSrcModule:
+			break;
+		case pDestFile:
+			break;
+		case pSrcFile:
+			break;
+		case pSrcResource:
+			break;
+		case pSrcData:
+			break;
+		case pSrcMemory:
+			break;
+		case pDestFileW:
+			break;
+		case pSrcFileW:
+			break;
+		case pSrcResourceW:
+			break;
+		case ppDestBuf:
+			break;
+		case pFunction:
+			break;
+		case pTextureShader:
+			break;
+		case pBaseTexture:
+			break;
+		case pSrcBaseTexture:
+			break;
+		case pCubeTexture:
+			break;
+		case pSrcSurface:
+			return AQU_PNT_IDIRECT3DSURFACE9;
+		case pSrcTexture:
+			break;
+		case pDestVolume:
+			break;
+		case pSrcVolume:
+			break;
+		case pVolumeTexture:
+			break;
+		case pData_Enum:
+			break;
+		case pDestPalette:
+			return AQU_PNT_PALETTEENTRY;
+		case pPalette:
+			break;
+		case pSrcPalette:
+			return AQU_PNT_PALETTEENTRY;
+		case pDestRect:
+			return AQU_PNT_RECT;
+		case pSrcRect:
+			return AQU_PNT_RECT;
+		case MipLevels:
+			break;
+		case Size:
+			break;
+		case SrcDataSize:
+			break;
+		case SrcLevel:
+			break;
+		case SrcPitch:
+			break;
+		case SrcRowPitch:
+			break;
+		case SrcSlicePitch:
+			break;
 	}
 
 	return 0;
@@ -868,9 +1082,99 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pasPShaderConstantIndices:
 			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
-
-
-
+		case pDestBox:
+			break;
+		case pSrcBox:
+			break;
+		case ColorKey:
+			m_punColorKey = (D3DCOLOR*)pData;
+			break;
+		case SrcFormat:
+			break;
+		case DestFormat:
+			break;
+		case pSrcInfo:
+			break;
+		case Channel:
+			break;
+		case Filter:
+			m_punFilter = (DWORD*)pData;
+			break;
+		case MipFilter:
+			break;
+		case Amplitude:
+			break;
+		case hSrcModule:
+			break;
+		case pDestFile:
+			break;
+		case pSrcFile:
+			break;
+		case pSrcResource:
+			break;
+		case pSrcData:
+			break;
+		case pSrcMemory:
+			break;
+		case pDestFileW:
+			break;
+		case pSrcFileW:
+			break;
+		case pSrcResourceW:
+			break;
+		case ppDestBuf:
+			break;
+		case pFunction:
+			break;
+		case pTextureShader:
+			break;
+		case pBaseTexture:
+			break;
+		case pSrcBaseTexture:
+			break;
+		case pCubeTexture:
+			break;
+		case pSrcSurface:
+			m_ppcSrcSurface = (IDirect3DSurface9**)pData;
+			break;
+		case pSrcTexture:
+			break;
+		case pDestVolume:
+			break;
+		case pSrcVolume:
+			break;
+		case pVolumeTexture:
+			break;
+		case pData_Enum:
+			break;
+		case pDestPalette:
+			m_ppsDestPalette = (PALETTEENTRY**)pData;
+			break;
+		case pPalette:
+			break;
+		case pSrcPalette:
+			m_ppsSrcPalette = (PALETTEENTRY**)pData;
+			break;
+		case pDestRect:
+			m_ppsDestRect = (RECT**)pData;
+			break;
+		case pSrcRect:
+			m_ppsSrcRect = (RECT**)pData;
+			break;
+		case MipLevels:
+			break;
+		case Size:
+			break;
+		case SrcDataSize:
+			break;
+		case SrcLevel:
+			break;
+		case SrcPitch:
+			break;
+		case SrcRowPitch:
+			break;
+		case SrcSlicePitch:
+			break;
 	}
 }
 
@@ -935,6 +1239,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 			if (nD3DMethod == METHOD_IDIRECT3DSTATEBLOCK9_APPLY) return true;
 		}
+		else if (nD3DInterface == INTERFACE_D3DX9) return true;
 	}
 	return false;
 }
@@ -2643,6 +2948,76 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					Apply();
 					return nullptr;
 			}
+#pragma endregion
+#pragma region D3DX9
+		case INTERFACE_D3DX9:
+			switch (eD3DMethod)
+			{
+				case MT_D3DX9::D3D9_D3DXLoadSurfaceFromSurface:
+					SHOW_CALL(L"INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromSurface");
+					if (!m_ppcDestSurface) return nullptr;
+					if (!m_ppsDestPalette) return nullptr;
+					if (!m_ppsDestRect) return nullptr;
+					if (!m_ppcSrcSurface) return nullptr;
+					if (!m_ppsSrcPalette) return nullptr;
+					if (!m_ppsSrcRect) return nullptr;
+					if (!m_punFilter) return nullptr;
+					if (!m_punColorKey) return nullptr;
+					{
+						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+						if (m_bUseD3D9Ex)
+						{
+							IDirect3DSurface9* pSourceSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcSrcSurface))->GetActualLeft();
+							IDirect3DSurface9* pSourceSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcSrcSurface))->GetActualRight();
+							IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualLeft();
+							IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualRight();
+							nHr = D3DXLoadSurfaceFromSurface(pDestSurfaceLeft, *m_ppsDestPalette, *m_ppsDestRect, pSourceSurfaceLeft, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey);
+							
+							/*OutputDebugString(L"CAll-----");
+							DEBUG_HEX(*m_ppcSrcSurface);
+							DEBUG_HEX(*m_ppcDestSurface);
+							DEBUG_HEX(*m_ppsDestPalette);
+							DEBUG_HEX(*m_ppsDestRect);
+							DEBUG_HEX(*m_ppsSrcPalette);
+							DEBUG_HEX(*m_ppsSrcRect);
+							DEBUG_HEX(*m_punFilter);
+							DEBUG_HEX(*m_punColorKey);
+							OutputDebugString(L"----");
+							DEBUG_HEX(pDestSurfaceLeft);
+							DEBUG_HEX(pSourceSurfaceLeft);*/
+
+
+							if (SUCCEEDED(nHr))
+							{
+								if (!pSourceSurfaceRight && pDestSurfaceRight)
+								{
+									// Source is not stereo, destination is stereo. Copying source to both sides of destination.
+									if (FAILED(D3DXLoadSurfaceFromSurface(pDestSurfaceLeft, *m_ppsDestPalette, *m_ppsDestRect, pSourceSurfaceLeft, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey)))
+									{
+										OutputDebugString(L"[STS] ERROR: D3DXLoadSurfaceFromSurface - Failed to copy source left to destination right.\n");
+									}
+								}
+								else if (pSourceSurfaceRight && !pDestSurfaceRight)
+								{
+									// Source is stereo, destination is not stereo. Copied Left side only.
+								}
+								else if (pSourceSurfaceRight && pDestSurfaceRight)
+								{
+									if (FAILED(D3DXLoadSurfaceFromSurface(pDestSurfaceRight, *m_ppsDestPalette, *m_ppsDestRect, pSourceSurfaceRight, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey)))
+									{
+										OutputDebugString(L"[STS] ERROR: D3DXLoadSurfaceFromSurface - Failed to copy source right to destination right.\n");
+									}
+								}
+							}
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							return (void*)&nHr;
+						}
+					}
+					return nullptr;
+			}
+			return nullptr;
 #pragma endregion
 	}
 	return nullptr;
