@@ -2954,7 +2954,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			switch (eD3DMethod)
 			{
 				case MT_D3DX9::D3D9_D3DXLoadSurfaceFromSurface:
-					SHOW_CALL(L"INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromSurface");
+					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromSurface");
 					if (!m_ppcDestSurface) return nullptr;
 					if (!m_ppsDestPalette) return nullptr;
 					if (!m_ppsDestRect) return nullptr;
@@ -2967,25 +2967,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 						if (m_bUseD3D9Ex)
 						{
+							if (s_bDeviceInUseByProxy) return nullptr;
+
+							// get actual surfaces and do the method call for the left surfaces
 							IDirect3DSurface9* pSourceSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcSrcSurface))->GetActualLeft();
 							IDirect3DSurface9* pSourceSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcSrcSurface))->GetActualRight();
 							IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualLeft();
 							IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualRight();
 							nHr = D3DXLoadSurfaceFromSurface(pDestSurfaceLeft, *m_ppsDestPalette, *m_ppsDestRect, pSourceSurfaceLeft, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey);
-							
-							/*OutputDebugString(L"CAll-----");
-							DEBUG_HEX(*m_ppcSrcSurface);
-							DEBUG_HEX(*m_ppcDestSurface);
-							DEBUG_HEX(*m_ppsDestPalette);
-							DEBUG_HEX(*m_ppsDestRect);
-							DEBUG_HEX(*m_ppsSrcPalette);
-							DEBUG_HEX(*m_ppsSrcRect);
-							DEBUG_HEX(*m_punFilter);
-							DEBUG_HEX(*m_punColorKey);
-							OutputDebugString(L"----");
-							DEBUG_HEX(pDestSurfaceLeft);
-							DEBUG_HEX(pSourceSurfaceLeft);*/
 
+							// no proxy surface ?
+							if ((!pSourceSurfaceLeft) || (!pDestSurfaceLeft))
+							{
+								OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
+								DEBUG_HEX(*m_ppcSrcSurface);
+								DEBUG_HEX(*m_ppcDestSurface);
+								exit(99);
+							}
 
 							if (SUCCEEDED(nHr))
 							{

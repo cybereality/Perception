@@ -395,7 +395,9 @@ public:
 		// only copy the render taget (if possible) on the creation of the memory texture
 		if (createdTexture)
 		{
+			s_bDeviceInUseByProxy = true;
 			hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, m_pcActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 			{
 #ifdef _DEBUG
@@ -1131,7 +1133,9 @@ public:
 				return hr;
 			}
 
+			s_bDeviceInUseByProxy = true;
 			hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 			{
 #ifdef _DEBUG
@@ -1542,7 +1546,9 @@ public:
 				return hr;
 			}
 
+			s_bDeviceInUseByProxy = true;
 			hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
+			s_bDeviceInUseByProxy = false;
 			if (FAILED(hr))
 			{
 #ifdef _DEBUG
