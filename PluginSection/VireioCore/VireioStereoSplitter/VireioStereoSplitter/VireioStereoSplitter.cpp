@@ -2891,9 +2891,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				{
 														   // get the device and call present
 														   IDirect3DDevice9* pcDevice = nullptr;
+														   ((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
 														   if (pcDevice)
 														   {
-															   ((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
 															   Present(pcDevice, false);
 															   pcDevice->Release();
 														   }
@@ -2902,8 +2902,86 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				case METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER:
 					if (m_bUseD3D9Ex)
 					{
-						OutputDebugString(L"[STS] Fatal : IDirect3DSwapChain->GetBackBuffer() not implemented !");
-						exit(99);
+						if (!m_punIBackBuffer) return nullptr;
+						if (!m_peType) return nullptr;
+						if (!m_pppcBackBuffer) return nullptr;
+
+						IDirect3DDevice9* pcDevice = nullptr;
+						((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
+						if (pcDevice)
+						{
+							if (!m_bPresent)
+								Present((IDirect3DDevice9*)pcDevice, true);
+
+							// is this swapchain enumerated ?
+							bool bSwapChainPresent = false;
+							for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
+							{
+								if (m_apcActiveSwapChains[unI] == pThis)
+									bSwapChainPresent = true;
+							}
+
+							// swapchain index not present ?
+							if (!bSwapChainPresent)
+							{
+								D3DPRESENT_PARAMETERS sParams = {};
+								((LPDIRECT3DSWAPCHAIN9)pThis)->GetPresentParameters(&sParams);
+
+								// enumerate swapchains in m_apcActiveSwapChains, backbuffers in m_aapcActiveProxyBackBufferSurfaces
+								for (UINT unI = (UINT)m_apcActiveSwapChains.size(); unI <= sParams.BackBufferCount; unI++)
+								{
+									// get swapchain for the specified index
+									static IDirect3DSwapChain9* s_pcSwapChain = nullptr;
+									s_pcSwapChain = nullptr;
+									pcDevice->GetSwapChain(unI, &s_pcSwapChain);
+
+									if (s_pcSwapChain)
+									{
+										// enumerate this swapchain
+										EnumerateSwapchain(pcDevice, s_pcSwapChain, unI);
+										s_pcSwapChain->Release();
+									}
+									else
+									{
+										// invalid call ?
+										OutputDebugString(L"[STS] Invalid call to ->GetBackBuffer().");
+										nHr = D3DERR_INVALIDCALL;
+										pcDevice->Release();
+
+										// method replaced, immediately return
+										nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+										return (void*)&nHr;
+									}
+								}
+							}
+
+							// search again for the swapchain, get the index
+							UINT unSwapChainIndex = 0;
+							for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
+							{
+								if (m_apcActiveSwapChains[unI] == pThis)
+									unSwapChainIndex = 0;
+							}
+
+							// swapchain index is active ?
+							if ((unSwapChainIndex) < (UINT)m_apcActiveSwapChains.size())
+							{
+								if ((*m_punIBackBuffer) < (UINT)m_aapcActiveProxyBackBufferSurfaces[unSwapChainIndex].size())
+									*(*m_pppcBackBuffer) = m_aapcActiveProxyBackBufferSurfaces[unSwapChainIndex][*m_punIBackBuffer];
+								if (*(*m_pppcBackBuffer)) (*(*m_pppcBackBuffer))->AddRef();
+
+								nHr = D3D_OK;
+								pcDevice->Release();
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+								return (void*)&nHr;
+							}
+
+							pcDevice->Release();
+							OutputDebugString(L"[STS] Fatal : GetBackBuffer no swapchain !");
+							exit(99);
+						}
 					}
 					else
 					{
