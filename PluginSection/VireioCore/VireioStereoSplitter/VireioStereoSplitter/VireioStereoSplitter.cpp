@@ -519,7 +519,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case ColorKey:
 			return L"ColorKey";
 		case SrcFormat:
-			break;
+			return L"SrcFormat";
 		case DestFormat:
 			break;
 		case pSrcInfo:
@@ -543,7 +543,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case pSrcData:
 			break;
 		case pSrcMemory:
-			break;
+			return L"SrcMemory";
 		case pDestFileW:
 			break;
 		case pSrcFileW:
@@ -593,7 +593,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case SrcLevel:
 			break;
 		case SrcPitch:
-			break;
+			return L"SrcPitch";
 		case SrcRowPitch:
 			break;
 		case SrcSlicePitch:
@@ -765,7 +765,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case ColorKey:
 			return AQU_D3DCOLOR;
 		case SrcFormat:
-			break;
+			return AQU_D3DFORMAT;
 		case DestFormat:
 			break;
 		case pSrcInfo:
@@ -789,7 +789,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case pSrcData:
 			break;
 		case pSrcMemory:
-			break;
+			return AQU_PNT_VOID;
 		case pDestFileW:
 			break;
 		case pSrcFileW:
@@ -839,7 +839,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case SrcLevel:
 			break;
 		case SrcPitch:
-			break;
+			return AQU_UINT;
 		case SrcRowPitch:
 			break;
 		case SrcSlicePitch:
@@ -1090,6 +1090,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_punColorKey = (D3DCOLOR*)pData;
 			break;
 		case SrcFormat:
+			m_peSrcFormat = (D3DFORMAT*)pData;
 			break;
 		case DestFormat:
 			break;
@@ -1115,6 +1116,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pSrcData:
 			break;
 		case pSrcMemory:
+			m_ppSrcMemory = (LPCVOID*)pData;
 			break;
 		case pDestFileW:
 			break;
@@ -1170,6 +1172,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case SrcLevel:
 			break;
 		case SrcPitch:
+			m_punSrcPitch = (UINT*)pData;
 			break;
 		case SrcRowPitch:
 			break;
@@ -1250,7 +1253,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex)
 {
 	m_bUseD3D9Ex = true; // TODO !! DELETE !!
-
+	
 	// instantly return if the device is in use by a proxy class;
 	if ((m_bUseD3D9Ex) && (s_bDeviceInUseByProxy)) return nullptr;
 
@@ -2951,8 +2954,10 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region D3DX9
 		case INTERFACE_D3DX9:
+			DEBUG_UINT(eD3DMethod);
 			switch (eD3DMethod)
 			{
+#pragma region D3D9_D3DXLoadSurfaceFromSurface
 				case MT_D3DX9::D3D9_D3DXLoadSurfaceFromSurface:
 					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromSurface");
 					if (!m_ppcDestSurface) return nullptr;
@@ -2967,8 +2972,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 						if (m_bUseD3D9Ex)
 						{
-							if (s_bDeviceInUseByProxy) return nullptr;
-
 							// get actual surfaces and do the method call for the left surfaces
 							IDirect3DSurface9* pSourceSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcSrcSurface))->GetActualLeft();
 							IDirect3DSurface9* pSourceSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcSrcSurface))->GetActualRight();
@@ -3014,6 +3017,56 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 					return nullptr;
+#pragma endregion
+#pragma region D3D9_D3DXLoadSurfaceFromMemory
+				case MT_D3DX9::D3D9_D3DXLoadSurfaceFromMemory:
+					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromMemory");
+					if (!m_ppcDestSurface) return nullptr;
+					if (!m_ppsDestPalette) return nullptr;
+					if (!m_ppsDestRect) return nullptr;
+					if (!m_ppSrcMemory) return nullptr;
+					if (!m_peSrcFormat) return nullptr;
+					if (!m_punSrcPitch) return nullptr;
+					if (!m_ppsSrcPalette) return nullptr;
+					if (!m_ppsSrcRect) return nullptr;
+					if (!m_punFilter) return nullptr;
+					if (!m_punColorKey) return nullptr;
+					{
+						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+						if (m_bUseD3D9Ex)
+						{
+							// get actual surfaces and do the method call for the left surface
+							IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualLeft();
+							IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualRight();
+							nHr = D3DXLoadSurfaceFromMemory(pDestSurfaceLeft, *m_ppsDestPalette, *m_ppsDestRect, *m_ppSrcMemory, *m_peSrcFormat, *m_punSrcPitch, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey);
+							
+							// no proxy surface ?
+							if (!pDestSurfaceLeft)
+							{
+								OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
+								DEBUG_HEX(*m_ppcDestSurface);
+								exit(99);
+							}
+
+							if (SUCCEEDED(nHr))
+							{
+								if (pDestSurfaceRight)
+								{
+									// do the call for the right side
+									if (FAILED(D3DXLoadSurfaceFromMemory(pDestSurfaceRight, *m_ppsDestPalette, *m_ppsDestRect, *m_ppSrcMemory, *m_peSrcFormat, *m_punSrcPitch, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey)))
+									{
+										OutputDebugString(L"[STS] ERROR: D3DXLoadSurfaceFromMemory - Failed to load to destination right.\n");
+									}
+								}
+							}
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							return (void*)&nHr;
+						}
+					}
+					return nullptr;
+#pragma endregion
 			}
 			return nullptr;
 #pragma endregion
