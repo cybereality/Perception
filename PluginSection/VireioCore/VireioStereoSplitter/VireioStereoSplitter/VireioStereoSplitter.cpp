@@ -185,7 +185,6 @@ m_ppsPalette(nullptr),
 m_ppsSrcPalette(nullptr),
 m_ppsDestRect(nullptr),
 m_ppsSrcRect(nullptr),
-m_punMipLevels(nullptr),
 m_punSize(nullptr),
 m_punSrcDataSize(nullptr),
 m_punSrcLevel(nullptr),
@@ -523,13 +522,13 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case DestFormat:
 			break;
 		case pSrcInfo:
-			break;
+			return L"pSrcInfo";
 		case Channel:
 			break;
 		case Filter:
 			return L"Filter";
 		case MipFilter:
-			break;
+			return L"MipFilter";
 		case Amplitude:
 			break;
 		case hSrcModule:
@@ -541,7 +540,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case pSrcResource:
 			break;
 		case pSrcData:
-			break;
+			return L"pSrcData";
 		case pSrcMemory:
 			return L"SrcMemory";
 		case pDestFileW:
@@ -577,7 +576,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case pDestPalette:
 			return L"pDestPalette";
 		case pPalette:
-			break;
+			return L"pPalette";
 		case pSrcPalette:
 			return L"pSrcPalette";
 		case pDestRect:
@@ -585,11 +584,11 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case pSrcRect:
 			return L"pSrcRect";
 		case MipLevels:
-			break;
+			return L"MipLevels";
 		case Size:
 			break;
 		case SrcDataSize:
-			break;
+			return L"SrcDataSize";
 		case SrcLevel:
 			break;
 		case SrcPitch:
@@ -769,13 +768,13 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case DestFormat:
 			break;
 		case pSrcInfo:
-			break;
+			return AQU_PNT_D3DXIMAGE_INFO;
 		case Channel:
 			break;
 		case Filter:
 			return AQU_UINT;
 		case MipFilter:
-			break;
+			return AQU_UINT;
 		case Amplitude:
 			break;
 		case hSrcModule:
@@ -787,7 +786,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case pSrcResource:
 			break;
 		case pSrcData:
-			break;
+			return AQU_PNT_VOID;
 		case pSrcMemory:
 			return AQU_PNT_VOID;
 		case pDestFileW:
@@ -823,7 +822,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case pDestPalette:
 			return AQU_PNT_PALETTEENTRY;
 		case pPalette:
-			break;
+			return AQU_PNT_PALETTEENTRY;
 		case pSrcPalette:
 			return AQU_PNT_PALETTEENTRY;
 		case pDestRect:
@@ -831,11 +830,11 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case pSrcRect:
 			return AQU_PNT_RECT;
 		case MipLevels:
-			break;
+			return AQU_UINT;
 		case Size:
 			break;
 		case SrcDataSize:
-			break;
+			return AQU_UINT;
 		case SrcLevel:
 			break;
 		case SrcPitch:
@@ -1095,6 +1094,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case DestFormat:
 			break;
 		case pSrcInfo:
+			m_ppsSrcInfo = (D3DXIMAGE_INFO**)pData;
 			break;
 		case Channel:
 			break;
@@ -1102,6 +1102,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_punFilter = (DWORD*)pData;
 			break;
 		case MipFilter:
+			m_punMipFilter = (DWORD*)pData;
 			break;
 		case Amplitude:
 			break;
@@ -1114,6 +1115,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case pSrcResource:
 			break;
 		case pSrcData:
+			m_ppSrcData = (LPCVOID*)pData;
 			break;
 		case pSrcMemory:
 			m_ppSrcMemory = (LPCVOID*)pData;
@@ -1153,6 +1155,7 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_ppsDestPalette = (PALETTEENTRY**)pData;
 			break;
 		case pPalette:
+			m_ppsPalette = (PALETTEENTRY**)pData;
 			break;
 		case pSrcPalette:
 			m_ppsSrcPalette = (PALETTEENTRY**)pData;
@@ -1164,10 +1167,12 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_ppsSrcRect = (RECT**)pData;
 			break;
 		case MipLevels:
+			m_punLevels = (UINT*)pData;
 			break;
 		case Size:
 			break;
 		case SrcDataSize:
+			m_punSrcDataSize = (UINT*)pData;
 			break;
 		case SrcLevel:
 			break;
@@ -1253,7 +1258,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex)
 {
 	m_bUseD3D9Ex = true; // TODO !! DELETE !!
-	
+
 	// instantly return if the device is in use by a proxy class;
 	if ((m_bUseD3D9Ex) && (s_bDeviceInUseByProxy)) return nullptr;
 
@@ -1290,9 +1295,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_ENDSCENE:
 												   // ensure left drawing side here
 												   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
-												   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-												   nHr = ((IDirect3DDevice9*)pThis)->EndScene();
-												   return (void*)&nHr;
+												   return nullptr;
 #pragma endregion 
 #pragma region SetRenderTarget
 											   case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
@@ -2339,12 +2342,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
 
-													   if ((*m_punUsage) & D3DUSAGE_RENDERTARGET)
-													   {
-														   // compressed formats not working in d3d9ex ?? verify this !!
-														   eFormat = GetD3D9ExFormat(*m_peFormat);
-													   }
-
 													   // INTZ not supported in IDirect3DDevice9Ex ??
 													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 
@@ -2409,12 +2406,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
 
-													   if ((*m_punUsage) & D3DUSAGE_RENDERTARGET)
-													   {
-														   // compressed formats not working in d3d9ex ?? verify this !!
-														   eFormat = GetD3D9ExFormat(*m_peFormat);
-													   }
-
 													   // INTZ not supported in IDirect3DDevice9Ex ??
 													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 
@@ -2464,12 +2455,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   {
 														   ePool = D3DPOOL_DEFAULT;
 														   s_pcDirect3DDevice9Ex->Release();
-													   }
-
-													   if ((*m_punUsage) & D3DUSAGE_RENDERTARGET)
-													   {
-														   // compressed formats not working in d3d9ex ?? verify this !!
-														   eFormat = GetD3D9ExFormat(*m_peFormat);
 													   }
 
 													   // INTZ not supported in IDirect3DDevice9Ex ??
@@ -2606,9 +2591,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   *m_ppvSharedHandle = &sharedHandleLeft;
 														   eMultiSample = D3DMULTISAMPLE_NONE;
 														   eMultiSampleQuality = 0;
-
-														   // compressed formats not working in d3d9ex ?? verify this !!
-														   eFormat = GetD3D9ExFormat(*m_peFormat);
 
 														   // INTZ not supported in IDirect3DDevice9Ex ??
 														   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
@@ -2954,7 +2936,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region D3DX9
 		case INTERFACE_D3DX9:
-			DEBUG_UINT(eD3DMethod);
 			switch (eD3DMethod)
 			{
 #pragma region D3D9_D3DXLoadSurfaceFromSurface
@@ -3039,7 +3020,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualLeft();
 							IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualRight();
 							nHr = D3DXLoadSurfaceFromMemory(pDestSurfaceLeft, *m_ppsDestPalette, *m_ppsDestRect, *m_ppSrcMemory, *m_peSrcFormat, *m_punSrcPitch, *m_ppsSrcPalette, *m_ppsSrcRect, *m_punFilter, *m_punColorKey);
-							
+
 							// no proxy surface ?
 							if (!pDestSurfaceLeft)
 							{
@@ -3064,6 +3045,168 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
 						}
+					}
+					return nullptr;
+#pragma endregion
+#pragma region D3D9_D3DXCreateTexture
+				case MT_D3DX9::D3D9_D3DXCreateTexture:
+					if (m_bUseD3D9Ex)
+					{
+						if (!m_punWidth) return nullptr;
+						if (!m_punHeight) return nullptr;
+						if (!m_punLevels) return nullptr;
+						if (!m_punUsage) return nullptr;
+						if (!m_peFormat) return nullptr;
+						if (!m_pePool) return nullptr;
+						if (!m_pppcTextureCreate) return nullptr;
+#ifdef _DEBUGTHIS
+						wchar_t buf[32];
+						wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
+						wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
+						wsprintf(buf, L"m_punLevels %u", *m_punLevels); OutputDebugString(buf);
+						wsprintf(buf, L"m_punUsage %u", *m_punUsage); OutputDebugString(buf);
+						wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
+						wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
+#endif
+						SHOW_CALL("D3DXCreateTexture");
+
+						static IDirect3DTexture9* s_pcLeftTexture = NULL;
+						static IDirect3DTexture9* s_pcRightTexture = NULL;
+						s_pcLeftTexture = NULL;
+						s_pcRightTexture = NULL;
+
+						D3DPOOL ePool = *m_pePool;
+						D3DFORMAT eFormat = *m_peFormat;
+
+						static IDirect3DDevice9Ex *s_pcDirect3DDevice9Ex = NULL;
+						s_pcDirect3DDevice9Ex = NULL;
+						if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&s_pcDirect3DDevice9Ex))) &&
+							(*m_pePool) == D3DPOOL_MANAGED)
+						{
+							ePool = D3DPOOL_DEFAULT;
+							s_pcDirect3DDevice9Ex->Release();
+						}
+
+						// INTZ not supported in IDirect3DDevice9Ex ??
+						if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+
+#ifdef _DEBUGTHIS
+						OutputDebugString(L"[STS] Create texture format :");
+						DEBUG_UINT(eFormat);
+						DEBUG_HEX(eFormat);
+#endif
+
+						// try and create left
+						if (SUCCEEDED(nHr = D3DXCreateTexture((IDirect3DDevice9*)pThis, *m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, &s_pcLeftTexture)))
+						{
+							// Does this Texture need duplicating?
+							if (ShouldDuplicateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool))
+							{
+								if (FAILED(D3DXCreateTexture((IDirect3DDevice9*)pThis, *m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, &s_pcRightTexture)))
+								{
+									OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+									s_pcRightTexture = NULL;
+								}
+							}
+						}
+						else
+						{
+							OutputDebugString(L"[STS] Failed to create texture IDirect3DTexture9\n");
+						}
+
+						if (SUCCEEDED(nHr))
+						{
+							*(*m_pppcTextureCreate) = new IDirect3DStereoTexture9(s_pcLeftTexture, s_pcRightTexture, ((IDirect3DDevice9*)pThis));
+						}
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						return (void*)&nHr;
+					}
+					return nullptr;
+#pragma endregion
+#pragma region D3D9_D3DXCreateTextureFromFileInMemoryEx
+				case MT_D3DX9::D3D9_D3DXCreateTextureFromFileInMemoryEx:
+					if (m_bUseD3D9Ex)
+					{
+						if (!m_ppSrcData) return nullptr;
+						if (!m_punSrcDataSize) return nullptr;
+						if (!m_punWidth) return nullptr;
+						if (!m_punHeight) return nullptr;
+						if (!m_punLevels) return nullptr;
+						if (!m_punUsage) return nullptr;
+						if (!m_peFormat) return nullptr;
+						if (!m_pePool) return nullptr;
+						if (!m_punFilter) return nullptr;
+						if (!m_punMipFilter) return nullptr;
+						if (!m_punColorKey) return nullptr;
+						if (!m_ppsSrcInfo) return nullptr;
+						if (!m_ppsPalette) return nullptr;
+						if (!m_pppcTextureCreate) return nullptr;
+#ifdef _DEBUGTHIS
+						wchar_t buf[32];
+						wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
+						wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
+						wsprintf(buf, L"m_punLevels %u", *m_punLevels); OutputDebugString(buf);
+						wsprintf(buf, L"m_punUsage %u", *m_punUsage); OutputDebugString(buf);
+						wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
+						wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
+#endif
+						SHOW_CALL("D3DXCreateTexture");
+
+						static IDirect3DTexture9* s_pcLeftTexture = NULL;
+						static IDirect3DTexture9* s_pcRightTexture = NULL;
+						s_pcLeftTexture = NULL;
+						s_pcRightTexture = NULL;
+
+						D3DPOOL ePool = *m_pePool;
+						D3DFORMAT eFormat = *m_peFormat;
+
+						HRESULT hr = S_OK;
+						static IDirect3DDevice9Ex *s_pcDirect3DDevice9Ex = NULL;
+						s_pcDirect3DDevice9Ex = NULL;
+						if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&s_pcDirect3DDevice9Ex))) &&
+							(*m_pePool) == D3DPOOL_MANAGED)
+						{
+							ePool = D3DPOOL_DEFAULT;
+							s_pcDirect3DDevice9Ex->Release();
+						}
+
+						// INTZ not supported in IDirect3DDevice9Ex ??
+						if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+
+#ifdef _DEBUGTHIS
+						OutputDebugString(L"[STS] Create texture format :");
+						DEBUG_UINT(eFormat);
+						DEBUG_HEX(eFormat);
+#endif
+
+						// try and create left
+						if (SUCCEEDED(nHr = D3DXCreateTextureFromFileInMemoryEx((IDirect3DDevice9*)pThis, *m_ppSrcData, *m_punSrcDataSize, *m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, *m_punFilter, *m_punMipFilter, *m_punColorKey, *m_ppsSrcInfo, *m_ppsPalette, &s_pcLeftTexture)))
+						{
+							// Does this Texture need duplicating?
+							if (ShouldDuplicateTexture(*m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, *m_peFormat, *m_pePool))
+							{
+								if (FAILED(D3DXCreateTextureFromFileInMemoryEx((IDirect3DDevice9*)pThis, *m_ppSrcData, *m_punSrcDataSize, *m_punWidth, *m_punHeight, *m_punLevels, *m_punUsage, eFormat, ePool, *m_punFilter, *m_punMipFilter, *m_punColorKey, *m_ppsSrcInfo, *m_ppsPalette, &s_pcRightTexture)))
+								{
+									OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+									s_pcRightTexture = NULL;
+								}
+							}
+						}
+						else
+						{
+							OutputDebugString(L"[STS] Failed to create texture IDirect3DTexture9\n");
+						}
+
+						if (SUCCEEDED(nHr))
+						{
+							*(*m_pppcTextureCreate) = new IDirect3DStereoTexture9(s_pcLeftTexture, s_pcRightTexture, ((IDirect3DDevice9*)pThis));
+						}
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						return (void*)&nHr;
 					}
 					return nullptr;
 #pragma endregion

@@ -600,7 +600,6 @@ private:
 	PALETTEENTRY** m_ppsSrcPalette;
 	RECT** m_ppsDestRect;
 	RECT** m_ppsSrcRect;
-	UINT* m_punMipLevels;
 	UINT* m_punSize;
 	UINT* m_punSrcDataSize;
 	UINT* m_punSrcLevel;
