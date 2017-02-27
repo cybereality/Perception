@@ -229,10 +229,10 @@ enum STS_Decommanders
 	pFunction,
 	pTextureShader,
 	pBaseTexture,
-	pSrcBaseTexture,
+	pSrcTexture,
 	pCubeTexture,
 	pSrcSurface,
-	pSrcTexture,
+	pTexture_D3DX,
 	pDestVolume,
 	pSrcVolume,
 	pVolumeTexture,
@@ -577,20 +577,21 @@ private:
 	DWORD* m_punMipFilter;
 	FLOAT* m_pfAmplitude;
 	HMODULE* m_ppsSrcModule;
-	LPCSTR* m_pszhSrcFile;
-	LPCSTR* m_pszhSrcResource;
+	LPCSTR* m_pszSrcFile;
+	LPCSTR* m_pszSrcResource;
 	LPCVOID* m_ppSrcData;
 	LPCVOID* m_ppSrcMemory;
 	LPCWSTR* m_pszDestFile;
-	LPCWSTR* m_pszSrcFile;
-	LPCWSTR* m_pszSrcResource;
+	LPCWSTR* m_pszSrcFileW;
+	LPCWSTR* m_pszSrcResourceW;
 	LPD3DXBUFFER** m_pppcDestBuf;
 	LPD3DXFILL2D* m_ppFunction;
 	LPD3DXTEXTURESHADER* m_ppcTextureShader;
 	LPDIRECT3DBASETEXTURE9* m_ppcBaseTexture;
-	LPDIRECT3DBASETEXTURE9* m_ppcSrcTexture;
+	LPDIRECT3DBASETEXTURE9* m_ppcSrcBaseTexture;
 	LPDIRECT3DCUBETEXTURE9* m_ppcCubeTexture;
 	LPDIRECT3DSURFACE9* m_ppcSrcSurface;
+	LPDIRECT3DTEXTURE9* m_ppcTexture_D3DX;
 	LPDIRECT3DVOLUME9* m_ppcDestVolume;
 	LPDIRECT3DVOLUME9* m_ppcSrcVolume;
 	LPDIRECT3DVOLUMETEXTURE9* m_ppcVolumeTexture;

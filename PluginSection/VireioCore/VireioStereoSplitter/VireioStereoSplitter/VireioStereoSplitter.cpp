@@ -162,20 +162,21 @@ m_punFilter(nullptr),
 m_punMipFilter(nullptr),
 m_pfAmplitude(nullptr),
 m_ppsSrcModule(nullptr),
-m_pszhSrcFile(nullptr),
-m_pszhSrcResource(nullptr),
+m_pszSrcFile(nullptr),
+m_pszSrcResource(nullptr),
 m_ppSrcData(nullptr),
 m_ppSrcMemory(nullptr),
 m_pszDestFile(nullptr),
-m_pszSrcFile(nullptr),
-m_pszSrcResource(nullptr),
+m_pszSrcFileW(nullptr),
+m_pszSrcResourceW(nullptr),
 m_pppcDestBuf(nullptr),
 m_ppFunction(nullptr),
 m_ppcTextureShader(nullptr),
 m_ppcBaseTexture(nullptr),
-m_ppcSrcTexture(nullptr),
+m_ppcSrcBaseTexture(nullptr),
 m_ppcCubeTexture(nullptr),
 m_ppcSrcSurface(nullptr),
+m_ppcTexture_D3DX(nullptr),
 m_ppcDestVolume(nullptr),
 m_ppcSrcVolume(nullptr),
 m_ppcVolumeTexture(nullptr),
@@ -512,67 +513,67 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case pasPShaderConstantIndices:
 			return L"pasPShaderConstantIndices";
 		case pDestBox:
-			break;
+			return L"pDestBox";
 		case pSrcBox:
-			break;
+			return L"pSrcBox";
 		case ColorKey:
 			return L"ColorKey";
 		case SrcFormat:
 			return L"SrcFormat";
 		case DestFormat:
-			break;
+			return L"DestFormat";
 		case pSrcInfo:
 			return L"pSrcInfo";
 		case Channel:
-			break;
+			return L"Channel";
 		case Filter:
 			return L"Filter";
 		case MipFilter:
 			return L"MipFilter";
 		case Amplitude:
-			break;
+			return L"Amplitude";
 		case hSrcModule:
-			break;
+			return L"hSrcModule";
 		case pDestFile:
-			break;
+			return L"pDestFile";
 		case pSrcFile:
-			break;
+			return L"pSrcFile";
 		case pSrcResource:
-			break;
+			return L"pSrcResource";
 		case pSrcData:
 			return L"pSrcData";
 		case pSrcMemory:
 			return L"SrcMemory";
 		case pDestFileW:
-			break;
+			return L"pDestFileW";
 		case pSrcFileW:
-			break;
+			return L"pSrcFileW";
 		case pSrcResourceW:
-			break;
+			return L"pSrcResourceW";
 		case ppDestBuf:
-			break;
+			return L"ppDestBuf";
 		case pFunction:
-			break;
+			return L"pFunction";
 		case pTextureShader:
-			break;
+			return L"pTextureShader";
 		case pBaseTexture:
-			break;
-		case pSrcBaseTexture:
-			break;
+			return L"pBaseTexture";
+		case pSrcTexture:
+			return L"pSrcTexture";
 		case pCubeTexture:
-			break;
+			return L"pCubeTexture";
 		case pSrcSurface:
 			return L"pSrcSurface";
-		case pSrcTexture:
-			break;
+		case pTexture_D3DX:
+			return L"pTexture";
 		case pDestVolume:
-			break;
+			return L"pDestVolume";
 		case pSrcVolume:
-			break;
+			return L"pSrcVolume";
 		case pVolumeTexture:
-			break;
+			return L"pVolumeTexture";
 		case pData_Enum:
-			break;
+			return L"pData_Enum";
 		case pDestPalette:
 			return L"pDestPalette";
 		case pPalette:
@@ -586,17 +587,17 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 		case MipLevels:
 			return L"MipLevels";
 		case Size:
-			break;
+			return L"Size";
 		case SrcDataSize:
 			return L"SrcDataSize";
 		case SrcLevel:
-			break;
+			return L"SrcLevel";
 		case SrcPitch:
 			return L"SrcPitch";
 		case SrcRowPitch:
-			break;
+			return L"SrcRowPitch";
 		case SrcSlicePitch:
-			break;
+			return L"SrcSlicePitch";
 	}
 
 	return L"x";
@@ -758,67 +759,67 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case pasPShaderConstantIndices:
 			return NOD_Plugtype::AQU_VOID;
 		case pDestBox:
-			break;
+			return AQU_PNT_D3DBOX;
 		case pSrcBox:
-			break;
+			return AQU_PNT_D3DBOX;
 		case ColorKey:
 			return AQU_D3DCOLOR;
 		case SrcFormat:
 			return AQU_D3DFORMAT;
 		case DestFormat:
-			break;
+			return AQU_D3DXIMAGE_FILEFORMAT;
 		case pSrcInfo:
 			return AQU_PNT_D3DXIMAGE_INFO;
 		case Channel:
-			break;
+			return AQU_UINT;
 		case Filter:
 			return AQU_UINT;
 		case MipFilter:
 			return AQU_UINT;
 		case Amplitude:
-			break;
+			return AQU_FLOAT;
 		case hSrcModule:
-			break;
+			return AQU_HANDLE;
 		case pDestFile:
-			break;
+			return AQU_PNT_CHAR;
 		case pSrcFile:
-			break;
+			return AQU_PNT_CHAR;
 		case pSrcResource:
-			break;
+			return AQU_PNT_CHAR;
 		case pSrcData:
 			return AQU_PNT_VOID;
 		case pSrcMemory:
 			return AQU_PNT_VOID;
 		case pDestFileW:
-			break;
+			return AQU_PNT_WCHAR;
 		case pSrcFileW:
-			break;
+			return AQU_PNT_WCHAR;
 		case pSrcResourceW:
-			break;
+			return AQU_PNT_WCHAR;
 		case ppDestBuf:
-			break;
+			return AQU_PNT_D3DXBUFFER;
 		case pFunction:
-			break;
+			return AQU_PNT_D3DXFILL2D;
 		case pTextureShader:
-			break;
+			return AQU_PNT_D3DXTEXTURESHADER;
 		case pBaseTexture:
-			break;
-		case pSrcBaseTexture:
-			break;
+			return AQU_PNT_IDIRECT3DBASETEXTURE9;
+		case pSrcTexture:
+			return AQU_PNT_IDIRECT3DBASETEXTURE9;
 		case pCubeTexture:
-			break;
+			return AQU_PNT_IDIRECT3DCUBETEXTURE9;
 		case pSrcSurface:
 			return AQU_PNT_IDIRECT3DSURFACE9;
-		case pSrcTexture:
-			break;
+		case pTexture_D3DX:
+			return AQU_PNT_IDIRECT3DTEXTURE9;
 		case pDestVolume:
-			break;
+			return AQU_PNT_IDIRECT3DVOLUME9;
 		case pSrcVolume:
-			break;
+			return AQU_PNT_IDIRECT3DVOLUME9;
 		case pVolumeTexture:
-			break;
+			return AQU_PNT_IDIRECT3DVOLUMETEXTURE9;
 		case pData_Enum:
-			break;
+			return AQU_PNT_VOID;
 		case pDestPalette:
 			return AQU_PNT_PALETTEENTRY;
 		case pPalette:
@@ -832,17 +833,17 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		case MipLevels:
 			return AQU_UINT;
 		case Size:
-			break;
+			return AQU_UINT;
 		case SrcDataSize:
 			return AQU_UINT;
 		case SrcLevel:
-			break;
+			return AQU_UINT;
 		case SrcPitch:
 			return AQU_UINT;
 		case SrcRowPitch:
-			break;
+			return AQU_UINT;
 		case SrcSlicePitch:
-			break;
+			return AQU_UINT;
 	}
 
 	return 0;
@@ -1082,8 +1083,10 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
 		case pDestBox:
+			m_ppsDestBox = (D3DBOX**)pData;
 			break;
 		case pSrcBox:
+			m_ppsSrcBox = (D3DBOX**)pData;
 			break;
 		case ColorKey:
 			m_punColorKey = (D3DCOLOR*)pData;
@@ -1092,11 +1095,13 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_peSrcFormat = (D3DFORMAT*)pData;
 			break;
 		case DestFormat:
+			m_peDestFormat = (D3DXIMAGE_FILEFORMAT*)pData;
 			break;
 		case pSrcInfo:
 			m_ppsSrcInfo = (D3DXIMAGE_INFO**)pData;
 			break;
 		case Channel:
+			m_punChannel = (DWORD*)pData;
 			break;
 		case Filter:
 			m_punFilter = (DWORD*)pData;
@@ -1105,14 +1110,19 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_punMipFilter = (DWORD*)pData;
 			break;
 		case Amplitude:
+			m_pfAmplitude = (float*)pData;
 			break;
 		case hSrcModule:
+			m_ppsSrcModule = (HMODULE*)pData;
 			break;
 		case pDestFile:
+			m_pszDestFile = (LPCWSTR*)pData;
 			break;
 		case pSrcFile:
+			m_pszSrcFile = (LPCSTR*)pData;
 			break;
 		case pSrcResource:
+			m_pszSrcResource = (LPCSTR*)pData;
 			break;
 		case pSrcData:
 			m_ppSrcData = (LPCVOID*)pData;
@@ -1121,35 +1131,49 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_ppSrcMemory = (LPCVOID*)pData;
 			break;
 		case pDestFileW:
+			m_pszDestFile = (LPCWSTR*)pData;
 			break;
 		case pSrcFileW:
+			m_pszSrcFileW = (LPCWSTR*)pData;
 			break;
 		case pSrcResourceW:
+			m_pszSrcResourceW = (LPCWSTR*)pData;
 			break;
 		case ppDestBuf:
+			m_pppcDestBuf = (LPD3DXBUFFER**)pData;
 			break;
 		case pFunction:
+			m_ppFunction = (LPD3DXFILL2D*)pData;
 			break;
 		case pTextureShader:
+			m_ppcTextureShader = (LPD3DXTEXTURESHADER*)pData;
 			break;
 		case pBaseTexture:
+			m_ppcBaseTexture = (LPDIRECT3DBASETEXTURE9*)pData;
 			break;
-		case pSrcBaseTexture:
+		case pSrcTexture:
+			m_ppcSrcBaseTexture = (LPDIRECT3DBASETEXTURE9*)pData;
 			break;
 		case pCubeTexture:
+			m_ppcCubeTexture = (LPDIRECT3DCUBETEXTURE9*)pData;
 			break;
 		case pSrcSurface:
 			m_ppcSrcSurface = (IDirect3DSurface9**)pData;
 			break;
-		case pSrcTexture:
+		case pTexture_D3DX:
+			m_ppcTexture_D3DX = (LPDIRECT3DTEXTURE9*)pData;
 			break;
 		case pDestVolume:
+			m_ppcDestVolume = (LPDIRECT3DVOLUME9*)pData;
 			break;
 		case pSrcVolume:
+			m_ppcSrcVolume = (LPDIRECT3DVOLUME9*)pData;
 			break;
 		case pVolumeTexture:
+			m_ppcVolumeTexture = (LPDIRECT3DVOLUMETEXTURE9*)pData;
 			break;
 		case pData_Enum:
+			m_ppData = (LPVOID*)pData;
 			break;
 		case pDestPalette:
 			m_ppsDestPalette = (PALETTEENTRY**)pData;
@@ -1170,18 +1194,22 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			m_punLevels = (UINT*)pData;
 			break;
 		case Size:
+			m_punSize = (UINT*)pData;
 			break;
 		case SrcDataSize:
 			m_punSrcDataSize = (UINT*)pData;
 			break;
 		case SrcLevel:
+			m_punSrcLevel = (UINT*)pData;
 			break;
 		case SrcPitch:
 			m_punSrcPitch = (UINT*)pData;
 			break;
 		case SrcRowPitch:
+			m_punSrcRowPitch = (UINT*)pData;
 			break;
 		case SrcSlicePitch:
+			m_punSrcSlicePitch = (UINT*)pData;
 			break;
 	}
 }
@@ -3287,6 +3315,14 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						return (void*)&nHr;
 					}
 					return nullptr;
+#pragma endregion
+#pragma region D3D9_D3DX_NOT_IMPLEMENTED
+				default:
+				{
+						   // exit if method not implemented !
+						   wchar_t buf[128]; wsprintf(buf, L"[STS] Fatal Error : D3DX method not implemented ! Index : %u", eD3DMethod); OutputDebugString(buf); exit(99);
+				}
+					break;
 #pragma endregion
 			}
 			return nullptr;
