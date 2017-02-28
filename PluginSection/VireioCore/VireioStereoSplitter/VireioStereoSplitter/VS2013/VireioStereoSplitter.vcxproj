@@ -181,6 +181,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
+    <ClInclude Include="..\D3D9Ex_D3DX9_Methods.h" />
     <ClInclude Include="..\VireioStereoSplitter.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioStereoSplitter_Proxy.h" />

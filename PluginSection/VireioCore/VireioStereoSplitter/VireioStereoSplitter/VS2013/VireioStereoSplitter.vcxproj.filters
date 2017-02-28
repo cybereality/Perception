@@ -6,6 +6,7 @@
     <ClInclude Include="..\VireioStereoSplitter.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\VireioStereoSplitter_Proxy.h" />
+    <ClInclude Include="..\D3D9Ex_D3DX9_Methods.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />

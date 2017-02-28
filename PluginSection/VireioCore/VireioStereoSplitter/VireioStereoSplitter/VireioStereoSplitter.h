@@ -55,6 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 #include"VireioStereoSplitter_Proxy.h"
+#include"D3D9Ex_D3DX9_Methods.h"
 #pragma endregion
 
 #pragma region defines

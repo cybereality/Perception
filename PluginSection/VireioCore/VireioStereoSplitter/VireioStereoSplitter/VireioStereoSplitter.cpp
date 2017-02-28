@@ -3316,6 +3316,25 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					}
 					return nullptr;
 #pragma endregion
+#pragma region D3D9_D3DXFillVolumeTexture
+				case MT_D3DX9::D3D9_D3DXFillVolumeTexture:
+					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXFillVolumeTexture");
+					if (!m_ppcVolumeTexture) return nullptr;
+					if (!m_ppFunction) return nullptr;
+					if (!m_ppData) return nullptr;
+					{
+						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+						if (m_bUseD3D9Ex)
+						{
+							// TODO !! Call THE D3D9Ex compatible method here !!
+
+							// method replaced, immediately return
+							// nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							// return (void*)&nHr;
+						}
+					}
+					return nullptr;
+#pragma endregion
 #pragma region D3D9_D3DX_NOT_IMPLEMENTED
 				default:
 				{
