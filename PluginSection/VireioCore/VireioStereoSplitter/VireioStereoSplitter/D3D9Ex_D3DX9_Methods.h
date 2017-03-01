@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#pragma region D3DXFillTexture
 /**
 * D3DXFillTexture compatible with the D3D9Ex device.
 ***/
@@ -63,14 +64,14 @@ HRESULT D3D9Ex_D3DXFillTexture(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFILL2D pFuncti
 	if (!pcTexLockable) return D3DERR_INVALIDCALL;
 
 	// get surface (level 0)
-	IDirect3DSurface9 *pSurface = NULL;
-	pcTexLockable->GetSurfaceLevel(0, &pSurface);
+	IDirect3DSurface9 *pcSurface = NULL;
+	pcTexLockable->GetSurfaceLevel(0, &pcSurface);
 
-	if (pSurface)
+	if (pcSurface)
 	{
 		// lock the surface
 		D3DLOCKED_RECT sRect = {};
-		if (SUCCEEDED(pSurface->LockRect(&sRect, NULL, NULL)))
+		if (SUCCEEDED(pcSurface->LockRect(&sRect, NULL, NULL)))
 		{
 			// call fill method for each texel
 			D3DXVECTOR4 sTexelOut = {};
@@ -106,7 +107,7 @@ HRESULT D3D9Ex_D3DXFillTexture(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFILL2D pFuncti
 				if (sTexelCoords.x == (LONG)sDesc.Height) sTexCoord.x = 1.0f;
 			}
 
-			pSurface->UnlockRect();
+			pcSurface->UnlockRect();
 		}
 
 		// update the actual surface 0
@@ -115,11 +116,11 @@ HRESULT D3D9Ex_D3DXFillTexture(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFILL2D pFuncti
 		if (pcSurfaceDest)
 		{
 			// update the level 0 surface
-			D3DXLoadSurfaceFromSurface(pcSurfaceDest, NULL, NULL, pSurface, NULL, NULL, 0, 0);
+			D3DXLoadSurfaceFromSurface(pcSurfaceDest, NULL, NULL, pcSurface, NULL, NULL, 0, 0);
 			pcSurfaceDest->Release();
 		}
 
-		pSurface->Release();
+		pcSurface->Release();
 	}
 	else return D3DERR_INVALIDCALL;
 
@@ -131,5 +132,107 @@ HRESULT D3D9Ex_D3DXFillTexture(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFILL2D pFuncti
 	pcDevice->Release();
 	return S_OK;
 }
+#pragma endregion
+#pragma region D3DXFillVolumeTexture
+/**
+* D3DXFillVolumeTexture compatible with the D3D9Ex device.
+***/
+HRESULT D3D9Ex_D3DXFillVolumeTexture(LPDIRECT3DVOLUMETEXTURE9 pVolumeTexture, LPD3DXFILL3D pFunction, LPVOID pData)
+{
+	if (!pVolumeTexture) return D3DERR_INVALIDCALL;
+
+	// get device
+	IDirect3DDevice9* pcDevice = nullptr;
+	pVolumeTexture->GetDevice(&pcDevice);
+	if (!pcDevice) return D3DERR_INVALIDCALL;
+
+	// get surface desc
+	D3DVOLUME_DESC sDesc = {};
+	pVolumeTexture->GetLevelDesc(0, &sDesc);
+
+	// create lockable texture.. do we need A32R32G32B32 here ?
+	IDirect3DVolumeTexture9* pcTexLockable = nullptr;
+	pcDevice->CreateVolumeTexture(sDesc.Width, sDesc.Height, sDesc.Depth, 1, 0, D3DFORMAT::D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &pcTexLockable, NULL);
+	if (!pcTexLockable) return D3DERR_INVALIDCALL;
+
+	// get surface (level 0)
+	IDirect3DVolume9 *pcVolume = NULL;
+	pcTexLockable->GetVolumeLevel(0, &pcVolume);
+
+	if (pcVolume)
+	{
+		// lock the surface
+		D3DLOCKED_BOX sBox = {};
+		if (SUCCEEDED(pcVolume->LockBox(&sBox, NULL, NULL)))
+		{
+			// call fill method for each texel
+			D3DXVECTOR4 sTexelOut = {};
+			struct VEC3 { LONG x, y, z; } sTexelCoords = {};
+			D3DXVECTOR3 sTexCoord = {};
+			D3DXVECTOR3 sTexelSize = {};
+			sTexelSize.x = (1.0f / (float)sDesc.Width);
+			sTexelSize.y = (1.0f / (float)sDesc.Height);
+			sTexelSize.z = (1.0f / (float)sDesc.Depth);
+			for (sTexCoord.x = 0.0f; sTexCoord.x < 1.0f; sTexCoord.x += sTexelSize.x)
+			{
+				for (sTexCoord.y = 0.0f; sTexCoord.y < 1.0f; sTexCoord.y += sTexelSize.y)
+				{
+					for (sTexCoord.z = 0.0f; sTexCoord.z < 1.0f; sTexCoord.z += sTexelSize.z)
+					{
+						// get texel index
+						LONG nIx = sTexelCoords.x * sizeof(D3DCOLOR)+sTexelCoords.y *(LONG)sBox.RowPitch + sTexelCoords.z * (LONG)sBox.SlicePitch;
+
+						// call the method
+						pFunction((D3DXVECTOR4*)&sTexelOut, (const D3DXVECTOR3*)&sTexCoord, (const D3DXVECTOR3*)&sTexelSize, pData);
+
+						// convert to A8R8G8B8 format
+						((BYTE*)sBox.pBits)[nIx] = (BYTE)(sTexelOut.z * 255.0f);
+						((BYTE*)sBox.pBits)[nIx + 1] = (BYTE)(sTexelOut.y * 255.0f);
+						((BYTE*)sBox.pBits)[nIx + 2] = (BYTE)(sTexelOut.x * 255.0f);
+						((BYTE*)sBox.pBits)[nIx + 3] = (BYTE)(sTexelOut.w * 255.0f);
+
+						// increase the texel coords z
+						sTexelCoords.z++;
+						if (sTexelCoords.z == (LONG)sDesc.Width) sTexCoord.z = 1.0f;
+					}
+
+					// increase the texel coords y
+					sTexelCoords.z = 0;
+					sTexelCoords.y++;
+					if (sTexelCoords.y == (LONG)sDesc.Width) sTexCoord.y = 1.0f;
+				}
+
+				// increase the texel coords x
+				sTexelCoords.y = 0;
+				sTexelCoords.x++;
+				if (sTexelCoords.x == (LONG)sDesc.Height) sTexCoord.x = 1.0f;
+			}
+
+			pcVolume->UnlockBox();
+		}
+
+		// update the actual surface 0
+		IDirect3DVolume9* pcVolumeDest = nullptr;
+		pVolumeTexture->GetVolumeLevel(0, &pcVolumeDest);
+		if (pcVolumeDest)
+		{
+			// update the level 0 volume
+			D3DXLoadVolumeFromVolume(pcVolumeDest, NULL, NULL, pcVolume, NULL, NULL, 0, 0);
+			pcVolumeDest->Release();
+		}
+
+		pcVolume->Release();
+	}
+	else return D3DERR_INVALIDCALL;
+
+	// generate mip sub levels
+	pVolumeTexture->GenerateMipSubLevels();
+
+	// release and return
+	pcTexLockable->Release();
+	pcDevice->Release();
+	return S_OK;
+}
+#pragma endregion
 
 #endif

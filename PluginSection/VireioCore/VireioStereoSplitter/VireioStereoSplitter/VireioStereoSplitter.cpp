@@ -3317,6 +3317,45 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					return nullptr;
 #pragma endregion
 #pragma region D3D9_D3DXFillVolumeTexture
+				case MT_D3DX9::D3D9_D3DXFillTexture:
+					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXFillTexture");
+					if (!m_ppcTexture_D3DX) return nullptr;
+					if (!m_ppFunction) return nullptr;
+					if (!m_ppData) return nullptr;
+					{
+						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+						if (m_bUseD3D9Ex)
+						{
+							// set return flag and verify the texture
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							if (!(*m_ppcTexture_D3DX)) { nHr = D3DERR_INVALIDCALL; return (void*)&nHr; }
+							if ((*m_ppcTexture_D3DX)->GetType() != D3DRESOURCETYPE::D3DRTYPE_TEXTURE) { nHr = D3DERR_INVALIDCALL; return (void*)&nHr; }
+
+							// get actual texture
+							IDirect3DTexture9* pcActualLeft = (static_cast<IDirect3DStereoTexture9*>(*m_ppcTexture_D3DX))->GetActualLeft();
+							IDirect3DTexture9* pcActualRight = (static_cast<IDirect3DStereoTexture9*>(*m_ppcTexture_D3DX))->GetActualRight();
+
+							// no proxy tex ?
+							if (!pcActualLeft)
+							{
+								OutputDebugString(L"[STS] : Fatal Error - No Proxy Texture provided.");
+								DEBUG_HEX(*m_ppcTexture_D3DX);
+								exit(99);
+							}
+
+							// call the d3d9ex compatible method for the left side
+							nHr = D3D9Ex_D3DXFillTexture(pcActualLeft, (LPD3DXFILL2D)*m_ppFunction, *m_ppData);
+
+							// copy left to right if right side present
+							if (pcActualRight) ((IDirect3DDevice9*)pThis)->UpdateTexture(pcActualLeft, pcActualRight);
+
+							// method replaced, immediately return
+							return (void*)&nHr;
+						}
+					}
+					return nullptr;
+#pragma endregion
+#pragma region D3D9_D3DXFillVolumeTexture
 				case MT_D3DX9::D3D9_D3DXFillVolumeTexture:
 					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXFillVolumeTexture");
 					if (!m_ppcVolumeTexture) return nullptr;
@@ -3326,11 +3365,27 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 						if (m_bUseD3D9Ex)
 						{
-							// TODO !! Call THE D3D9Ex compatible method here !!
+							// set return flag and verify the texture
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							if (!(*m_ppcVolumeTexture)) { nHr = D3DERR_INVALIDCALL; return (void*)&nHr; }
+							if ((*m_ppcVolumeTexture)->GetType() != D3DRESOURCETYPE::D3DRTYPE_VOLUMETEXTURE) { nHr = D3DERR_INVALIDCALL; return (void*)&nHr; }
+
+							// get actual volume
+							IDirect3DVolumeTexture9* pcVolumeActual = (static_cast<IDirect3DStereoVolumeTexture9*>(*m_ppcVolumeTexture))->GetActual();
+
+							// no proxy volume tex ?
+							if (!pcVolumeActual)
+							{
+								OutputDebugString(L"[STS] : Fatal Error - No Proxy Volume Texture provided.");
+								DEBUG_HEX(*m_ppcVolumeTexture);
+								exit(99);
+							}
+
+							// call the d3d9ex compatible method
+							nHr = D3D9Ex_D3DXFillVolumeTexture(pcVolumeActual, (LPD3DXFILL3D)*m_ppFunction, *m_ppData);
 
 							// method replaced, immediately return
-							// nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-							// return (void*)&nHr;
+							return (void*)&nHr;
 						}
 					}
 					return nullptr;
