@@ -2806,17 +2806,60 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case  METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetRenderTargetData()");
-													   exit(99);
+													   if (!m_ppcRenderTargetGetData) return nullptr;
+													   if (!m_ppcDestSurface) return nullptr;
+													   {
+														   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+														   if (m_bUseD3D9Ex)
+														   {
+															   // get actual surfaces and do the method call for the left surfaces
+															   IDirect3DSurface9* pSourceSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcRenderTargetGetData))->GetActualLeft();
+															   IDirect3DSurface9* pSourceSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcRenderTargetGetData))->GetActualRight();
+															   IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualLeft();
+															   IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualRight();
+															   nHr = ((IDirect3DDevice9*)pThis)->GetRenderTargetData(pSourceSurfaceLeft, pDestSurfaceLeft);
 
-													   // method replaced, immediately return
-													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-													   return (void*)&nHr;
-												   }
-												   else
-												   {
-													   // ensure left drawing side here
-													   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+															   // no proxy surface ?
+															   if ((!pSourceSurfaceLeft) || (!pDestSurfaceLeft))
+															   {
+																   OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
+																   DEBUG_HEX(*m_ppcDestSurface);
+																   exit(99);
+															   }
+
+															   if (SUCCEEDED(nHr))
+															   {
+																   if (!pSourceSurfaceRight && pDestSurfaceRight)
+																   {
+																	   // Source is not stereo, destination is stereo. Copying source to both sides of destination.
+																	   if (FAILED(((IDirect3DDevice9*)pThis)->GetRenderTargetData(pSourceSurfaceLeft, pDestSurfaceRight)))
+																	   {
+																		   OutputDebugString(L"[STS] ERROR: GetRenderTargetData - Failed to copy source left to destination right.\n");
+																	   }
+																   }
+																   else if (pSourceSurfaceRight && !pDestSurfaceRight)
+																   {
+																	   // Source is stereo, destination is not stereo. Copied Left side only.
+																   }
+																   else if (pSourceSurfaceRight && pDestSurfaceRight)
+																   {
+																	   if (FAILED(((IDirect3DDevice9*)pThis)->GetRenderTargetData(pSourceSurfaceRight, pDestSurfaceRight)))
+																	   {
+																		   OutputDebugString(L"[STS] ERROR: GetRenderTargetData - Failed to copy source right to destination right.\n");
+																	   }
+																   }
+															   }
+
+															   // method replaced, immediately return
+															   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+															   return (void*)&nHr;
+														   }
+														   else
+														   {
+															   // ensure left drawing side here
+															   SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
+														   }
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
@@ -2824,12 +2867,39 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetFrontBufferData()");
-													   exit(99);
+													   if (!m_punISwapChain) return nullptr;
+													   if (!m_ppcDestSurface) return nullptr;
+													   {
+														   // use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
+														   if (m_bUseD3D9Ex)
+														   {
+															   // get actual surfaces and do the method call 
+															   IDirect3DSurface9* pDestSurfaceLeft = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualLeft();
+															   IDirect3DSurface9* pDestSurfaceRight = (static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface))->GetActualRight();
+															   nHr = ((IDirect3DDevice9*)pThis)->GetFrontBufferData(*m_punISwapChain, pDestSurfaceLeft);
 
-													   // method replaced, immediately return
-													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-													   return (void*)&nHr;
+															   // no proxy surface ?
+															   if (!pDestSurfaceLeft)
+															   {
+																   OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
+																   DEBUG_HEX(*m_ppcDestSurface);
+																   exit(99);
+															   }
+
+															   if (SUCCEEDED(nHr))
+															   {
+																   if (pDestSurfaceRight)
+																   {
+																	   // do the call for the right side
+																	   ((IDirect3DDevice9*)pThis)->GetFrontBufferData(*m_punISwapChain, pDestSurfaceRight);
+																   }
+															   }
+
+															   // method replaced, immediately return
+															   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+															   return (void*)&nHr;
+														   }
+													   }
 												   }
 												   return nullptr;
 #pragma endregion
