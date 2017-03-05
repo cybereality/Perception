@@ -89,7 +89,6 @@ public:
 	IDirect3DStereoSurface9(IDirect3DSurface9* pcActualSurfaceLeft, IDirect3DSurface9* pcActualSurfaceRight,
 		IDirect3DDevice9* pcOwningDevice, IUnknown* pcWrappedContainer, HANDLE pSharedHandleLeft, HANDLE pSharedHandleRight) :
 		m_pcActualSurface(pcActualSurfaceLeft),
-		m_unRefCount(1),
 		m_pcActualSurfaceRight(pcActualSurfaceRight),
 		m_pcOwningDevice(pcOwningDevice),
 		m_pcWrappedContainer(pcWrappedContainer),
@@ -102,15 +101,17 @@ public:
 
 		assert(pcOwningDevice != NULL);
 
-		if (!pcActualSurfaceLeft) OutputDebugString(L"[STS] Trying to create zero left actual surface.");
-
-		if (!pcWrappedContainer)
-			pcOwningDevice->AddRef();
-		// else - We leave the device ref count changes to the container
-
-		// pWrappedContainer->AddRef(); is not called here as container add/release is handled
-		// by the container. The ref could be added here but as the release and destruction is
-		// hanlded by the container we leave it all in the same place (the container)
+		if (!pcActualSurfaceLeft)
+		{
+			m_unRefCount = 1;
+			OutputDebugString(L"[STS] Trying to create zero left actual surface.");
+		}
+		else
+		{
+			// set ref count by actual ref count
+			pcActualSurfaceLeft->AddRef();
+			m_unRefCount = pcActualSurfaceLeft->Release();
+		}
 	}
 
 	/**
@@ -120,13 +121,6 @@ public:
 	~IDirect3DStereoSurface9()
 	{
 		SHOW_CALL("D3D9ProxySurface::~D3D9ProxySurface()");
-		if (!m_pcWrappedContainer)
-		{
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->Release();
-			s_bDeviceInUseByProxy = false;
-		}
-
 		SAFE_RELEASE(lockableSysMemTexture);
 		SAFE_RELEASE(m_pcActualSurfaceRight);
 		SAFE_RELEASE(m_pcActualSurface);
@@ -197,16 +191,7 @@ public:
 	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice)
 	{
 		SHOW_CALL("D3D9ProxySurface::GetDevice()");
-		if (!m_pcOwningDevice)
-			return D3DERR_INVALIDCALL;
-		else
-		{
-			*ppcDevice = m_pcOwningDevice;
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->AddRef();
-			s_bDeviceInUseByProxy = false;
-			return D3D_OK;
-		}
+		return m_pcActualSurface->GetDevice(ppcDevice);
 	}
 
 	/**
@@ -303,11 +288,7 @@ public:
 		SHOW_CALL("D3D9ProxySurface::GetContainer");
 		if (!m_pcWrappedContainer)
 		{
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->AddRef();
-			s_bDeviceInUseByProxy = false;
-			*ppContainer = m_pcOwningDevice;
-			return D3D_OK;
+			return m_pcActualSurface->GetContainer(riid, ppContainer);
 		}
 
 		void *pContainer = NULL;
@@ -614,15 +595,22 @@ public:
 	IDirect3DStereoBaseTexture9(IDirect3DBaseTexture9* pcActualTextureLeft, IDirect3DBaseTexture9* pcActualTextureRight, IDirect3DDevice9* pcOwningDevice) :
 		m_pcActualTexture(pcActualTextureLeft),
 		m_pcActualTextureRight(pcActualTextureRight),
-		m_pcOwningDevice(pcOwningDevice),
-		m_unRefCount(1)
+		m_pcOwningDevice(pcOwningDevice)
 	{
 		SHOW_CALL("D3D9ProxyTexture::D3D9ProxyTexture");
 		assert(pcOwningDevice != NULL);
 
-		s_bDeviceInUseByProxy = true;
-		m_pcOwningDevice->AddRef();
-		s_bDeviceInUseByProxy = false;
+		if (!pcActualTextureLeft)
+		{
+			OutputDebugString(L"[STS] Trying to create a zero left texture. \n");
+			m_unRefCount = 1;
+		}
+		else
+		{
+			// set ref count by actual ref count
+			pcActualTextureLeft->AddRef();
+			m_unRefCount = pcActualTextureLeft->Release();
+		}
 	}
 	/**
 	* Destructor.
@@ -634,9 +622,6 @@ public:
 
 		SAFE_RELEASE(m_pcActualTexture);
 		SAFE_RELEASE(m_pcActualTextureRight);
-		s_bDeviceInUseByProxy = true;
-		SAFE_RELEASE(m_pcOwningDevice);
-		s_bDeviceInUseByProxy = false;
 	}
 
 	/*** IUnknown methods ***/
@@ -1008,7 +993,7 @@ public:
 			pcActualSurfaceLevelRight = NULL;
 
 			HRESULT leftResult = m_pcActualTextureT->GetSurfaceLevel(Level, &pcActualSurfaceLevelLeft);
-			
+
 			if (IsStereo() && m_pcActualTextureRight)
 			{
 				HRESULT resultRight = m_pcActualTextureRightT->GetSurfaceLevel(Level, &pcActualSurfaceLevelRight);
@@ -1660,15 +1645,6 @@ public:
 		m_pcWrappedContainer(pcWrappedContainer)
 	{
 		assert(pcOwningDevice != NULL);
-
-
-		if (!pcWrappedContainer)
-			pcOwningDevice->AddRef();
-		// else - We leave the device ref count changes to the container
-
-		// pcWrappedContainer->AddRef(); is not called here as container add/release is handled
-		// by the container. The ref could be added here but as the release and destruction is
-		// hanlded by the container we leave it all in the same place (the container)	
 	}
 
 	/**
@@ -1678,12 +1654,6 @@ public:
 	***/
 	~IDirect3DStereoVolume9()
 	{
-		if (!m_pcWrappedContainer)
-		{
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->Release();
-			s_bDeviceInUseByProxy = false;
-		}
 		SAFE_RELEASE(m_pcActualVolume);
 	}
 
@@ -2142,15 +2112,24 @@ public:
 	IDirect3DProxyVertexBuffer9::IDirect3DProxyVertexBuffer9(IDirect3DVertexBuffer9* pcActualVertexBuffer, IDirect3DDevice9* pcOwningDevice) :
 		m_pcActualVertexBuffer(pcActualVertexBuffer),
 		m_pcOwningDevice(pcOwningDevice),
-		lockableSysMemBuffer(nullptr),
-		m_unRefCount(1)
+		lockableSysMemBuffer(nullptr)
 	{
 		SHOW_CALL("IDirect3DProxyVertexBuffer9::IDirect3DProxyVertexBuffer9");
 
 		assert(pcActualVertexBuffer != NULL);
 		assert(pcOwningDevice != NULL);
 
-		pcOwningDevice->AddRef();
+		if (!pcActualVertexBuffer)
+		{
+			OutputDebugString(L"[STS] Trying to create a zero vertex buffer. \n");
+			m_unRefCount = 1;
+		}
+		else
+		{
+			// set ref count by actual ref count
+			pcActualVertexBuffer->AddRef();
+			m_unRefCount = pcActualVertexBuffer->Release();
+		}
 	}
 
 	/**
@@ -2164,13 +2143,6 @@ public:
 		if (m_pcActualVertexBuffer)
 		{
 			m_pcActualVertexBuffer->Release();
-		}
-
-		if (m_pcOwningDevice)
-		{
-			s_bDeviceInUseByProxy = true;
-			m_pcOwningDevice->Release();
-			s_bDeviceInUseByProxy = false;
 		}
 	}
 
