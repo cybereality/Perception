@@ -1290,8 +1290,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// instantly return if the device is in use by a proxy class;
 	if ((m_bUseD3D9Ex) && (s_bDeviceInUseByProxy)) return nullptr;
 
-	//#define _DEBUG_STEREO_SPLITTER
-	//#define _DEBUGTHIS
+	// #define _DEBUG_STEREO_SPLITTER
+	// #define _DEBUGTHIS
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
@@ -2030,6 +2030,21 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 													   if (!m_bPresent)
 														   Present((IDirect3DDevice9*)pThis, true);
+
+													   try
+													   {
+														   // ref count increase happens in the swapchain GetBackBuffer so we don't add another ref here as we are just passing the value through
+														   nHr = m_apcActiveSwapChains.at(*m_punISwapChain)->GetBackBuffer(*m_punIBackBuffer, *m_peType, *m_pppcBackBuffer);
+													   }
+													   catch (std::out_of_range)
+													   {
+														   OutputDebugString(L"[STS]GetBackBuffer: out of range getting swap chain");
+														   nHr = D3DERR_INVALIDCALL;
+													   }
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
 
 													   // swapchain index not present ?
 													   if ((*m_punISwapChain) >= (UINT)m_apcActiveSwapChains.size())
@@ -3004,6 +3019,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!m_peType) return nullptr;
 						if (!m_pppcBackBuffer) return nullptr;
 
+						OutputDebugString(L"[STS] FATAL : IDirect3DSwapChain->GetBackBuffer()");
+						exit(99);
+
 						IDirect3DDevice9* pcDevice = nullptr;
 						((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
 						if (pcDevice)
@@ -3091,6 +3109,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (m_bUseD3D9Ex)
 					{
 						OutputDebugString(L"[STS] IDirect3DSwapChain->GetFrontBufferData() not implemented !");
+						exit(99);
 					}
 					else
 					{
@@ -3522,26 +3541,68 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 	{
 		if (m_bUseD3D9Ex)
 		{
-			// get the first swapchain
-			IDirect3DSwapChain9* pcSwapChain = nullptr;
-			pcDevice->GetSwapChain(0, &pcSwapChain);
+			//// get the first swapchain
+			//IDirect3DSwapChain9* pcSwapChain = nullptr;
+			//pcDevice->GetSwapChain(0, &pcSwapChain);
 
-			if (pcSwapChain)
-			{
-				// ...and enumerate it internally
-				EnumerateSwapchain(pcDevice, pcSwapChain, 0);
-				pcSwapChain->Release();
+			//if (pcSwapChain)
+			//{
+			//	// ...and enumerate it internally
+			//	EnumerateSwapchain(pcDevice, pcSwapChain, 0);
+			//	pcSwapChain->Release();
 
-				// set the first proxy render target internally
-				m_apcActiveRenderTargets[0] = m_aapcActiveProxyBackBufferSurfaces[0][0];
-				if (m_apcActiveRenderTargets[0]) m_apcActiveRenderTargets[0]->AddRef();
-			}
-			else
+			//	// set the first proxy render target internally
+			//	m_apcActiveRenderTargets[0] = m_aapcActiveProxyBackBufferSurfaces[0][0];
+			//	if (m_apcActiveRenderTargets[0]) m_apcActiveRenderTargets[0]->AddRef();
+			//}
+			//else
+			//{
+			//	// actually we shouldnt come here...
+			//	OutputDebugString(L"[STS] Critical Error : No D3D9 swapchain present !");
+			//	exit(99);
+			//}
+
+			// Wrap the swap chain
+			IDirect3DSwapChain9* pActualPrimarySwapChain;
+			if (FAILED(pcDevice->GetSwapChain(0, &pActualPrimarySwapChain)))
 			{
-				// actually we shouldnt come here...
 				OutputDebugString(L"[STS] Critical Error : No D3D9 swapchain present !");
-				exit(99);
+				exit(1);
 			}
+
+			assert(m_apcActiveSwapChains.size() == 0);
+			m_apcActiveSwapChains.push_back(new IDirect3DStereoSwapChain9(pActualPrimarySwapChain, pcDevice, false));
+			assert(m_apcActiveSwapChains.size() == 1);
+
+			// Set the primary rendertarget to the first stereo backbuffer
+			IDirect3DSurface9* pWrappedBackBuffer;
+			m_apcActiveSwapChains[0]->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+			
+			// cast proxy surface
+			IDirect3DStereoSurface9* newRenderTarget = static_cast<IDirect3DStereoSurface9*>(pWrappedBackBuffer);
+
+			// set first render target
+			if (newRenderTarget == NULL)
+				pcDevice->SetRenderTarget(0, NULL);
+			else
+				pcDevice->SetRenderTarget(0, newRenderTarget->GetActualLeft());
+
+			// release old render target
+			if (m_apcActiveRenderTargets[0] != NULL)
+				m_apcActiveRenderTargets[0]->Release();
+
+			// changing rendertarget resets viewport to fullsurface
+			m_bActiveViewportIsDefault = true;
+
+			// replace with new render target (may be NULL)
+			m_apcActiveRenderTargets[0] = newRenderTarget;
+			if (m_apcActiveRenderTargets[0] != NULL)
+				m_apcActiveRenderTargets[0]->AddRef();
+
+
+			pWrappedBackBuffer->Release();
+			pWrappedBackBuffer = NULL;
+
 
 			// is there a depth stencil set from startup ?
 			IDirect3DSurface9* pcDepthStencil = nullptr;

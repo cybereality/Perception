@@ -97,7 +97,7 @@ public:
 		lockableSysMemTexture(NULL),
 		fullSurface(false)
 	{
-		SHOW_CALL("D3D9ProxySurface::D3D9ProxySurface()");
+		SHOW_CALL("IDirect3DStereoSurface9::IDirect3DStereoSurface9()");
 
 		assert(pcOwningDevice != NULL);
 
@@ -120,7 +120,7 @@ public:
 	***/
 	~IDirect3DStereoSurface9()
 	{
-		SHOW_CALL("D3D9ProxySurface::~D3D9ProxySurface()");
+		SHOW_CALL("IDirect3DStereoSurface9::~IDirect3DStereoSurface9()");
 		SAFE_RELEASE(lockableSysMemTexture);
 		SAFE_RELEASE(m_pcActualSurfaceRight);
 		SAFE_RELEASE(m_pcActualSurface);
@@ -131,7 +131,7 @@ public:
 	***/
 	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
-		SHOW_CALL("D3D9ProxySurface::QueryInterface()");
+		SHOW_CALL("IDirect3DStereoSurface9::QueryInterface()");
 
 		return m_pcActualSurface->QueryInterface(riid, ppv);
 	}
@@ -149,7 +149,7 @@ public:
 	***/
 	ULONG WINAPI AddRef()
 	{
-		SHOW_CALL("D3D9ProxySurface::AddRef()");
+		SHOW_CALL("IDirect3DStereoSurface9::AddRef()");
 
 		// if surface is in a container increase count on container instead of the surface
 		if (m_pcWrappedContainer)
@@ -168,7 +168,7 @@ public:
 	***/
 	ULONG WINAPI Release()
 	{
-		SHOW_CALL("D3D9ProxySurface::Release()");
+		SHOW_CALL("IDirect3DStereoSurface9::Release()");
 		if (m_pcWrappedContainer)
 		{
 			return m_pcWrappedContainer->Release();
@@ -190,7 +190,7 @@ public:
 	***/
 	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppcDevice)
 	{
-		SHOW_CALL("D3D9ProxySurface::GetDevice()");
+		SHOW_CALL("IDirect3DStereoSurface9::GetDevice()");
 		return m_pcActualSurface->GetDevice(ppcDevice);
 	}
 
@@ -199,7 +199,7 @@ public:
 	***/
 	HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 	{
-		SHOW_CALL("D3D9ProxySurface::SetPrivateData");
+		SHOW_CALL("IDirect3DStereoSurface9::SetPrivateData");
 		if (IsStereo())
 			m_pcActualSurfaceRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
@@ -211,7 +211,7 @@ public:
 	***/
 	HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 	{
-		SHOW_CALL("D3D9ProxySurface::GetPrivateData()");
+		SHOW_CALL("IDirect3DStereoSurface9::GetPrivateData()");
 		return m_pcActualSurface->GetPrivateData(refguid, pData, pSizeOfData);
 	}
 
@@ -220,7 +220,7 @@ public:
 	***/
 	HRESULT WINAPI FreePrivateData(REFGUID refguid)
 	{
-		SHOW_CALL("D3D9ProxySurface::FreePrivateData");
+		SHOW_CALL("IDirect3DStereoSurface9::FreePrivateData");
 		if (IsStereo())
 			m_pcActualSurfaceRight->FreePrivateData(refguid);
 
@@ -232,7 +232,7 @@ public:
 	***/
 	DWORD WINAPI SetPriority(DWORD PriorityNew)
 	{
-		SHOW_CALL("D3D9ProxySurface::SetPriority");
+		SHOW_CALL("IDirect3DStereoSurface9::SetPriority");
 		if (IsStereo())
 			m_pcActualSurfaceRight->SetPriority(PriorityNew);
 
@@ -244,7 +244,7 @@ public:
 	***/
 	DWORD WINAPI GetPriority()
 	{
-		SHOW_CALL("D3D9ProxySurface::GetPriority()");
+		SHOW_CALL("IDirect3DStereoSurface9::GetPriority()");
 		return m_pcActualSurface->GetPriority();
 	}
 
@@ -253,7 +253,7 @@ public:
 	***/
 	void WINAPI PreLoad()
 	{
-		SHOW_CALL("D3D9ProxySurface::PreLoad");
+		SHOW_CALL("IDirect3DStereoSurface9::PreLoad");
 		if (IsStereo())
 			m_pcActualSurfaceRight->PreLoad();
 
@@ -265,7 +265,7 @@ public:
 	***/
 	D3DRESOURCETYPE WINAPI GetType()
 	{
-		SHOW_CALL("D3D9ProxySurface::GetType()");
+		SHOW_CALL("IDirect3DStereoSurface9::GetType()");
 		return m_pcActualSurface->GetType();
 	}
 
@@ -285,7 +285,7 @@ public:
 	***/
 	HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer)
 	{
-		SHOW_CALL("D3D9ProxySurface::GetContainer");
+		SHOW_CALL("IDirect3DStereoSurface9::GetContainer");
 		if (!m_pcWrappedContainer)
 		{
 			return m_pcActualSurface->GetContainer(riid, ppContainer);
@@ -320,7 +320,7 @@ public:
 	***/
 	HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc)
 	{
-		SHOW_CALL("D3D9ProxySurface::GetDesc()");
+		SHOW_CALL("IDirect3DStereoSurface9::GetDesc()");
 
 		return m_pcActualSurface->GetDesc(pDesc);
 	}
@@ -330,7 +330,7 @@ public:
 	***/
 	HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 	{
-		SHOW_CALL("D3D9ProxySurface::LockRect");
+		SHOW_CALL("IDirect3DStereoSurface9::LockRect");
 
 		D3DSURFACE_DESC desc;
 		m_pcActualSurface->GetDesc(&desc);
@@ -404,7 +404,7 @@ public:
 	***/
 	HRESULT WINAPI UnlockRect()
 	{
-		SHOW_CALL("D3D9ProxySurface::UnlockRect");
+		SHOW_CALL("IDirect3DStereoSurface9::UnlockRect");
 		D3DSURFACE_DESC desc;
 		m_pcActualSurface->GetDesc(&desc);
 		if (desc.Pool != D3DPOOL_DEFAULT)
@@ -490,7 +490,7 @@ public:
 	***/
 	HRESULT WINAPI GetDC(HDC *phdc)
 	{
-		SHOW_CALL("D3D9ProxySurface::GetDC()");
+		SHOW_CALL("IDirect3DStereoSurface9::GetDC()");
 
 		return m_pcActualSurface->GetDC(phdc);
 	}
@@ -500,7 +500,7 @@ public:
 	***/
 	HRESULT WINAPI ReleaseDC(HDC hdc)
 	{
-		SHOW_CALL("D3D9ProxySurface::ReleaseDC");
+		SHOW_CALL("IDirect3DStereoSurface9::ReleaseDC");
 		if (IsStereo())
 			m_pcActualSurfaceRight->ReleaseDC(hdc);
 
@@ -1633,8 +1633,8 @@ protected:
 * Direct 3D proxy volume class.
 * Imbeds the wrapped container this volume is part of.
 *
-* See D3D9ProxySurface for notes on reference counting when in container.
-* @see D3D9ProxySurface
+* See IDirect3DStereoSurface9 for notes on reference counting when in container.
+* @see IDirect3DStereoSurface9
 ***/
 class IDirect3DStereoVolume9 : public IDirect3DVolume9
 {
@@ -1768,7 +1768,7 @@ public:
 	*
 	* If the call succeeds, the reference count of the container is increased by one.
 	* @return Owning device if no wrapped container present, otherwise the container.
-	* @see D3D9ProxySurface::GetContainer()
+	* @see IDirect3DStereoSurface9::GetContainer()
 	***/
 	HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer)
 	{
@@ -2325,4 +2325,259 @@ protected:
 	* Special handling required for locking buffers if we are using Dx9Ex
 	***/
 	IDirect3DVertexBuffer9* lockableSysMemBuffer;
+};
+
+/**
+*  Direct 3D stereo swap chain class.
+*/
+class IDirect3DStereoSwapChain9 : public IDirect3DSwapChain9
+{
+public:
+	/**
+	* Constructor.
+	***/
+	IDirect3DStereoSwapChain9(IDirect3DSwapChain9* pcActualSwapChain, IDirect3DDevice9* pcOwningDevice, bool isAdditionalChain) :
+		m_pcActualSwapChain(pcActualSwapChain),
+		m_pcOwningDevice(pcOwningDevice),
+		m_bIsAdditionalChain(isAdditionalChain),
+		m_unRefCount(1),
+		m_acBackBuffers()
+	{
+		SHOW_CALL("IDirect3DStereoSwapChain9::IDirect3DStereoSwapChain9");
+
+		assert(pcActualSwapChain != NULL);
+		assert(pcOwningDevice != NULL);
+
+		// Get creation parameters for backbuffers.
+		D3DPRESENT_PARAMETERS sParams;
+		pcActualSwapChain->GetPresentParameters(&sParams);
+
+		UINT unBBCount = sParams.BackBufferCount;
+		if (unBBCount == 0)
+			unBBCount = 1;
+
+		IDirect3DSurface9* pcTempActualBackBuffer;
+		pcActualSwapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pcTempActualBackBuffer);
+
+		D3DSURFACE_DESC sBackDesc;
+		pcTempActualBackBuffer->GetDesc(&sBackDesc);
+
+		// Create stereo backbuffers to use in place of actual backbuffers
+		for (UINT i = 0; i < unBBCount; i++)
+		{
+			static IDirect3DSurface9* s_pcRightRenderTarget = NULL;
+			if (FAILED(pcOwningDevice->CreateRenderTarget(sBackDesc.Width, sBackDesc.Height, sBackDesc.Format, sBackDesc.MultiSampleType, sBackDesc.MultiSampleQuality, false, &s_pcRightRenderTarget, NULL)))
+			{
+				OutputDebugString(L"[STS] Failed to create right eye back buffer !! \n");
+				s_pcRightRenderTarget = NULL;
+				exit(99);
+			}
+
+			HANDLE sharedHandleLeft = NULL;
+			HANDLE sharedHandleRight = NULL;
+			m_acBackBuffers.push_back(static_cast<IDirect3DStereoSurface9*>(new IDirect3DStereoSurface9(pcTempActualBackBuffer, s_pcRightRenderTarget, pcOwningDevice, this, sharedHandleLeft, sharedHandleRight)));
+		}
+	}
+
+	/**
+	* Destructor.
+	***/
+	virtual ~IDirect3DStereoSwapChain9()
+	{
+		SHOW_CALL("IDirect3DStereoSwapChain9::~IDirect3DStereoSwapChain9");
+
+		if (m_pcActualSwapChain)
+			m_pcActualSwapChain->Release();
+
+		auto it = m_acBackBuffers.begin();
+		while (it != m_acBackBuffers.end())
+		{
+			if (*it)
+			{
+				ULONG unNewRefCount = (*it)->Release();
+				if (unNewRefCount > 0)
+				{
+					char buf[128];
+					sprintf_s(buf, "[STS] Error: %s count = %d\n", "back buffer count (swapchain wrapper destruction)", unNewRefCount);
+					OutputDebugStringA(buf);
+				}
+
+				delete (*it);
+			}
+
+			++it;
+			//it = m_backBuffers.erase(it); // NS2 crashes here
+		}
+
+		m_acBackBuffers.clear();
+	}
+
+	/***
+	* QueryInterface base.
+	***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
+	{
+		return m_pcActualSwapChain->QueryInterface(riid, ppv);
+	}
+
+	/**
+	* AddRef uses internal ref counter here !!
+	***/
+	virtual ULONG   WINAPI AddRef()
+	{
+		return ++m_unRefCount;
+	}
+
+
+	/**
+	* Releases only additional swap chains.
+	* Primary swap chain isn't destroyed at ref count 0, stays alive. Other swap chains are destoyed if ref count reaches 0.
+	* BUT backbuffers aren't destroyed at 0 either AND this applies to primary and additional chains.
+	* So for additional chains we release the actual to destroy the actual. But we don't delete the proxy because it is
+	* our container for the stereo backbuffers.
+	* Because of this all swap chains have to be forcibly destroyed just before a reset.
+	***/
+	virtual ULONG   WINAPI Release()
+	{
+		if (m_unRefCount > 0)
+		{
+			if (--m_unRefCount == 0)
+			{
+
+				if (m_bIsAdditionalChain)
+				{
+					if (m_pcActualSwapChain)
+						m_pcActualSwapChain->Release();
+
+					m_pcActualSwapChain = NULL;
+				}
+			}
+		}
+
+		return m_unRefCount;
+	}
+
+	/**
+	* Present !! TODO !!!
+	***/
+	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
+	{
+		return m_pcActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
+
+		OutputDebugString(L"[STS] ERROR : IDirect3DStereoSwapChain9->Present() NOT IMPLEMENTED !!");
+		exit(99);
+		return 99;
+	}
+
+	/**
+	* GetFrontBufferData.
+	* Unwraps destination surface and does call on both sides.
+	***/
+	virtual HRESULT WINAPI GetFrontBufferData(IDirect3DSurface9* pDestSurface)
+	{
+		return m_pcActualSwapChain->GetFrontBufferData(pDestSurface);
+
+		SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
+
+		IDirect3DStereoSurface9* pcWrappedDestSurface = static_cast<IDirect3DStereoSurface9*>(pDestSurface);
+
+		HRESULT result;
+		if (!pcWrappedDestSurface)
+		{
+			result = m_pcActualSwapChain->GetFrontBufferData(NULL);
+		}
+		else
+		{
+			result = m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualLeft());
+
+			if (SUCCEEDED(result) && pcWrappedDestSurface->GetActualRight())
+			{
+
+				if (FAILED(m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualRight())))
+				{
+					OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; right problem - left ok\n");
+				}
+			}
+		}
+
+		// TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper left/right images. Much pondering required, and some testing
+		OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
+		return result;
+	}
+
+	/**
+	* Provides the stored proxy back buffer.
+	***/
+	virtual HRESULT WINAPI GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
+	{
+		SHOW_CALL("IDirect3DSwapChain::GetBackBuffer");
+
+		if ((iBackBuffer < 0) || (iBackBuffer >= m_acBackBuffers.size()))
+			return D3DERR_INVALIDCALL;
+
+		m_acBackBuffers[iBackBuffer]->AddRef();
+		*ppBackBuffer = m_acBackBuffers[iBackBuffer];
+
+		return D3D_OK;
+	}
+
+	/**
+	* Base functionality.
+	***/
+	HRESULT WINAPI GetRasterStatus(D3DRASTER_STATUS* pRasterStatus)
+	{
+		return m_pcActualSwapChain->GetRasterStatus(pRasterStatus);
+	}
+
+	/**
+	* Base GetDisplayMode functionality.
+	***/
+	HRESULT WINAPI GetDisplayMode(D3DDISPLAYMODE* pMode)
+	{
+		return m_pcActualSwapChain->GetDisplayMode(pMode);
+	}
+
+	/**
+	* Base GetDevice functionality.
+	***/
+	HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice)
+	{
+		return m_pcActualSwapChain->GetDevice(ppDevice);
+	}
+
+	/**
+	* Base GetPresentParameters functionality.
+	***/
+	HRESULT WINAPI GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters)
+	{
+		return m_pcActualSwapChain->GetPresentParameters(pPresentationParameters);
+	}
+
+protected:
+	/**
+	* The actual swap chain embedded.
+	***/
+	IDirect3DSwapChain9* m_pcActualSwapChain;
+	/**
+	* Pointer to the D3D device that owns the swap chain.
+	***/
+	IDirect3DDevice9* m_pcOwningDevice;
+	/**
+	* Bool to ensure only additional chains are destroyed on release.
+	***/
+	bool m_bIsAdditionalChain;
+
+private:
+	/**
+	* Internal reference counter.
+	***/
+	ULONG m_unRefCount;
+	/**
+	* Currently not used front buffer proxy surface.
+	***/
+	IDirect3DStereoSurface9* m_pcWrappedFrontBufferData;
+	/**
+	* Stored indexed proxy back buffer surfaces.
+	***/
+	std::vector<IDirect3DStereoSurface9*> m_acBackBuffers;
 };
