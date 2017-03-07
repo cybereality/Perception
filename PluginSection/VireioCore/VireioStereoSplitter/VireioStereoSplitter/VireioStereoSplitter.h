@@ -83,7 +83,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RESZ_CODE 0x7fa05000
 
 #define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  7500
+#define GUI_HEIGHT                                  7700
 #define GUI_CONTROL_BORDER                            64
 #define GUI_CONTROL_FONTSIZE                          64
 #define GUI_CONTROL_FONTBORDER                        16
@@ -92,7 +92,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_SPINSIZE                         980
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                       113
+#define NUMBER_OF_DECOMMANDERS                       115
 
 #define DUPLICATE_RENDERTARGET_POS_X                  16
 #define DUPLICATE_RENDERTARGET_POS_Y                  64
@@ -163,7 +163,7 @@ enum STS_Decommanders
 	Value,                        /**< ->SetRenderState() Value ***/
 	pViewport,                    /**< ->SetViewport() Viewport ***/
 	pRenderTargetGetData,         /**< ->GetRenderTargetData() */
-	iSwapChain,                   /**< ->GetFrontBufferData(), GetBackBuffer() */
+	iSwapChain,                   /**< ->GetFrontBufferData(), GetBackBuffer(), GetSwapChain() */
 	pDestSurface,                 /**< ->GetRenderTargetData() + GetFrontBufferData() */
 	iBackBuffer,                  /**< ->GetBackBuffer() **/
 	Type,                         /**< ->GetBackBuffer() **/
@@ -250,6 +250,8 @@ enum STS_Decommanders
 	SrcPitch,
 	SrcRowPitch,
 	SrcSlicePitch,
+	pPresentationParameters,
+	pSwapChain
 };
 
 /**
@@ -491,7 +493,6 @@ private:
 	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
 	void                    CreateGUI();
 	void                    UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
-	void                    EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwapChain9* pcSwapChain, UINT unIndex);
 	D3DFORMAT               GetD3D9ExFormat(D3DFORMAT eFormat);
 
 	/**
@@ -608,6 +609,8 @@ private:
 	UINT* m_punSrcPitch;
 	UINT* m_punSrcRowPitch;
 	UINT* m_punSrcSlicePitch;
+	D3DPRESENT_PARAMETERS** m_ppsPresentationParams;
+	IDirect3DSwapChain9*** m_pppcSwapChain;
 
 	/**
 	* Active stored render target views.

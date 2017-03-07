@@ -48,6 +48,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDIRECT3DSTATEBLOCK9                      13
 #define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
 #define INTERFACE_D3DX9                                     29
+#define METHOD_IDIRECT3DDEVICE9_CREATEADDITIONALSWAPCHAIN   13
+#define METHOD_IDIRECT3DDEVICE9_GETSWAPCHAIN                14
 #define METHOD_IDIRECT3DDEVICE9_RESET                       16
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
 #define METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER               18 
@@ -191,7 +193,9 @@ m_punSrcDataSize(nullptr),
 m_punSrcLevel(nullptr),
 m_punSrcPitch(nullptr),
 m_punSrcRowPitch(nullptr),
-m_punSrcSlicePitch(nullptr)
+m_punSrcSlicePitch(nullptr),
+m_ppsPresentationParams(nullptr),
+m_pppcSwapChain(nullptr)
 {
 	m_pcActiveDepthStencilSurface[0] = nullptr;
 	m_pcActiveDepthStencilSurface[1] = nullptr;
@@ -248,6 +252,11 @@ StereoSplitter::~StereoSplitter()
 	{
 		m_pcStereoBuffer[1]->Release();
 		m_pcStereoBuffer[1] = nullptr;
+	}
+
+	for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
+	{
+		if (m_apcActiveSwapChains[unI]) m_apcActiveSwapChains[unI]->Release();
 	}
 }
 
@@ -598,6 +607,10 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"SrcRowPitch";
 		case SrcSlicePitch:
 			return L"SrcSlicePitch";
+		case pPresentationParameters:
+			return L"pPresentationParameters";
+		case pSwapChain:
+			return L"pSwapChain";
 	}
 
 	return L"x";
@@ -844,6 +857,10 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return AQU_UINT;
 		case SrcSlicePitch:
 			return AQU_UINT;
+		case pPresentationParameters:
+			return AQU_PNT_D3DPRESENT_PARAMETERS;
+		case pSwapChain:
+			return AQU_PPNT_IDIRECT3DSWAPCHAIN9;
 	}
 
 	return 0;
@@ -1211,6 +1228,12 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 		case SrcSlicePitch:
 			m_punSrcSlicePitch = (UINT*)pData;
 			break;
+		case pPresentationParameters:
+			m_ppsPresentationParams = (D3DPRESENT_PARAMETERS**)pData;
+			break;
+		case pSwapChain:
+			m_pppcSwapChain = (IDirect3DSwapChain9***)pData;
+			break;
 	}
 }
 
@@ -1262,7 +1285,9 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETINDICES) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETINDICES))
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETINDICES) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEADDITIONALSWAPCHAIN) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSWAPCHAIN))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
@@ -2045,53 +2070,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 													   return (void*)&nHr;
-
-													   // swapchain index not present ?
-													   if ((*m_punISwapChain) >= (UINT)m_apcActiveSwapChains.size())
-													   {
-														   // enumerate swapchains in m_apcActiveSwapChains, backbuffers in m_aapcActiveProxyBackBufferSurfaces
-														   for (UINT unI = (UINT)m_apcActiveSwapChains.size(); unI <= (*m_punISwapChain); unI++)
-														   {
-															   // get swapchain for the specified index
-															   static IDirect3DSwapChain9* s_pcSwapChain = nullptr;
-															   s_pcSwapChain = nullptr;
-															   ((IDirect3DDevice9*)pThis)->GetSwapChain(unI, &s_pcSwapChain);
-
-															   if (s_pcSwapChain)
-															   {
-																   // enumerate this swapchain
-																   EnumerateSwapchain((IDirect3DDevice9*)pThis, s_pcSwapChain, unI);
-																   s_pcSwapChain->Release();
-															   }
-															   else
-															   {
-																   // invalid call ?
-																   OutputDebugString(L"[STS] Invalid call to ->GetBackBuffer().");
-																   nHr = D3DERR_INVALIDCALL;
-
-																   // method replaced, immediately return
-																   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-																   return (void*)&nHr;
-															   }
-														   }
-													   }
-
-													   // swapchain index is active ?
-													   if ((*m_punISwapChain) < (UINT)m_apcActiveSwapChains.size())
-													   {
-														   if ((*m_punIBackBuffer) < (UINT)m_aapcActiveProxyBackBufferSurfaces[*m_punISwapChain].size())
-															   *(*m_pppcBackBuffer) = m_aapcActiveProxyBackBufferSurfaces[*m_punISwapChain][*m_punIBackBuffer];
-														   if (*(*m_pppcBackBuffer)) (*(*m_pppcBackBuffer))->AddRef();
-
-														   nHr = D3D_OK;
-
-														   // method replaced, immediately return
-														   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-														   return (void*)&nHr;
-													   }
-
-													   OutputDebugString(L"[STS] Fatal : GetBackBuffer no swapchain !");
-													   exit(99);
 												   }
 												   else
 												   {
@@ -2992,6 +2970,38 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												   }
 												   return nullptr;
 #pragma endregion
+#pragma region CreateAdditionalSwapChain
+											   case METHOD_IDIRECT3DDEVICE9_CREATEADDITIONALSWAPCHAIN:
+												   if (m_bUseD3D9Ex)
+												   {
+													   if (!m_ppsPresentationParams) return nullptr;
+													   if (!m_pppcSwapChain) return nullptr;
+
+													   OutputDebugString(L"[STS] FATAL: IDirect3DDevice9->CreateAdditionalSwapchain() NOT IMPLEMENTED !");
+													   exit(ERROR_CALL_NOT_IMPLEMENTED);
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
+#pragma region GetSwapChain
+											   case METHOD_IDIRECT3DDEVICE9_GETSWAPCHAIN:
+												   if (m_bUseD3D9Ex)
+												   {
+													   if (!m_punISwapChain) return nullptr;
+													   if (!m_pppcSwapChain) return nullptr;
+
+													   OutputDebugString(L"[STS] FATAL: IDirect3DDevice9->GetSwapchain() NOT IMPLEMENTED !");
+													   exit(ERROR_CALL_NOT_IMPLEMENTED);
+
+													   // method replaced, immediately return
+													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+													   return (void*)&nHr;
+												   }
+												   return nullptr;
+#pragma endregion
 										   }
 										   return nullptr;
 		}
@@ -3019,85 +3029,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!m_peType) return nullptr;
 						if (!m_pppcBackBuffer) return nullptr;
 
-						OutputDebugString(L"[STS] FATAL : IDirect3DSwapChain->GetBackBuffer()");
+						OutputDebugString(L"[STS] FATAL : IDirect3DSwapChain->GetBackBuffer() should be handled by proxy class !!");
 						exit(99);
-
-						IDirect3DDevice9* pcDevice = nullptr;
-						((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
-						if (pcDevice)
-						{
-							if (!m_bPresent)
-								Present((IDirect3DDevice9*)pcDevice, true);
-
-							// is this swapchain enumerated ?
-							bool bSwapChainPresent = false;
-							for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
-							{
-								if (m_apcActiveSwapChains[unI] == pThis)
-									bSwapChainPresent = true;
-							}
-
-							// swapchain index not present ?
-							if (!bSwapChainPresent)
-							{
-								D3DPRESENT_PARAMETERS sParams = {};
-								((LPDIRECT3DSWAPCHAIN9)pThis)->GetPresentParameters(&sParams);
-
-								// enumerate swapchains in m_apcActiveSwapChains, backbuffers in m_aapcActiveProxyBackBufferSurfaces
-								for (UINT unI = (UINT)m_apcActiveSwapChains.size(); unI <= sParams.BackBufferCount; unI++)
-								{
-									// get swapchain for the specified index
-									static IDirect3DSwapChain9* s_pcSwapChain = nullptr;
-									s_pcSwapChain = nullptr;
-									pcDevice->GetSwapChain(unI, &s_pcSwapChain);
-
-									if (s_pcSwapChain)
-									{
-										// enumerate this swapchain
-										EnumerateSwapchain(pcDevice, s_pcSwapChain, unI);
-										s_pcSwapChain->Release();
-									}
-									else
-									{
-										// invalid call ?
-										OutputDebugString(L"[STS] Invalid call to ->GetBackBuffer().");
-										nHr = D3DERR_INVALIDCALL;
-										pcDevice->Release();
-
-										// method replaced, immediately return
-										nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-										return (void*)&nHr;
-									}
-								}
-							}
-
-							// search again for the swapchain, get the index
-							UINT unSwapChainIndex = 0;
-							for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
-							{
-								if (m_apcActiveSwapChains[unI] == pThis)
-									unSwapChainIndex = 0;
-							}
-
-							// swapchain index is active ?
-							if ((unSwapChainIndex) < (UINT)m_apcActiveSwapChains.size())
-							{
-								if ((*m_punIBackBuffer) < (UINT)m_aapcActiveProxyBackBufferSurfaces[unSwapChainIndex].size())
-									*(*m_pppcBackBuffer) = m_aapcActiveProxyBackBufferSurfaces[unSwapChainIndex][*m_punIBackBuffer];
-								if (*(*m_pppcBackBuffer)) (*(*m_pppcBackBuffer))->AddRef();
-
-								nHr = D3D_OK;
-								pcDevice->Release();
-
-								// method replaced, immediately return
-								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-								return (void*)&nHr;
-							}
-
-							pcDevice->Release();
-							OutputDebugString(L"[STS] Fatal : GetBackBuffer no swapchain !");
-							exit(99);
-						}
 					}
 					else
 					{
@@ -3110,6 +3043,35 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					{
 						OutputDebugString(L"[STS] IDirect3DSwapChain->GetFrontBufferData() not implemented !");
 						exit(99);
+
+						// TODO !! IMPLEMENT FOLLOWING CODE :
+
+						/*SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
+
+						IDirect3DStereoSurface9* pcWrappedDestSurface = static_cast<IDirect3DStereoSurface9*>(pDestSurface);
+
+						HRESULT result;
+						if (!pcWrappedDestSurface)
+						{
+						result = m_pcActualSwapChain->GetFrontBufferData(NULL);
+						}
+						else
+						{
+						result = m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualLeft());
+
+						if (SUCCEEDED(result) && pcWrappedDestSurface->GetActualRight())
+						{
+
+						if (FAILED(m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualRight())))
+						{
+						OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; right problem - left ok\n");
+						}
+						}
+						}
+
+						// TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper left/right images. Much pondering required, and some testing
+						OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
+						return result;*/
 					}
 					else
 					{
@@ -3577,7 +3539,7 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 			// Set the primary rendertarget to the first stereo backbuffer
 			IDirect3DSurface9* pWrappedBackBuffer;
 			m_apcActiveSwapChains[0]->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-			
+
 			// cast proxy surface
 			IDirect3DStereoSurface9* newRenderTarget = static_cast<IDirect3DStereoSurface9*>(pWrappedBackBuffer);
 
@@ -4838,65 +4800,6 @@ void StereoSplitter::UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, 
 		OutputDebugString(L"[STS] No left texture? Unpossible!\n");
 		assert(false);
 	}
-}
-
-/**
-* Enumerates a swapchain to the internal swapchain array.
-**/
-void StereoSplitter::EnumerateSwapchain(IDirect3DDevice9* pcDevice, IDirect3DSwapChain9* pcSwapChain, UINT unIndex)
-{
-	// get number of backbuffers in that swapchain
-	D3DPRESENT_PARAMETERS sParams = {};
-	pcSwapChain->GetPresentParameters(&sParams);
-
-	// create back buffer vector
-	static std::vector<IDirect3DStereoSurface9*> s_apcProxyBackBuffers = std::vector<IDirect3DStereoSurface9*>();
-
-	// loop through backbuffers, add them
-	for (UINT unJ = 0; unJ < sParams.BackBufferCount; unJ++)
-	{
-		// get back buffer for the specified index
-		IDirect3DSurface9* pcBackBuffer = nullptr;
-		pcSwapChain->GetBackBuffer(unJ, D3DBACKBUFFER_TYPE::D3DBACKBUFFER_TYPE_MONO, &pcBackBuffer);
-
-		if (pcBackBuffer)
-		{
-			// create stereo proxy back buffer
-			D3DSURFACE_DESC sDesc = {};
-			pcBackBuffer->GetDesc(&sDesc);
-			static IDirect3DSurface9* s_pcBackBufferRight = nullptr;
-			s_pcBackBufferRight = nullptr;
-			HRESULT hr = pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &s_pcBackBufferRight, nullptr);
-			if (FAILED(hr))
-			{
-				{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
-				HRESULT hr = pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &s_pcBackBufferRight, nullptr);
-				if (FAILED(hr))
-				{
-					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr); OutputDebugString(buf); }
-					exit(99);
-				}
-			}
-
-			// add a reference to the swapchain since we set it as container here
-			pcSwapChain->AddRef();
-			IDirect3DStereoSurface9* pcBackBufferStereo = new IDirect3DStereoSurface9(pcBackBuffer, s_pcBackBufferRight, pcDevice, (IUnknown*)pcSwapChain, nullptr, nullptr);
-
-			// add backbuffer to vector and add a reference, to not release the backbuffer since the stereo buffer keeps a reference
-			pcBackBufferStereo->AddRef();
-			s_apcProxyBackBuffers.push_back(pcBackBufferStereo);
-		}
-		else
-		{
-			// actually, we shouldn't come here
-			OutputDebugString(L"[STS] D3DPRESTENT_PARAMETERS struct is invalid !");
-			s_apcProxyBackBuffers.push_back(nullptr);
-		}
-	}
-
-	// add backbuffer vector and swapchain
-	m_apcActiveSwapChains.push_back(pcSwapChain);
-	m_aapcActiveProxyBackBufferSurfaces.push_back(s_apcProxyBackBuffers);
 }
 
 /**

@@ -2463,10 +2463,6 @@ public:
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 	{
 		return m_pcActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
-
-		OutputDebugString(L"[STS] ERROR : IDirect3DStereoSwapChain9->Present() NOT IMPLEMENTED !!");
-		exit(99);
-		return 99;
 	}
 
 	/**
@@ -2476,33 +2472,6 @@ public:
 	virtual HRESULT WINAPI GetFrontBufferData(IDirect3DSurface9* pDestSurface)
 	{
 		return m_pcActualSwapChain->GetFrontBufferData(pDestSurface);
-
-		SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
-
-		IDirect3DStereoSurface9* pcWrappedDestSurface = static_cast<IDirect3DStereoSurface9*>(pDestSurface);
-
-		HRESULT result;
-		if (!pcWrappedDestSurface)
-		{
-			result = m_pcActualSwapChain->GetFrontBufferData(NULL);
-		}
-		else
-		{
-			result = m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualLeft());
-
-			if (SUCCEEDED(result) && pcWrappedDestSurface->GetActualRight())
-			{
-
-				if (FAILED(m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualRight())))
-				{
-					OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; right problem - left ok\n");
-				}
-			}
-		}
-
-		// TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper left/right images. Much pondering required, and some testing
-		OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
-		return result;
 	}
 
 	/**
