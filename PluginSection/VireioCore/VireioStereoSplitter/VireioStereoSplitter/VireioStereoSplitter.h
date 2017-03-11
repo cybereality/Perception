@@ -658,6 +658,10 @@ private:
 	**/
 	std::vector<IDirect3DSwapChain9*> m_apcActiveSwapChains;
 	/**
+	* Active stored vertex buffers.
+	**/
+	std::unordered_map<UINT, IDirect3DProxyVertexBuffer9*> m_apcActiveVertexBuffers;
+	/**
 	* Number of set textures.
 	* Number of textures not set to NULL.
 	***/

@@ -258,6 +258,41 @@ StereoSplitter::~StereoSplitter()
 	{
 		if (m_apcActiveSwapChains[unI]) m_apcActiveSwapChains[unI]->Release();
 	}
+
+	if (m_pcActiveDepthStencilSurface[0])
+	{
+		m_pcActiveDepthStencilSurface[0]->Release();
+	}
+
+	for (UINT unSampler = 0; unSampler < D3D9_SIMULTANEAOUS_TEXTURE_COUNT; unSampler++)
+	if (m_apcActiveTexturesDisplacement[unSampler])
+	{
+		m_apcActiveTexturesDisplacement[unSampler]->Release();
+		m_apcActiveTexturesDisplacement[unSampler] = nullptr;
+	}
+
+	for (UINT unSampler = D3DDMAPSAMPLER; unSampler <= D3DVERTEXTEXTURESAMPLER3; unSampler++)
+	if (m_apcActiveTextures[unSampler])
+	{
+		m_apcActiveTextures[unSampler]->Release();
+		m_apcActiveTextures[unSampler] = nullptr;
+	}
+
+	for (UINT unIndex = 0; unIndex < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; unIndex++)
+	if (m_apcActiveRenderTargets[unIndex] != NULL)
+	{
+		m_apcActiveRenderTargets[unIndex]->Release();
+		m_apcActiveRenderTargets[unIndex] = NULL;
+	}
+
+	auto itVB = m_apcActiveVertexBuffers.begin();
+	while (itVB != m_apcActiveVertexBuffers.end())
+	{
+		if (itVB->second)
+			itVB->second->Release();
+
+		itVB = m_apcActiveVertexBuffers.erase(itVB);
+	}
 }
 
 /**
@@ -2240,8 +2275,47 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_RESET:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] ->Reset() NOT IMPLEMENTED !!");
-													   exit(99);
+													   for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
+													   {
+														   if (m_apcActiveSwapChains[unI]) m_apcActiveSwapChains[unI]->Release();
+													   }
+
+													   if (m_pcActiveDepthStencilSurface[0])
+													   {
+														   m_pcActiveDepthStencilSurface[0]->Release();
+													   }
+
+													   for (UINT unSampler = 0; unSampler < D3D9_SIMULTANEAOUS_TEXTURE_COUNT; unSampler++)
+													   if (m_apcActiveTexturesDisplacement[unSampler])
+													   {
+														   m_apcActiveTexturesDisplacement[unSampler]->Release();
+														   m_apcActiveTexturesDisplacement[unSampler] = nullptr;
+													   }
+
+													   for (UINT unSampler = D3DDMAPSAMPLER; unSampler <= D3DVERTEXTEXTURESAMPLER3; unSampler++)
+													   if (m_apcActiveTextures[unSampler])
+													   {
+														   m_apcActiveTextures[unSampler]->Release();
+														   m_apcActiveTextures[unSampler] = nullptr;
+													   }
+
+													   for (UINT unIndex = 0; unIndex < D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT; unIndex++)
+													   if (m_apcActiveRenderTargets[unIndex] != NULL)
+													   {
+														   m_apcActiveRenderTargets[unIndex]->Release();
+														   m_apcActiveRenderTargets[unIndex] = NULL;
+													   }
+
+													   auto itVB = m_apcActiveVertexBuffers.begin();
+													   while (itVB != m_apcActiveVertexBuffers.end())
+													   {
+														   if (itVB->second)
+															   itVB->second->Release();
+
+														   itVB = m_apcActiveVertexBuffers.erase(itVB);
+													   }
+
+													   m_bPresent = false;
 												   }
 												   else
 												   {
@@ -2900,15 +2974,15 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : ProcessVertices()");
-													   exit(99);
-
 													   if (!m_punSrcStartIndex) return nullptr; /**< ->ProcessVertices() **/
 													   if (!m_punDestIndex) return nullptr; /**< ->ProcessVertices() **/
 													   if (!m_punVertexCount) return nullptr; /**< ->ProcessVertices() **/
 													   if (!m_ppcDestBuffer) return nullptr; /**< ->ProcessVertices() **/
 													   if (!m_ppcVertexDecl) return nullptr; /**< ->ProcessVertices() **/
 													   if (!m_punFlags) return nullptr; /**< ->ProcessVertices() **/
+
+													   IDirect3DProxyVertexBuffer9* pCastDestBuffer = static_cast<IDirect3DProxyVertexBuffer9*>(*m_ppcDestBuffer);
+													   nHr = ((IDirect3DDevice9*)pThis)->ProcessVertices(*m_punSrcStartIndex, *m_punDestIndex, *m_punVertexCount, pCastDestBuffer->GetActual(), *m_ppcVertexDecl, *m_punFlags);
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -2932,6 +3006,40 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   // set actual buffer
 													   nHr = ((IDirect3DDevice9*)pThis)->SetStreamSource(*m_punStreamNumber, pNewBuffer->GetActual(), *m_punOffsetInBytes, *m_punStride);
 
+													   // remove existing vertex buffer that was active at StreamNumber if there is one
+													   if (m_apcActiveVertexBuffers.count(*m_punStreamNumber) == 1)
+													   {
+
+														   IDirect3DVertexBuffer9* pOldBuffer = m_apcActiveVertexBuffers.at(*m_punStreamNumber);
+														   if (pOldBuffer == *m_ppcStreamData)
+														   {
+															   // method replaced, immediately return
+															   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+															   return (void*)&nHr;
+														   }
+
+														   if (pOldBuffer)
+															   pOldBuffer->Release();
+
+														   m_apcActiveVertexBuffers.erase(*m_punStreamNumber);
+													   }
+
+													   // insert new vertex buffer
+													   if (m_apcActiveVertexBuffers.insert(std::pair<UINT, IDirect3DProxyVertexBuffer9*>(*m_punStreamNumber, pNewBuffer)).second)
+													   {
+														   // success
+														   if (*m_ppcStreamData)
+															   (*m_ppcStreamData)->AddRef();
+													   }
+													   else
+													   {
+														   OutputDebugStringA("[STS] Unable to store active Texture Stage.\n");
+														   assert(false);
+
+														   // If we get here the state of the texture tracking is fubared and an implosion is imminent.
+														   nHr = D3DERR_INVALIDCALL;
+													   }
+
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 													   return (void*)&nHr;
@@ -2942,13 +3050,22 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											   case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE:
 												   if (m_bUseD3D9Ex)
 												   {
-													   OutputDebugString(L"[STS] NOT IMPLEMENTED : GetStreamSource()");
-													   exit(99);
-
 													   if (!m_punStreamNumber) return nullptr; /**< ->SetStreamSource(), ->GetStreamSource() **/
 													   if (!m_pppcStreamData) return nullptr; /**< ->GetStreamSource() **/
 													   if (!m_ppunOffsetInBytes) return nullptr; /**< ->GetStreamSource() **/
 													   if (!m_ppunStride) return nullptr; /**< ->GetStreamSource() **/
+
+													   // This whole methods implementation is highly questionable. Not sure exactly how GetStreamSource works
+													   nHr = D3DERR_INVALIDCALL;
+
+													   if (m_apcActiveVertexBuffers.count(*m_punStreamNumber) == 1)
+													   {
+														   *(*m_pppcStreamData) = m_apcActiveVertexBuffers[StreamNumber];
+														   if ((*(*m_pppcStreamData)))
+															   (*(*m_pppcStreamData))->AddRef();
+
+														   nHr = D3D_OK;
+													   }
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -2977,8 +3094,15 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_ppsPresentationParams) return nullptr;
 													   if (!m_pppcSwapChain) return nullptr;
 
-													   OutputDebugString(L"[STS] FATAL: IDirect3DDevice9->CreateAdditionalSwapchain() NOT IMPLEMENTED !");
-													   exit(ERROR_CALL_NOT_IMPLEMENTED);
+													   IDirect3DSwapChain9* pcActualSwapChain = nullptr;
+													   nHr = ((IDirect3DDevice9*)pThis)->CreateAdditionalSwapChain(*m_ppsPresentationParams, &pcActualSwapChain);
+
+													   if (SUCCEEDED(nHr))
+													   {
+														   IDirect3DStereoSwapChain9* pcWrappedSwapChain = new IDirect3DStereoSwapChain9(pcActualSwapChain, (IDirect3DDevice9*)pThis, true);
+														   *(*m_pppcSwapChain) = pcWrappedSwapChain;
+														   m_apcActiveSwapChains.push_back(pcWrappedSwapChain);
+													   }
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -2993,8 +3117,18 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_punISwapChain) return nullptr;
 													   if (!m_pppcSwapChain) return nullptr;
 
-													   OutputDebugString(L"[STS] FATAL: IDirect3DDevice9->GetSwapchain() NOT IMPLEMENTED !");
-													   exit(ERROR_CALL_NOT_IMPLEMENTED);
+													   nHr = S_OK;
+													   try
+													   {
+														   *(*m_pppcSwapChain) = m_apcActiveSwapChains.at(*m_punISwapChain);
+														   // pcDevice->GetSwapChain increases ref count on the chain (docs don't say this)
+														   (*(*m_pppcSwapChain))->AddRef();
+													   }
+													   catch (std::out_of_range)
+													   {
+														   OutputDebugStringA("[STS] GetSwapChain: out of range fetching swap chain");
+														   nHr = D3DERR_INVALIDCALL;
+													   }
 
 													   // method replaced, immediately return
 													   nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -3041,37 +3175,36 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				case METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA:
 					if (m_bUseD3D9Ex)
 					{
-						OutputDebugString(L"[STS] IDirect3DSwapChain->GetFrontBufferData() not implemented !");
-						exit(99);
+						SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
 
-						// TODO !! IMPLEMENT FOLLOWING CODE :
+						if (!m_ppcDestSurface) return nullptr;
 
-						/*SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
+						IDirect3DStereoSurface9* pcWrappedDestSurface = static_cast<IDirect3DStereoSurface9*>(*m_ppcDestSurface);
 
-						IDirect3DStereoSurface9* pcWrappedDestSurface = static_cast<IDirect3DStereoSurface9*>(pDestSurface);
-
-						HRESULT result;
 						if (!pcWrappedDestSurface)
 						{
-						result = m_pcActualSwapChain->GetFrontBufferData(NULL);
+							nHr = ((LPDIRECT3DSWAPCHAIN9)pThis)->GetFrontBufferData(NULL);
 						}
 						else
 						{
-						result = m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualLeft());
+							nHr = ((LPDIRECT3DSWAPCHAIN9)pThis)->GetFrontBufferData(pcWrappedDestSurface->GetActualLeft());
 
-						if (SUCCEEDED(result) && pcWrappedDestSurface->GetActualRight())
-						{
+							if (SUCCEEDED(nHr) && pcWrappedDestSurface->GetActualRight())
+							{
 
-						if (FAILED(m_pcActualSwapChain->GetFrontBufferData(pcWrappedDestSurface->GetActualRight())))
-						{
-						OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; right problem - left ok\n");
-						}
-						}
+								if (FAILED(((LPDIRECT3DSWAPCHAIN9)pThis)->GetFrontBufferData(pcWrappedDestSurface->GetActualRight())))
+								{
+									OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; right problem - left ok\n");
+								}
+							}
 						}
 
 						// TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper left/right images. Much pondering required, and some testing
 						OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
-						return result;*/
+						
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						return (void*)&nHr;
 					}
 					else
 					{
@@ -3503,27 +3636,6 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 	{
 		if (m_bUseD3D9Ex)
 		{
-			//// get the first swapchain
-			//IDirect3DSwapChain9* pcSwapChain = nullptr;
-			//pcDevice->GetSwapChain(0, &pcSwapChain);
-
-			//if (pcSwapChain)
-			//{
-			//	// ...and enumerate it internally
-			//	EnumerateSwapchain(pcDevice, pcSwapChain, 0);
-			//	pcSwapChain->Release();
-
-			//	// set the first proxy render target internally
-			//	m_apcActiveRenderTargets[0] = m_aapcActiveProxyBackBufferSurfaces[0][0];
-			//	if (m_apcActiveRenderTargets[0]) m_apcActiveRenderTargets[0]->AddRef();
-			//}
-			//else
-			//{
-			//	// actually we shouldnt come here...
-			//	OutputDebugString(L"[STS] Critical Error : No D3D9 swapchain present !");
-			//	exit(99);
-			//}
-
 			// Wrap the swap chain
 			IDirect3DSwapChain9* pActualPrimarySwapChain;
 			if (FAILED(pcDevice->GetSwapChain(0, &pActualPrimarySwapChain)))
