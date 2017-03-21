@@ -1405,7 +1405,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   OutputDebugString(L"[STS] RenderTarget is not a valid (IDirect3DStereoSurface) stereo capable surface\n");
 													   }
 #endif
-
 													   //// Update actual render target ////
 
 													   // Removing a render target
@@ -2437,9 +2436,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
 
-													   // INTZ not supported in IDirect3DDevice9Ex ??
-													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
-
 #ifdef _DEBUGTHIS
 													   OutputDebugString(L"[STS] Create texture format :");
 													   DEBUG_UINT(eFormat);
@@ -2500,10 +2496,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   ePool = D3DPOOL_DEFAULT;
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
-
-													   // INTZ not supported in IDirect3DDevice9Ex ??
-													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
-
 #ifdef _DEBUGTHIS
 													   OutputDebugString(L"[STS] Create volume texture format :");
 													   DEBUG_UINT(eFormat);
@@ -2551,9 +2543,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   ePool = D3DPOOL_DEFAULT;
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
-
-													   // INTZ not supported in IDirect3DDevice9Ex ??
-													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 
 													   static IDirect3DCubeTexture9* s_pcLeftCubeTexture = NULL;
 													   s_pcLeftCubeTexture = NULL;
@@ -2684,11 +2673,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&s_pcDirect3DDevice9Ex))))
 													   {
 														   *m_ppvSharedHandle = &sharedHandleLeft;
-														   eMultiSample = D3DMULTISAMPLE_NONE;
-														   eMultiSampleQuality = 0;
-
-														   // INTZ not supported in IDirect3DDevice9Ex ??
-														   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+														   /*eMultiSample = D3DMULTISAMPLE_NONE;
+														   eMultiSampleQuality = 0;		*/
 													   }
 
 #ifdef _DEBUGTHIS
@@ -2765,7 +2751,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   static IDirect3DSurface9* s_pcDepthStencilSurfaceRight = NULL;
 													   s_pcDepthStencilSurfaceRight = NULL;
 
-													   // Override multisampling if DX9Ex
+													   // Override multisampling if DX9Ex... need that ??
 													   D3DMULTISAMPLE_TYPE eMultiSample = *m_peMultiSample;
 													   DWORD eMultiSampleQuality = *m_punMultisampleQuality;
 													   D3DFORMAT eFormat = *m_peFormat;
@@ -2774,11 +2760,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   s_pcDirect3DDevice9Ex = NULL;
 													   if (SUCCEEDED(((IDirect3DDevice9*)pThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&s_pcDirect3DDevice9Ex))))
 													   {
-														   eMultiSample = D3DMULTISAMPLE_NONE;
-														   eMultiSampleQuality = 0;
-
-														   // INTZ not supported in IDirect3DDevice9Ex ??
-														   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
+														   /*eMultiSample = D3DMULTISAMPLE_NONE;
+														   eMultiSampleQuality = 0;*/
 
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
@@ -2841,9 +2824,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 														   ePool = D3DPOOL_DEFAULT;
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
-
-													   // INTZ not supported in IDirect3DDevice9Ex ??
-													   if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 
 #ifdef _DEBUGTHIS
 													   OutputDebugString(L"[STS] Create offscreen plain format :");
@@ -3094,6 +3074,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   if (!m_ppsPresentationParams) return nullptr;
 													   if (!m_pppcSwapChain) return nullptr;
 
+													   if (!m_bPresent)
+														   Present((IDirect3DDevice9*)pThis, true);
+
 													   IDirect3DSwapChain9* pcActualSwapChain = nullptr;
 													   nHr = ((IDirect3DDevice9*)pThis)->CreateAdditionalSwapChain(*m_ppsPresentationParams, &pcActualSwapChain);
 
@@ -3101,7 +3084,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 													   {
 														   IDirect3DStereoSwapChain9* pcWrappedSwapChain = new IDirect3DStereoSwapChain9(pcActualSwapChain, (IDirect3DDevice9*)pThis, true);
 														   *(*m_pppcSwapChain) = pcWrappedSwapChain;
-														   m_apcActiveSwapChains.push_back(pcWrappedSwapChain);
 													   }
 
 													   // method replaced, immediately return
@@ -3164,6 +3146,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!m_pppcBackBuffer) return nullptr;
 
 						OutputDebugString(L"[STS] FATAL : IDirect3DSwapChain->GetBackBuffer() should be handled by proxy class !!");
+						DEBUG_HEX(pThis);
 						exit(99);
 					}
 					else
@@ -3201,7 +3184,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper left/right images. Much pondering required, and some testing
 						OutputDebugString(L"[STS] IDirect3DStereoSwapChain9::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
-						
+
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						return (void*)&nHr;
@@ -3377,9 +3360,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							s_pcDirect3DDevice9Ex->Release();
 						}
 
-						// INTZ not supported in IDirect3DDevice9Ex ??
-						if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
-
 #ifdef _DEBUGTHIS
 						OutputDebugString(L"[STS] Create texture format :");
 						DEBUG_UINT(eFormat);
@@ -3396,6 +3376,74 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								{
 									OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 									s_pcRightTexture = NULL;
+								}
+							}
+						}
+						else
+						{
+							OutputDebugString(L"[STS] Failed to create texture IDirect3DTexture9\n");
+						}
+
+						if (SUCCEEDED(nHr))
+						{
+							*(*m_pppcTextureCreate) = new IDirect3DStereoTexture9(s_pcLeftTexture, s_pcRightTexture, ((IDirect3DDevice9*)pThis));
+						}
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						return (void*)&nHr;
+					}
+					return nullptr;
+#pragma endregion
+#pragma region D3D9_D3DXCreateTextureFromFileInMemory
+				case MT_D3DX9::D3D9_D3DXCreateTextureFromFileInMemory:
+					if (m_bUseD3D9Ex)
+					{
+						if (!m_ppSrcData) return nullptr;
+						if (!m_punSrcDataSize) return nullptr;
+						if (!m_pppcTextureCreate) return nullptr;
+#ifdef _DEBUGTHIS
+						wchar_t buf[32];
+						wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
+						wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
+						wsprintf(buf, L"m_punLevels %u", *m_punLevels); OutputDebugString(buf);
+						wsprintf(buf, L"m_punUsage %u", *m_punUsage); OutputDebugString(buf);
+						wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
+						wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
+#endif
+						SHOW_CALL("D3DXCreateTextureFromFileInMemory");
+
+						static IDirect3DTexture9* s_pcLeftTexture = NULL;
+						static IDirect3DTexture9* s_pcRightTexture = NULL;
+						s_pcLeftTexture = NULL;
+						s_pcRightTexture = NULL;
+
+#ifdef _DEBUGTHIS
+						OutputDebugString(L"[STS] Create texture format :");
+						DEBUG_UINT(eFormat);
+						DEBUG_HEX(eFormat);
+#endif
+
+						// try and create left
+						if (SUCCEEDED(nHr = D3DXCreateTextureFromFileInMemory((IDirect3DDevice9*)pThis, *m_ppSrcData, *m_punSrcDataSize, &s_pcLeftTexture)))
+						{
+							if (s_pcLeftTexture)
+							{
+								// get description
+								UINT unLevels = s_pcLeftTexture->GetLevelCount();
+								D3DSURFACE_DESC sDesc = {};
+								IDirect3DSurface9* pcSurface = nullptr;
+								s_pcLeftTexture->GetSurfaceLevel(0, &pcSurface);
+								if (pcSurface) pcSurface->GetDesc(&sDesc);
+
+								// Does this Texture need duplicating?
+								if (ShouldDuplicateTexture(sDesc.Width, sDesc.Height, unLevels, sDesc.Usage, sDesc.Format, sDesc.Pool))
+								{
+									if (FAILED(D3DXCreateTextureFromFileInMemory((IDirect3DDevice9*)pThis, *m_ppSrcData, *m_punSrcDataSize, &s_pcRightTexture)))
+									{
+										OutputDebugString(L"[STS] Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+										s_pcRightTexture = NULL;
+									}
 								}
 							}
 						}
@@ -3442,7 +3490,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
 						wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
 #endif
-						SHOW_CALL("D3DXCreateTexture");
+						SHOW_CALL("D3DXCreateTextureFromFileInMemoryEx");
 
 						static IDirect3DTexture9* s_pcLeftTexture = NULL;
 						static IDirect3DTexture9* s_pcRightTexture = NULL;
@@ -3461,9 +3509,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							ePool = D3DPOOL_DEFAULT;
 							s_pcDirect3DDevice9Ex->Release();
 						}
-
-						// INTZ not supported in IDirect3DDevice9Ex ??
-						if (eFormat == D3DFMT_INTZ) eFormat = D3DFMT_D24S8;
 
 #ifdef _DEBUGTHIS
 						OutputDebugString(L"[STS] Create texture format :");
@@ -3500,7 +3545,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					}
 					return nullptr;
 #pragma endregion
-#pragma region D3D9_D3DXFillVolumeTexture
+#pragma region D3D9_D3DXFillTexture
 				case MT_D3DX9::D3D9_D3DXFillTexture:
 					SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXFillTexture");
 					if (!m_ppcTexture_D3DX) return nullptr;
@@ -3644,6 +3689,7 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 				exit(1);
 			}
 
+			if (m_apcActiveSwapChains.size()) OutputDebugString(L"[STS] Fatal ! Active swapchain already set !");
 			assert(m_apcActiveSwapChains.size() == 0);
 			m_apcActiveSwapChains.push_back(new IDirect3DStereoSwapChain9(pActualPrimarySwapChain, pcDevice, false));
 			assert(m_apcActiveSwapChains.size() == 1);
@@ -3673,10 +3719,8 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 			if (m_apcActiveRenderTargets[0] != NULL)
 				m_apcActiveRenderTargets[0]->AddRef();
 
-
 			pWrappedBackBuffer->Release();
 			pWrappedBackBuffer = NULL;
-
 
 			// is there a depth stencil set from startup ?
 			IDirect3DSurface9* pcDepthStencil = nullptr;
@@ -3692,7 +3736,7 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 				if (FAILED(hr))
 				{
 					{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pcDevice->CreateDepthStencilSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }
-					hr = pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &pcDepthStencilRight, nullptr);
+					hr = pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcDepthStencilRight, nullptr);
 					if (FAILED(hr))
 					{
 						{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed: pcDevice->CreateDepthStencilSurface hr = 0x%0.8x", hr); OutputDebugString(buf); }

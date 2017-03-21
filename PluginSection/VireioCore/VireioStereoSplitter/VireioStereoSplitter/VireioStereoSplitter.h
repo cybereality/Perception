@@ -655,6 +655,8 @@ private:
 	std::vector<std::vector<IDirect3DStereoSurface9*>> m_aapcActiveProxyBackBufferSurfaces;
 	/**
 	* Active stored swapchains. Only valid if D3D9Ex device is used.
+	* Note that any given device can support only one full-screen swap chain !!
+	* For a single adapter only ONE swapchain can be active !! (=index 0)
 	**/
 	std::vector<IDirect3DSwapChain9*> m_apcActiveSwapChains;
 	/**

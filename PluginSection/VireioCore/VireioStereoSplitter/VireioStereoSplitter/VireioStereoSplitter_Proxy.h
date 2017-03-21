@@ -286,6 +286,7 @@ public:
 	HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer)
 	{
 		SHOW_CALL("IDirect3DStereoSurface9::GetContainer");
+		
 		if (!m_pcWrappedContainer)
 		{
 			return m_pcActualSurface->GetContainer(riid, ppContainer);
@@ -2366,12 +2367,15 @@ public:
 		for (UINT i = 0; i < unBBCount; i++)
 		{
 			static IDirect3DSurface9* s_pcRightRenderTarget = NULL;
+			s_pcRightRenderTarget = NULL;
+			s_bDeviceInUseByProxy = true;
 			if (FAILED(pcOwningDevice->CreateRenderTarget(sBackDesc.Width, sBackDesc.Height, sBackDesc.Format, sBackDesc.MultiSampleType, sBackDesc.MultiSampleQuality, false, &s_pcRightRenderTarget, NULL)))
 			{
 				OutputDebugString(L"[STS] Failed to create right eye back buffer !! \n");
 				s_pcRightRenderTarget = NULL;
 				exit(99);
 			}
+			s_bDeviceInUseByProxy = false;
 
 			HANDLE sharedHandleLeft = NULL;
 			HANDLE sharedHandleRight = NULL;
@@ -2417,6 +2421,8 @@ public:
 	***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
 	{
+		OutputDebugString(L"IDirect3DStereoSwapChain9::QueryInterface");
+
 		return m_pcActualSwapChain->QueryInterface(riid, ppv);
 	}
 
@@ -2427,7 +2433,6 @@ public:
 	{
 		return ++m_unRefCount;
 	}
-
 
 	/**
 	* Releases only additional swap chains.
@@ -2477,16 +2482,16 @@ public:
 	/**
 	* Provides the stored proxy back buffer.
 	***/
-	virtual HRESULT WINAPI GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
+	virtual HRESULT WINAPI GetBackBuffer(UINT unBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
 	{
 		SHOW_CALL("IDirect3DSwapChain::GetBackBuffer");
 
-		if ((iBackBuffer < 0) || (iBackBuffer >= m_acBackBuffers.size()))
+		if ((unBackBuffer < 0) || (unBackBuffer >= m_acBackBuffers.size()))
 			return D3DERR_INVALIDCALL;
 
-		m_acBackBuffers[iBackBuffer]->AddRef();
-		*ppBackBuffer = m_acBackBuffers[iBackBuffer];
-
+		m_acBackBuffers[unBackBuffer]->AddRef();
+		*ppBackBuffer = m_acBackBuffers[unBackBuffer];
+		
 		return D3D_OK;
 	}
 
