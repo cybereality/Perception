@@ -3128,12 +3128,18 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			{
 				case METHOD_IDIRECT3DSWAPCHAIN9_PRESENT:
 				{
+
 														   // get the device and call present
 														   IDirect3DDevice9* pcDevice = nullptr;
 														   ((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&pcDevice);
 														   if (pcDevice)
 														   {
-															   Present(pcDevice, false);
+															   if (!m_apcActiveSwapChains.size()) Present(pcDevice, true);
+
+															   // only call internal present if called by active swap chain !!
+															   if (((IDirect3DStereoSwapChain9*)m_apcActiveSwapChains[0])->GetActual() == pThis)
+																   Present(pcDevice, false);
+
 															   pcDevice->Release();
 														   }
 				}

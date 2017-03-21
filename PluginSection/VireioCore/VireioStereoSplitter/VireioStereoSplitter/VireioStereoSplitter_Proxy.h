@@ -2527,6 +2527,14 @@ public:
 		return m_pcActualSwapChain->GetPresentParameters(pPresentationParameters);
 	}
 
+	/**
+	* Returns the actual embedded swap chain pointer.
+	***/
+	IDirect3DSwapChain9* GetActual()
+	{
+		return m_pcActualSwapChain;
+	}
+
 protected:
 	/**
 	* The actual swap chain embedded.
