@@ -178,6 +178,10 @@ private:
 	***/
 	IDirect3DTexture9** m_ppcTex9Input[2];
 	/**
+	* The lockable copy textures left/right (D3D9).
+	***/
+	IDirect3DTexture9* m_pcTex9Copy[2];
+	/**
 	* The shared D3D11 textures.
 	***/
 	ID3D11Texture2D* m_pcSharedTexture[2];

@@ -3947,14 +3947,15 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 						}
 						else OutputDebugString(L"[STS] Failed to query IDirect3DDevice9Ex interface.");
 
-						// should we create standard textures if failed ?
-						if (false)
-						{
-							if (!m_pcStereoBuffer[0])
-								pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
-							if (!m_pcStereoBuffer[1])
-								pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
-						}
+						if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1])) OutputDebugString(L"[STS] Failed to create texture default/dynamic.");
+					}
+					else
+					{
+						// create output textures
+						if (!m_pcStereoBuffer[0])
+							pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
+						if (!m_pcStereoBuffer[1])
+							pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
 
 						if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1])) OutputDebugString(L"[STS] Failed to create texture default/dynamic.");
 					}

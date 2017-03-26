@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
+#define DEBUG_HR(msg, hr) { wchar_t buf[128]; wsprintf(buf, L"%s : %x", msg, hr); OutputDebugString(buf); }
 
 #define INTERFACE_IDIRECT3DDEVICE9 8
 #define INTERFACE_IDIRECT3DSWAPCHAIN9 15
@@ -109,6 +110,8 @@ m_pbPerformanceMode(nullptr)
 	m_pcSamplerState = nullptr;
 	m_ppcTex9Input[0] = nullptr;
 	m_ppcTex9Input[1] = nullptr;
+	m_pcTex9Copy[0] = nullptr;
+	m_pcTex9Copy[1] = nullptr;
 	m_pcSharedTexture[0] = nullptr;
 	m_pcSharedTexture[1] = nullptr;
 	m_pcTexCopy11[0] = nullptr;
@@ -705,10 +708,92 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 ***/
 void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
-	if ((m_pcD3D11Device) || (m_pcD3D11Context))
+	if ((!m_ppcTex9Input[0]) || (!m_ppcTex9Input[1]))
 	{
-		// TODO !! PROVIDE A D3D9 DEVICE HERE
-		RenderD3D11(m_pcD3D11Device, m_pcD3D11Context, nullptr);
+		// TODO !! GET BACKBUFFER
+		return;
+	}
+	else
+	{
+		// connected textures already initialized ?? return if not
+		if ((!(*(m_ppcTex9Input[0]))) || (!(*(m_ppcTex9Input[1]))))
+		{
+			OutputDebugString(L"[CIN] No Input Textures !");
+			return;
+		}
+
+		for (UINT unEye = 0; unEye < 2; unEye++)
+		{
+			// get the description and create the copy texture
+			D3DSURFACE_DESC sDescSurfaceD3D9 = {};
+			(*(m_ppcTex9Input[unEye]))->GetLevelDesc(0, &sDescSurfaceD3D9);
+
+			// copy texture created ?
+			if (!m_pcTex9Copy[unEye])
+			{
+				HRESULT nHr = pcDevice->CreateTexture(sDescSurfaceD3D9.Width, sDescSurfaceD3D9.Height, 1, 0, sDescSurfaceD3D9.Format, D3DPOOL_SYSTEMMEM, &m_pcTex9Copy[unEye], NULL);
+				if (!m_pcTex9Copy[unEye])
+				{
+					DEBUG_HR(L"[STS] Failed to create D3D9 copy texture : ", nHr);
+					return;
+				}
+			}
+
+			// release old texture
+			if (m_pcTexCopy11SRV[unEye]) m_pcTexCopy11SRV[unEye]->Release();
+			if (m_pcTexCopy11[unEye]) m_pcTexCopy11[unEye]->Release();
+
+			// copy d3d9 texture
+			IDirect3DSurface9* pcSurfaceSrc = nullptr;
+			IDirect3DSurface9* pcSurfaceDst = nullptr;
+			(*(m_ppcTex9Input[unEye]))->GetSurfaceLevel(0, &pcSurfaceSrc);
+			m_pcTex9Copy[unEye]->GetSurfaceLevel(0, &pcSurfaceDst);
+			pcDevice->GetRenderTargetData(pcSurfaceSrc, pcSurfaceDst);
+			if (pcSurfaceSrc) pcSurfaceSrc->Release();
+
+			// lock and create d3d11 tex
+			D3DLOCKED_RECT sRect = {};
+			if (SUCCEEDED(pcSurfaceDst->LockRect(&sRect, NULL, NULL)))
+			{
+				D3D11_TEXTURE2D_DESC sDesc = {};
+				sDesc.Width = sDescSurfaceD3D9.Width;
+				sDesc.Height = sDescSurfaceD3D9.Height;
+				sDesc.MipLevels = 1;
+				sDesc.ArraySize = 1;
+				sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // TODO !! SET "sDescSurfaceD3D9.Format"
+				sDesc.SampleDesc.Count = 1;
+				sDesc.SampleDesc.Quality = 0;
+				sDesc.Usage = D3D11_USAGE_DEFAULT;
+				sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				sDesc.CPUAccessFlags = 0;
+				sDesc.MiscFlags = 0;
+				D3D11_SUBRESOURCE_DATA sData = {};
+				sData.pSysMem = sRect.pBits;
+				sData.SysMemPitch = sRect.Pitch;
+				if (FAILED(m_pcD3D11Device->CreateTexture2D(&sDesc, &sData, (ID3D11Texture2D**)&m_pcTexCopy11[unEye])))
+				{
+					OutputDebugString(L"[CIN] Failed to create copy texture !");
+					return;
+				}
+
+				pcSurfaceDst->UnlockRect();
+
+				// create shader resource view
+				if (m_pcTexCopy11[unEye])
+				{
+					if (FAILED(m_pcD3D11Device->CreateShaderResourceView(m_pcTexCopy11[unEye], NULL, &m_pcTexCopy11SRV[unEye])))
+						OutputDebugString(L"[CIN] Failed to create shader resource view.");
+				}
+			}
+
+			if (pcSurfaceDst) pcSurfaceDst->Release();
+		}
+
+		if ((m_pcD3D11Device) || (m_pcD3D11Context))
+		{
+			// TODO !! PROVIDE A D3D9 DEVICE HERE
+			RenderD3D11(m_pcD3D11Device, m_pcD3D11Context, nullptr);
+		}
 	}
 }
 
@@ -1121,88 +1206,14 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		case VireioCinema::D3D_Undefined:
 			return;
 		case VireioCinema::D3D_9:
-			if ((!m_ppcTex9Input[0]) || (!m_ppcTex9Input[1]))
+			if ((m_pcTexCopy11SRV[0]) && (m_pcTexCopy11SRV[1]))
 			{
-				// TODO !! GET BACKBUFFER
-				return;
+				// set srv
+				m_apcTex11InputSRV[0] = m_pcTexCopy11SRV[0];
+				m_apcTex11InputSRV[1] = m_pcTexCopy11SRV[1];
 			}
 			else
-			{
-				// connected textures already initialized ?? return if not
-				if ((!(*(m_ppcTex9Input[0]))) || (!(*(m_ppcTex9Input[1]))))
-				{
-					OutputDebugString(L"[CIN] No Input Textures !");
-					return;
-				}
-
-				if ((!m_pcTexCopy11SRV[0]) || (!m_pcTexCopy11SRV[1]))
-				{
-					// QI IDXGIResource interface to synchronized shared surface.
-					for (UINT unEye = 0; unEye < 2; unEye++)
-					{
-						// obtain handle to IDXGIResource object.
-						HANDLE pSharedHandle = nullptr;
-						DWORD unSize = sizeof(pSharedHandle);
-						(*(m_ppcTex9Input[unEye]))->GetPrivateData(PDIID_Shared_Handle, (void*)&pSharedHandle, &unSize);
-
-						if (pSharedHandle)
-						{
-							// get temporary resource
-							ID3D11Resource* pcResource11 = NULL;
-							IID iid = __uuidof(ID3D11Resource);
-							if (FAILED(m_pcD3D11Device->OpenSharedResource(pSharedHandle, iid, (void**)(&pcResource11))))
-							{
-								OutputDebugString(L"[CIN] Failed to open shared DX11 resource !");
-								return;
-							}
-
-							// QI for the texture
-							pcResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcSharedTexture[unEye]));
-							pcResource11->Release();
-
-							if (m_pcSharedTexture[unEye])
-							{
-								// get the description and create the copy texture
-								D3D11_TEXTURE2D_DESC sDesc;
-								m_pcSharedTexture[unEye]->GetDesc(&sDesc);
-								sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
-								if (FAILED(m_pcD3D11Device->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTexCopy11[unEye])))
-								{
-									OutputDebugString(L"[CIN] Failed to create copy texture !");
-									return;
-								}
-
-								// create shader resource view
-								if (m_pcTexCopy11[unEye])
-								{
-									if (FAILED(m_pcD3D11Device->CreateShaderResourceView(m_pcTexCopy11[unEye], NULL, &m_pcTexCopy11SRV[unEye])))
-										OutputDebugString(L"[CIN] Failed to create shader resource view.");
-								}
-							}
-							else
-							{
-								OutputDebugString(L"[CIN] Can't query shared texture interface.");
-								return;
-							}
-						}
-						else OutputDebugString(L"[CIN] Can't get shared handle by private interface.");
-					}
-				}
-
-				if ((m_pcTexCopy11SRV[0]) && (m_pcTexCopy11SRV[1]))
-				{
-					// copy textures
-					pcContext->CopyResource(m_pcTexCopy11[0], m_pcSharedTexture[0]);
-					pcContext->CopyResource(m_pcTexCopy11[1], m_pcSharedTexture[1]);
-
-					// set srv
-					m_apcTex11InputSRV[0] = m_pcTexCopy11SRV[0];
-					m_apcTex11InputSRV[1] = m_pcTexCopy11SRV[1];
-				}
-				else
-					return;
-			}
-			break;
+				return;
 		case VireioCinema::D3D_10:
 			break;
 		case VireioCinema::D3D_11:
