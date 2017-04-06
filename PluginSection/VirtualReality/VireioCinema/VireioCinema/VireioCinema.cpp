@@ -721,7 +721,9 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 		// connected textures already initialized ?? return if not
 		if ((!(*(m_ppcTex9Input[0]))) || (!(*(m_ppcTex9Input[1]))))
 		{
-			OutputDebugString(L"[CIN] No Input Textures !");
+			static int nDummyCounter = 5;
+			if ((nDummyCounter--) <= 0)
+				OutputDebugString(L"[CIN] No Input Textures !");
 			return;
 		}
 
@@ -763,7 +765,7 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 				sDesc.Height = sDescSurfaceD3D9.Height;
 				sDesc.MipLevels = 1;
 				sDesc.ArraySize = 1;
-				sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // TODO !! SET "sDescSurfaceD3D9.Format"
+				sDesc.Format = GetDXGI_Format(sDescSurfaceD3D9.Format);
 				sDesc.SampleDesc.Count = 1;
 				sDesc.SampleDesc.Quality = 0;
 				sDesc.Usage = D3D11_USAGE_DEFAULT;
