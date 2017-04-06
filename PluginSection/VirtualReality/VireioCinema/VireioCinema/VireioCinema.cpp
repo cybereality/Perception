@@ -75,7 +75,8 @@ m_pcBackBufferCopy(nullptr),
 m_pcBackBufferCopySR(nullptr),
 m_pcRS(nullptr),
 m_pbImmersiveMode(nullptr),
-m_pbPerformanceMode(nullptr)
+m_pbPerformanceMode(nullptr),
+m_hDummy(nullptr)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -223,6 +224,8 @@ VireioCinema::~VireioCinema()
 	SAFE_RELEASE(m_pcVSGeometry11);
 	SAFE_RELEASE(m_pcPSGeometry11);
 	SAFE_RELEASE(m_pcSamplerState);
+
+	SendMessage(m_hDummy, WM_CLOSE, 0, 0);
 }
 
 /**
@@ -1595,6 +1598,18 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 ***/
 HRESULT VireioCinema::CreateD3D11Device(bool bCreateSwapChain)
 {
+	// create a dummy window
+	static const wchar_t* szClassname = L"dummy class";
+	WNDCLASSEX wx = {};
+	wx.cbSize = sizeof(WNDCLASSEX);
+	wx.lpfnWndProc = DefWindowProc;
+	wx.hInstance = GetModuleHandle(NULL);
+	wx.lpszClassName = szClassname;
+	if (RegisterClassEx(&wx))
+	{
+		m_hDummy = CreateWindowEx(0, szClassname, L"dummy", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+	}
+
 	// get factory / adapter
 	IDXGIFactory* pcDXGIFactory;
 	IDXGIAdapter* pcAdapter;
@@ -1626,7 +1641,7 @@ HRESULT VireioCinema::CreateD3D11Device(bool bCreateSwapChain)
 			sDesc.BufferDesc.RefreshRate.Numerator = 90;
 			sDesc.BufferDesc.RefreshRate.Denominator = 1;
 			sDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			sDesc.OutputWindow = GetForegroundWindow();
+			sDesc.OutputWindow = m_hDummy;
 			sDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 			sDesc.Windowed = true;
 			sDesc.SampleDesc.Count = 1;
@@ -1647,6 +1662,7 @@ HRESULT VireioCinema::CreateD3D11Device(bool bCreateSwapChain)
 				m_pcD3D11Device->SetPrivateDataInterface(PDIID_ID3D11Device_IDXGISwapChain, pcSwapChain);
 				pcSwapChain->Release();
 			}
+			else OutputDebugString(L"[CIN] Failed to create d3d11 device or/and swapchain.");
 		}
 		else
 		{

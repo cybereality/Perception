@@ -174,6 +174,10 @@ private:
 	***/
 	ID3D11DeviceContext* m_pcD3D11Context;
 	/**
+	* Dummy window for the d3d11 device.
+	***/
+	HWND m_hDummy;
+	/**
 	* The input textures left/right (D3D9).
 	***/
 	IDirect3DTexture9** m_ppcTex9Input[2];
