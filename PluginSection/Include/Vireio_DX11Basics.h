@@ -41,7 +41,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3d11.lib")
 #endif
 
+#include <DirectXMath.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <vector>
 #include"Vireio_DX11StateBlock.h"
+
+using namespace DirectX;
+#define float2 XMFLOAT2
+#define float3 XMFLOAT3
+#define float4 XMFLOAT4
+#define float4x4 XMMATRIX
+#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
 #pragma region shader data structures
 /**
@@ -1717,6 +1731,403 @@ enum PixelShaderTechnique
 	HypnoticDisco,                 /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
 	Planets,                       /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
 	VoronoiSmooth,                 /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+};
+
+/**
+* Glyph constant buffer structure.
+***/
+struct Glyph_Constants
+{
+	uint32_t unCharacter;
+	float fULeft;
+	float fVTop;
+	float fURight;
+	float fVBottom;
+	float fXOffset;
+	float fYOffset;
+	float fXAdvance;
+};
+
+/**
+* Main vertex structure.
+***/
+//struct VertexPosUV
+//{
+//	float3 afPos3;
+//	float2 afUV2;
+//};
+struct VertexPosUV
+{
+	float3 afPos3;
+	float3 afNormal3;
+	float2 afUV2;
+};
+
+/**
+* Vireio font class.
+* Does load .spritefont files and renders the chosen font glyphes.
+***/
+class VireioFont
+{
+public:
+	/**
+	* Constructor.
+	* Loads the specified .spritefont file.
+	* @param pcDevice The D3D 11 device.
+	* @param pcDeviceContext The D3D 11 device context.
+	* @param szPath File path to the .spritefont file.
+	***/
+	VireioFont(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szPath, float fFontSize, float fAspect, HRESULT& nHr)
+		: m_pcTexFont2D(nullptr)
+		, m_pcTexFontSRV(nullptr)
+		, m_asGlyphConstants(NULL)
+		, m_pcConstantsGlyph(nullptr)
+		, m_pcVBGlyphes(nullptr)
+		, m_pcBlendState(nullptr)
+	{
+		static const char s_szSpriteFontMagic[] = "DXTKfont";
+		/**
+		* Microsoft description for a single character glyph.
+		***/
+		struct Glyph_MS
+		{
+			uint32_t Character;
+			RECT Subrect;
+			float XOffset;
+			float YOffset;
+			float XAdvance;
+		};
+
+		// open file
+		std::ifstream cInFileStream;
+		cInFileStream.open(szPath, std::ios::in | std::ios::binary);
+		if (cInFileStream.is_open())
+		{
+			// Validate the header.
+			char ch = 0;
+			for (char const* magic = s_szSpriteFontMagic; *magic; magic++)
+			{
+				cInFileStream.read(&ch, sizeof(char));
+				OutputDebugStringA(&ch);
+				if (ch != *magic)
+				{
+					OutputDebugStringA("[VRO] SpriteFont provided with an invalid .spritefont file.\n");
+					throw std::exception("Not a MakeSpriteFont output binary");
+				}
+			}
+
+			// Read the glyph count.
+			uint32_t unGlyphCount = 0;
+			std::vector<Glyph_MS> asGlyphes = std::vector<Glyph_MS>();
+			cInFileStream.read((char*)&unGlyphCount, sizeof(uint32_t));
+
+			// Loop through glyphes, read and assign
+			for (uint32_t unGlyphIx = 0; unGlyphIx < unGlyphCount; unGlyphIx++)
+			{
+				Glyph_MS sGlyph = {};
+				cInFileStream.read((char*)&sGlyph, sizeof(Glyph_MS));
+				asGlyphes.push_back(sGlyph);
+			}
+
+			// Read font properties.
+			float fLineSpacing = 0;
+			cInFileStream.read((char*)&fLineSpacing, sizeof(float));
+			uint32_t unDefaultChar = 0;
+			cInFileStream.read((char*)&unDefaultChar, sizeof(uint32_t));
+
+			// Read the texture data.
+			uint32_t unTextureWidth = 0;
+			cInFileStream.read((char*)&unTextureWidth, sizeof(uint32_t));
+			uint32_t unTextureHeight = 0;
+			cInFileStream.read((char*)&unTextureHeight, sizeof(uint32_t));
+			DXGI_FORMAT eTextureFormat = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+			cInFileStream.read((char*)&eTextureFormat, sizeof(DXGI_FORMAT));
+			uint32_t unTextureStride = 0;
+			cInFileStream.read((char*)&unTextureStride, sizeof(uint32_t));
+			uint32_t unTextureRows = 0;
+			cInFileStream.read((char*)&unTextureRows, sizeof(uint32_t));
+			uint8_t* pchTextureData = new uint8_t[unTextureStride * unTextureRows];
+			cInFileStream.read((char*)pchTextureData, sizeof(uint8_t)* unTextureStride * unTextureRows);
+
+			// Create the D3D texture.
+			CD3D11_TEXTURE2D_DESC sDescTex(eTextureFormat, unTextureWidth, unTextureHeight, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_IMMUTABLE);
+			CD3D11_SHADER_RESOURCE_VIEW_DESC sDescView(D3D11_SRV_DIMENSION_TEXTURE2D, eTextureFormat);
+			D3D11_SUBRESOURCE_DATA sInitData = { pchTextureData, unTextureStride };
+
+			nHr = pcDevice->CreateTexture2D(&sDescTex, &sInitData, &m_pcTexFont2D);
+			if (FAILED(nHr)) return;
+			nHr = pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTexFont2D, &sDescView, &m_pcTexFontSRV);
+			if (FAILED(nHr)) return;
+
+			// convert to glyph constants, first create constant array
+			Glyph_Constants sGC = {};
+			m_asGlyphConstants = std::vector<Glyph_Constants>(256, sGC);
+
+			// and create a vertex buffer for all glyphes, first create vertex array
+			VertexPosUV asVerticesGlyph[256 * 4] = {};
+
+			// loop through the available glyphes
+			float fFontSize = 128.0f;
+			float fSpace = 0.02f;
+			for (size_t unI = 0; unI < asGlyphes.size(); unI++)
+			{
+				// set glyph data
+				uint32_t unAscii = asGlyphes[unI].Character;
+				if (unAscii > 255)
+				{
+					OutputDebugStringA("[VRO] Invalid ascii code.");
+					continue;
+				}
+				m_asGlyphConstants[unAscii].unCharacter = unAscii;
+				m_asGlyphConstants[unAscii].fULeft = (float)asGlyphes[unI].Subrect.left / (float)unTextureWidth;
+				m_asGlyphConstants[unAscii].fURight = (float)asGlyphes[unI].Subrect.right / (float)unTextureWidth;
+				m_asGlyphConstants[unAscii].fVTop = (float)asGlyphes[unI].Subrect.top / (float)unTextureHeight;
+				m_asGlyphConstants[unAscii].fVBottom = (float)asGlyphes[unI].Subrect.bottom / (float)unTextureHeight;
+				m_asGlyphConstants[unAscii].fXOffset = asGlyphes[unI].XOffset;
+				m_asGlyphConstants[unAscii].fYOffset = asGlyphes[unI].YOffset;
+
+				// set x advance by glyph width
+				float fGlyphWidth = ((float)asGlyphes[unI].Subrect.right - (float)asGlyphes[unI].Subrect.left) / fFontSize;
+				float fGlyphHeight = ((float)asGlyphes[unI].Subrect.bottom - (float)asGlyphes[unI].Subrect.top) / fFontSize;
+				float fGlyphOffset = (fFontSize - asGlyphes[unI].YOffset) / fFontSize;
+				m_asGlyphConstants[unAscii].fXAdvance = -(fGlyphWidth + fSpace);
+
+				// set index data
+				uint32_t unIx = unAscii * 4;
+
+				// 0
+				asVerticesGlyph[unIx].afPos3 = XMFLOAT3(0.0f, 0.0f, -fGlyphOffset + fGlyphHeight);
+				asVerticesGlyph[unIx].afUV2 = XMFLOAT2(1.0f, 1.0f);
+
+				// 1
+				asVerticesGlyph[unIx + 1].afPos3 = XMFLOAT3(fGlyphWidth, 0.0f, -fGlyphOffset + fGlyphHeight);
+				asVerticesGlyph[unIx + 1].afUV2 = XMFLOAT2(0.0f, 1.0f);
+
+				// 2
+				asVerticesGlyph[unIx + 2].afPos3 = XMFLOAT3(0.0f, 0.0f, -fGlyphOffset);
+				asVerticesGlyph[unIx + 2].afUV2 = XMFLOAT2(1.0f, 0.0f);
+
+				// 3
+				asVerticesGlyph[unIx + 3].afPos3 = XMFLOAT3(fGlyphWidth, 0.0f, -fGlyphOffset);
+				asVerticesGlyph[unIx + 3].afUV2 = XMFLOAT2(0.0f, 0.0f);
+
+			}
+
+			// set space x advance manually
+			m_asGlyphConstants[' '].fXAdvance = -fSpace * 10.0f;
+
+			// create the glyph constant buffer
+			D3D11_BUFFER_DESC sDescConst;
+			ZeroMemory(&sDescConst, sizeof(D3D11_BUFFER_DESC));
+			sDescConst.ByteWidth = sizeof(Glyph_Constants);
+			sDescConst.Usage = D3D11_USAGE_DEFAULT;
+			sDescConst.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			sDescConst.MiscFlags = 0;
+			sDescConst.StructureByteStride = 0;
+
+			// Fill in the subresource data.
+			D3D11_SUBRESOURCE_DATA sInitDataConst;
+			ZeroMemory(&sInitDataConst, sizeof(D3D11_SUBRESOURCE_DATA));
+			sInitDataConst.pSysMem = &m_asGlyphConstants['A'];
+			sInitDataConst.SysMemPitch = 0;
+			sInitDataConst.SysMemSlicePitch = 0;
+
+			// Create the buffer.
+			HRESULT nHr = pcDevice->CreateBuffer(&sDescConst, &sInitDataConst, &m_pcConstantsGlyph);
+
+			// create the glyph vertex buffer
+			D3D11_BUFFER_DESC sDescVtx;
+			ZeroMemory(&sDescVtx, sizeof(D3D11_BUFFER_DESC));
+			sDescVtx.Usage = D3D11_USAGE_IMMUTABLE;
+			sDescVtx.ByteWidth = sizeof(VertexPosUV)* 256 * 4;
+			sDescVtx.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			sDescVtx.CPUAccessFlags = 0;
+			sDescVtx.MiscFlags = 0;
+			sDescVtx.StructureByteStride = 0;
+			D3D11_SUBRESOURCE_DATA sInitDataVtx;
+			ZeroMemory(&sInitDataVtx, sizeof(D3D11_SUBRESOURCE_DATA));
+			sInitDataVtx.pSysMem = asVerticesGlyph;
+			if (FAILED(nHr = pcDevice->CreateBuffer(&sDescVtx, &sInitDataVtx, &m_pcVBGlyphes)))
+			{
+				OutputDebugStringA("[VRO] Failed to create buffer !");
+				return;
+			}
+		}
+
+		// set first matrices
+		D3DXMatrixIdentity(&m_sWorld);
+		D3DXMatrixIdentity(&m_sView);
+
+		// we use a simple left handed projection matrix for text...
+		const float fPi = 3.1415926535f;
+		D3DXMatrixPerspectiveFovLH(&m_sProj, 0.25f*fPi, fAspect, 1.0f, 1000.0f);
+
+		// Set constants
+		ZeroMemory(&m_sConstantBuffer0, sizeof(GeometryConstantBuffer));
+		m_sConstantBuffer0.sWorldViewProjection = m_sWorld*m_sView*m_sProj;
+
+		// create the constant buffer
+		D3D11_BUFFER_DESC sDescConst;
+		ZeroMemory(&sDescConst, sizeof(D3D11_BUFFER_DESC));
+		sDescConst.ByteWidth = sizeof(GeometryConstantBuffer);
+		sDescConst.Usage = D3D11_USAGE_DEFAULT;
+		sDescConst.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		sDescConst.MiscFlags = 0;
+		sDescConst.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA sInitDataConst;
+		ZeroMemory(&sInitDataConst, sizeof(D3D11_SUBRESOURCE_DATA));
+		sInitDataConst.pSysMem = &m_sConstantBuffer0;
+		sInitDataConst.SysMemPitch = 0;
+		sInitDataConst.SysMemSlicePitch = 0;
+
+		// Create the buffer.
+		nHr = pcDevice->CreateBuffer(&sDescConst, &sInitDataConst, &m_pcConstantBuffer0);
+
+		// create a blend state for alpha blending
+		D3D11_BLEND_DESC sBlendDesc;
+		ZeroMemory(&sBlendDesc, sizeof(D3D11_BLEND_DESC));
+
+		sBlendDesc.RenderTarget[0].BlendEnable = TRUE;
+		sBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		sBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		sBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		sBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		sBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		sBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		sBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		pcDevice->CreateBlendState(&sBlendDesc, &m_pcBlendState);
+
+		// create constant shader constants..
+		m_sConstantBuffer0.sLightDir = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+		m_sConstantBuffer0.sLightAmbient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		m_sConstantBuffer0.sLightDiffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		m_sConstantBuffer0.fGamma = 1.0f;
+
+		// for aspect ratio based fx we set a 1.0 ratio here
+		m_sConstantBuffer0.sResolution.x = 1024.0f;
+		m_sConstantBuffer0.sResolution.y = 1024.0f;
+	}
+
+	/**
+	* Destructor.
+	***/
+	~VireioFont()
+	{
+		SAFE_RELEASE(m_pcTexFont2D);
+		SAFE_RELEASE(m_pcTexFontSRV);
+		SAFE_RELEASE(m_pcConstantsGlyph);
+		SAFE_RELEASE(m_pcVBGlyphes);
+		SAFE_RELEASE(m_pcConstantBuffer0);
+		SAFE_RELEASE(m_pcBlendState);
+	}
+
+	/**
+	* Set attributes for the text.
+	***/
+	void SetTextAttributes(float fX, float fY, float fZ, float fTime)
+	{
+		// Build the view matrix.
+		D3DXVECTOR3 sPos = D3DXVECTOR3(fX, fY, fZ);
+		D3DXVECTOR3 sTarget = D3DXVECTOR3();
+		D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+
+		D3DXMatrixLookAtLH(&m_sView, &sPos, &sTarget, &sUp);
+
+		// update constants
+		m_sConstantBuffer0.fGlobalTime = fTime;
+	}
+
+	/**
+	* Draw text on active render target.
+	***/
+	void RenderText(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szText, float fX, float fY, float fZ)
+	{
+		UINT stride = sizeof(VertexPosUV);
+		UINT offset = 0;
+
+		// set glyph vertex buffer, constant buffers, font texture
+		pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		pcContext->IASetVertexBuffers(0, 1, &m_pcVBGlyphes, &stride, &offset);
+		pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBuffer0);
+		pcContext->VSSetConstantBuffers(1, 1, &m_pcConstantsGlyph);
+		pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBuffer0);
+		pcContext->PSSetShaderResources(0, 1, &m_pcTexFontSRV);
+
+		// get old blend state
+		ID3D11BlendState* pcBlendStateOld = nullptr;
+		FLOAT afBlendFactor[4] = {};
+		UINT unMask = 0;
+		pcContext->OMGetBlendState(&pcBlendStateOld, afBlendFactor, &unMask);
+		//pcContext->OMSetBlendState(m_pcBlendState, 0, 0xffffffff);
+
+		UINT unIx = 0;
+		float fXTranslate = fX;
+		while (szText[unIx])
+		{
+			char ch = szText[unIx];
+
+			// update matrices
+			fXTranslate += m_asGlyphConstants[ch].fXAdvance;
+			D3DXMATRIX world, view, proj;
+			D3DXMatrixTranslation(&world, fXTranslate, fY, fZ);
+			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorld, &world);
+			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorldViewProjection, &(world*m_sView*m_sProj));
+
+			// update constant buffers
+			pcContext->UpdateSubresource(m_pcConstantBuffer0, 0, 0, &m_sConstantBuffer0, 0, 0);
+			pcContext->UpdateSubresource(m_pcConstantsGlyph, 0, 0, &m_asGlyphConstants[ch], 0, 0);
+
+			pcContext->Draw(4, (UINT)ch * 4);
+
+			unIx++;
+		}
+
+		// set old blend state, release
+		pcContext->OMSetBlendState(pcBlendStateOld, afBlendFactor, unMask);
+		SAFE_RELEASE(pcBlendStateOld);
+	}
+
+private:
+	/**
+	* Font texture.
+	***/
+	ID3D11Texture2D* m_pcTexFont2D;
+	/**
+	* Font texture shader resource view.
+	***/
+	ID3D11ShaderResourceView* m_pcTexFontSRV;
+	/**
+	* Glyph constants array.
+	* Array size 256 for every ascii code.
+	***/
+	std::vector<Glyph_Constants> m_asGlyphConstants;
+	/**
+	* Glyph constant buffer.
+	***/
+	ID3D11Buffer* m_pcConstantsGlyph;
+	/**
+	* Vertex buffer containing all glyph vertices.
+	***/
+	ID3D11Buffer* m_pcVBGlyphes;
+	/**
+	* Main constant structure.
+	***/
+	GeometryConstantBuffer m_sConstantBuffer0;
+	/**
+	* Main constant buffer.
+	***/
+	ID3D11Buffer* m_pcConstantBuffer0;
+	/**
+	* Basic world, view and projection matrices.
+	***/
+	D3DXMATRIX m_sWorld, m_sView, m_sProj;
+	/**
+	* Alpha blending state.
+	***/
+	ID3D11BlendState* m_pcBlendState;
 };
 
 /**
