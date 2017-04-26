@@ -189,6 +189,75 @@ static const char* VS3D =
 
 "	return Output;\n"
 "}\n";
+
+/**
+* 3D Vertex Shader.
+***/
+static const char* VS3D_TEXT =
+"cbuffer Constants0 : register(b0)\n"
+"{\n"
+// constant buffer
+"	float4 sMaterialAmbientColor;\n"
+"	float4 sMaterialDiffuseColor;\n"
+
+"	float4 sLightDir;\n"
+"	float4 sLightDiffuse;\n"
+"	float4 sLightAmbient;\n"
+
+"	float4x4 sWorldViewProjection;\n"
+"	float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"	float3    sResolution;\n"
+"	float     fGlobalTime;\n"
+"	float4    sMouse;\n"
+
+// gamma correction
+"	float     fGamma;\n"
+"};\n"
+
+"cbuffer ConstantsGlyph : register(b1)\n"
+"{\n"
+"	uint unCharacter;\n"
+"	float fULeft;\n"
+"	float fVTop;\n"
+"	float fURight;\n"
+"	float fVBottom;\n"
+"	float fXOffset;\n"
+"	float fYOffset;\n"
+"	float fXAdvance;\n"
+"};\n"
+
+// input / output structures
+"struct VS_INPUT\n"
+"{\n"
+"	float4 vPosition : POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+"struct VS_OUTPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// vertex shader
+"VS_OUTPUT VS(VS_INPUT Input)\n"
+"{\n"
+"	VS_OUTPUT Output;\n"
+
+"	Output.vPosition = mul(Input.vPosition, sWorldViewProjection);\n"
+"	Output.vNormal = mul(Input.vNormal, sWorld);\n"
+"	Output.vTexcoord = Input.vTexcoord;\n"
+
+// pass uv
+"	if (Input.vTexcoord.x < 0.5f) Output.vTexcoord.x = fULeft; else Output.vTexcoord.x = fURight;\n"
+"	if (Input.vTexcoord.y < 0.5f) Output.vTexcoord.y = fVTop; else Output.vTexcoord.y = fVBottom;\n"
+
+"	return Output;\n"
+"}\n";
 #pragma endregion
 #pragma region pixel shader basic
 /**
@@ -1710,6 +1779,16 @@ static const char* PS_VORONOI_SMOOTH =
 #pragma endregion
 
 /**
+* Simple enumeration of available vertex shaders.
+***/
+enum VertexShaderTechnique
+{
+	PosUV2D,        /**< Position, UV, for 2D projection **/
+	PosNormUV,      /**< Position, Normal, UV. **/
+	PosNormUV_Text, /**< Position, Normal, UV -> Converts UV to text glyph UV. ***/
+};
+
+/**
 * Simple enumeration of available pixel shaders.
 ***/
 enum PixelShaderTechnique
@@ -1751,17 +1830,16 @@ struct Glyph_Constants
 /**
 * Main vertex structure.
 ***/
-//struct VertexPosUV
-//{
-//	float3 afPos3;
-//	float2 afUV2;
-//};
 struct VertexPosUV
 {
 	float3 afPos3;
 	float3 afNormal3;
 	float2 afUV2;
 };
+
+// method definitions
+HRESULT CreateVertexShaderTechnique(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout, VertexShaderTechnique eTechnique);
+HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcPixelShader, PixelShaderTechnique eTechnique);
 
 /**
 * Vireio font class.
@@ -1808,7 +1886,6 @@ public:
 			for (char const* magic = s_szSpriteFontMagic; *magic; magic++)
 			{
 				cInFileStream.read(&ch, sizeof(char));
-				OutputDebugStringA(&ch);
 				if (ch != *magic)
 				{
 					OutputDebugStringA("[VRO] SpriteFont provided with an invalid .spritefont file.\n");
@@ -2009,6 +2086,33 @@ public:
 		// for aspect ratio based fx we set a 1.0 ratio here
 		m_sConstantBuffer0.sResolution.x = 1024.0f;
 		m_sConstantBuffer0.sResolution.y = 1024.0f;
+
+		// create vertex shader
+		if (FAILED(nHr = CreateVertexShaderTechnique(pcDevice, &m_pcVertexShader, &m_pcInputLayout, VertexShaderTechnique::PosNormUV_Text)))
+		{
+			OutputDebugString(L"[OVR] Failed to create vertex shader. ");
+			return;
+		}
+
+		// create pixel shader... 
+		if (FAILED(nHr = CreatePixelShaderEffect(pcDevice, &m_pcPixelShader, PixelShaderTechnique::GeometryDiffuseTextured)))
+		{
+			OutputDebugString(L"[OVR] Failed to create pixel shader. ");
+			return;
+		}
+
+		// Create the sample state
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler)))
+			OutputDebugString(L"[VRO] Failed to create sampler.");
 	}
 
 	/**
@@ -2016,6 +2120,10 @@ public:
 	***/
 	~VireioFont()
 	{
+		SAFE_RELEASE(m_pcSampler); 
+		SAFE_RELEASE(m_pcVertexShader);
+		SAFE_RELEASE(m_pcPixelShader);
+		SAFE_RELEASE(m_pcInputLayout);
 		SAFE_RELEASE(m_pcTexFont2D);
 		SAFE_RELEASE(m_pcTexFontSRV);
 		SAFE_RELEASE(m_pcConstantsGlyph);
@@ -2041,9 +2149,9 @@ public:
 	}
 
 	/**
-	* Draw text on active render target.
+	* Sets all fields before the render calls.
 	***/
-	void RenderText(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szText, float fX, float fY, float fZ)
+	void ToRender(ID3D11DeviceContext* pcContext)
 	{
 		UINT stride = sizeof(VertexPosUV);
 		UINT offset = 0;
@@ -2056,6 +2164,20 @@ public:
 		pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBuffer0);
 		pcContext->PSSetShaderResources(0, 1, &m_pcTexFontSRV);
 
+		// set shaders
+		pcContext->VSSetShader(m_pcVertexShader, nullptr, NULL);
+		pcContext->IASetInputLayout((ID3D11InputLayout*)m_pcInputLayout);
+		pcContext->PSSetShader(m_pcPixelShader, nullptr, NULL);
+
+		// Set the sampler
+		pcContext->PSSetSamplers(0, 1, &m_pcSampler);
+	}
+
+	/**
+	* Draw text on active render target.
+	***/
+	void RenderText(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szText, float fX, float fY, float fZ)
+	{
 		// get old blend state
 		ID3D11BlendState* pcBlendStateOld = nullptr;
 		FLOAT afBlendFactor[4] = {};
@@ -2074,7 +2196,9 @@ public:
 			D3DXMATRIX world, view, proj;
 			D3DXMatrixTranslation(&world, fXTranslate, fY, fZ);
 			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorld, &world);
-			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorldViewProjection, &(world*m_sView*m_sProj));
+			D3DXMATRIX wvp;
+			wvp = world*m_sView*m_sProj;
+			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorldViewProjection, &wvp);
 
 			// update constant buffers
 			pcContext->UpdateSubresource(m_pcConstantBuffer0, 0, 0, &m_sConstantBuffer0, 0, 0);
@@ -2128,6 +2252,22 @@ private:
 	* Alpha blending state.
 	***/
 	ID3D11BlendState* m_pcBlendState;
+	/**
+	* Font vertex shader.
+	***/
+	ID3D11VertexShader* m_pcVertexShader;
+	/**
+	* Font vertex layout.
+	***/
+	ID3D11InputLayout* m_pcInputLayout;
+	/**
+	* Font pixel shader.
+	***/
+	ID3D11PixelShader* m_pcPixelShader;
+	/**
+	* The d3d11 sampler.
+	***/
+	ID3D11SamplerState* m_pcSampler;
 };
 
 /**
@@ -2152,90 +2292,74 @@ void SetFirstRenderTargetBySwapChain(ID3D11Device* pcDevice, ID3D11DeviceContext
 }
 
 /**
-* Creates a simple 2D vertex shader with an input layout.
-***/
-HRESULT Create2DVertexShader(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout)
-{
-	if ((!ppcVertexShader) || (!ppcInputLayout) || (!pcDevice)) return E_INVALIDARG;
-
-	ID3D10Blob* pcShader;
-	HRESULT hr;
-
-	// compile and create shader
-	if (SUCCEEDED(hr = D3DX10CompileFromMemory(VS2D, strlen(VS2D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL)))
-	{
-#ifdef _DEBUG
-		OutputDebugString(L"HelloWorldDx10 Node : Vertex Shader compiled !");
-#endif
-		hr = pcDevice->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcVertexShader);
-
-		if (FAILED(hr))
-			return hr;
-		else
-		{
-			// Define the input layout
-			D3D11_INPUT_ELEMENT_DESC layout[] =
-			{
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			};
-			UINT numElements = sizeof(layout) / sizeof(layout[0]);
-
-			hr = pcDevice->CreateInputLayout(layout, numElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), ppcInputLayout);
-			if (FAILED(hr))
-			{
-				if (*ppcVertexShader)
-				{
-					(*ppcVertexShader)->Release(); (*ppcVertexShader) = nullptr;
-				}
-				return hr;
-			}
-		}
-		pcShader->Release();
-	}
-	else return hr;
-
-	return S_OK;
-}
-
-/**
 * Creates a simple 3D vertex shader with an input layout.
 ***/
-HRESULT Create3DVertexShader(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout)
+HRESULT CreateVertexShaderTechnique(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout, VertexShaderTechnique eTechnique)
 {
 	if ((!ppcVertexShader) || (!ppcInputLayout) || (!pcDevice)) return E_INVALIDARG;
 
 	ID3D10Blob* pcShader;
 	HRESULT hr;
 
-	// compile and create shader
-	if (SUCCEEDED(hr = D3DX10CompileFromMemory(VS3D, strlen(VS3D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL)))
+	// compile shader
+	switch (eTechnique)
+	{
+		case PosUV2D:
+			hr = D3DX10CompileFromMemory(VS2D, strlen(VS2D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case PosNormUV:
+			hr = D3DX10CompileFromMemory(VS3D, strlen(VS3D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case PosNormUV_Text:
+			hr = D3DX10CompileFromMemory(VS3D_TEXT, strlen(VS3D_TEXT), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		default:
+			break;
+	}
+
+
+	// create shader
+	if (SUCCEEDED(hr))
 	{
 		//#ifdef _DEBUG
-		OutputDebugString(L"Vireio Perception : Vertex Shader compiled !");
+		OutputDebugString(L"[VRO] : Vertex Shader compiled !");
 		//#endif
 		hr = pcDevice->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcVertexShader);
 
 		if (FAILED(hr))
 		{
-			OutputDebugString(L"Vireio Perception : Failed to create Vertex Shader !");
+			OutputDebugString(L"[VRO] : Failed to create Vertex Shader !");
 			return hr;
 		}
 		else
 		{
-			// Define the input layout
-			D3D11_INPUT_ELEMENT_DESC aLayout[] =
+			// Define the input layouts
+			D3D11_INPUT_ELEMENT_DESC aLayout01[] =
+			{
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			};
+			D3D11_INPUT_ELEMENT_DESC aLayout02[] =
 			{
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
-			UINT unNumElements = sizeof(aLayout) / sizeof(aLayout[0]);
 
-			hr = pcDevice->CreateInputLayout(aLayout, unNumElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), ppcInputLayout);
+			if (eTechnique == VertexShaderTechnique::PosUV2D)
+			{
+				UINT unNumElements = sizeof(aLayout01) / sizeof(aLayout01[0]);
+				hr = pcDevice->CreateInputLayout(aLayout01, unNumElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), ppcInputLayout);
+			}
+			else
+			{
+				UINT unNumElements = sizeof(aLayout02) / sizeof(aLayout02[0]);
+				hr = pcDevice->CreateInputLayout(aLayout02, unNumElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), ppcInputLayout);
+			}
+
 			if (FAILED(hr))
 			{
-				OutputDebugString(L"Vireio Perception : Failed to create input layout !");
+				OutputDebugString(L"[VRO] Failed to create input layout !");
 				if (*ppcVertexShader)
 				{
 					(*ppcVertexShader)->Release(); (*ppcVertexShader) = nullptr;

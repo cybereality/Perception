@@ -738,7 +738,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						// create vertex shader
 						if (!m_pcVSGeometry11)
 						{
-							if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+							if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11, VertexShaderTechnique::PosNormUV)))
 								OutputDebugString(L"[OPENVR] Failed to create vertex shader. !");
 						}
 
@@ -1130,7 +1130,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// create vertex shader
 					if (!m_pcVertexShader11)
 					{
-						if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+						if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
 						{
 							bAllCreated = false;
 						}

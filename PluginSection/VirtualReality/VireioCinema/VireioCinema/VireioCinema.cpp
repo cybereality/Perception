@@ -811,7 +811,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create vertex shader
 	if (!m_pcVSGeometry11)
 	{
-		if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+		if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11, VertexShaderTechnique::PosNormUV)))
 			OutputDebugString(L"[CIN] Failed to create vertex shader. !");
 	}
 

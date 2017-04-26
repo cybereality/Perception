@@ -515,7 +515,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_sUserSettings.fFoVADS == afFoVADS[un]) m_unFoVADS = un;
 		}
 	}
-	
+
 	// immersive mode ?
 	bool bImmersiveMode = true;
 	if (m_apnIntInput[1])
@@ -973,7 +973,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 #pragma region draw to stereo textures
 
 		// draw to stereo targets
-		if (false) //true/*TODO*/)
+		if (true/*TODO*/)
 		{
 			// get device and context
 			ID3D11Device* pcDevice = nullptr;
@@ -989,7 +989,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// create vertex shader
 			if (!m_pcVSGeometry11)
 			{
-				if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+				if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11, VertexShaderTechnique::PosNormUV)))
 					OutputDebugString(L"[STP] Failed to create vertex shader. !");
 			}
 
@@ -1215,7 +1215,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				// create vertex shader
 				if (!m_pcVertexShader11)
 				{
-					if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+					if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
 						bAllCreated = false;
 				}
 				// create pixel shader... TODO !! add option to switch output
@@ -1237,10 +1237,13 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						bAllCreated = false;
 				}
 
+				float fTestFont = false;
+
 				if (bAllCreated)
 				{
 					// left/right eye
 					for (int nEye = 0; nEye < 2; nEye++)
+					if (!fTestFont)
 					{
 						// Set the input layout
 						pcContext->IASetInputLayout(m_pcVertexLayout11);
@@ -1278,8 +1281,14 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						pcContext->Draw(6, 0);
 					}
 
-					if (false)
+					if (fTestFont)
 					{
+						static VireioFont* m_pcFontSegeo128 = nullptr;
+						HRESULT nHr = S_OK;
+						if (!m_pcFontSegeo128)
+							m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, "SegoeUI128.spritefont", 128.0f, 1920.0f / 1080.0f, nHr);
+						if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
+
 						// test draw... TODO !!
 
 						// Update our time
@@ -1290,46 +1299,13 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 							dwTimeStart = dwTimeCur;
 						t = (dwTimeCur - dwTimeStart) / 1000.0f;
 
-						// Rotate cube around the origin
-						D3DXMATRIX sWorld, sView, sProj;
-						D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
-
-						// Initialize the view matrix
-						D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
-						D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-						D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-						D3DXMatrixLookAtLH(&sView, &sEye, &sAt, &sUp);
-
-						// ...and the projection matrix
-						D3DXMatrixPerspectiveFovLH(&sProj, D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.01f, 100.0f);
-						D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
-
-						// update constant buffer
-						D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &sWorld);
-						D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
-						D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
-						D3DXVec4Normalize(&sLightDir, &sLightDir);
-						m_sGeometryConstants.sLightDir = sLightDir;
-						m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-						m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
-						pcContext->UpdateSubresource(m_pcConstantBufferDirect11, 0, NULL, &m_sGeometryConstants, 0, 0);
-
-						// Set the input layout, buffers, sampler
-						pcContext->IASetInputLayout(m_pcVLGeometry11);
-						UINT stride = sizeof(TexturedNormalVertex);
-						UINT offset = 0;
-						pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
-						pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);
-						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
-						pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
-						pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
-
-						// set shaders
-						pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
-						pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
-
-						// draw
-						pcContext->DrawIndexed(36, 0, 0);
+						if (m_pcFontSegeo128)
+						{
+							m_pcFontSegeo128->SetTextAttributes(0.0f, 5.0f, 0.0001f, 0.0f);
+							m_pcFontSegeo128->ToRender(pcContext);
+							m_pcFontSegeo128->RenderText(pcDevice, pcContext, "Vireio Perception: Open-Source Stereoscopic 3D Driver", 0.0f, 0.0f, 0.0f);
+						}
+						else OutputDebugString(L"Failed to create font!");
 					}
 				}
 

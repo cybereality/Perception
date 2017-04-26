@@ -567,7 +567,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	// create vertex shader
 	if (!m_pcVertexShader11)
 	{
-		if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+		if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
 		{
 			OutputDebugString(L"FAILED");
 			bAllCreated = false;

@@ -460,7 +460,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		m_psEyeRenderTextureHUD = new OculusTexture();
 		if (!m_psEyeRenderTextureHUD->Init(m_pcDeviceTemporary, *m_phHMD, sDescBackBuffer.Width, sDescBackBuffer.Height))
 		{
-			OutputDebugString(L"OculusDirectMode: Failed to create HUD texture.");
+			OutputDebugString(L"[OVR] Failed to create HUD texture.");
 			m_bInit = true;
 
 			pcSwapChain->Release();
@@ -487,7 +487,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrResult result = ovr_CreateMirrorTextureDX(*m_phHMD, m_pcDeviceTemporary, &sMirrorDesc, &m_pcMirrorTexture);
 		if (!OVR_SUCCESS(result))
 		{
-			OutputDebugString(L"OculusDirectMode: Failed to create mirror texture.");
+			OutputDebugString(L"[OVR]: Failed to create mirror texture.");
 		}
 
 		// get shared handle
@@ -499,7 +499,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			pcDXGIResource->GetSharedHandle(&sharedHandle);
 			pcDXGIResource->Release();
 		}
-		else OutputDebugString(L"Failed to query IDXGIResource.");
+		else OutputDebugString(L"[OVR] Failed to query IDXGIResource.");
 
 		// open the shared handle with the temporary device
 		ID3D11Resource* pcResourceShared;
@@ -509,7 +509,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcMirrorTextureD3D11));
 			pcResourceShared->Release();
 		}
-		else OutputDebugString(L"Could not open shared resource.");
+		else OutputDebugString(L"[OVR] Could not open shared resource.");
 
 		// Setup VR components, filling out description
 		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(*m_phHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
@@ -584,7 +584,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 					if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTex11Copy[eye])))
 					{
-						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+						OutputDebugString(L"[OVR] Failed to create twin texture !");
 						break;
 					}
 
@@ -593,7 +593,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					{
 						if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTex11CopyHUD)))
 						{
-							OutputDebugString(L"StereoSplitterDX10 : Failed to create HUD copy texture !");
+							OutputDebugString(L"[OVR] Failed to create HUD copy texture !");
 							break;
 						}
 
@@ -606,7 +606,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							pcDXGIResource->GetSharedHandle(&sharedHandle);
 							pcDXGIResource->Release();
 						}
-						else OutputDebugString(L"Failed to query IDXGIResource.");
+						else OutputDebugString(L"[OVR] Failed to query IDXGIResource.");
 
 						// open the shared handle with the temporary device
 						ID3D11Resource* pcResourceShared = nullptr;
@@ -616,7 +616,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcTex11SharedHUD));
 							pcResourceShared->Release();
 						}
-						else OutputDebugString(L"Could not open shared resource.");
+						else OutputDebugString(L"[OVR] Could not open shared resource.");
 
 						// create shader resource view
 						if (m_pcTex11SharedHUD)
@@ -628,9 +628,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							sDescSRV.Texture2D.MostDetailedMip = 0;
 							sDescSRV.Texture2D.MipLevels = 1;
 							if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(m_pcTex11SharedHUD, &sDescSRV, &m_pcTex11SharedHudSRV)))
-								OutputDebugString(L"Failed to create shader resource view.");
+								OutputDebugString(L"[OVR] Failed to create shader resource view.");
 						}
-						else OutputDebugString(L"No Texture available.");
+						else OutputDebugString(L"[OVR] No Texture available.");
 					}
 
 					// aspect ratio
@@ -647,7 +647,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						pcDXGIResource->GetSharedHandle(&sharedHandle);
 						pcDXGIResource->Release();
 					}
-					else OutputDebugString(L"Failed to query IDXGIResource.");
+					else OutputDebugString(L"[OVR] Failed to query IDXGIResource.");
 
 					// open the shared handle with the temporary device
 					ID3D11Resource* pcResourceShared;
@@ -657,7 +657,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcFrameTexture[eye]));
 						pcResourceShared->Release();
 					}
-					else OutputDebugString(L"Could not open shared resource.");
+					else OutputDebugString(L"[OVR] Could not open shared resource.");
 
 					// create shader resource view
 					if (m_pcFrameTexture[eye])
@@ -669,9 +669,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						sDescSRV.Texture2D.MostDetailedMip = 0;
 						sDescSRV.Texture2D.MipLevels = 1;
 						if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(m_pcFrameTexture[eye], &sDescSRV, &m_pcFrameTextureSRView[eye])))
-							OutputDebugString(L"Failed to create shader resource view.");
+							OutputDebugString(L"[OVR] Failed to create shader resource view.");
 					}
-					else OutputDebugString(L"No Texture available.");
+					else OutputDebugString(L"[OVR] No Texture available.");
 				}
 				else
 				{
@@ -684,9 +684,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					// create vertex shader
 					if (!m_pcVertexShader11)
 					{
-						if (FAILED(Create2DVertexShader(m_pcDeviceTemporary, &m_pcVertexShader11, &m_pcVertexLayout11)))
+						if (FAILED(CreateVertexShaderTechnique(m_pcDeviceTemporary, &m_pcVertexShader11, &m_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
 						{
-							OutputDebugString(L"FAILED");
+							OutputDebugString(L"[OVR] Failed to create vertex shader. ");
 							bAllCreated = false;
 						}
 					}
@@ -727,7 +727,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 						if (FAILED(m_pcDeviceTemporary->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
 						{
-							OutputDebugString(L"Failed to create Sampler State.");
+							OutputDebugString(L"[OVR] Failed to create Sampler State.");
 							bAllCreated = false;
 						}
 					}
@@ -896,10 +896,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				pcBackBuffer->Release();
 			}
 			else
-				OutputDebugString(L"No Back Buffer");
+				OutputDebugString(L"[OVR] No Back Buffer");
 		}
 
-		if (!m_pcMirrorTextureD3D11) OutputDebugString(L"No mirror texture!");
+		if (!m_pcMirrorTextureD3D11) OutputDebugString(L"[OVR] No mirror texture!");
 #pragma endregion
 	}
 
