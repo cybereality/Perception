@@ -1737,13 +1737,13 @@ static const char* PS_VORONOI_SMOOTH =
 "			vec2 g = vec2(float(i), float(j));\n"
 "			vec2 o = hash2(n + g);\n"
 
-			// animate
+// animate
 "			o = 0.5 + 0.5*sin(fGlobalTime + 6.2831*o);\n"
 
-			// distance to cell		
+// distance to cell		
 "			float d = length(g - f + o);\n"
 
-			// do the smoth min for colors and distances		
+// do the smoth min for colors and distances		
 "			vec3 col = 0.5 + 0.5*sin(hash1(dot(n + g, vec2(7.0, 113.0)))*2.5 + 3.5 + vec3(2.0, 3.0, 0.0));\n"
 "			float h = smoothstep(0.0, 1.0, 0.5 + 0.5*(m.x - d) / w);\n"
 
@@ -1774,6 +1774,79 @@ static const char* PS_VORONOI_SMOOTH =
 "	col *= smoothstep(0.005, 0.007, abs(p.y - 0.66));\n"
 
 "   return vec4(col, 1.0);\n"
+"}\n";
+#pragma endregion
+#pragma region PS_TEXT_FX_001
+/**
+* Text FX 001
+* FX shader for font output.
+***/
+static const char* PS_TEXT_FX_001 =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+"	const float PI = 3.14159265;\n"
+
+// get texel, discard if no color (in case red)
+"	float4 afFragment4 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+"	afFragment4.a = afFragment4.r;\n"
+"	if (afFragment4.r == 0.0f) discard;\n"
+
+// moire
+"	vec4 sPos4 = mul(vec4(1.0f, 1.0f, 1.0f, 1.0f), sWorld);\n"
+"	vec2 sPos = sPos4.xy;// Input.vTexcoord * 7.0f;\n"
+"	sPos.x += Input.vTexcoord.y * 7;\n"
+"	sPos.y += Input.vTexcoord.x * 7;\n"
+"	vec3 sColor = sin(vec3(sin(fGlobalTime / 2.3f), cos(fGlobalTime / 2.3f), fract(fGlobalTime))*(dot(sPos, sPos)));\n"
+"	if (afFragment4.a < 1.0f) sColor = vec3(0.0f, 0.0f, 0.0f);\n"
+
+"	afFragment4.rgb = smoothstep(sColor, afFragment4.rgb, 0.9f) * 0.5f;\n"
+"	afFragment4.g *= sin(fGlobalTime);\n"
+"	afFragment4.b *= cos(fGlobalTime);\n"
+"	if (afFragment4.a < 1.0f) afFragment4.r = 0.0f;\n"
+
+"	return afFragment4;\n"
+
 "}\n";
 #pragma endregion
 #pragma endregion
@@ -1810,6 +1883,7 @@ enum PixelShaderTechnique
 	HypnoticDisco,                 /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
 	Planets,                       /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
 	VoronoiSmooth,                 /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+	TextFX_001,                    /**< TextFX 001 : by Denis **/
 };
 
 /**
@@ -2095,7 +2169,7 @@ public:
 		}
 
 		// create pixel shader... 
-		if (FAILED(nHr = CreatePixelShaderEffect(pcDevice, &m_pcPixelShader, PixelShaderTechnique::GeometryDiffuseTextured)))
+		if (FAILED(nHr = CreatePixelShaderEffect(pcDevice, &m_pcPixelShader, PixelShaderTechnique::TextFX_001)))
 		{
 			OutputDebugString(L"[OVR] Failed to create pixel shader. ");
 			return;
@@ -2120,7 +2194,7 @@ public:
 	***/
 	~VireioFont()
 	{
-		SAFE_RELEASE(m_pcSampler); 
+		SAFE_RELEASE(m_pcSampler);
 		SAFE_RELEASE(m_pcVertexShader);
 		SAFE_RELEASE(m_pcPixelShader);
 		SAFE_RELEASE(m_pcInputLayout);
@@ -2151,7 +2225,7 @@ public:
 	/**
 	* Sets all fields before the render calls.
 	***/
-	void ToRender(ID3D11DeviceContext* pcContext)
+	void ToRender(ID3D11DeviceContext* pcContext, float fTime)
 	{
 		UINT stride = sizeof(VertexPosUV);
 		UINT offset = 0;
@@ -2171,6 +2245,9 @@ public:
 
 		// Set the sampler
 		pcContext->PSSetSamplers(0, 1, &m_pcSampler);
+
+		// set buffer fields
+		m_sConstantBuffer0.fGlobalTime = fTime;
 	}
 
 	/**
@@ -2183,7 +2260,7 @@ public:
 		FLOAT afBlendFactor[4] = {};
 		UINT unMask = 0;
 		pcContext->OMGetBlendState(&pcBlendStateOld, afBlendFactor, &unMask);
-		//pcContext->OMSetBlendState(m_pcBlendState, 0, 0xffffffff);
+		pcContext->OMSetBlendState(m_pcBlendState, 0, 0xffffffff);
 
 		UINT unIx = 0;
 		float fXTranslate = fX;
@@ -2438,6 +2515,9 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 		case VoronoiSmooth:
 			hr = D3DX10CompileFromMemory(PS_VORONOI_SMOOTH, strlen(PS_VORONOI_SMOOTH), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
+		case TextFX_001:
+			hr = D3DX10CompileFromMemory(PS_TEXT_FX_001, strlen(PS_TEXT_FX_001), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
 		default:
 			return E_INVALIDARG;
 			break;
@@ -2477,7 +2557,7 @@ HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	};
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(TexturedVertex) * 6;
+	bd.ByteWidth = sizeof(TexturedVertex)* 6;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
