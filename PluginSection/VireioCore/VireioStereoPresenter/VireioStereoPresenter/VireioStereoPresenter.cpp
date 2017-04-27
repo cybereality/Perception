@@ -59,12 +59,6 @@ m_pcPixelShader10(nullptr),
 m_pcVertexLayout10(nullptr),
 m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
-m_pcTextureMenu10(nullptr),
-m_pcVSGeometry10(nullptr),
-m_pcVLGeometry10(nullptr),
-m_pcPSGeometry10(nullptr),
-m_pcVBGeometry10(nullptr),
-m_pcIBGeometry11(nullptr),
 m_pcDSGeometry11(nullptr),
 m_pcDSVGeometry11(nullptr),
 m_pcSampler11(nullptr),
@@ -72,7 +66,8 @@ m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
 m_bZoomOut(FALSE),
 m_bMenu(false),
-m_bMenuHotkeySwitch(false)
+m_bMenuHotkeySwitch(false),
+m_pcFontSegeo128(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -122,6 +117,8 @@ m_bMenuHotkeySwitch(false)
 ***/
 StereoPresenter::~StereoPresenter()
 {
+	if (m_pcFontSegeo128) delete m_pcFontSegeo128;
+
 	SAFE_RELEASE(m_pcDSVGeometry11);
 	SAFE_RELEASE(m_pcDSGeometry11);
 	SAFE_RELEASE(m_pcSampler11);
@@ -131,12 +128,6 @@ StereoPresenter::~StereoPresenter()
 	SAFE_RELEASE(m_pcVertexBuffer10);
 	SAFE_RELEASE(m_pcBackBufferView);
 	SAFE_RELEASE(m_pcConstantBufferDirect10);
-	SAFE_RELEASE(m_pcTextureMenu10);
-	SAFE_RELEASE(m_pcVLGeometry10);
-	SAFE_RELEASE(m_pcVSGeometry10);
-	SAFE_RELEASE(m_pcPSGeometry10);
-	SAFE_RELEASE(m_pcVBGeometry10);
-	SAFE_RELEASE(m_pcIBGeometry10);
 }
 
 /**
@@ -494,102 +485,6 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
 	if (!bValid) return nullptr;
 
-	static UINT unWidthRT = 0, unHeightRT = 0;
-	static const UINT unFoVSettings = 3;
-	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
-	static const UINT unFoVADSSettings = 10;
-	static float afFoVADS[] = { 141.0f, 146.0f, 101.0f, 106.0f, 111.0f, 116.0f, 121.0f, 126.0f, 131.0f, 136.0f };
-	if (m_unFoV >= unFoVSettings)
-	{
-		m_unFoV = 0;
-		for (UINT un = 0; un < unFoVSettings; un++)
-		{
-			if (m_sUserSettings.fFoV == afFoV[un]) m_unFoV = un;
-		}
-	}
-	if (m_unFoVADS >= unFoVADSSettings)
-	{
-		m_unFoVADS = 0;
-		for (UINT un = 0; un < unFoVADSSettings; un++)
-		{
-			if (m_sUserSettings.fFoVADS == afFoVADS[un]) m_unFoVADS = un;
-		}
-	}
-
-	// immersive mode ?
-	bool bImmersiveMode = true;
-	if (m_apnIntInput[1])
-	{
-		if (*m_apnIntInput[1] == 0)
-			bImmersiveMode = false;
-	}
-	else bImmersiveMode = false;
-
-	// update view adjustment class for user settings and tracking
-	static bool s_bConfigLoaded = false;
-	if (m_ppcShaderViewAdjustment)
-	{
-		if (*m_ppcShaderViewAdjustment)
-		{
-			// did we initialize the game configurations for immersive and cinema mode ?
-			if (!s_bConfigLoaded)
-			{
-				// note that we only override IPD here !!
-				(*m_ppcShaderViewAdjustment).get()->Save(m_sGameConfigurationDefault);
-				m_sGameConfigurationDefault.fIPD = m_sUserSettings.fIPD;
-
-				// copy default to user configuration and set all fields
-				memcpy(&m_sGameConfigurationUser, &m_sGameConfigurationDefault, sizeof(Vireio_GameConfiguration));
-				m_sGameConfigurationUser.fPFOV = m_sUserSettings.fFoV;
-				m_sGameConfigurationUser.fWorldScaleFactor = m_sUserSettings.fWorldScale;
-				m_sGameConfigurationUser.fConvergence = m_sUserSettings.fConvergence;
-				m_sGameConfigurationUser.bConvergenceEnabled = m_sUserSettings.bConvergence;
-
-				// set default for immersive mode, user for cinema mode
-				if (bImmersiveMode)
-					(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationDefault);
-				else
-					(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationUser);
-
-				s_bConfigLoaded = true;
-			}
-
-			// update roll, update view transforms
-			if (m_pfEuler[2])
-			{
-				// update roll only for immersive mode
-				if (bImmersiveMode)
-					(*m_ppcShaderViewAdjustment).get()->UpdateRoll(-(*m_pfEuler[2]));
-				else
-					(*m_ppcShaderViewAdjustment).get()->UpdateRoll(0.0f);
-			}
-
-			// update position
-			if (bImmersiveMode &&
-				/*m_pfEuler[0] &&
-					m_pfEuler[1] &&*/
-					m_pfEuler[2] &&
-					/*m_pfPosition[0] &&*/
-					m_pfPosition[1]
-					/*m_pfPosition[2]*/)
-			{
-				// optimized for 1.75 meters eye height
-				float fY = *m_pfPosition[1] - 1.75f;
-				(*m_ppcShaderViewAdjustment).get()->UpdatePosition(
-					0.0f,//*m_pfEuler[0],
-					0.0f,//*m_pfEuler[1],
-					*m_pfEuler[2],
-					0.0f,//*m_pfPosition[0], <- Currently only y positional tracking !!
-					-fY,
-					0.0f);//*m_pfPosition[2]);
-			}
-			else
-				(*m_ppcShaderViewAdjustment).get()->UpdatePosition(0.0f, 0.0f, 0.0f);
-
-			(*m_ppcShaderViewAdjustment).get()->ComputeViewTransforms();
-		}
-	}
-
 	// get xbox controller input
 	XINPUT_STATE sControllerState;
 	bool bControllerAttached = false;
@@ -601,55 +496,11 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	{
-#pragma region menu hotkeys/ controller
+#pragma region menu hotkeys
 		static bool bReleased = true;
-		// handle switch hotkeys
-		if (GetAsyncKeyState(VK_F1))
-		{
-			if (bReleased)
-			{
-				// fov
-				m_unFoV++;
-				if (m_unFoV >= unFoVSettings)
-					m_unFoV = 0;
-				m_sUserSettings.fFoV = afFoV[m_unFoV];
-				bReleased = false;
-
-				// read or create the INI file
-				char szFilePathINI[1024];
-				GetCurrentDirectoryA(1024, szFilePathINI);
-				strcat_s(szFilePathINI, "\\VireioPerception.ini");
-
-				// fov
-				std::stringstream sz;
-				sz << m_sUserSettings.fFoV;
-				WritePrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szFilePathINI);
-			}
-		}
-		else
-		if (GetAsyncKeyState(VK_F2))
-		{
-			if (bReleased)
-			{
-				// fov ads
-				m_unFoVADS++;
-				if (m_unFoVADS >= unFoVADSSettings)
-					m_unFoVADS = 0;
-				m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
-				bReleased = false;
-
-				// read or create the INI file
-				char szFilePathINI[1024];
-				GetCurrentDirectoryA(1024, szFilePathINI);
-				strcat_s(szFilePathINI, "\\VireioPerception.ini");
-
-				// fov aiming down sights
-				std::stringstream sz;
-				sz << m_sUserSettings.fFoVADS;
-				WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
-			}
-		}
-		else
+		
+		// static hotkeys :  LCTRL+Q - toggle vireio menu
+		//                   F12 - toggle stereo output
 		if (GetAsyncKeyState(VK_F12))
 		{
 			m_bHotkeySwitch = true;
@@ -673,307 +524,12 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 		else
 			bReleased = true;
-
-		// handle controller
-		if (bControllerAttached)
-		{
-			if (m_apnIntInput[0])
-			{
-				if (*m_apnIntInput[0] > 0) (*m_apnIntInput[0])++;
-
-				static bool bWasPressed = false;
-				if (GetAsyncKeyState(VK_BACK))
-				{
-					if (!bWasPressed)
-					{
-						if ((*m_apnIntInput[0] == 0))
-						{
-							(*m_apnIntInput[0]) = TRUE;
-							m_bZoomOut = TRUE;
-						}
-						else
-						{
-							*m_apnIntInput[0] = FALSE;
-							m_bZoomOut = FALSE;
-						}
-
-						bWasPressed = true;
-					}
-				}
-				else
-				{
-					bWasPressed = false;
-				}
-			}
-
-			static bool bWasPressed = false;
-			if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)
-			{
-				if ((m_apnIntInput[1]) && (!bWasPressed))
-				{
-					if (*m_apnIntInput[1] == 0)
-					{
-						*m_apnIntInput[1] = TRUE;
-
-						// set default for immersive mode
-						if (m_ppcShaderViewAdjustment)
-							(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationDefault);
-					}
-					else
-					{
-						*m_apnIntInput[1] = FALSE;
-
-						// set user for cinema mode
-						if (m_ppcShaderViewAdjustment)
-							(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationUser);
-					}
-
-					bWasPressed = true;
-				}
-			}
-			else
-			{
-				bWasPressed = false;
-			}
-
-			if (m_apfFloatInput[0])
-			{
-				*m_apfFloatInput[0] = m_sUserSettings.fFoV;
-			}
-
-			if (m_apfFloatInput[1])
-			{
-				if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
-				{
-					*m_apfFloatInput[1] = afFoV[0];
-				}
-				else
-				{
-					*m_apfFloatInput[1] = m_sUserSettings.fFoVADS;
-				}
-			}
-		}
-		else
-		{
-			// handle keyboard
-			if (m_apnIntInput[0])
-			{
-				if (*m_apnIntInput[0] > 0) (*m_apnIntInput[0])++;
-
-				static bool bWasPressed = false;
-				if (GetAsyncKeyState(VK_BACK))
-				{
-					if (!bWasPressed)
-					{
-						if ((*m_apnIntInput[0] == 0))
-						{
-							(*m_apnIntInput[0]) = TRUE;
-							m_bZoomOut = TRUE;
-						}
-						else
-						{
-							*m_apnIntInput[0] = FALSE;
-							m_bZoomOut = FALSE;
-						}
-
-						bWasPressed = true;
-					}
-				}
-				else
-				{
-					bWasPressed = false;
-				}
-			}
-
-			if (m_apnIntInput[1])
-			{
-				static bool bWasPressed = false;
-				if (GetAsyncKeyState(VK_BACK))
-				{
-					if (!bWasPressed)
-					{
-						if (*m_apnIntInput[1] == 0)
-						{
-							*m_apnIntInput[1] = TRUE;
-
-							// set default for immersive mode
-							if (m_ppcShaderViewAdjustment)
-								(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationDefault);
-						}
-						else
-						{
-							*m_apnIntInput[1] = FALSE;
-
-							// set user for cinema mode
-							if (m_ppcShaderViewAdjustment)
-								(*m_ppcShaderViewAdjustment).get()->Load(m_sGameConfigurationUser);
-						}
-
-						bWasPressed = true;
-					}
-				}
-				else
-				{
-					bWasPressed = false;
-				}
-			}
-
-			if (m_apfFloatInput[0])
-			{
-				*m_apfFloatInput[0] = m_sUserSettings.fFoV;
-			}
-
-			if (m_apfFloatInput[1])
-			{
-				if (GetAsyncKeyState(VK_LSHIFT))
-				{
-					*m_apfFloatInput[1] = afFoV[0];
-				}
-				else
-				{
-					*m_apfFloatInput[1] = m_sUserSettings.fFoVADS;
-				}
-			}
-		}
+					
 #pragma endregion
-#pragma region menu
+#pragma region render menu (if opened)
+
+		// menu is shown ?
 		if (m_bMenu)
-		{
-			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
-			{
-				// get device and context
-				ID3D11Device* pcDevice = nullptr;
-				ID3D11DeviceContext* pcContext = nullptr;
-				if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
-				{
-					// release frame texture+view
-					if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-					if (pcContext) { pcContext->Release(); pcContext = nullptr; }
-					return nullptr;
-				}
-
-				// create the menu texture
-				if (!m_pcTextureMenu11)
-				{
-					// load the bitmap resource
-					HMODULE hModule = GetModuleHandle(L"VireioStereoPresenter.dll");
-					HBITMAP hbTiles = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_TILES01));
-					if (hbTiles)
-					{
-						// get size of bitmap
-						BITMAP bm;
-						GetObject(hbTiles, sizeof(bm), &bm);
-
-						// create byte buffer
-						char *pchBytes = (char*)malloc(bm.bmWidth*bm.bmHeight * 4);
-
-						// get source hdc
-						HDC hdcImage = CreateCompatibleDC(NULL);
-						HBITMAP hbmOld = (HBITMAP)SelectObject(hdcImage, hbTiles);
-						int x = 0; int y = 0;
-
-						BITMAPINFO MyBMInfo = { 0 };
-						MyBMInfo.bmiHeader.biSize = sizeof(MyBMInfo.bmiHeader);
-
-						// Get the BITMAPINFO structure from the bitmap
-						if (0 == GetDIBits(hdcImage, hbTiles, 0, 0, NULL, &MyBMInfo, DIB_RGB_COLORS))
-						{
-							OutputDebugString(L"VSTP : Error GetDIBits");
-						}
-
-						MyBMInfo.bmiHeader.biBitCount = 32;
-						MyBMInfo.bmiHeader.biCompression = BI_RGB;
-						MyBMInfo.bmiHeader.biHeight = abs(MyBMInfo.bmiHeader.biHeight);
-
-						// Call GetDIBits a second time, this time to store the actual bitmap data
-						if (0 == GetDIBits(hdcImage, hbTiles, 0, MyBMInfo.bmiHeader.biHeight,
-							pchBytes, &MyBMInfo, DIB_RGB_COLORS))
-						{
-							OutputDebugString(L"VSTP : Error GetDIBits");
-						}
-
-						// release bitmap
-						DeleteDC(hdcImage);
-						DeleteObject(hbTiles);
-
-						// create font texture
-						D3D11_TEXTURE2D_DESC sDesc;
-						ZeroMemory(&sDesc, sizeof(sDesc));
-						sDesc.Width = bm.bmWidth;
-						sDesc.Height = bm.bmHeight;
-						sDesc.MipLevels = sDesc.ArraySize = 1;
-						sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-						sDesc.SampleDesc.Count = 1;
-						sDesc.Usage = D3D11_USAGE_DEFAULT;
-						sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-						D3D11_SUBRESOURCE_DATA sData;
-						ZeroMemory(&sData, sizeof(sData));
-						sData.pSysMem = pchBytes;
-						sData.SysMemPitch = bm.bmWidth * 4;
-						if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &m_pcTextureMenu11)))
-							OutputDebugString(L"Failed to create Texture DEFAULT.");
-
-						free((void*)pchBytes);
-
-						if (m_pcTextureMenu11)
-						{
-							OutputDebugString(L"VSTP : Created font texture !");
-						}
-						else
-						{
-							OutputDebugString(L"VSTP : Can't create font texture.");
-						}
-
-						DeleteObject(hbTiles);
-					}
-				}
-
-				// get the viewport
-				UINT dwNumViewports = 1;
-				D3D11_VIEWPORT psViewport[16];
-				pcContext->RSGetViewports(&dwNumViewports, psViewport);
-
-				// draw to the textures
-				ID3D11Texture2D* pcTexture[2];
-				for (UINT unI = 0; unI < 2; unI++)
-				{
-					(*m_ppcTexView11[unI])->GetResource((ID3D11Resource**)&pcTexture[unI]);
-
-					if (pcTexture[unI])
-					{
-						// draw logo
-						D3D11_BOX sBox;
-						sBox.left = 128;
-						sBox.right = 384;
-						sBox.top = 0;
-						sBox.bottom = 32;
-						sBox.front = 0;
-						sBox.back = 1;
-						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 128, (UINT(psViewport[0].Height) >> 1) - 48, 0, m_pcTextureMenu11, 0, &sBox);
-
-						// draw tiles
-						sBox.left = 0;
-						sBox.right = 128;
-						sBox.top = m_unFoV * 32;
-						sBox.bottom = m_unFoV * 32 + 32;
-						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 64, (UINT(psViewport[0].Height) >> 1) - 16, 0, m_pcTextureMenu11, 0, &sBox);
-						sBox.top = (m_unFoVADS + 3) * 32;
-						sBox.bottom = (m_unFoVADS + 3) * 32 + 32;
-						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 64, (UINT(psViewport[0].Height) >> 1) + 16, 0, m_pcTextureMenu11, 0, &sBox);
-
-						pcTexture[unI]->Release();
-					}
-				}
-
-				if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
-			}
-		}
-#pragma endregion
-#pragma region draw to stereo textures
-
-		// draw to stereo targets
-		if (true/*TODO*/)
 		{
 			// get device and context
 			ID3D11Device* pcDevice = nullptr;
@@ -985,21 +541,6 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 				return nullptr;
 			}
-
-			// create vertex shader
-			if (!m_pcVSGeometry11)
-			{
-				if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11, VertexShaderTechnique::PosNormUV)))
-					OutputDebugString(L"[STP] Failed to create vertex shader. !");
-			}
-
-			// create pixel shader
-			if (!m_pcPSGeometry11)
-			{
-				if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
-					OutputDebugString(L"[STP] Failed to create pixel shader. !");
-			}
-
 			// create the depth stencil
 			if (!m_pcDSGeometry11)
 			{
@@ -1011,10 +552,6 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					D3D11_TEXTURE2D_DESC sDesc;
 					pcBackBuffer->GetDesc(&sDesc);
 					pcBackBuffer->Release();
-
-					// set static height, width
-					unWidthRT = sDesc.Width;
-					unHeightRT = sDesc.Height;
 
 					// Create depth stencil texture
 					D3D11_TEXTURE2D_DESC descDepth;
@@ -1044,113 +581,80 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				}
 			}
 
-			// Create vertex buffer
-			if (!m_pcVBGeometry11)
+			// get the viewport
+			UINT dwNumViewports = 1;
+			D3D11_VIEWPORT psViewport[16];
+			pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+			// backup all states
+			D3DX11_STATE_BLOCK sStateBlock;
+			CreateStateblock(pcContext, &sStateBlock);
+
+			// clear all states, set targets
+			ClearContextState(pcContext);
+
+			// set first active render target - the stored back buffer - get the stored private data view
+			ID3D11Texture2D* pcBackBuffer = nullptr;
+			((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+			ID3D11RenderTargetView* pcView = nullptr;
+			UINT dwSize = sizeof(pcView);
+			pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
+			if (dwSize)
 			{
-				TexturedNormalVertex asVertices[] =
+				pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, m_pcDSVGeometry11);
+				pcView->Release();
+			}
+			else
+			{
+				// create render target view for the back buffer
+				ID3D11RenderTargetView* pcRTV = nullptr;
+				pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
+				if (pcRTV)
 				{
-					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-					{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-					{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-					{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-					{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-					{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-					{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-					{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-					{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-					{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-					{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-					{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-					{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-				};
-
-				D3D11_BUFFER_DESC bd;
-				ZeroMemory(&bd, sizeof(bd));
-				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(TexturedNormalVertex)* 24;
-				bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-				bd.CPUAccessFlags = 0;
-				D3D11_SUBRESOURCE_DATA InitData;
-				ZeroMemory(&InitData, sizeof(InitData));
-				InitData.pSysMem = asVertices;
-				if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcVBGeometry11)))
-					OutputDebugString(L"[STS] Failed to create vertex buffer.");
+					pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
+					pcRTV->Release();
+				}
 			}
+			pcContext->RSSetViewports(dwNumViewports, psViewport);
+			pcBackBuffer->Release();
 
-			// Create index buffer
-			if (!m_pcIBGeometry11)
+			// clear the depth stencil
+			pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+			// create the font class if not present 
+			// TODO !! LOAD EXACT FONT PATH !!
+			HRESULT nHr = S_OK;
+			if (!m_pcFontSegeo128)
+				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, "SegoeUI128.spritefont", 128.0f, 1920.0f / 1080.0f, nHr);
+			if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
+
+			// test draw... TODO !!
+
+			// update our global time
+			static float fGlobalTime = 0.0f;
+			static DWORD dwTimeStart = 0;
+			DWORD dwTimeCur = GetTickCount();
+			if (dwTimeStart == 0)
+				dwTimeStart = dwTimeCur;
+			fGlobalTime = (dwTimeCur - dwTimeStart) / 1000.0f;
+
+			// render text (if font present)
+			if (m_pcFontSegeo128)
 			{
-				WORD aunIndices[] =
-				{
-					3, 1, 0,
-					2, 1, 3,
-
-					6, 4, 5,
-					7, 4, 6,
-
-					11, 9, 8,
-					10, 9, 11,
-
-					14, 12, 13,
-					15, 12, 14,
-
-					19, 17, 16,
-					18, 17, 19,
-
-					22, 20, 21,
-					23, 20, 22
-				};
-
-				D3D11_BUFFER_DESC bd;
-				ZeroMemory(&bd, sizeof(bd));
-				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(WORD)* 36;
-				bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-				bd.CPUAccessFlags = 0;
-				D3D11_SUBRESOURCE_DATA InitData;
-				ZeroMemory(&InitData, sizeof(InitData));
-				InitData.pSysMem = aunIndices;
-				if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcIBGeometry11)))
-					OutputDebugString(L"[STS] Failed to create index buffer.");
+				m_pcFontSegeo128->SetTextAttributes(0.0f, 3.0f, 0.0001f, 0.0f);
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime);
+				m_pcFontSegeo128->RenderText(pcDevice, pcContext, "Vireio Perception Profile Settings", 8.0f, 0.0f, -1.0f);
 			}
+			else OutputDebugString(L"Failed to create font!");
 
-			if (!m_pcSampler11)
-			{
-				// Create the sample state
-				D3D11_SAMPLER_DESC sampDesc;
-				ZeroMemory(&sampDesc, sizeof(sampDesc));
-				sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-				sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-				sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-				sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-				sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-				sampDesc.MinLOD = 0;
-				sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-				if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
-					OutputDebugString(L"[STS] Failed to create sampler.");
-			}
+			// set back device
+			ApplyStateblock(pcContext, &sStateBlock);
 
 			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
 			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 		}
 #pragma endregion
-#pragma region draw (optionally)
+#pragma region draw stereo (optionally)
 
 		// draw stereo target to screen (optionally)
 		if (m_eStereoMode)
@@ -1237,13 +741,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						bAllCreated = false;
 				}
 
-				float fTestFont = false;
-
 				if (bAllCreated)
 				{
 					// left/right eye
 					for (int nEye = 0; nEye < 2; nEye++)
-					if (!fTestFont)
 					{
 						// Set the input layout
 						pcContext->IASetInputLayout(m_pcVertexLayout11);
@@ -1279,34 +780,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 						// Render a triangle
 						pcContext->Draw(6, 0);
-					}
-
-					if (fTestFont)
-					{
-						static VireioFont* m_pcFontSegeo128 = nullptr;
-						HRESULT nHr = S_OK;
-						if (!m_pcFontSegeo128)
-							m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, "SegoeUI128.spritefont", 128.0f, 1920.0f / 1080.0f, nHr);
-						if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
-
-						// test draw... TODO !!
-
-						// Update our time
-						static float t = 0.0f;
-						static DWORD dwTimeStart = 0;
-						DWORD dwTimeCur = GetTickCount();
-						if (dwTimeStart == 0)
-							dwTimeStart = dwTimeCur;
-						t = (dwTimeCur - dwTimeStart) / 1000.0f;
-
-						if (m_pcFontSegeo128)
-						{
-							m_pcFontSegeo128->SetTextAttributes(0.0f, 5.0f, 0.0001f, 0.0f);
-							m_pcFontSegeo128->ToRender(pcContext);
-							m_pcFontSegeo128->RenderText(pcDevice, pcContext, "Vireio Perception: Open-Source Stereoscopic 3D Driver", 0.0f, 0.0f, 0.0f);
-						}
-						else OutputDebugString(L"Failed to create font!");
-					}
+					}					
 				}
 
 				// set back device

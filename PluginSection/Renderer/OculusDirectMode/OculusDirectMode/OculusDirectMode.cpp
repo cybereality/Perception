@@ -278,7 +278,7 @@ bool OculusDirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int
 * Render the Oculus Rift View.
 ***/
 void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
-{
+{return nullptr;
 	// always skip more frames than the oculus tracker to ensure initialization is done
 	static UINT unFrameSkip = 200 + 10;
 	if (unFrameSkip > 0)

@@ -468,6 +468,10 @@ bool OculusTracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD
 ***/
 void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	m_unRenderTextureHeight = 1024.0f;
+	m_unRenderTextureWidth = 1024.0f;
+	return nullptr;
+
 	// update game timer
 	m_cGameTimer.Tick();
 

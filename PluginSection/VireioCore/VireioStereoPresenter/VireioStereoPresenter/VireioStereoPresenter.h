@@ -215,28 +215,12 @@ private:
 		ID3D11VertexShader* m_pcVertexShader11;
 	};
 	/**
-	* The 3D vertex shader.
-	***/
-	union
-	{
-		ID3D10VertexShader* m_pcVSGeometry10;
-		ID3D11VertexShader* m_pcVSGeometry11;
-	};
-	/**
 	* The 2D pixel shader.
 	***/
 	union
 	{
 		ID3D10PixelShader* m_pcPixelShader10;
 		ID3D11PixelShader* m_pcPixelShader11;
-	};
-	/**
-	* The 2D pixel shader.
-	***/
-	union
-	{
-		ID3D10PixelShader* m_pcPSGeometry10;
-		ID3D11PixelShader* m_pcPSGeometry11;
 	};
 	/**
 	* The 2D vertex layout.
@@ -247,36 +231,12 @@ private:
 		ID3D11InputLayout* m_pcVertexLayout11;
 	};
 	/**
-	* The 3D vertex layout.
-	***/
-	union
-	{
-		ID3D10InputLayout* m_pcVLGeometry10;
-		ID3D11InputLayout* m_pcVLGeometry11;
-	};
-	/**
 	* The 2D vertex buffer.
 	***/
 	union
 	{
 		ID3D10Buffer* m_pcVertexBuffer10;
 		ID3D11Buffer* m_pcVertexBuffer11;
-	};
-	/**
-	* The 3D vertex buffer. 
-	***/
-	union
-	{
-		ID3D10Buffer* m_pcVBGeometry10;
-		ID3D11Buffer* m_pcVBGeometry11;
-	};
-	/**
-	* The 3D index buffer.
-	***/
-	union
-	{
-		ID3D10Buffer* m_pcIBGeometry10;
-		ID3D11Buffer* m_pcIBGeometry11;
 	};
 	/**
 	* The d3d11 sampler.
@@ -332,19 +292,7 @@ private:
 	***/
 	int* m_apnIntInput[16];
 	/**
-	* The Menu bitmap.
-	***/
-	HBITMAP m_hBitmapMenu;
-	/**
-	* The Menu texture.
-	***/
-	union
-	{
-		ID3D10Texture2D* m_pcTextureMenu10;
-		ID3D11Texture2D* m_pcTextureMenu11;
-	};
-	/**
-	* Zoom out bool.
+	* Zoom out bool. NEED THAT ??
 	***/
 	BOOL m_bZoomOut;
 	/**
@@ -377,7 +325,10 @@ private:
 	* Contains UserSettings data.
 	***/
 	Vireio_GameConfiguration m_sGameConfigurationUser;
-
+	/**
+	* Menu basic font.
+	***/
+	VireioFont* m_pcFontSegeo128;
 };
 
 /**
