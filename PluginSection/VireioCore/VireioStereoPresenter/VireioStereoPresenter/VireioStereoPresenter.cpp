@@ -642,8 +642,15 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_pcFontSegeo128)
 			{
 				m_pcFontSegeo128->SetTextAttributes(0.0f, 3.0f, 0.0001f, 0.0f);
-				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime);
-				m_pcFontSegeo128->RenderText(pcDevice, pcContext, "Vireio Perception Profile Settings", 8.0f, 0.0f, -1.0f);
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f)-6.0f, 10.0f);
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Vireio Perception Profile Settings");
+				m_pcFontSegeo128->Enter();
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Overall Settings");
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "VRBoost Values");
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Drawing Options");
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "General Hotkeys");
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "3D Adjustment Hotkeys");
+				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Back to Game");
 			}
 			else OutputDebugString(L"Failed to create font!");
 

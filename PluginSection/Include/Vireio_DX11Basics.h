@@ -2225,7 +2225,7 @@ public:
 	/**
 	* Sets all fields before the render calls.
 	***/
-	void ToRender(ID3D11DeviceContext* pcContext, float fTime)
+	void ToRender(ID3D11DeviceContext* pcContext, float fTime, float fScrollY, float fDistance)
 	{
 		UINT stride = sizeof(VertexPosUV);
 		UINT offset = 0;
@@ -2248,6 +2248,53 @@ public:
 
 		// set buffer fields
 		m_sConstantBuffer0.fGlobalTime = fTime;
+
+		// set scroll origin, distance, line index zero
+		m_fScrollY = fScrollY;
+		m_fDistance = -fDistance;
+		m_unLineIx = 0;
+	}
+
+	/**
+	* Measures the text width.
+	* @returns The measured text width in world space dimension.
+	***/
+	float MeasureText(LPCSTR szText)
+	{
+		UINT unIx = 0;
+		float fReturn = 0.0f;
+		while (szText[unIx])
+		{
+			char ch = szText[unIx];
+			fReturn += m_asGlyphConstants[ch].fXAdvance;
+			unIx++;
+		}
+		return fReturn;
+	}
+
+	/**
+	* Empty line.
+	***/
+	void Enter() { m_unLineIx++; }
+
+	/**
+	* Renders a new text line based on the vertical scroll origin.
+	***/
+	void RenderTextLine(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szText)
+	{
+		// get vertical origin, measure text
+		float fLineOrigin = m_fScrollY + (float)m_unLineIx * 1.4f;
+		float fTremble = 0.0f;
+		float fWidth = MeasureText(szText);
+
+		// set tremble for vertically centered line
+		if ((fLineOrigin > -0.5) && (fLineOrigin < 0.5f)) fTremble = (sin(m_sConstantBuffer0.fGlobalTime*20.0f))*0.5f;
+
+		// render text centered
+		RenderText(pcDevice, pcContext, szText, fWidth * -0.5f, m_fDistance + fTremble, fLineOrigin);
+
+		// next line
+		m_unLineIx++;
 	}
 
 	/**
@@ -2345,6 +2392,18 @@ private:
 	* The d3d11 sampler.
 	***/
 	ID3D11SamplerState* m_pcSampler;
+	/**
+	* Vertical scroll origin.
+	**/
+	float m_fScrollY;
+	/**
+	* Text distance.
+	***/
+	float m_fDistance;
+	/**
+	* Internal text line counter.
+	**/
+	UINT m_unLineIx;
 };
 
 /**
