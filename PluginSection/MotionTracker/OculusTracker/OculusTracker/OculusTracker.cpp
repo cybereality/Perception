@@ -468,10 +468,6 @@ bool OculusTracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD
 ***/
 void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
-	m_unRenderTextureHeight = 1024.0f;
-	m_unRenderTextureWidth = 1024.0f;
-	return nullptr;
-
 	// update game timer
 	m_cGameTimer.Tick();
 
@@ -507,30 +503,44 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			memcpy(&fEulerOld[0], &m_fEuler[0], sizeof(float)* 3);
 			memcpy(&fEulerVelocityOld[0], &m_fEulerVelocity[0], sizeof(float)* 3);
 
-			// get angles
-			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fEuler[1], &m_fEuler[0], &m_fEuler[2]);
-
-			// quick fix here...
-			m_fEuler[1] *= -1.0f;
-			m_fEuler[0] *= -1.0f;
-			m_fEuler[2] *= -1.0f;
-
-			// get euler velocity + acceleration
-			float fEulerAcceleration[3];
-			for (UINT unI = 0; unI < 3; unI++)
+			// predicted euler angles ? for Oculus, due to ATW, we do not predict the euler angles
+			if (FALSE)
 			{
-				// get the velocity
-				m_fEulerVelocity[unI] = (m_fEuler[unI] - fEulerOld[unI]) / (float)m_cGameTimer.DeltaTime();
+				// get angles
+				m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fEuler[1], &m_fEuler[0], &m_fEuler[2]);
 
-				// get the acceleration
-				fEulerAcceleration[unI] = (m_fEulerVelocity[unI] - fEulerVelocityOld[unI]) / (float)m_cGameTimer.DeltaTime();
+				// quick fix here...
+				m_fEuler[1] *= -1.0f;
+				m_fEuler[0] *= -1.0f;
+				m_fEuler[2] *= -1.0f;
+
+				// get euler velocity + acceleration
+				float fEulerAcceleration[3];
+				for (UINT unI = 0; unI < 3; unI++)
+				{
+					// get the velocity
+					m_fEulerVelocity[unI] = (m_fEuler[unI] - fEulerOld[unI]) / (float)m_cGameTimer.DeltaTime();
+
+					// get the acceleration
+					fEulerAcceleration[unI] = (m_fEulerVelocity[unI] - fEulerVelocityOld[unI]) / (float)m_cGameTimer.DeltaTime();
+				}
+
+				// get predicted euler
+				for (UINT unI = 0; unI < 3; unI++)
+				{
+					// compute predicted euler
+					m_fEulerPredicted[unI] = (0.5f * fEulerAcceleration[unI] * ((float)m_cGameTimer.DeltaTime() * (float)m_cGameTimer.DeltaTime())) + (m_fEulerVelocity[unI] * (float)m_cGameTimer.DeltaTime()) + m_fEuler[unI];
+				}
 			}
-
-			// get predicted euler
-			for (UINT unI = 0; unI < 3; unI++)
+			else
 			{
-				// compute predicted euler
-				m_fEulerPredicted[unI] = (0.5f * fEulerAcceleration[unI] * ((float)m_cGameTimer.DeltaTime() * (float)m_cGameTimer.DeltaTime())) + (m_fEulerVelocity[unI] * (float)m_cGameTimer.DeltaTime()) + m_fEuler[unI];
+				// get angles
+				m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fEulerPredicted[1], &m_fEulerPredicted[0], &m_fEulerPredicted[2]);
+
+				// quick fix here...
+				m_fEulerPredicted[1] *= -1.0f;
+				m_fEulerPredicted[0] *= -1.0f;
+				m_fEulerPredicted[2] *= -1.0f;
 			}
 
 			// set the drawing update to true
@@ -560,13 +570,18 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		ovrResult result = ovr_Initialize(nullptr);
 		if (!OVR_SUCCESS(result))
 		{
-			OutputDebugString(L"Failed to initialize libOVR.");
+			OutputDebugString(L"[OVR] Failed to initialize libOVR.");
 			return nullptr;
 		}
 
 		result = ovr_Create(&m_hHMD, &m_sLuid);
 		if (!OVR_SUCCESS(result))
+		{
+			OutputDebugString(L"[OVR] Failed to retreive HMD handle.");
 			return nullptr;
+		}
+		else
+			OutputDebugString(L"[OVR] HMD handle initialized !");
 
 		if (m_hHMD)
 		{
