@@ -67,7 +67,8 @@ m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
 m_bZoomOut(FALSE),
 m_bMenu(false),
 m_bMenuHotkeySwitch(false),
-m_pcFontSegeo128(nullptr)
+m_pcFontSegeo128(nullptr),
+m_ppcTexViewMenu(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -199,14 +200,11 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Left Texture DX11";
 		case STP_Decommanders::RightTexture11:
 			return L"Right Texture DX11";
-		case STP_Decommanders::LeftTexture10:
-			return L"Left Texture DX10";
-		case STP_Decommanders::RightTexture10:
-			return L"Right Texture DX10";
-		case STP_Decommanders::LeftTexture9:
-			return L"Left Texture DX9";
-		case STP_Decommanders::RightTexture9:
-			return L"Right Texture DX9";
+		case STP_Decommanders::MenuTexture:
+			return L"Menu Texture";
+			/**
+			* RESERVED0..2
+			**/
 		case STP_Decommanders::ViewAdjustments:
 			return L"ViewAdjustments";
 		case STP_Decommanders::Yaw:
@@ -313,12 +311,11 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case STP_Decommanders::LeftTexture11:
 		case STP_Decommanders::RightTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case STP_Decommanders::LeftTexture10:
-		case STP_Decommanders::RightTexture10:
-			return NOD_Plugtype::AQU_PNT_ID3D10SHADERRESOURCEVIEW;
-		case STP_Decommanders::LeftTexture9:
-		case STP_Decommanders::RightTexture9:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
+		case STP_Decommanders::MenuTexture:
+			return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
+			/**
+			* RESERVED0..2
+			**/
 		case STP_Decommanders::ViewAdjustments:
 			return NOD_Plugtype::AQU_SHAREDPOINTER;
 		case STP_Decommanders::Yaw:
@@ -393,10 +390,8 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case STP_Decommanders::RightTexture11:
 			m_ppcTexView11[1] = (ID3D11ShaderResourceView**)pData;
 			break;
-		case STP_Decommanders::LeftTexture10:
-		case STP_Decommanders::RightTexture10:
-		case STP_Decommanders::LeftTexture9:
-		case STP_Decommanders::RightTexture9:
+		case STP_Decommanders::MenuTexture:
+			m_ppcTexViewMenu = (ID3D11RenderTargetView**)pData;
 			break;
 		case STP_Decommanders::ViewAdjustments:
 			m_ppcShaderViewAdjustment = (std::shared_ptr<ViewAdjustment>*)pData;
@@ -498,7 +493,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	{
 #pragma region menu hotkeys
 		static bool bReleased = true;
-		
+
 		// static hotkeys :  LCTRL+Q - toggle vireio menu
 		//                   F12 - toggle stereo output
 		if (GetAsyncKeyState(VK_F12))
@@ -524,7 +519,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 		else
 			bReleased = true;
-					
+
 #pragma endregion
 #pragma region render menu (if opened)
 
@@ -593,39 +588,66 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// clear all states, set targets
 			ClearContextState(pcContext);
 
-			// set first active render target - the stored back buffer - get the stored private data view
-			ID3D11Texture2D* pcBackBuffer = nullptr;
-			((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
-			ID3D11RenderTargetView* pcView = nullptr;
-			UINT dwSize = sizeof(pcView);
-			pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
-			if (dwSize)
+			// set the menu texture (if present)
+			if (m_ppcTexViewMenu)
 			{
-				pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, m_pcDSVGeometry11);
-				pcView->Release();
+				if (*m_ppcTexViewMenu)
+				{
+					// set render target
+					ID3D11RenderTargetView* pcRTView = *m_ppcTexViewMenu;
+					pcContext->OMSetRenderTargets(1, &pcRTView, NULL);
+
+					// set viewport
+					D3D11_VIEWPORT sViewport = {};
+					sViewport.TopLeftX = 0;
+					sViewport.TopLeftY = 0;
+					sViewport.Width = 1024;
+					sViewport.Height = 1024;
+					sViewport.MinDepth = 0.0f;
+					sViewport.MaxDepth = 1.0f;
+					pcContext->RSSetViewports(1, &sViewport);
+
+					// clear render target
+					FLOAT afColorRgba[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
+					pcContext->ClearRenderTargetView(*m_ppcTexViewMenu, afColorRgba);
+				}
 			}
 			else
 			{
-				// create render target view for the back buffer
-				ID3D11RenderTargetView* pcRTV = nullptr;
-				pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
-				if (pcRTV)
+				// set first active render target - the stored back buffer - get the stored private data view
+				ID3D11Texture2D* pcBackBuffer = nullptr;
+				((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+				ID3D11RenderTargetView* pcView = nullptr;
+				UINT dwSize = sizeof(pcView);
+				pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
+				if (dwSize)
 				{
-					pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
-					pcRTV->Release();
+					pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, m_pcDSVGeometry11);
+					pcView->Release();
 				}
-			}
-			pcContext->RSSetViewports(dwNumViewports, psViewport);
-			pcBackBuffer->Release();
+				else
+				{
+					// create render target view for the back buffer
+					ID3D11RenderTargetView* pcRTV = nullptr;
+					pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
+					if (pcRTV)
+					{
+						pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
+						pcRTV->Release();
+					}
+				}
+				pcContext->RSSetViewports(dwNumViewports, psViewport);
+				pcBackBuffer->Release();
 
-			// clear the depth stencil
-			pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
+				// clear the depth stencil
+				pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
+			}
 
 			// create the font class if not present 
 			// TODO !! LOAD EXACT FONT PATH !!
 			HRESULT nHr = S_OK;
 			if (!m_pcFontSegeo128)
-				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, "SegoeUI128.spritefont", 128.0f, 1920.0f / 1080.0f, nHr);
+				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, "SegoeUI128.spritefont", 128.0f, 1.0f, nHr);
 			if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
 
 			// test draw... TODO !!
@@ -642,7 +664,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_pcFontSegeo128)
 			{
 				m_pcFontSegeo128->SetTextAttributes(0.0f, 3.0f, 0.0001f, 0.0f);
-				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f)-6.0f, 10.0f);
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f) - 6.0f, 10.0f);
 				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Vireio Perception Profile Settings");
 				m_pcFontSegeo128->Enter();
 				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Overall Settings");
@@ -787,7 +809,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 						// Render a triangle
 						pcContext->Draw(6, 0);
-					}					
+					}
 				}
 
 				// set back device

@@ -76,7 +76,10 @@ m_pcBackBufferCopySR(nullptr),
 m_pcRS(nullptr),
 m_pbImmersiveMode(nullptr),
 m_pbPerformanceMode(nullptr),
-m_hDummy(nullptr)
+m_hDummy(nullptr),
+m_pcTexMenu(nullptr),
+m_pcTexMenuSRV(nullptr),
+m_pcTexMenuRTV(nullptr)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -198,6 +201,9 @@ m_hDummy(nullptr)
 ***/
 VireioCinema::~VireioCinema()
 {
+	SAFE_RELEASE(m_pcTexMenuSRV);
+	SAFE_RELEASE(m_pcTexMenuRTV);
+	SAFE_RELEASE(m_pcTexMenu);
 	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
 	{
 		SAFE_RELEASE(m_asRenderModels[unI].pcIndexBuffer);
@@ -275,14 +281,8 @@ LPWSTR VireioCinema::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Left Texture DX11";
 		case RightTexture11:
 			return L"Right Texture DX11";
-		case LeftTexture10:
-			break;
-		case RightTexture10:
-			break;
-		case LeftTexture9:
-			break;
-		case RightTexture9:
-			break;
+		case VRC_Commanders::MenuTexture:
+			return L"Menu Texture Input";
 	}
 
 	return L"x";
@@ -295,17 +295,17 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case LeftTexture11:
+		case LeftTexture11_In:
 			return L"Left Texture DX11";
-		case RightTexture11:
+		case RightTexture11_In:
 			return L"Right Texture DX11";
-		case LeftTexture10:
+		case VRC_Decommanders::LeftTexture10_In:
 			break;
-		case RightTexture10:
+		case RightTexture10_In:
 			break;
-		case LeftTexture9:
+		case LeftTexture9_In:
 			return L"Left Texture DX9";
-		case RightTexture9:
+		case RightTexture9_In:
 			return L"Right Texture DX9";
 		case Pitch:
 			return L"Pitch";
@@ -358,14 +358,8 @@ DWORD VireioCinema::GetCommanderType(DWORD dwCommanderIndex)
 		case LeftTexture11:
 		case RightTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case LeftTexture10:
-			break;
-		case RightTexture10:
-			break;
-		case LeftTexture9:
-			break;
-		case RightTexture9:
-			break;
+		case VRC_Commanders::MenuTexture:
+			return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
 	}
 
 	return 0;
@@ -378,15 +372,15 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case LeftTexture11:
-		case RightTexture11:
+		case LeftTexture11_In:
+		case RightTexture11_In:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case LeftTexture10:
+		case LeftTexture10_In:
 			break;
-		case RightTexture10:
+		case RightTexture10_In:
 			break;
-		case LeftTexture9:
-		case RightTexture9:
+		case LeftTexture9_In:
+		case RightTexture9_In:
 			return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
 			break;
 		case Pitch:
@@ -429,13 +423,8 @@ void* VireioCinema::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pcTex11DrawSRV[0];
 		case RightTexture11:
 			return (void*)&m_pcTex11DrawSRV[1];
-		case LeftTexture10:
-			break;
-		case RightTexture10:
-			break;
-		case LeftTexture9:
-			break;
-		case RightTexture9:
+		case VRC_Commanders::MenuTexture:
+			return (void*)&m_pcTexMenuRTV;
 			break;
 		default:
 			break;
@@ -457,14 +446,14 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case RightTexture11:
 			m_ppcTex11InputSRV[1] = (ID3D11ShaderResourceView**)pData;
 			break;
-		case LeftTexture10:
+		case LeftTexture10_In:
 			break;
-		case RightTexture10:
+		case RightTexture10_In:
 			break;
-		case LeftTexture9:
+		case LeftTexture9_In:
 			m_ppcTex9Input[0] = (IDirect3DTexture9**)pData;
 			break;
-		case RightTexture9:
+		case RightTexture9_In:
 			m_ppcTex9Input[1] = (IDirect3DTexture9**)pData;
 			break;
 		case Pitch:
@@ -807,7 +796,6 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 ***/
 void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext)
 {
-	OutputDebugString(L"InitD3D11");
 	// create vertex shader
 	if (!m_pcVSGeometry11)
 	{
@@ -835,7 +823,11 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	{
 		if ((!m_pcTex11Draw[unEye]) && (m_punTexResolutionHeight) && (m_punTexResolutionWidth))
 		{
-			if (!(*m_punTexResolutionWidth) || !(*m_punTexResolutionHeight)) continue;
+			if (!(*m_punTexResolutionWidth) || !(*m_punTexResolutionHeight))
+			{
+				OutputDebugString(L"[CIN] Waiting for tracker to initialize render target size...");
+				continue;
+			}
 
 			// fill the description
 			D3D11_TEXTURE2D_DESC sDescTex;
@@ -965,8 +957,62 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			OutputDebugString(L"[CIN] Failed to create constant buffer.");
 	}
 
+	// create menu texture
+	if (!m_pcTexMenu)
+	{
+		// Initialize the render target texture description
+		D3D11_TEXTURE2D_DESC sDesc = {};
+		sDesc.Width = 1024;
+		sDesc.Height = 1024;
+		sDesc.MipLevels = 1;
+		sDesc.ArraySize = 1;
+		sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sDesc.SampleDesc.Count = 1;
+		sDesc.Usage = D3D11_USAGE_DEFAULT;
+		sDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		sDesc.CPUAccessFlags = 0;
+		sDesc.MiscFlags = 0;
+
+		// Create the render target texture.
+		HRESULT nHr = pcDevice->CreateTexture2D(&sDesc, NULL, &m_pcTexMenu);
+		if (FAILED(nHr))
+		{
+			OutputDebugString(L"[CIN] Failed to create menu texture !");
+			return;
+		}
+
+		// Setup the description of the render target view.
+		D3D11_RENDER_TARGET_VIEW_DESC sDescRTV = {};
+		sDescRTV.Format = sDesc.Format;
+		sDescRTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		sDescRTV.Texture2D.MipSlice = 0;
+
+		// Create the render target view.
+		nHr = pcDevice->CreateRenderTargetView(m_pcTexMenu, &sDescRTV, &m_pcTexMenuRTV);
+		if (FAILED(nHr))
+		{
+			OutputDebugString(L"[CIN] Failed to create menu texture RTV !");
+			return;
+		}
+
+		// Setup the description of the shader resource view.
+		D3D11_SHADER_RESOURCE_VIEW_DESC sDescSRV = {};
+		sDescSRV.Format = sDesc.Format;
+		sDescSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		sDescSRV.Texture2D.MostDetailedMip = 0;
+		sDescSRV.Texture2D.MipLevels = 1;
+
+		// Create the shader resource view.
+		nHr = pcDevice->CreateShaderResourceView(m_pcTexMenu, &sDescSRV, &m_pcTexMenuSRV);
+		if (FAILED(nHr))
+		{
+			OutputDebugString(L"[CIN] Failed to create menu texture SRV !");
+			return;
+		}
+	}
+
 	// is all created ? only create render models if all things are created
-	if ((!m_pcConstantBufferGeometry) || (!m_pcSampler11) || (!m_pcSamplerState) || (!m_pcDSGeometry11[0]) || (!m_pcTex11Draw[0]) || (!m_pcPSGeometry11) || (!m_pcVSGeometry11)) return;
+	if ((!m_pcConstantBufferGeometry) || (!m_pcSampler11) || (!m_pcSamplerState) || (!m_pcDSGeometry11[0]) || (!m_pcTex11Draw[0]) || (!m_pcPSGeometry11) || (!m_pcVSGeometry11) || (!m_pcTexMenuRTV)) return;
 
 	// create render models...
 	if (!m_asRenderModels.size())
@@ -1443,6 +1489,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			// set frame texture left/right if main effect
 			if (!m_asRenderModels[unI].pcEffect)
 				pcContext->PSSetShaderResources(0, 1, &m_apcTex11InputSRV[nEye]);
+			// pcContext->PSSetShaderResources(0, 1, &m_pcTexMenuSRV);
 
 			// set WVP matrix, update constant buffer
 			D3DXMATRIX sWorldViewProjection;

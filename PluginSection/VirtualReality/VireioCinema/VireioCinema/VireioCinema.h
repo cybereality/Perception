@@ -78,7 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_VECTOR3F_PLUG_TYPE                      2061
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
-#define NUMBER_OF_COMMANDERS                           2
+#define NUMBER_OF_COMMANDERS                           3
 #define NUMBER_OF_DECOMMANDERS                        24
 
 /**
@@ -88,12 +88,10 @@ enum VRC_Commanders
 {
 	LeftTexture11,
 	RightTexture11,
-	LeftTexture10,
-	RightTexture10,
-	LeftTexture9,
-	RightTexture9,
+	MenuTexture,
 	ScreenWidth,
 	ScreenLevel,
+	ScreenDepth
 };
 
 /**
@@ -465,6 +463,18 @@ private:
 	* Shader resource view placeholders left/right.
 	***/
 	ID3D11ShaderResourceView* m_apcTex11InputSRV[2];
+	/**
+	* Menu texture.
+	***/
+	ID3D11Texture2D* m_pcTexMenu;
+	/**
+	* Menu texture srv.
+	***/
+	ID3D11ShaderResourceView* m_pcTexMenuSRV;
+	/**
+	* Menu texture rtv.
+	***/
+	ID3D11RenderTargetView* m_pcTexMenuRTV;
 #pragma endregion
 	/**
 	* D3D version used in game

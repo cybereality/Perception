@@ -98,10 +98,10 @@ enum STP_Decommanders
 {
 	LeftTexture11,
 	RightTexture11,
-	LeftTexture10,
-	RightTexture10,
-	LeftTexture9,
-	RightTexture9,
+	MenuTexture,
+	RESERVED0,
+	RESERVED1,
+	RESERVED2,
 	ViewAdjustments,
 	Yaw,
 	Pitch,
@@ -186,6 +186,10 @@ private:
 	* Stereo Textures input. (DX11)
 	***/
 	ID3D11ShaderResourceView** m_ppcTexView11[2];
+	/**
+	* Menu texture view pointer
+	***/
+	ID3D11RenderTargetView** m_ppcTexViewMenu;
 	/**
 	* True if a stereo mode is selected.
 	***/
