@@ -607,8 +607,8 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					sViewport.MaxDepth = 1.0f;
 					pcContext->RSSetViewports(1, &sViewport);
 
-					// clear render target
-					FLOAT afColorRgba[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
+					// clear render target...zero alpha
+					FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 					pcContext->ClearRenderTargetView(*m_ppcTexViewMenu, afColorRgba);
 				}
 			}
@@ -663,8 +663,8 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// render text (if font present)
 			if (m_pcFontSegeo128)
 			{
-				m_pcFontSegeo128->SetTextAttributes(0.0f, 3.0f, 0.0001f, 0.0f);
-				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f) - 6.0f, 10.0f);
+				m_pcFontSegeo128->SetTextAttributes(0.0f, 0.2f, 0.0001f);
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f) - 6.0f, 30.0f);
 				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Vireio Perception Profile Settings");
 				m_pcFontSegeo128->Enter();
 				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Overall Settings");

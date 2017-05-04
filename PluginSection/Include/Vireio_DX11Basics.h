@@ -2209,17 +2209,14 @@ public:
 	/**
 	* Set attributes for the text.
 	***/
-	void SetTextAttributes(float fX, float fY, float fZ, float fTime)
+	void SetTextAttributes(float fX, float fY, float fZ)
 	{
 		// Build the view matrix.
 		D3DXVECTOR3 sPos = D3DXVECTOR3(fX, fY, fZ);
-		D3DXVECTOR3 sTarget = D3DXVECTOR3();
+		D3DXVECTOR3 sTarget = D3DXVECTOR3(0.0f, 0.01f, 0.0f);
 		D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
 		D3DXMatrixLookAtLH(&m_sView, &sPos, &sTarget, &sUp);
-
-		// update constants
-		m_sConstantBuffer0.fGlobalTime = fTime;
 	}
 
 	/**
