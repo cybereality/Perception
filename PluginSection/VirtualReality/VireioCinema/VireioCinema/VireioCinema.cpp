@@ -59,6 +59,7 @@ VireioCinema::VireioCinema() :AQU_Nodus(),
 m_pcVSGeometry11(nullptr),
 m_pcVLGeometry11(nullptr),
 m_pcPSGeometry11(nullptr),
+m_pcPSMenuScreen11(nullptr),
 m_pfYaw(nullptr),
 m_pfPitch(nullptr),
 m_pfRoll(nullptr),
@@ -79,7 +80,9 @@ m_pbPerformanceMode(nullptr),
 m_hDummy(nullptr),
 m_pcTexMenu(nullptr),
 m_pcTexMenuSRV(nullptr),
-m_pcTexMenuRTV(nullptr)
+m_pcTexMenuRTV(nullptr),
+m_pcBlendState(nullptr),
+m_unMenuModelIndex(0)
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
@@ -201,6 +204,7 @@ m_pcTexMenuRTV(nullptr)
 ***/
 VireioCinema::~VireioCinema()
 {
+	SAFE_RELEASE(m_pcBlendState);
 	SAFE_RELEASE(m_pcTexMenuSRV);
 	SAFE_RELEASE(m_pcTexMenuRTV);
 	SAFE_RELEASE(m_pcTexMenu);
@@ -229,6 +233,7 @@ VireioCinema::~VireioCinema()
 	SAFE_RELEASE(m_pcVLGeometry11);
 	SAFE_RELEASE(m_pcVSGeometry11);
 	SAFE_RELEASE(m_pcPSGeometry11);
+	SAFE_RELEASE(m_pcPSMenuScreen11);
 	SAFE_RELEASE(m_pcSamplerState);
 
 	SendMessage(m_hDummy, WM_CLOSE, 0, 0);
@@ -803,7 +808,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			OutputDebugString(L"[CIN] Failed to create vertex shader. !");
 	}
 
-	// create pixel shader
+	// create screen pixel shader
 	if (!m_pcPSGeometry11)
 	{
 		// create screen pixel shader technique by cinema room setup
@@ -815,6 +820,21 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				break;
 		}
 		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, eTechnique)))
+			OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+	}
+
+	// create menu screen pixel shader
+	if (!m_pcPSMenuScreen11)
+	{
+		// create menu screen pixel shader technique by cinema room setup
+		PixelShaderTechnique eTechnique = PixelShaderTechnique::MenuScreen;
+		/*switch (m_sCinemaRoomSetup.ePixelShaderFX_Screen) TODO !!!
+		{
+		case CinemaRoomSetup::PixelShaderFX_Screen::Screen_GeometryDiffuseTexturedMouse:
+		eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+		break;
+		}*/
+		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSMenuScreen11, eTechnique)))
 			OutputDebugString(L"[CIN] Failed to create pixel shader. !");
 	}
 
@@ -950,6 +970,25 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			OutputDebugString(L"[CIN] Failed to create sampler.");
 	}
 
+	// create blend state
+	if (!m_pcBlendState)
+	{
+		// create a blend state for alpha blending
+		D3D11_BLEND_DESC sBlendDesc;
+		ZeroMemory(&sBlendDesc, sizeof(D3D11_BLEND_DESC));
+
+		sBlendDesc.RenderTarget[0].BlendEnable = TRUE;
+		sBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		sBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		sBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		sBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		sBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		sBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		sBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		pcDevice->CreateBlendState(&sBlendDesc, &m_pcBlendState);
+	}
+
 	// create constant buffer
 	if (!m_pcConstantBufferGeometry)
 	{
@@ -1041,6 +1080,14 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			float fScale = m_sCinemaRoomSetup.fScreenWidth / 3.84f;
 			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
 			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth), 1920, 1080);
+
+			// convert the vertices to a quadratic screen for the menu, set menu model index, create menu model
+			asVertices[0].sPosition = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+			asVertices[1].sPosition = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
+			asVertices[2].sPosition = D3DXVECTOR3(-1.0f, 1.0f, 0.0f);
+			asVertices[3].sPosition = D3DXVECTOR3(1.0f, 1.0f, 0.0f);
+			m_unMenuModelIndex = (UINT)m_asRenderModels.size();
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 2.0f, 2.0f));
 		}
 #pragma endregion
 #pragma region floor top/bottom
@@ -1477,19 +1524,36 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		// set texture and effect if pixel shader assigned
 		if (m_asRenderModels[unI].pcEffect)
 		{
+			pcContext->OMSetBlendState(NULL, NULL, 0xffffffff);
 			pcContext->PSSetShaderResources(0, 1, &m_asRenderModels[unI].pcTextureSRV);
 			pcContext->PSSetShader(m_asRenderModels[unI].pcEffect, NULL, 0);
 		}
-		else // set main shader
-			pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+		else
+		{
+			// set menu or main shader
+			if (m_unMenuModelIndex == unI)
+			{
+				pcContext->OMSetBlendState(m_pcBlendState, NULL, 0xffffffff);
+				pcContext->PSSetShader(m_pcPSMenuScreen11, NULL, 0);
+			}
+			else
+			{
+				pcContext->OMSetBlendState(NULL, NULL, 0xffffffff);
+				pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+			}
+		}
 
 		// left + right
 		for (int nEye = 0; nEye < 2; nEye++)
 		{
 			// set frame texture left/right if main effect
 			if (!m_asRenderModels[unI].pcEffect)
-				pcContext->PSSetShaderResources(0, 1, &m_apcTex11InputSRV[nEye]);
-			// pcContext->PSSetShaderResources(0, 1, &m_pcTexMenuSRV);
+			{
+				if (m_unMenuModelIndex == unI)
+					pcContext->PSSetShaderResources(0, 1, &m_pcTexMenuSRV);
+				else
+					pcContext->PSSetShaderResources(0, 1, &m_apcTex11InputSRV[nEye]);
+			}
 
 			// set WVP matrix, update constant buffer
 			D3DXMATRIX sWorldViewProjection;

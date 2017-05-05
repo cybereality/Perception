@@ -1849,6 +1849,55 @@ static const char* PS_TEXT_FX_001 =
 
 "}\n";
 #pragma endregion
+#pragma region PS_MENU_SCREEN
+/**
+* 3D Pixel Shader menu screen.
+***/
+static const char* PS_MENU_SCREEN =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// gamma correction
+"float     fGamma;\n"                // Gamma correction value 
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+
+"   if (vDiffuse.a == 0.0f) discard;\n"
+
+"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, sLightAmbient);\n"
+
+"	return vDiffuse * vLighting;\n"
+"}\n";
+#pragma endregion
 #pragma endregion
 
 /**
@@ -1884,6 +1933,7 @@ enum PixelShaderTechnique
 	Planets,                       /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
 	VoronoiSmooth,                 /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
 	TextFX_001,                    /**< TextFX 001 : by Denis **/
+	MenuScreen,                    /**< MenuScreen : Menu screen shader, skips empty alpha fragments **/
 };
 
 /**
@@ -2144,7 +2194,7 @@ public:
 		sBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 		sBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 		sBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-		sBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		sBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 		sBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 		sBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		sBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
@@ -2573,6 +2623,9 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case TextFX_001:
 			hr = D3DX10CompileFromMemory(PS_TEXT_FX_001, strlen(PS_TEXT_FX_001), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case MenuScreen:
+			hr = D3DX10CompileFromMemory(PS_MENU_SCREEN, strlen(PS_MENU_SCREEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		default:
 			return E_INVALIDARG;

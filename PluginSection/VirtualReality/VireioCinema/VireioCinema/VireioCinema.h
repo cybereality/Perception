@@ -412,9 +412,13 @@ private:
 	***/
 	ID3D11VertexShader* m_pcVSGeometry11;
 	/**
-	* The 3D pixel shader for the openVR models.
+	* The 3D pixel shader for the screen.
 	***/
 	ID3D11PixelShader* m_pcPSGeometry11;
+	/**
+	* The 3D pixel shader for the menu.
+	***/
+	ID3D11PixelShader* m_pcPSMenuScreen11;
 	/**
 	* The 3D vertex layout for the openVR models.
 	***/
@@ -431,6 +435,10 @@ private:
 	* The d3d11 sampler.
 	***/
 	ID3D11SamplerState* m_pcSampler11;
+	/**
+	* Blend state for alpha blending.
+	***/
+	ID3D11BlendState* m_pcBlendState;
 	/**
 	* Constant buffer data structure.
 	***/
@@ -455,6 +463,10 @@ private:
 	* Vector of all models to render.
 	***/
 	std::vector<RenderModel_D3D11> m_asRenderModels;
+	/**
+	* Index of the menu model.
+	***/
+	UINT m_unMenuModelIndex;
 	/**
 	* Default rasterizer state.
 	***/
