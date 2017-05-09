@@ -84,6 +84,131 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NUMBER_OF_DECOMMANDERS                         45
 
 /**
+* Small debug helper quickly imported from Vireio v3.
+***/
+void debugf(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	char buf[8192];
+	vsnprintf_s(buf, 8192, fmt, args);
+	va_end(args);
+	OutputDebugStringA(buf);
+}
+
+/**
+* Reads a string from registry.
+* @param hKey Registry key handle.
+* @param szValueName Name of the value to be read.
+* @param lpszResult The string result.
+***/
+HRESULT RegGetString(HKEY hKey, LPCSTR szValueName, LPSTR * lpszResult) {
+
+	// Given a HKEY and value name returns a string from the registry.
+	// Upon successful return the string should be freed using free()
+	// eg. RegGetString(hKey, TEXT("my value"), &szString);
+
+	DWORD dwType = 0, dwDataSize = 0, dwBufSize = 0;
+	LONG lResult;
+
+	// Incase we fail set the return string to null...
+	if (lpszResult != NULL) *lpszResult = NULL;
+
+	// Check input parameters...
+	if (hKey == NULL || lpszResult == NULL) return E_INVALIDARG;
+
+	// Get the length of the string in bytes (placed in dwDataSize)...
+	lResult = RegQueryValueExA(hKey, szValueName, 0, &dwType, NULL, &dwDataSize);
+
+	// Check result and make sure the registry value is a string(REG_SZ)...
+	if (lResult != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lResult);
+	else if (dwType != REG_SZ)    return DISP_E_TYPEMISMATCH;
+
+	// Allocate memory for string - We add space for a null terminating character...
+	dwBufSize = dwDataSize + (1 * sizeof(CHAR));
+	*lpszResult = (LPSTR)malloc(dwBufSize);
+
+	if (*lpszResult == NULL) return E_OUTOFMEMORY;
+
+	// Now get the actual string from the registry...
+	lResult = RegQueryValueExA(hKey, szValueName, 0, &dwType, (LPBYTE)*lpszResult, &dwDataSize);
+
+	// Check result and type again.
+	// If we fail here we must free the memory we allocated...
+	if (lResult != ERROR_SUCCESS) { free(*lpszResult); return HRESULT_FROM_WIN32(lResult); }
+	else if (dwType != REG_SZ) { free(*lpszResult); return DISP_E_TYPEMISMATCH; }
+
+	// We are not guaranteed a null terminated string from RegQueryValueEx.
+	// Explicitly null terminate the returned string...
+	(*lpszResult)[(dwBufSize / sizeof(CHAR)) - 1] = TEXT('\0');
+
+	return NOERROR;
+}
+
+/**
+* Reads a string from registry.
+* @param hKey Registry key handle.
+* @param szValueName Name of the value to be read.
+* @param resultStr The string result.
+***/
+HRESULT RegGetString(HKEY hKey, LPCSTR szValueName, std::string &resultStr)
+{
+	char *cstr = NULL;
+	HRESULT success = RegGetString(hKey, szValueName, &cstr);
+	if (cstr != NULL)
+	{
+		resultStr = cstr;
+		free(cstr);
+	}
+	else
+	{
+		resultStr = "";
+	}
+	return success;
+}
+
+/**
+* Returns the name of the Vireio Perception base directory read from registry.
+* Saved to registry by InitConfig() in Main.cpp.
+* Original method found in Vireio v3 class ProxyHelper.
+***/
+std::string GetBaseDir()
+{
+	static char* baseDirCache = nullptr;
+
+	if (baseDirCache != nullptr)
+	{
+		return baseDirCache;
+	}
+
+	HKEY hKey;
+	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
+
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE, &hKey);
+
+	if (openRes != ERROR_SUCCESS)
+	{
+		OutputDebugString(L"PxHelp: Error opening key.\n");
+		return "";
+	}
+
+	static std::string baseDir = "";
+	HRESULT hr = RegGetString(hKey, "BasePath", baseDir);
+	if (FAILED(hr))
+	{
+		OutputDebugString(L"Error getting BasePath from registry.\n");
+		return "";
+	}
+	else
+	{
+		debugf("%s\n", baseDir.c_str());
+		baseDirCache = _strdup(baseDir.c_str());
+	}
+
+	return baseDir;
+}
+
+/**
 * Node Commander Enumeration.
 ***/
 enum STP_Commanders
@@ -333,6 +458,11 @@ private:
 	* Menu basic font.
 	***/
 	VireioFont* m_pcFontSegeo128;
+	/**
+	* Font file name.
+	* File must have extension ".spritefont", string must NOT have the extension attached.
+	***/
+	std::string m_strFontName;
 };
 
 /**

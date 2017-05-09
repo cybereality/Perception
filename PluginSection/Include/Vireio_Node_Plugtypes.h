@@ -212,6 +212,30 @@ float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCS
 }
 
 /**
+* Ini file helper.
+***/
+std::string GetIniFileSetting(std::string strDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
+{
+	std::string strRet;
+	char szBuffer[128];
+
+	if (bFileExists)
+	{
+		// get value and write down if default (since maybe not present)
+		GetPrivateProfileStringA(szAppName, szKeyName, strDefault.c_str(), szBuffer, 128, szFileName);
+		strRet = std::string(szBuffer);
+		if (strRet == strDefault) WritePrivateProfileStringA(szAppName, szKeyName, strDefault.c_str(), szFileName);
+	}
+	else
+	{
+		// write down, new file
+		WritePrivateProfileStringA(szAppName, szKeyName, strDefault.c_str(), szFileName);
+	}
+
+	return strRet;
+}
+
+/**
 * Ini file helper. Converts string to virtual keyboard code.
 ***/
 UINT GetIniFileSettingKeyCode(std::string strDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)

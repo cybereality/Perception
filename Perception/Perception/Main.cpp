@@ -147,6 +147,9 @@ struct VireioGameProfile
 ***/
 std::vector<VireioGameProfile> m_asVireioGameProfiles;
 
+/*** Vireio v3 config registry path method ***/
+bool InitConfig(void);
+
 #else
 /*** Vireio v3 methods and fields ***/
 bool InitConfig(void);
@@ -966,8 +969,10 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 		return 0;
 	}
 
-#ifdef _VIREIO_3
+	// save perception path to registry (for all versions)
 	InitConfig();
+
+#ifdef _VIREIO_3
 	InitModes();
 	InstallHook();
 #else
@@ -996,7 +1001,6 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	return 0;
 }
 
-#ifdef _VIREIO_3
 /**
 * Init registry configuration.
 ***/
@@ -1060,6 +1064,7 @@ bool InitConfig(void)
 	return true;
 }
 
+#ifdef _VIREIO_3
 /**
 * Creates simple vectors to easily set the Vireio proxy config.
 ***/

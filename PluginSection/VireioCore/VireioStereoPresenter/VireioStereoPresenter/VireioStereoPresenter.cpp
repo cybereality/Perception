@@ -87,6 +87,7 @@ m_ppcTexViewMenu(nullptr)
 	m_sUserSettings.fWorldScale = -1.44f;
 	m_sUserSettings.fConvergence = 3.0f;
 	m_sUserSettings.bConvergence = 1;
+	m_strFontName = std::string("PassionOne");
 
 	// read or create the INI file
 	char szFilePathINI[1024];
@@ -103,7 +104,8 @@ m_ppcTexViewMenu(nullptr)
 	m_sUserSettings.fConvergence = GetIniFileSetting(m_sUserSettings.fConvergence, "Stereo Presenter", "fConvergence", szFilePathINI, bFileExists);
 	BOOL bConvergence = GetIniFileSetting((DWORD)m_sUserSettings.bConvergence, "Stereo Presenter", "bConvergence", szFilePathINI, bFileExists);
 	if (bConvergence) m_sUserSettings.bConvergence = 1; else m_sUserSettings.bConvergence = 0;
-
+	m_strFontName = GetIniFileSetting(m_strFontName, "Stereo Presenter", "strFontName", szFilePathINI, bFileExists);
+	
 	// meanwhile we set them both to 99 (=uninitialized)
 	m_unFoV = 99;
 	m_unFoVADS = 99;
@@ -644,10 +646,21 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 
 			// create the font class if not present 
-			// TODO !! LOAD EXACT FONT PATH !!
 			HRESULT nHr = S_OK;
 			if (!m_pcFontSegeo128)
-				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, "SegoeUI128.spritefont", 128.0f, 1.0f, nHr);
+			{
+				// get base directory
+				std::string strVireioPath = GetBaseDir();
+
+				// add file path
+				strVireioPath += "font//";
+				strVireioPath += m_strFontName;
+				strVireioPath += ".spritefont";
+				OutputDebugStringA(strVireioPath.c_str());
+
+				// create font
+				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, strVireioPath.c_str(), 128.0f, 1.0f, nHr);
+			}
 			if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
 
 			// test draw... TODO !!
