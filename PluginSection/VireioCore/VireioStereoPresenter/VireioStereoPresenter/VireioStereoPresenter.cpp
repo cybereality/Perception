@@ -105,7 +105,7 @@ m_ppcTexViewMenu(nullptr)
 	BOOL bConvergence = GetIniFileSetting((DWORD)m_sUserSettings.bConvergence, "Stereo Presenter", "bConvergence", szFilePathINI, bFileExists);
 	if (bConvergence) m_sUserSettings.bConvergence = 1; else m_sUserSettings.bConvergence = 0;
 	m_strFontName = GetIniFileSetting(m_strFontName, "Stereo Presenter", "strFontName", szFilePathINI, bFileExists);
-	
+
 	// meanwhile we set them both to 99 (=uninitialized)
 	m_unFoV = 99;
 	m_unFoVADS = 99;
@@ -659,7 +659,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				OutputDebugStringA(strVireioPath.c_str());
 
 				// create font
-				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, strVireioPath.c_str(), 128.0f, 1.0f, nHr);
+				m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, strVireioPath.c_str(), 128.0f, 1.0f, nHr, 1);
 			}
 			if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
 

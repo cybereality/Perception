@@ -1891,11 +1891,80 @@ static const char* PS_MENU_SCREEN =
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
 "   if (vDiffuse.a == 0.0f) discard;\n"
+"   vDiffuse.a = 0.4f;"
 
-"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
-"	vLighting = max(vLighting, sLightAmbient);\n"
+"	return vDiffuse;\n"
+"}\n";
+#pragma endregion
+#pragma region PS_TEXT_FX_002
+/**
+* Text FX 002
+* FX shader for font output.
+***/
+static const char* PS_TEXT_FX_002 =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
-"	return vDiffuse * vLighting;\n"
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+// Official HSV to RGB conversion 
+"vec3 hsv2rgb(in vec3 c)\n"
+"{\n"
+"	vec3 rgb = clamp(abs(mod(c.x*6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);\n"
+
+"	return c.z * mix(vec3(1.0, 1.0, 1.0), rgb, c.y);\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+"	const float PI = 3.14159265;\n"
+
+// get texel, discard if no color (in case red)
+"	float4 afFragment4 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+"	afFragment4.a = afFragment4.r;\n"
+"	if (afFragment4.r == 0.0f) discard;\n"
+
+"	vec3 sColor = vec3(sin(fGlobalTime / 2.3f), 0.6f, 0.9f);\n"
+"	afFragment4.rgb = hsv2rgb(sColor);\n"
+
+"	return afFragment4;\n"
+
 "}\n";
 #pragma endregion
 #pragma endregion
@@ -1932,8 +2001,9 @@ enum PixelShaderTechnique
 	HypnoticDisco,                 /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
 	Planets,                       /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
 	VoronoiSmooth,                 /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
-	TextFX_001,                    /**< TextFX 001 : by Denis **/
+	TextFX_001,                    /**< TextFX 001 : Text fx 001 **/
 	MenuScreen,                    /**< MenuScreen : Menu screen shader, skips empty alpha fragments **/
+	TextFX_002,                    /**< TextFX 002 : Text fx 002 **/
 };
 
 /**
@@ -1979,7 +2049,7 @@ public:
 	* @param pcDeviceContext The D3D 11 device context.
 	* @param szPath File path to the .spritefont file.
 	***/
-	VireioFont(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szPath, float fFontSize, float fAspect, HRESULT& nHr)
+	VireioFont(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szPath, float fFontSize, float fAspect, HRESULT& nHr, UINT unTechnique)
 		: m_pcTexFont2D(nullptr)
 		, m_pcTexFontSRV(nullptr)
 		, m_asGlyphConstants(NULL)
@@ -2218,8 +2288,23 @@ public:
 			return;
 		}
 
+		// set technique
+		PixelShaderTechnique eTechnique = PixelShaderTechnique::TextFX_001;
+		switch (unTechnique)
+		{
+			case 0:
+				eTechnique = PixelShaderTechnique::TextFX_001;
+				break;
+			case 1:
+				eTechnique = PixelShaderTechnique::TextFX_002;
+				break;
+			default:
+				eTechnique = PixelShaderTechnique::TextFX_002;
+				break;
+		}
+
 		// create pixel shader... 
-		if (FAILED(nHr = CreatePixelShaderEffect(pcDevice, &m_pcPixelShader, PixelShaderTechnique::TextFX_001)))
+		if (FAILED(nHr = CreatePixelShaderEffect(pcDevice, &m_pcPixelShader, eTechnique)))
 		{
 			OutputDebugString(L"[OVR] Failed to create pixel shader. ");
 			return;
@@ -2626,6 +2711,9 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case MenuScreen:
 			hr = D3DX10CompileFromMemory(PS_MENU_SCREEN, strlen(PS_MENU_SCREEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case TextFX_002:
+			hr = D3DX10CompileFromMemory(PS_TEXT_FX_002, strlen(PS_TEXT_FX_002), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		default:
 			return E_INVALIDARG;
