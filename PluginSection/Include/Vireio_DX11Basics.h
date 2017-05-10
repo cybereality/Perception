@@ -1891,7 +1891,7 @@ static const char* PS_MENU_SCREEN =
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
 "   if (vDiffuse.a == 0.0f) discard;\n"
-"   vDiffuse.a = 0.4f;"
+"   vDiffuse.a *= 0.6f;"
 
 "	return vDiffuse;\n"
 "}\n";

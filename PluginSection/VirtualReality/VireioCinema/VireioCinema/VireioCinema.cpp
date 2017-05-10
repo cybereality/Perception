@@ -158,6 +158,10 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
 	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
 	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
+	m_sCinemaRoomSetup.fMenuScreenDepth = 2.99f; /**< default : 2.99 meters depth level */
+	m_sCinemaRoomSetup.fMenuScreenScale = 1.0f; /**< default : 1.0 scale */
+	m_sCinemaRoomSetup.fMenuScreenRotateY = 0.0f; /**< default : 0.0 degree y rotation */
+	m_sCinemaRoomSetup.bMenuIsHUD = FALSE;
 	m_sCinemaRoomSetup.bPerformanceMode = FALSE;
 	m_sCinemaRoomSetup.bImmersiveMode = FALSE;
 	m_sCinemaRoomSetup.fGamma = 1.0f;
@@ -190,6 +194,10 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fMenuScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenDepth", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fMenuScreenScale = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenScale, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenScale", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fMenuScreenRotateY = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenRotateY, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenRotateY", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.bMenuIsHUD = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bMenuIsHUD, "Stereo Cinema", "sCinemaRoomSetup.bMenuIsHUD", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bPerformanceMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bImmersiveMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fGamma = GetIniFileSetting(m_sCinemaRoomSetup.fGamma, "Stereo Cinema", "sCinemaRoomSetup.fGamma", szFilePathINI, bFileExists);
@@ -1080,14 +1088,6 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			float fScale = m_sCinemaRoomSetup.fScreenWidth / 3.84f;
 			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
 			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth), 1920, 1080);
-
-			// convert the vertices to a quadratic screen for the menu, set menu model index, create menu model
-			asVertices[0].sPosition = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
-			asVertices[1].sPosition = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
-			asVertices[2].sPosition = D3DXVECTOR3(-1.0f, 1.0f, 0.0f);
-			asVertices[3].sPosition = D3DXVECTOR3(1.0f, 1.0f, 0.0f);
-			m_unMenuModelIndex = (UINT)m_asRenderModels.size();
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 2.0f, 2.0f));
 		}
 #pragma endregion
 #pragma region floor top/bottom
@@ -1276,6 +1276,25 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 					D3DXVECTOR3(fSizeScale, 4.0f, fSizeScale),
 					D3DXVECTOR3(0.0f, 2.4f, 0.0f), (UINT)fWidth, (UINT)fHeight);
 			}
+		}
+#pragma endregion
+#pragma region menu screen
+		if (true)
+		{
+			// set vertices
+			TexturedNormalVertex asVertices[] =
+			{
+				{ D3DXVECTOR3(1.0f, -1.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, -1.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) }
+			};
+
+			// set indices
+			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
+
+			m_unMenuModelIndex = (UINT)m_asRenderModels.size();
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(m_sCinemaRoomSetup.fMenuScreenScale, m_sCinemaRoomSetup.fMenuScreenScale, m_sCinemaRoomSetup.fMenuScreenScale), D3DXVECTOR3(0.0f, 2.0f, m_sCinemaRoomSetup.fMenuScreenDepth));
 		}
 #pragma endregion
 	}
@@ -1512,6 +1531,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	// loop through available render models, render
 	for (UINT unI = 1; unI < (UINT)unRenderModelsNo; unI++)
 	{
+		static D3DXMATRIX s_sViewBackup = {};
+
 		// set model buffers
 		pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
 		pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -1535,6 +1556,28 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			{
 				pcContext->OMSetBlendState(m_pcBlendState, NULL, 0xffffffff);
 				pcContext->PSSetShader(m_pcPSMenuScreen11, NULL, 0);
+
+				// backup view matrix
+				s_sViewBackup = m_sView;
+
+				// stuck to HMD yaw (+roll) angle ?
+				if (m_sCinemaRoomSetup.bMenuIsHUD)
+				{
+					// center menu screen model
+					D3DXMatrixTranslation(&m_sView, 0.0f, -2.0f, 0.0f);
+
+					// rotate x axis for better reading
+					D3DXMATRIX sTemp;
+					D3DXMatrixRotationX(&sTemp, s_sViewBackup(1, 2));
+					m_sView *= sTemp;
+				}
+				else
+				{
+					// set rotation matrix
+					D3DXMATRIX sTemp;
+					D3DXMatrixRotationY(&sTemp, (float)D3DXToRadian((double)m_sCinemaRoomSetup.fMenuScreenRotateY));
+					m_sView = sTemp * s_sViewBackup;
+				}
 			}
 			else
 			{
@@ -1572,6 +1615,10 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			// draw
 			pcContext->DrawIndexed(m_asRenderModels[unI].unTriangleCount * 3, 0, 0);
 		}
+
+		// set back view matrix
+		if (m_unMenuModelIndex == unI)
+			m_sView = s_sViewBackup;
 	}
 
 	// set back device

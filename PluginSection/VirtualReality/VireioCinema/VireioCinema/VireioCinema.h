@@ -613,7 +613,11 @@ private:
 		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
 		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
 		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+		float fMenuScreenDepth;    /**< The depth of the menu screen, in physical meters. */
+		float fMenuScreenScale;    /**< The scale of the menu screen. */
+		float fMenuScreenRotateY;  /**< The rotation angle (y) of the menu screen, in degree. */
 
+		BOOL bMenuIsHUD;           /**< True if the menu is stick to the HMD yaw angle. */
 		BOOL bPerformanceMode;     /**< True if performance mode is on ***/
 		BOOL bImmersiveMode;       /**< True if full immersive mode is on ***/
 	} m_sCinemaRoomSetup;
