@@ -184,6 +184,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
+    <ClInclude Include="..\..\..\..\Include\VireioMenu.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioStereoPresenter.h" />
     <ClInclude Include="..\Resources.h" />

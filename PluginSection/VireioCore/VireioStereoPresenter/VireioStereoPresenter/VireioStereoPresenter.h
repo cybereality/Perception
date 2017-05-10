@@ -79,10 +79,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
-#define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                         45
+#define NUMBER_OF_COMMANDERS                           0
+#define NUMBER_OF_DECOMMANDERS                         35
 
+#pragma region registry helpers
 /**
 * Small debug helper quickly imported from Vireio v3.
 ***/
@@ -166,6 +168,7 @@ HRESULT RegGetString(HKEY hKey, LPCSTR szValueName, std::string &resultStr)
 	}
 	return success;
 }
+#pragma endregion
 
 /**
 * Returns the name of the Vireio Perception base directory read from registry.
@@ -208,13 +211,13 @@ std::string GetBaseDir()
 	return baseDir;
 }
 
-/**
-* Node Commander Enumeration.
-***/
-enum STP_Commanders
-{
-	ZoomOut
-};
+///**
+//* Node Commander Enumeration.
+//***/
+//enum STP_Commanders
+//{
+//	ZoomOut
+//};
 
 /**
 * Node Commander Enumeration.
@@ -224,48 +227,38 @@ enum STP_Decommanders
 	LeftTexture11,
 	RightTexture11,
 	MenuTexture,
-	RESERVED0,
-	RESERVED1,
-	RESERVED2,
-	ViewAdjustments,
-	Yaw,
-	Pitch,
-	Roll,
-	XPosition,
-	YPosition,
-	ZPosition,
-	FloatInput00,
-	FloatInput01,
-	FloatInput02,
-	FloatInput03,
-	FloatInput04,
-	FloatInput05,
-	FloatInput06,
-	FloatInput07,
-	FloatInput08,
-	FloatInput09,
-	FloatInput10,
-	FloatInput11,
-	FloatInput12,
-	FloatInput13,
-	FloatInput14,
-	FloatInput15,
-	IntInput00,
-	IntInput01,
-	IntInput02,
-	IntInput03,
-	IntInput04,
-	IntInput05,
-	IntInput06,
-	IntInput07,
-	IntInput08,
-	IntInput09,
-	IntInput10,
-	IntInput11,
-	IntInput12,
-	IntInput13,
-	IntInput14,
-	IntInput15,
+	VireioSubMenu00,
+	VireioSubMenu01,
+	VireioSubMenu02,
+	VireioSubMenu03,
+	VireioSubMenu04,
+	VireioSubMenu05,
+	VireioSubMenu06,
+	VireioSubMenu07,
+	VireioSubMenu08,
+	VireioSubMenu09,
+	VireioSubMenu10,
+	VireioSubMenu11,
+	VireioSubMenu12,
+	VireioSubMenu13,
+	VireioSubMenu14,
+	VireioSubMenu15,
+	VireioSubMenu16,
+	VireioSubMenu17,
+	VireioSubMenu18,
+	VireioSubMenu19,
+	VireioSubMenu20,
+	VireioSubMenu21,
+	VireioSubMenu22,
+	VireioSubMenu23,
+	VireioSubMenu24,
+	VireioSubMenu25,
+	VireioSubMenu26,
+	VireioSubMenu27,
+	VireioSubMenu28,
+	VireioSubMenu29,
+	VireioSubMenu30,
+	VireioSubMenu31,
 };
 
 /**
@@ -307,6 +300,10 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
+	/*** Stereo Presenter private methods ***/
+	void                    RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext);
+	void                    RenderSubMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, VireioSubMenu* psSubMenu);
+
 	/**
 	* Stereo Textures input. (DX11)
 	***/
@@ -400,60 +397,9 @@ private:
 	***/
 	GeometryConstantBuffer m_sGeometryConstants;
 	/**
-	* View matrix adjustment class.
-	* @see ViewAdjustment
-	**/
-	std::shared_ptr<ViewAdjustment>* m_ppcShaderViewAdjustment;
-	/**
-	* Connected Euler angles. Yaw, Pitch, Roll.
+	* Cinema mode pointer bool.
 	***/
-	float* m_pfEuler[3];
-	/**
-	* Connected position. X, Y, Z.
-	***/
-	float* m_pfPosition[3];
-	/**
-	* Float external menu data pointers.
-	***/
-	float* m_apfFloatInput[16];
-	/**
-	* Int external menu data pointers.
-	***/
-	int* m_apnIntInput[16];
-	/**
-	* Zoom out bool. NEED THAT ??
-	***/
-	BOOL m_bZoomOut;
-	/**
-	* User settings, first version.
-	***/
-	struct UserSettings
-	{
-		float fFoV;          /**< Field of View setting, current.**/
-		float fFoVADS;       /**< Field of View setting, current.**/
-		float fIPD;          /**< Interpupillary distance. ***/
-		float fWorldScale;   /**< Game separation setting. ***/
-		float fConvergence;  /**< Game convergence setting. ***/
-		bool  bConvergence;  /**< True if convergence enabled. ***/
-	} m_sUserSettings;
-	/**
-	* Chosen FoV setting. 
-	***/
-	UINT m_unFoV;
-	/**
-	* Chosen FoV setting (ADS).
-	***/
-	UINT m_unFoVADS;
-	/**
-	* Default game configuration. (=immersive mode settings)
-	* Only IPD will be overridden here by user setting.
-	***/
-	Vireio_GameConfiguration m_sGameConfigurationDefault;
-	/**
-	* User game configuration. (=cinema mode settings)
-	* Contains UserSettings data.
-	***/
-	Vireio_GameConfiguration m_sGameConfigurationUser;
+	bool *m_pbCinemaMode;
 	/**
 	* Menu basic font.
 	***/
@@ -463,6 +409,18 @@ private:
 	* File must have extension ".spritefont", string must NOT have the extension attached.
 	***/
 	std::string m_strFontName;
+	/**
+	* The sub menu for the presenter node.
+	***/
+	VireioSubMenu m_sSubMenu;
+	/**
+	* The sub menu pointers.
+	***/
+	VireioSubMenu* m_apsSubMenues[32];
+	/**
+	* Font selection value.
+	***/
+	UINT m_unFontSelection;
 };
 
 /**

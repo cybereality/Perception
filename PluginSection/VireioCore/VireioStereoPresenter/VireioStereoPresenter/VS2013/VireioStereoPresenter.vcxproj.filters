@@ -5,6 +5,7 @@
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioStereoPresenter.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
+    <ClInclude Include="..\..\..\..\Include\VireioMenu.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />

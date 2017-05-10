@@ -64,30 +64,16 @@ m_pcDSVGeometry11(nullptr),
 m_pcSampler11(nullptr),
 m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
-m_bZoomOut(FALSE),
 m_bMenu(false),
 m_bMenuHotkeySwitch(false),
 m_pcFontSegeo128(nullptr),
-m_ppcTexViewMenu(nullptr)
+m_ppcTexViewMenu(nullptr),
+m_pbCinemaMode(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
-
-	m_pfEuler[0] = nullptr;
-	m_pfEuler[1] = nullptr;
-	m_pfEuler[2] = nullptr;
-	m_pfPosition[0] = nullptr;
-	m_pfPosition[1] = nullptr;
-	m_pfPosition[2] = nullptr;
-
-	// set defaults
-	m_sUserSettings.fFoV = 121.0f;
-	m_sUserSettings.fFoVADS = 121.0f;
-	m_sUserSettings.fIPD = 0.064f;
-	m_sUserSettings.fWorldScale = -1.44f;
-	m_sUserSettings.fConvergence = 3.0f;
-	m_sUserSettings.bConvergence = 1;
 	m_strFontName = std::string("PassionOne");
+	m_unFontSelection = 0;
 
 	// read or create the INI file
 	char szFilePathINI[1024];
@@ -97,21 +83,94 @@ m_ppcTexViewMenu(nullptr)
 	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
 
 	// read settings
-	m_sUserSettings.fFoV = GetIniFileSetting(m_sUserSettings.fFoV, "Stereo Presenter", "fFoV", szFilePathINI, bFileExists);
-	m_sUserSettings.fFoVADS = GetIniFileSetting(m_sUserSettings.fFoVADS, "Stereo Presenter", "fFoVADS", szFilePathINI, bFileExists);
-	m_sUserSettings.fIPD = GetIniFileSetting(m_sUserSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
-	m_sUserSettings.fWorldScale = GetIniFileSetting(m_sUserSettings.fWorldScale, "Stereo Presenter", "fWorldScale", szFilePathINI, bFileExists);
-	m_sUserSettings.fConvergence = GetIniFileSetting(m_sUserSettings.fConvergence, "Stereo Presenter", "fConvergence", szFilePathINI, bFileExists);
-	BOOL bConvergence = GetIniFileSetting((DWORD)m_sUserSettings.bConvergence, "Stereo Presenter", "bConvergence", szFilePathINI, bFileExists);
-	if (bConvergence) m_sUserSettings.bConvergence = 1; else m_sUserSettings.bConvergence = 0;
 	m_strFontName = GetIniFileSetting(m_strFontName, "Stereo Presenter", "strFontName", szFilePathINI, bFileExists);
 
-	// meanwhile we set them both to 99 (=uninitialized)
-	m_unFoV = 99;
-	m_unFoVADS = 99;
+	// TODO !! LOOP THROUGH AVAILABLE MENUES, SET SECONDARY VALUE ! (IN FIRST PROVOKING CALL)
+	ZeroMemory(&m_apsSubMenues[0], sizeof(VireioSubMenu*));
 
-	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
-	ZeroMemory(&m_apnIntInput[0], sizeof(int*)* 16);
+	// create the presenter sub menu
+	ZeroMemory(&m_sSubMenu, sizeof(VireioSubMenu));
+	m_sSubMenu.strSubMenu = "Stereo Presenter";
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Font";
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = 6;
+		sEntry.unChangeSize = 1;
+		sEntry.bValueEnumeration = true;
+		{ std::string strEnum = "PassionOne"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "ComicSansMS"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "JacintoSans"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "bitwise"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "SegoeUI128"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "UltimateGameplayer"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "Videophreak"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		// TODO !! LOOP THROUGH SELECTIONS
+		sEntry.punValue = &m_unFontSelection;
+		sEntry.unValue = *sEntry.punValue;
+		m_sSubMenu.asEntries.push_back(sEntry);
+	}
+	{
+		static float s_fDummy = 1.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Test Entry";
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 100.0f;
+		sEntry.fChangeSize = 0.5f;
+		sEntry.pfValue = &s_fDummy;
+		sEntry.fValue = *sEntry.pfValue;
+		m_sSubMenu.asEntries.push_back(sEntry);
+	}
+	{
+		static float s_fDummy = 1.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Another dummy";
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 100.0f;
+		sEntry.fChangeSize = 0.5f;
+		sEntry.pfValue = &s_fDummy;
+		sEntry.fValue = *sEntry.pfValue;
+		m_sSubMenu.asEntries.push_back(sEntry);
+	}
+	{
+		static float s_fDummy = 1.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Yet another dummy";
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 100.0f;
+		sEntry.fChangeSize = 0.5f;
+		sEntry.pfValue = &s_fDummy;
+		sEntry.fValue = *sEntry.pfValue;
+		m_sSubMenu.asEntries.push_back(sEntry);
+	}
+	{
+		static float s_fDummy = 1.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Dummy Value";
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 100.0f;
+		sEntry.fChangeSize = 0.5f;
+		sEntry.pfValue = &s_fDummy;
+		sEntry.fValue = *sEntry.pfValue;
+		m_sSubMenu.asEntries.push_back(sEntry);
+	}
+	{
+		static float s_fDummy = 1.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Next dummy Value";
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 100.0f;
+		sEntry.fChangeSize = 0.5f;
+		sEntry.pfValue = &s_fDummy;
+		sEntry.fValue = *sEntry.pfValue;
+		m_sSubMenu.asEntries.push_back(sEntry);
+	}
 
 }
 
@@ -183,11 +242,6 @@ HBITMAP StereoPresenter::GetControl()
 ***/
 LPWSTR StereoPresenter::GetCommanderName(DWORD dwCommanderIndex)
 {
-	switch ((STP_Commanders)dwCommanderIndex)
-	{
-		case ZoomOut:
-			return L"ZoomOut";
-	}
 	return L"UNTITLED";
 }
 
@@ -204,87 +258,70 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Right Texture DX11";
 		case STP_Decommanders::MenuTexture:
 			return L"Menu Texture";
-			/**
-			* RESERVED0..2
-			**/
-		case STP_Decommanders::ViewAdjustments:
-			return L"ViewAdjustments";
-		case STP_Decommanders::Yaw:
-			return L"Yaw";
-		case STP_Decommanders::Pitch:
-			return L"Pitch";
-		case STP_Decommanders::Roll:
-			return L"Roll";
-		case STP_Decommanders::XPosition:
-			return L"X-Position";
-		case STP_Decommanders::YPosition:
-			return L"Y-Position";
-		case STP_Decommanders::ZPosition:
-			return L"Z-Position";
-		case FloatInput00:
-			return L"FloatInput00";
-		case FloatInput01:
-			return L"FloatInput01";
-		case FloatInput02:
-			return L"FloatInput02";
-		case FloatInput03:
-			return L"FloatInput03";
-		case FloatInput04:
-			return L"FloatInput04";
-		case FloatInput05:
-			return L"FloatInput05";
-		case FloatInput06:
-			return L"FloatInput06";
-		case FloatInput07:
-			return L"FloatInput07";
-		case FloatInput08:
-			return L"FloatInput08";
-		case FloatInput09:
-			return L"FloatInput09";
-		case FloatInput10:
-			return L"FloatInput10";
-		case FloatInput11:
-			return L"FloatInput11";
-		case FloatInput12:
-			return L"FloatInput12";
-		case FloatInput13:
-			return L"FloatInput13";
-		case FloatInput14:
-			return L"FloatInput14";
-		case FloatInput15:
-			return L"FloatInput15";
-		case IntInput00:
-			return L"IntInput00";
-		case IntInput01:
-			return L"IntInput01";
-		case IntInput02:
-			return L"IntInput02";
-		case IntInput03:
-			return L"IntInput03";
-		case IntInput04:
-			return L"IntInput04";
-		case IntInput05:
-			return L"IntInput05";
-		case IntInput06:
-			return L"IntInput06";
-		case IntInput07:
-			return L"IntInput07";
-		case IntInput08:
-			return L"IntInput08";
-		case IntInput09:
-			return L"IntInput09";
-		case IntInput10:
-			return L"IntInput10";
-		case IntInput11:
-			return L"IntInput11";
-		case IntInput12:
-			return L"IntInput12";
-		case IntInput13:
-			return L"IntInput13";
-		case IntInput14:
-			return L"IntInput14";
-		case IntInput15:
-			return L"IntInput15";
+		case VireioSubMenu00:
+			return L"Sub Menu 0";
+		case VireioSubMenu01:
+			return L"Sub Menu 1";
+		case VireioSubMenu02:
+			return L"Sub Menu 2";
+		case VireioSubMenu03:
+			return L"Sub Menu 3";
+		case VireioSubMenu04:
+			return L"Sub Menu 4";
+		case VireioSubMenu05:
+			return L"Sub Menu 5";
+		case VireioSubMenu06:
+			return L"Sub Menu 6";
+		case VireioSubMenu07:
+			return L"Sub Menu 7";
+		case VireioSubMenu08:
+			return L"Sub Menu 8";
+		case VireioSubMenu09:
+			return L"Sub Menu 9";
+		case VireioSubMenu10:
+			return L"Sub Menu 10";
+		case VireioSubMenu11:
+			return L"Sub Menu 11";
+		case VireioSubMenu12:
+			return L"Sub Menu 12";
+		case VireioSubMenu13:
+			return L"Sub Menu 13";
+		case VireioSubMenu14:
+			return L"Sub Menu 14";
+		case VireioSubMenu15:
+			return L"Sub Menu 15";
+		case VireioSubMenu16:
+			return L"Sub Menu 16";
+		case VireioSubMenu17:
+			return L"Sub Menu 17";
+		case VireioSubMenu18:
+			return L"Sub Menu 18";
+		case VireioSubMenu19:
+			return L"Sub Menu 19";
+		case VireioSubMenu20:
+			return L"Sub Menu 20";
+		case VireioSubMenu21:
+			return L"Sub Menu 21";
+		case VireioSubMenu22:
+			return L"Sub Menu 22";
+		case VireioSubMenu23:
+			return L"Sub Menu 23";
+		case VireioSubMenu24:
+			return L"Sub Menu 24";
+		case VireioSubMenu25:
+			return L"Sub Menu 25";
+		case VireioSubMenu26:
+			return L"Sub Menu 26";
+		case VireioSubMenu27:
+			return L"Sub Menu 27";
+		case VireioSubMenu28:
+			return L"Sub Menu 28";
+		case VireioSubMenu29:
+			return L"Sub Menu 29";
+		case VireioSubMenu30:
+			return L"Sub Menu 30";
+		case VireioSubMenu31:
+			return L"Sub Menu 31";
 	}
 
 	return L"";
@@ -295,11 +332,6 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 ***/
 DWORD StereoPresenter::GetCommanderType(DWORD dwCommanderIndex)
 {
-	switch ((STP_Commanders)dwCommanderIndex)
-	{
-		case ZoomOut:
-			return NOD_Plugtype::AQU_BOOL;
-	}
 	return 0;
 }
 
@@ -315,52 +347,40 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 		case STP_Decommanders::MenuTexture:
 			return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
-			/**
-			* RESERVED0..2
-			**/
-		case STP_Decommanders::ViewAdjustments:
-			return NOD_Plugtype::AQU_SHAREDPOINTER;
-		case STP_Decommanders::Yaw:
-		case STP_Decommanders::Pitch:
-		case STP_Decommanders::Roll:
-		case STP_Decommanders::XPosition:
-		case STP_Decommanders::YPosition:
-		case STP_Decommanders::ZPosition:
-			return NOD_Plugtype::AQU_FLOAT;
-		case FloatInput00:
-		case FloatInput01:
-		case FloatInput02:
-		case FloatInput03:
-		case FloatInput04:
-		case FloatInput05:
-		case FloatInput06:
-		case FloatInput07:
-		case FloatInput08:
-		case FloatInput09:
-		case FloatInput10:
-		case FloatInput11:
-		case FloatInput12:
-		case FloatInput13:
-		case FloatInput14:
-		case FloatInput15:
-			return NOD_Plugtype::AQU_FLOAT;
-		case IntInput00:
-		case IntInput01:
-		case IntInput02:
-		case IntInput03:
-		case IntInput04:
-		case IntInput05:
-		case IntInput06:
-		case IntInput07:
-		case IntInput08:
-		case IntInput09:
-		case IntInput10:
-		case IntInput11:
-		case IntInput12:
-		case IntInput13:
-		case IntInput14:
-		case IntInput15:
-			return NOD_Plugtype::AQU_INT;
+		case VireioSubMenu00:
+		case VireioSubMenu01:
+		case VireioSubMenu02:
+		case VireioSubMenu03:
+		case VireioSubMenu04:
+		case VireioSubMenu05:
+		case VireioSubMenu06:
+		case VireioSubMenu07:
+		case VireioSubMenu08:
+		case VireioSubMenu09:
+		case VireioSubMenu10:
+		case VireioSubMenu11:
+		case VireioSubMenu12:
+		case VireioSubMenu13:
+		case VireioSubMenu14:
+		case VireioSubMenu15:
+		case VireioSubMenu16:
+		case VireioSubMenu17:
+		case VireioSubMenu18:
+		case VireioSubMenu19:
+		case VireioSubMenu20:
+		case VireioSubMenu21:
+		case VireioSubMenu22:
+		case VireioSubMenu23:
+		case VireioSubMenu24:
+		case VireioSubMenu25:
+		case VireioSubMenu26:
+		case VireioSubMenu27:
+		case VireioSubMenu28:
+		case VireioSubMenu29:
+		case VireioSubMenu30:
+		case VireioSubMenu31:
+			return NOD_Plugtype::AQU_VOID;
+			break;
 	}
 
 	return 0;
@@ -371,11 +391,6 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 ***/
 void* StereoPresenter::GetOutputPointer(DWORD dwCommanderIndex)
 {
-	switch ((STP_Commanders)dwCommanderIndex)
-	{
-		case ZoomOut:
-			return (void*)&m_bZoomOut;
-	}
 	return nullptr;
 }
 
@@ -395,62 +410,39 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case STP_Decommanders::MenuTexture:
 			m_ppcTexViewMenu = (ID3D11RenderTargetView**)pData;
 			break;
-		case STP_Decommanders::ViewAdjustments:
-			m_ppcShaderViewAdjustment = (std::shared_ptr<ViewAdjustment>*)pData;
-			break;
-		case STP_Decommanders::Yaw:
-			m_pfEuler[0] = (float*)pData;
-			break;
-		case STP_Decommanders::Pitch:
-			m_pfEuler[1] = (float*)pData;
-			break;
-		case STP_Decommanders::Roll:
-			m_pfEuler[2] = (float*)pData;
-			break;
-		case STP_Decommanders::XPosition:
-			m_pfPosition[0] = (float*)pData;
-			break;
-		case STP_Decommanders::YPosition:
-			m_pfPosition[1] = (float*)pData;
-			break;
-		case STP_Decommanders::ZPosition:
-			m_pfPosition[2] = (float*)pData;
-			break;
-		case FloatInput00:
-		case FloatInput01:
-		case FloatInput02:
-		case FloatInput03:
-		case FloatInput04:
-		case FloatInput05:
-		case FloatInput06:
-		case FloatInput07:
-		case FloatInput08:
-		case FloatInput09:
-		case FloatInput10:
-		case FloatInput11:
-		case FloatInput12:
-		case FloatInput13:
-		case FloatInput14:
-		case FloatInput15:
-			m_apfFloatInput[dwDecommanderIndex - 13] = (float*)pData;
-			break;
-		case IntInput00:
-		case IntInput01:
-		case IntInput02:
-		case IntInput03:
-		case IntInput04:
-		case IntInput05:
-		case IntInput06:
-		case IntInput07:
-		case IntInput08:
-		case IntInput09:
-		case IntInput10:
-		case IntInput11:
-		case IntInput12:
-		case IntInput13:
-		case IntInput14:
-		case IntInput15:
-			m_apnIntInput[dwDecommanderIndex - 29] = (int*)pData;
+		case VireioSubMenu00:
+		case VireioSubMenu01:
+		case VireioSubMenu02:
+		case VireioSubMenu03:
+		case VireioSubMenu04:
+		case VireioSubMenu05:
+		case VireioSubMenu06:
+		case VireioSubMenu07:
+		case VireioSubMenu08:
+		case VireioSubMenu09:
+		case VireioSubMenu10:
+		case VireioSubMenu11:
+		case VireioSubMenu12:
+		case VireioSubMenu13:
+		case VireioSubMenu14:
+		case VireioSubMenu15:
+		case VireioSubMenu16:
+		case VireioSubMenu17:
+		case VireioSubMenu18:
+		case VireioSubMenu19:
+		case VireioSubMenu20:
+		case VireioSubMenu21:
+		case VireioSubMenu22:
+		case VireioSubMenu23:
+		case VireioSubMenu24:
+		case VireioSubMenu25:
+		case VireioSubMenu26:
+		case VireioSubMenu27:
+		case VireioSubMenu28:
+		case VireioSubMenu29:
+		case VireioSubMenu30:
+		case VireioSubMenu31:
+			m_apsSubMenues[dwDecommanderIndex - 3] = (VireioSubMenu*)pData;
 			break;
 	}
 }
@@ -678,14 +670,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			{
 				m_pcFontSegeo128->SetTextAttributes(0.0f, 0.2f, 0.0001f);
 				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f) - 6.0f, 30.0f);
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Vireio Perception Profile Settings");
-				m_pcFontSegeo128->Enter();
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Overall Settings");
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "VRBoost Values");
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Drawing Options");
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "General Hotkeys");
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "3D Adjustment Hotkeys");
-				m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, "Back to Game");
+				RenderMenu(pcDevice, pcContext);
 			}
 			else OutputDebugString(L"Failed to create font!");
 
@@ -836,4 +821,70 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	}
 
 	return nullptr;
+}
+
+/**
+* Menu render method.
+***/
+void StereoPresenter::RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext)
+{
+	// TODO !! SWITCH MAIN->SUB MENU
+
+	// TODO !! LOOP THROUGH DIFFERENT SUB MENUES
+
+	RenderSubMenu(pcDevice, pcContext, &m_sSubMenu);
+}
+
+/**
+* Renders a sub menu.
+***/
+void StereoPresenter::RenderSubMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, VireioSubMenu* psSubMenu)
+{
+	// render title
+	m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, psSubMenu->strSubMenu.c_str());
+	m_pcFontSegeo128->Enter();
+
+	// loop through entries
+	for (size_t nEntryIx = 0; nEntryIx < psSubMenu->asEntries.size(); nEntryIx++)
+	{
+		// create an output stream based on entry string
+		std::stringstream strOutput = std::stringstream();
+		strOutput << psSubMenu->asEntries[nEntryIx].strEntry;
+
+		// switch by entry type
+		switch (psSubMenu->asEntries[nEntryIx].eType)
+		{
+			case VireioMenuEntry::Entry_Bool:
+				if (psSubMenu->asEntries[nEntryIx].bValue)
+					strOutput << " - True ";
+				else
+					strOutput << " - False ";
+				break;
+			case VireioMenuEntry::Entry_Int:
+				strOutput << " : " << psSubMenu->asEntries[nEntryIx].nValue;
+				break;
+			case VireioMenuEntry::Entry_UInt:
+				if (psSubMenu->asEntries[nEntryIx].bValueEnumeration)
+				{
+					// render the enumeration string
+					UINT unIx = psSubMenu->asEntries[nEntryIx].unValue;
+					if (unIx < (UINT)psSubMenu->asEntries[nEntryIx].astrValueEnumeration.size())
+						strOutput << " : " << psSubMenu->asEntries[nEntryIx].astrValueEnumeration[unIx];
+				}
+				else
+				{
+					strOutput << " : " << psSubMenu->asEntries[nEntryIx].unValue;
+				}
+				break;
+			case VireioMenuEntry::Entry_Float:
+				strOutput << " : " << psSubMenu->asEntries[nEntryIx].fValue;
+				break;
+			default:
+				strOutput << "ERROR";
+				break;
+		}
+
+		// render the text line
+		m_pcFontSegeo128->RenderTextLine(pcDevice, pcContext, strOutput.str().c_str());
+	}
 }
