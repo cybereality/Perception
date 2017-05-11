@@ -56,6 +56,7 @@ using namespace DirectX;
 #define float4 XMFLOAT4
 #define float4x4 XMMATRIX
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
+#define PI_F 3.14159265358979f
 
 #pragma region shader data structures
 /**

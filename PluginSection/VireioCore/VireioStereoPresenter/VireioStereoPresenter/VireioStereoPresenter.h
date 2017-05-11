@@ -271,6 +271,20 @@ enum VireioMonitorStereoModes
 };
 
 /**
+* Possible menu events.
+***/
+enum VireioMenuEvent
+{
+	OnLeft,
+	OnRight,
+	OnUp,
+	OnDown,
+	OnAccept,
+	OnExit,
+	NumberOfEvents = 6
+};
+
+/**
 * Vireio Stereo Presenter Node Plugin (Direct3D 9).
 * Vireio Perception Stereo Drawing Handler.
 ***/
@@ -421,6 +435,28 @@ private:
 	* Font selection value.
 	***/
 	UINT m_unFontSelection;
+	/**
+	* Menu control structure.
+	***/
+	struct MenuControl
+	{
+		UINT unSelection;       /**< Current selection index. **/
+		UINT unSelectionFormer; /**< Former selection. **/
+		enum SelectionMovement
+		{
+			Standing = 0,
+			MovesUp = 1,
+			MovesDown = 2,
+			Accepted = 3,
+		} eSelectionMovement;   /**< The movement of the selection. **/
+		float fActionTime;      /**< The (idle) time for the current action. **/
+		float fActionStartTime; /**< The start time of the action. **/
+		float fYOrigin;         /**< The y origin for the menu to be drawn. **/
+	} m_sMenuControl;
+	/**
+	* Possible menu events.
+	***/
+	BOOL m_abMenuEvents[VireioMenuEvent::NumberOfEvents];
 };
 
 /**

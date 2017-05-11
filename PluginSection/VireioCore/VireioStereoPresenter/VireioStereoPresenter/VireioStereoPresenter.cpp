@@ -87,6 +87,8 @@ m_pbCinemaMode(nullptr)
 
 	// TODO !! LOOP THROUGH AVAILABLE MENUES, SET SECONDARY VALUE ! (IN FIRST PROVOKING CALL)
 	ZeroMemory(&m_apsSubMenues[0], sizeof(VireioSubMenu*));
+	ZeroMemory(&m_sMenuControl, sizeof(MenuControl));
+	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
 
 	// create the presenter sub menu
 	ZeroMemory(&m_sSubMenu, sizeof(VireioSubMenu));
@@ -468,6 +470,17 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
+	// update our global time
+	static float fGlobalTime = 0.0f;
+	static DWORD dwTimeStart = 0;
+	DWORD dwTimeCur = GetTickCount();
+	if (dwTimeStart == 0)
+		dwTimeStart = dwTimeCur;
+	fGlobalTime = (dwTimeCur - dwTimeStart) / 1000.0f;
+
+	// clear all previous menu events
+	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
+
 	// only present accepted
 	bool bValid = false;
 	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||
@@ -513,6 +526,81 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 		else
 			bReleased = true;
+#pragma endregion
+#pragma region menu events
+		// handle controller
+		if (bControllerAttached)
+		{
+			if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+			{
+				m_abMenuEvents[VireioMenuEvent::OnExit] = TRUE;
+			}
+			if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_A)
+			{
+				m_abMenuEvents[VireioMenuEvent::OnAccept] = TRUE;
+			}
+			if (sControllerState.Gamepad.sThumbLY > 28000)
+				m_abMenuEvents[VireioMenuEvent::OnUp] = TRUE;
+			if (sControllerState.Gamepad.sThumbLY < -28000)
+				m_abMenuEvents[VireioMenuEvent::OnDown] = TRUE;
+			if (sControllerState.Gamepad.sThumbLX < -28000)
+				m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
+			if (sControllerState.Gamepad.sThumbLX > 28000)
+				m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
+		}
+#pragma endregion
+#pragma region menu update
+
+		// TODO !! OWN METHOD
+		VireioSubMenu* psSubMenu = &m_sSubMenu;
+
+		// set the menu y origin
+		m_sMenuControl.fYOrigin = -2.8f + (float)m_sMenuControl.unSelection * -1.4f;
+
+		if (m_sMenuControl.eSelectionMovement)
+		{
+			// how much action time elapsed for the movement ?
+			float fActionTimeElapsed = (fGlobalTime - m_sMenuControl.fActionStartTime) / m_sMenuControl.fActionTime;
+
+			// is the movement done ?
+			if (fActionTimeElapsed > 1.0f)
+			{
+				fActionTimeElapsed = 1.0f;
+				m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::Standing;
+			}
+
+			// compute the movement origin
+			float fOldOrigin = -2.8f + (float)m_sMenuControl.unSelectionFormer * -1.4f;
+			float fYOriginMovement = (fOldOrigin - m_sMenuControl.fYOrigin) * (1.0f - sin(fActionTimeElapsed*PI_F*0.5f));
+			m_sMenuControl.fYOrigin += fYOriginMovement;
+		}
+		else
+		{
+			// no selection movement, events possible
+			if ((m_abMenuEvents[VireioMenuEvent::OnUp]) && (m_sMenuControl.unSelection > 0))
+			{
+				// set event
+				m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::MovesUp;
+				m_sMenuControl.fActionTime = 0.3f;
+				m_sMenuControl.fActionStartTime = fGlobalTime;
+
+				// set selection
+				m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection;
+				m_sMenuControl.unSelection--;
+			}
+			// no selection movement, events possible
+			if ((m_abMenuEvents[VireioMenuEvent::OnDown]) && (m_sMenuControl.unSelection < (UINT)(psSubMenu->asEntries.size() - 1)))
+			{
+				// set event
+				m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::MovesDown;
+				m_sMenuControl.fActionTime = 0.3f;
+				m_sMenuControl.fActionStartTime = fGlobalTime;
+
+				// set selection
+				m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection;
+				m_sMenuControl.unSelection++;
+			}
+		}
 
 #pragma endregion
 #pragma region render menu (if opened)
@@ -657,19 +745,11 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 			// test draw... TODO !!
 
-			// update our global time
-			static float fGlobalTime = 0.0f;
-			static DWORD dwTimeStart = 0;
-			DWORD dwTimeCur = GetTickCount();
-			if (dwTimeStart == 0)
-				dwTimeStart = dwTimeCur;
-			fGlobalTime = (dwTimeCur - dwTimeStart) / 1000.0f;
-
 			// render text (if font present)
 			if (m_pcFontSegeo128)
 			{
 				m_pcFontSegeo128->SetTextAttributes(0.0f, 0.2f, 0.0001f);
-				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, (sin(fGlobalTime * 0.05f)*5.0f) - 6.0f, 30.0f);
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, /*(sin(fGlobalTime * 0.05f)*5.0f) - 6.0f*/m_sMenuControl.fYOrigin, 30.0f);
 				RenderMenu(pcDevice, pcContext);
 			}
 			else OutputDebugString(L"Failed to create font!");
