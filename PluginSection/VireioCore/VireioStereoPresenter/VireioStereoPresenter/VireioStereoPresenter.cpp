@@ -49,6 +49,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                                      17
 
+#define ENTRY_FONT 0
+
 /**
 * Constructor.
 ***/
@@ -93,6 +95,7 @@ m_pbCinemaMode(nullptr)
 	// create the presenter sub menu
 	ZeroMemory(&m_sSubMenu, sizeof(VireioSubMenu));
 	m_sSubMenu.strSubMenu = "Stereo Presenter";
+#pragma region entry font
 	{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Font";
@@ -113,6 +116,7 @@ m_pbCinemaMode(nullptr)
 		sEntry.unValue = *sEntry.punValue;
 		m_sSubMenu.asEntries.push_back(sEntry);
 	}
+#pragma endregion
 	{
 		static float s_fDummy = 1.0f;
 		VireioMenuEntry sEntry = {};
@@ -478,14 +482,74 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		dwTimeStart = dwTimeCur;
 	fGlobalTime = (dwTimeCur - dwTimeStart) / 1000.0f;
 
-	// clear all previous menu events
-	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
-
 	// only present accepted
 	bool bValid = false;
 	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||
 		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
 	if (!bValid) return nullptr;
+
+	// clear all previous menu events
+	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
+
+	// sub menu update ?
+	if (m_sSubMenu.bOnChanged)
+	{
+		m_sSubMenu.bOnChanged = false;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sSubMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sSubMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sSubMenu.asEntries[nIx].bOnChanged = false;
+
+				// font ?
+				if (nIx == ENTRY_FONT)
+				{
+					// get device and context
+					ID3D11Device* pcDevice = nullptr;
+					ID3D11DeviceContext* pcContext = nullptr;
+					if (SUCCEEDED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+					{
+						HRESULT nHr;
+						// get base directory
+						std::string strVireioPath = GetBaseDir();
+
+						// add file path
+						strVireioPath += "font//";
+						strVireioPath += m_sSubMenu.asEntries[nIx].astrValueEnumeration[m_sSubMenu.asEntries[nIx].unValue];
+						strVireioPath += ".spritefont";
+						OutputDebugStringA(strVireioPath.c_str());
+
+						// create font, make backup
+						VireioFont* pcOldFont = m_pcFontSegeo128;
+						m_pcFontSegeo128 = new VireioFont(pcDevice, pcContext, strVireioPath.c_str(), 128.0f, 1.0f, nHr, 1);
+						if (FAILED(nHr))
+						{
+							delete m_pcFontSegeo128; m_pcFontSegeo128 = pcOldFont;
+						}
+						else
+						{
+							// set new font name
+							m_strFontName = m_sSubMenu.asEntries[nIx].astrValueEnumeration[m_sSubMenu.asEntries[nIx].unValue];
+
+							// write to ini file
+							char szFilePathINI[1024];
+							GetCurrentDirectoryA(1024, szFilePathINI);
+							strcat_s(szFilePathINI, "\\VireioPerception.ini");
+							WritePrivateProfileStringA("Stereo Presenter", "strFontName", m_strFontName.c_str(), szFilePathINI);
+						}
+					}
+					SAFE_RELEASE(pcDevice);
+					SAFE_RELEASE(pcContext);
+				}
+
+			}
+		}
+	}
+
+	
 
 	// get xbox controller input
 	XINPUT_STATE sControllerState;
@@ -576,7 +640,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 		else
 		{
-			// no selection movement, events possible
+			// no selection movement, events possible...up
 			if ((m_abMenuEvents[VireioMenuEvent::OnUp]) && (m_sMenuControl.unSelection > 0))
 			{
 				// set event
@@ -588,7 +652,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection;
 				m_sMenuControl.unSelection--;
 			}
-			// no selection movement, events possible
+			// down
 			if ((m_abMenuEvents[VireioMenuEvent::OnDown]) && (m_sMenuControl.unSelection < (UINT)(psSubMenu->asEntries.size() - 1)))
 			{
 				// set event
@@ -599,6 +663,37 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				// set selection
 				m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection;
 				m_sMenuControl.unSelection++;
+			}
+			// left
+
+			// right
+
+			// accept
+			if (m_abMenuEvents[VireioMenuEvent::OnAccept])
+			{
+				// set event
+				m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::Accepted;
+				m_sMenuControl.fActionTime = 0.3f;
+				m_sMenuControl.fActionStartTime = fGlobalTime;
+
+				// update sub menu, first get index and set events
+				UINT unIx = m_sMenuControl.unSelection;
+				psSubMenu->bOnAccept = true;
+				psSubMenu->bOnChanged = true;
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+
+				// is this a string selection enumeration entry ?
+				if (psSubMenu->asEntries[unIx].bValueEnumeration)
+				{
+					// before last entry in enumeration list ?
+					if (psSubMenu->asEntries[unIx].unValue < (psSubMenu->asEntries[unIx].astrValueEnumeration.size() - 1))
+						psSubMenu->asEntries[unIx].unValue++;
+					else
+						psSubMenu->asEntries[unIx].unValue = 0;
+				}
+				else
+				{
+				}
 			}
 		}
 
