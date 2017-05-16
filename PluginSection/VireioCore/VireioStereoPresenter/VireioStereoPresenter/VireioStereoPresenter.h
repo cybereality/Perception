@@ -447,6 +447,7 @@ private:
 			MovesUp = 1,
 			MovesDown = 2,
 			Accepted = 3,
+			Exit = 4
 		} eSelectionMovement;   /**< The movement of the selection. **/
 		float fActionTime;      /**< The (idle) time for the current action. **/
 		float fActionStartTime; /**< The start time of the action. **/

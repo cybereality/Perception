@@ -521,10 +521,33 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	// clear all previous menu events
 	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
 
+	// main menu update ?
+	if (m_sMainMenu.bOnChanged)
+	{
+		m_sMainMenu.bOnChanged = false;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMainMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMainMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMainMenu.asEntries[nIx].bOnChanged = false;
+
+				// set new menu index.. 
+				m_sMenuControl.nMenuIx = nIx;
+			}
+		}
+	}
+
 	// sub menu update ?
 	if (m_sSubMenu.bOnChanged)
 	{
 		m_sSubMenu.bOnChanged = false;
+
+		// exit ?
+		if (m_sSubMenu.bOnExit)
+			m_sMenuControl.nMenuIx = -1;
 
 		// loop through entries
 		for (size_t nIx = 0; nIx < m_sSubMenu.asEntries.size(); nIx++)
@@ -578,7 +601,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 		}
 	}
-	
+
 	// get xbox controller input
 	XINPUT_STATE sControllerState;
 	bool bControllerAttached = false;
@@ -645,7 +668,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 #pragma endregion
 #pragma region menu update/render
-			
+
 			// update
 			UpdateMenu(fGlobalTime);
 
@@ -784,22 +807,20 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 			if (FAILED(nHr)) { delete m_pcFontSegeo128; m_pcFontSegeo128 = nullptr; }
 
-			// test draw... TODO !!
-
 			// render text (if font present)
 			if (m_pcFontSegeo128)
 			{
 				m_pcFontSegeo128->SetTextAttributes(0.0f, 0.2f, 0.0001f);
-				
+
 				// set additional tremble for "accepted" event
 				float fDepthTremble = 0.0f;
 				if (m_sMenuControl.eSelectionMovement == MenuControl::SelectionMovement::Accepted)
 				{
 					float fActionTimeElapsed = (fGlobalTime - m_sMenuControl.fActionStartTime) / m_sMenuControl.fActionTime;
-					fDepthTremble = sin(fActionTimeElapsed*PI_F) * 10.0f;
+					fDepthTremble = sin(fActionTimeElapsed*PI_F) * 3.0f;
 				}
-				
-				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, m_sMenuControl.fYOrigin, 30.0f+fDepthTremble);
+
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, m_sMenuControl.fYOrigin, 30.0f + fDepthTremble);
 				RenderMenu(pcDevice, pcContext);
 			}
 			else OutputDebugString(L"Failed to create font!");
@@ -965,7 +986,7 @@ void StereoPresenter::RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pc
 	}
 	else
 		// connected sub menu ?
-	if ((m_sMenuControl.nMenuIx >= 0) || (m_sMenuControl.nMenuIx <= 32))
+	if ((m_sMenuControl.nMenuIx >= 0) && (m_sMenuControl.nMenuIx < 32))
 	{
 		if (!m_apsSubMenues[m_sMenuControl.nMenuIx])
 			OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
@@ -974,7 +995,7 @@ void StereoPresenter::RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pc
 	}
 	else
 		// stereo presenter sub menu ?
-	if (m_sMenuControl.nMenuIx == 33)
+	if (m_sMenuControl.nMenuIx == 32)
 		RenderSubMenu(pcDevice, pcContext, &m_sSubMenu);
 	else
 		OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
@@ -1051,7 +1072,7 @@ void StereoPresenter::UpdateMenu(float fGlobalTime)
 	}
 	else
 		// connected sub menu ?
-	if ((m_sMenuControl.nMenuIx >= 0) || (m_sMenuControl.nMenuIx <= 32))
+	if ((m_sMenuControl.nMenuIx >= 0) && (m_sMenuControl.nMenuIx < 32))
 	{
 		if (!m_apsSubMenues[m_sMenuControl.nMenuIx])
 			OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
@@ -1060,7 +1081,7 @@ void StereoPresenter::UpdateMenu(float fGlobalTime)
 	}
 	else
 		// stereo presenter sub menu ?
-	if (m_sMenuControl.nMenuIx == 33)
+	if (m_sMenuControl.nMenuIx == 32)
 		UpdateSubMenu(&m_sSubMenu, fGlobalTime);
 	else
 		OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
@@ -1072,7 +1093,7 @@ void StereoPresenter::UpdateMenu(float fGlobalTime)
 void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 {
 	// update the main menu entries by connected sub menues
-	if (m_sMenuControl.nMenuIx = -1)
+	if (m_sMenuControl.nMenuIx == -1)
 	{
 	}
 
@@ -1148,7 +1169,7 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			// update sub menu, first get index and set events
 			UINT unIxPrimal = m_sMenuControl.unSelection;
 			UINT unIx = 0;
-			for (UINT unI = 0; unI < unIxPrimal; unI++)
+			for (UINT unI = 0; unI < psSubMenu->asEntries.size(); unI++)
 			{
 				// menu error ?
 				if (unIx >= (UINT)psSubMenu->asEntries.size())
@@ -1160,7 +1181,10 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 				}
 
 				// set back index runner if inactive entry
-				if (!psSubMenu->asEntries[unIx].bIsActive) { unI--; }
+				if (!psSubMenu->asEntries[unIx].bIsActive) { unIxPrimal++; }
+
+				// caught selection ?
+				if (unIx == unIxPrimal) break;
 
 				// increment index
 				unIx++;
@@ -1181,6 +1205,24 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			else
 			{
 			}
+		}
+
+		// exit
+		if (m_abMenuEvents[VireioMenuEvent::OnExit])
+		{
+			// set event
+			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::Exit;
+			m_sMenuControl.fActionTime = 0.3f;
+			m_sMenuControl.fActionStartTime = fGlobalTime;
+
+			// set selection to zero
+			m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection = 0;
+
+			// main menu ? set menu bool to false
+			if (m_sMenuControl.nMenuIx == -1)
+				m_bMenu = false;
+			// ...otherwise go back to main menu
+			else m_sMenuControl.nMenuIx = -1;
 		}
 	}
 }
