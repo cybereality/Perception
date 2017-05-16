@@ -211,14 +211,6 @@ std::string GetBaseDir()
 	return baseDir;
 }
 
-///**
-//* Node Commander Enumeration.
-//***/
-//enum STP_Commanders
-//{
-//	ZoomOut
-//};
-
 /**
 * Node Commander Enumeration.
 ***/
@@ -317,6 +309,8 @@ private:
 	/*** Stereo Presenter private methods ***/
 	void                    RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext);
 	void                    RenderSubMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, VireioSubMenu* psSubMenu);
+	void                    UpdateMenu(float fGlobalTime);
+	void                    UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime);
 
 	/**
 	* Stereo Textures input. (DX11)
@@ -424,6 +418,10 @@ private:
 	***/
 	std::string m_strFontName;
 	/**
+	* The sub menu for the main menu.
+	***/
+	VireioSubMenu m_sMainMenu;
+	/**
 	* The sub menu for the presenter node.
 	***/
 	VireioSubMenu m_sSubMenu;
@@ -440,6 +438,7 @@ private:
 	***/
 	struct MenuControl
 	{
+		INT nMenuIx;            /**< Current sub menu index, -1 for main menu. ***/
 		UINT unSelection;       /**< Current selection index. **/
 		UINT unSelectionFormer; /**< Former selection. **/
 		enum SelectionMovement

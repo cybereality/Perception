@@ -42,6 +42,10 @@ struct VireioMenuEntry
 	***/
 	bool bOnChanged;
 	/**
+	* True if this menu entry is active.
+	***/
+	bool bIsActive;
+	/**
 	* True if a second value is available in cinema mode.
 	***/
 	bool bSecondCinemaValue;
@@ -57,7 +61,8 @@ struct VireioMenuEntry
 		Entry_Bool,
 		Entry_Int,
 		Entry_UInt,
-		Entry_Float
+		Entry_Float,
+		Entry
 	} eType;
 	/**
 	* Minimum value.
@@ -153,6 +158,11 @@ struct VireioSubMenu
 	* All entries.
 	***/
 	std::vector<VireioMenuEntry> asEntries;
+	/**
+	* Number of active entries.
+	* Gets automatically updated each frame by stereo presenter node.
+	***/
+	UINT unActiveEntries;
 	/**
 	* Exit menu event.
 	**/
