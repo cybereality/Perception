@@ -51,6 +51,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ENTRY_FONT 0
 
+#pragma region helper
+/**
+* Small helper to filter out inactive menu entries.
+* @returns: The actual index of the sub menu entry.
+***/
+UINT GetSelection(VireioSubMenu* psSubMenu, UINT unPrimalSelection)
+{
+	UINT unIxPrimal = unPrimalSelection;
+	UINT unIx = 0;
+	for (UINT unI = 0; unI < psSubMenu->asEntries.size(); unI++)
+	{
+		// menu error ?
+		if (unIx >= (UINT)psSubMenu->asEntries.size())
+		{
+			OutputDebugString(L"[STP] Fatal menu structure error ! Empty menu ??");
+			// m_sMenuControl.unSelection = 0;
+			unIx = 0;
+			break;
+		}
+
+		// set back index runner if inactive entry
+		if (!psSubMenu->asEntries[unIx].bIsActive) { unIxPrimal++; }
+
+		// caught selection ?
+		if (unIx == unIxPrimal) break;
+
+		// increment index
+		unIx++;
+	}
+	return unIx;
+}
+#pragma endregion
+
 /**
 * Constructor.
 ***/
@@ -522,7 +555,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
 
 	// main menu update ?
-	if (m_sMainMenu.bOnChanged)
+	if ((m_sMainMenu.bOnChanged) && (!m_sMenuControl.eSelectionMovement))
 	{
 		m_sMainMenu.bOnChanged = false;
 
@@ -534,14 +567,15 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			{
 				m_sMainMenu.asEntries[nIx].bOnChanged = false;
 
-				// set new menu index.. 
+				// set new menu index.. selection to zero
 				m_sMenuControl.nMenuIx = nIx;
+				m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection = 0;
 			}
 		}
 	}
 
 	// sub menu update ?
-	if (m_sSubMenu.bOnChanged)
+	if ((m_sSubMenu.bOnChanged) && (!m_sMenuControl.eSelectionMovement))
 	{
 		m_sSubMenu.bOnChanged = false;
 
@@ -662,9 +696,9 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if (sControllerState.Gamepad.sThumbLY < -28000)
 					m_abMenuEvents[VireioMenuEvent::OnDown] = TRUE;
 				if (sControllerState.Gamepad.sThumbLX < -28000)
-					m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
-				if (sControllerState.Gamepad.sThumbLX > 28000)
 					m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
+				if (sControllerState.Gamepad.sThumbLX > 28000)
+					m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
 			}
 #pragma endregion
 #pragma region menu update/render
@@ -817,10 +851,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if (m_sMenuControl.eSelectionMovement == MenuControl::SelectionMovement::Accepted)
 				{
 					float fActionTimeElapsed = (fGlobalTime - m_sMenuControl.fActionStartTime) / m_sMenuControl.fActionTime;
-					fDepthTremble = sin(fActionTimeElapsed*PI_F) * 3.0f;
+					fDepthTremble = sin(fActionTimeElapsed*PI_F) * -3.0f;
 				}
 
-				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, m_sMenuControl.fYOrigin, 30.0f + fDepthTremble);
+				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, m_sMenuControl.fYOrigin, 30.0f, fDepthTremble);
 				RenderMenu(pcDevice, pcContext);
 			}
 			else OutputDebugString(L"Failed to create font!");
@@ -1095,6 +1129,14 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 	// update the main menu entries by connected sub menues
 	if (m_sMenuControl.nMenuIx == -1)
 	{
+		for (UINT unIx = 0; unIx < 32; unIx++)
+		{
+			if ((m_apsSubMenues[unIx]) && (!m_sMainMenu.asEntries[unIx].bIsActive))
+			{
+				m_sMainMenu.asEntries[unIx].bIsActive = true;
+				m_sMainMenu.asEntries[unIx].strEntry = m_apsSubMenues[unIx]->strSubMenu;
+			}
+		}
 	}
 
 	// update the sub (or main) menu active entries number
@@ -1152,8 +1194,70 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			m_sMenuControl.unSelection++;
 		}
 		// left
+		if (m_abMenuEvents[VireioMenuEvent::OnLeft])
+		{
+			// set event
+			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::TriggerLeft;
+			m_sMenuControl.fActionTime = 0.1f;
+			m_sMenuControl.fActionStartTime = fGlobalTime;
+
+			// set former selection to actual
+			m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection;
+
+			// get index
+			UINT unIx = GetSelection(psSubMenu, m_sMenuControl.unSelection);
+
+			// type ?
+			switch (psSubMenu->asEntries[unIx].eType)
+			{
+				case VireioMenuEntry::EntryType::Entry_Float:
+					// change value, set event
+					*psSubMenu->asEntries[unIx].pfValue += psSubMenu->asEntries[unIx].fChangeSize;
+					psSubMenu->asEntries[unIx].bOnChanged = true;
+					psSubMenu->bOnChanged = true;
+
+					// clamp value
+					if (*psSubMenu->asEntries[unIx].pfValue > psSubMenu->asEntries[unIx].fMaximum)
+						*psSubMenu->asEntries[unIx].pfValue = psSubMenu->asEntries[unIx].fMaximum;
+
+					// set the menu entry value
+					psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
+					break;
+			}
+		}
 
 		// right
+		if (m_abMenuEvents[VireioMenuEvent::OnRight])
+		{
+			// set event
+			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::TriggerRight;
+			m_sMenuControl.fActionTime = 0.1f;
+			m_sMenuControl.fActionStartTime = fGlobalTime;
+
+			// set former selection to actual
+			m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection;
+
+			// get index
+			UINT unIx = GetSelection(psSubMenu, m_sMenuControl.unSelection);
+
+			// type ?
+			switch (psSubMenu->asEntries[unIx].eType)
+			{
+				case VireioMenuEntry::EntryType::Entry_Float:
+					// change value, set event
+					*psSubMenu->asEntries[unIx].pfValue -= psSubMenu->asEntries[unIx].fChangeSize;
+					psSubMenu->asEntries[unIx].bOnChanged = true;
+					psSubMenu->bOnChanged = true;
+
+					// clamp value
+					if (*psSubMenu->asEntries[unIx].pfValue < psSubMenu->asEntries[unIx].fMinimum)
+						*psSubMenu->asEntries[unIx].pfValue = psSubMenu->asEntries[unIx].fMinimum;
+
+					// set the menu entry value
+					psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
+					break;
+			}
+		}
 
 		// accept
 		if (m_abMenuEvents[VireioMenuEvent::OnAccept])

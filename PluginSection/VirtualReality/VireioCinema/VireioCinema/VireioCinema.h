@@ -71,6 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
 #define INT_PLUG_TYPE                                  7 
 #define PNT_FLOAT_PLUG_TYPE                          104
@@ -78,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_VECTOR3F_PLUG_TYPE                      2061
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
-#define NUMBER_OF_COMMANDERS                           3
+#define NUMBER_OF_COMMANDERS                           4
 #define NUMBER_OF_DECOMMANDERS                        24
 
 /**
@@ -89,9 +90,7 @@ enum VRC_Commanders
 	LeftTexture11,
 	RightTexture11,
 	MenuTexture,
-	ScreenWidth,
-	ScreenLevel,
-	ScreenDepth
+	VireioMenu
 };
 
 /**
@@ -637,6 +636,10 @@ private:
 	* Pointer to bool for performance mode.
 	***/
 	BOOL* m_pbPerformanceMode;
+	/**
+	* Cinema menu.
+	***/
+	VireioSubMenu m_sMenu;
 };
 
 /**

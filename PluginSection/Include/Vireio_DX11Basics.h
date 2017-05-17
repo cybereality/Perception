@@ -2057,6 +2057,7 @@ public:
 		, m_pcConstantsGlyph(nullptr)
 		, m_pcVBGlyphes(nullptr)
 		, m_pcBlendState(nullptr)
+		, m_fCenterTremble(0.0f)
 	{
 		static const char s_szSpriteFontMagic[] = "DXTKfont";
 		/**
@@ -2358,7 +2359,7 @@ public:
 	/**
 	* Sets all fields before the render calls.
 	***/
-	void ToRender(ID3D11DeviceContext* pcContext, float fTime, float fScrollY, float fDistance)
+	void ToRender(ID3D11DeviceContext* pcContext, float fTime, float fScrollY, float fDistance, float fCenterTremble)
 	{
 		UINT stride = sizeof(VertexPosUV);
 		UINT offset = 0;
@@ -2382,10 +2383,11 @@ public:
 		// set buffer fields
 		m_sConstantBuffer0.fGlobalTime = fTime;
 
-		// set scroll origin, distance, line index zero
+		// set scroll origin, distance, line index zero, additional tremble for the center object
 		m_fScrollY = fScrollY;
 		m_fDistance = -fDistance;
 		m_unLineIx = 0;
+		m_fCenterTremble = fCenterTremble;
 	}
 
 	/**
@@ -2421,7 +2423,7 @@ public:
 		float fWidth = MeasureText(szText);
 
 		// set tremble for vertically centered line
-		if ((fLineOrigin > -0.5) && (fLineOrigin < 0.5f)) fTremble = (sin(m_sConstantBuffer0.fGlobalTime*20.0f))*0.5f;
+		if ((fLineOrigin > -0.5) && (fLineOrigin < 0.5f)) fTremble = (sin(m_sConstantBuffer0.fGlobalTime*20.0f))*0.5f + m_fCenterTremble;
 
 		// render text centered
 		RenderText(pcDevice, pcContext, szText, fWidth * -0.5f, m_fDistance + fTremble, fLineOrigin);
@@ -2537,6 +2539,10 @@ private:
 	* Internal text line counter.
 	**/
 	UINT m_unLineIx;
+	/**
+	* Additional tremble for the center line.
+	***/
+	float m_fCenterTremble;
 };
 
 /**

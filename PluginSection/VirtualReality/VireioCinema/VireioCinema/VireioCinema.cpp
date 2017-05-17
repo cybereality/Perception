@@ -205,6 +205,60 @@ m_unMenuModelIndex(0)
 	m_sImmersiveFullscreenSettings.fIPD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
 	m_sImmersiveFullscreenSettings.fVSD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fVSD, "Stereo Presenter", "fVSD", szFilePathINI, bFileExists);
 
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "Cinema";
+#pragma region color ambient
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Ambient Alpha";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0;
+		sEntry.fMaximum = 1;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.a;
+		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.a;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Ambient Red";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0;
+		sEntry.fMaximum = 1;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.r;
+		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.r;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Ambient Green";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0;
+		sEntry.fMaximum = 1;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.g;
+		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.g;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Ambient Blue";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0;
+		sEntry.fMaximum = 1;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.b;
+		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.b;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+#pragma endregion
+
 }
 
 /**
@@ -296,6 +350,8 @@ LPWSTR VireioCinema::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Right Texture DX11";
 		case VRC_Commanders::MenuTexture:
 			return L"Menu Texture Input";
+		case VRC_Commanders::VireioMenu:
+			return L"Vireio Menu";
 	}
 
 	return L"x";
@@ -373,6 +429,8 @@ DWORD VireioCinema::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 		case VRC_Commanders::MenuTexture:
 			return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
+		case VRC_Commanders::VireioMenu:
+			return NOD_Plugtype::AQU_VOID;
 	}
 
 	return 0;
@@ -438,7 +496,8 @@ void* VireioCinema::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pcTex11DrawSRV[1];
 		case VRC_Commanders::MenuTexture:
 			return (void*)&m_pcTexMenuRTV;
-			break;
+		case VRC_Commanders::VireioMenu:
+			return (void*)&m_sMenu;
 		default:
 			break;
 	}
