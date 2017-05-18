@@ -1301,10 +1301,11 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			if (psSubMenu->asEntries[unIx].bValueEnumeration)
 			{
 				// before last entry in enumeration list ?
-				if (psSubMenu->asEntries[unIx].unValue < (psSubMenu->asEntries[unIx].astrValueEnumeration.size() - 1))
-					psSubMenu->asEntries[unIx].unValue++;
+				if ((*psSubMenu->asEntries[unIx].punValue) < (psSubMenu->asEntries[unIx].astrValueEnumeration.size() - 1))
+					(*(psSubMenu->asEntries[unIx].punValue))++;
 				else
-					psSubMenu->asEntries[unIx].unValue = 0;
+					(*(psSubMenu->asEntries[unIx].punValue)) = 0;
+				psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
 			}
 			else
 			{

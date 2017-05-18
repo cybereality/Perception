@@ -938,7 +938,7 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 		case asPShaderData:
 			return NOD_Plugtype::AQU_VOID;
 		case ViewAdjustments:
-			return NOD_Plugtype::AQU_SHAREDPOINTER;
+			return NOD_Plugtype::AQU_INT;
 		case SwitchRenderTarget:
 		case HudOperation:
 			return NOD_Plugtype::AQU_INT;

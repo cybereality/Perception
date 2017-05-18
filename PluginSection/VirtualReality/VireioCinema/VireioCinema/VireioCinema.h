@@ -158,7 +158,7 @@ inline DXGI_FORMAT GetDXGI_Format(D3DFORMAT eInputFormat)
 			return DXGI_FORMAT_UNKNOWN; // Not available
 		case D3DFMT_A2B10G10R10:
 			// DXGI_FORMAT_R10G10B10A2 -> dropped since DX10 ??
-			return DXGI_FORMAT_UNKNOWN; 
+			return DXGI_FORMAT_UNKNOWN;
 		case D3DFMT_A8B8G8R8:
 			return	DXGI_FORMAT_R8G8B8A8_UNORM; // or DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
 		case D3DFMT_X8B8G8R8:
@@ -175,10 +175,10 @@ inline DXGI_FORMAT GetDXGI_Format(D3DFORMAT eInputFormat)
 			return DXGI_FORMAT_UNKNOWN; // Not available
 		case D3DFMT_L8:
 			// Note : Use.r swizzle in shader to duplicate red to other components to get D3D9 behavior.
-			return	DXGI_FORMAT_R8_UNORM; 
+			return	DXGI_FORMAT_R8_UNORM;
 		case D3DFMT_A8L8:
 			// Note : Use swizzle.rrrg in shader to duplicate red and move green to the alpha components to get D3D9 behavior.
-			return	DXGI_FORMAT_R8G8_UNORM; 
+			return	DXGI_FORMAT_R8G8_UNORM;
 		case D3DFMT_A4L4:
 			return DXGI_FORMAT_UNKNOWN; // Not available
 		case D3DFMT_V8U8:
@@ -197,12 +197,12 @@ inline DXGI_FORMAT GetDXGI_Format(D3DFORMAT eInputFormat)
 			return DXGI_FORMAT_UNKNOWN; // Not available
 		case D3DFMT_R8G8_B8G8:
 			// (in DX9 the data was scaled up by 255.0f, but this can be handled in shader code).
-			return	DXGI_FORMAT_G8R8_G8B8_UNORM; 
+			return	DXGI_FORMAT_G8R8_G8B8_UNORM;
 		case D3DFMT_YUY2:
 			return DXGI_FORMAT_UNKNOWN; // Not available
 		case D3DFMT_G8R8_G8B8:
 			// (in DX9 the data was scaled up by 255.0f, but this can be handled in shader code).
-			return	DXGI_FORMAT_R8G8_B8G8_UNORM; 
+			return	DXGI_FORMAT_R8G8_B8G8_UNORM;
 		case D3DFMT_DXT1:
 			return	DXGI_FORMAT_BC1_UNORM; // or DXGI_FORMAT_BC1_UNORM_SRGB
 		case (D3DFORMAT)76: // = D3DFMT_X8D24:
@@ -247,7 +247,7 @@ inline DXGI_FORMAT GetDXGI_Format(D3DFORMAT eInputFormat)
 			return	DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case D3DFMT_L16:
 			//  Note : Use.r swizzle in shader to duplicate red to other components to get D3D9 behavior.
-			return	DXGI_FORMAT_R16_UNORM; 
+			return	DXGI_FORMAT_R16_UNORM;
 		case D3DFMT_VERTEXDATA:
 			return DXGI_FORMAT_UNKNOWN; // Not available
 		case D3DFMT_INDEX16:
@@ -463,9 +463,9 @@ private:
 	***/
 	std::vector<RenderModel_D3D11> m_asRenderModels;
 	/**
-	* Index of the menu model.
+	* Indices of render models.
 	***/
-	UINT m_unMenuModelIndex;
+	UINT m_unScreenModelIndex, m_unFloorModelIndex, m_unCeilingModelIndex, m_unWallFModelIndex, m_unWallBModelIndex, m_unWallLModelIndex, m_unWallRModelIndex, m_unMenuModelIndex;
 	/**
 	* Default rasterizer state.
 	***/
@@ -576,7 +576,29 @@ private:
 		enum PixelShaderFX_Screen
 		{
 			Screen_GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, draws mouse laser pointer **/
+			Screen_NumberOfFX
 		} ePixelShaderFX_Screen;
+
+		std::string FX_AsString(PixelShaderFX_Screen eIx)
+		{
+			switch (eIx)
+			{
+				case VireioCinema::CinemaRoomSetup::Screen_GeometryDiffuseTexturedMouse:
+					return std::string("Default Screen");
+				default:
+					return std::string("User FX");
+			}
+		}
+
+		PixelShaderTechnique GetTechnique(PixelShaderFX_Screen eIx)
+		{
+			switch (eIx)
+			{
+				case VireioCinema::CinemaRoomSetup::Screen_GeometryDiffuseTexturedMouse:
+					return PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+			}
+			return PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+		}
 
 		enum PixelShaderFX_Wall
 		{
@@ -587,7 +609,54 @@ private:
 			Wall_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
 			Wall_Planets,                   /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
 			Wall_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+			Wall_NumberOfFX
 		} ePixelShaderFX_Wall_FB[2], ePixelShaderFX_Wall_LR[2];
+
+		std::string FX_AsString(PixelShaderFX_Wall eIx)
+		{
+			switch (eIx)
+			{
+				case VireioCinema::CinemaRoomSetup::Wall_StringTheory:
+					return std::string("String Theory by nimitz");
+				case VireioCinema::CinemaRoomSetup::Wall_Bubbles:
+					return std::string("Bubbles! by iq & weyland");
+				case VireioCinema::CinemaRoomSetup::Wall_ToonCloud:
+					return std::string("Toon Cloud by AntoineC");
+				case VireioCinema::CinemaRoomSetup::Wall_Worley01:
+					return std::string("Worley Algorithm by Yeis");
+				case VireioCinema::CinemaRoomSetup::Wall_WaterCaustic:
+					return std::string("Tileable Water Caustic by Dave_Hoskins");
+				case VireioCinema::CinemaRoomSetup::Wall_Planets:
+					return std::string("Museum of random Planets by LukeRissacher");
+				case VireioCinema::CinemaRoomSetup::Wall_VoronoiSmooth:
+					return std::string("Voronoi Smooth by iq");
+				default:
+					return std::string("User FX");
+					break;
+			}
+		}
+
+		PixelShaderTechnique GetTechnique(PixelShaderFX_Wall eIx)
+		{
+			switch (eIx)
+			{
+				case CinemaRoomSetup::Wall_Bubbles:
+					return PixelShaderTechnique::Bubbles;
+				case VireioCinema::CinemaRoomSetup::Wall_Planets:
+					return PixelShaderTechnique::Planets;
+				case CinemaRoomSetup::Wall_StringTheory:
+					return PixelShaderTechnique::StringTheory;
+				case CinemaRoomSetup::Wall_ToonCloud:
+					return PixelShaderTechnique::ToonCloud;
+				case CinemaRoomSetup::Wall_WaterCaustic:
+					return PixelShaderTechnique::WaterCaustic;
+				case CinemaRoomSetup::Wall_Worley01:
+					return PixelShaderTechnique::Worley01;
+				case VireioCinema::CinemaRoomSetup::Wall_VoronoiSmooth:
+					return PixelShaderTechnique::VoronoiSmooth;
+			}
+			return PixelShaderTechnique::Bubbles;
+		}
 
 		enum PixelShaderFX_Floor
 		{
@@ -599,7 +668,59 @@ private:
 			Floor_Planets,                   /**< TexturedNormalVertex : "Planets" effect from shadertoy.com **/
 			Floor_HypnoticDisco,             /**< TexturedNormalVertex : "Hypnotic Disco" effect from shadertoy.com **/
 			Floor_VoronoiSmooth,             /**< TexturedNormalVertex : "Voronoi smooth" effect from shadertoy.com **/
+			Floor_NumberOfFX
 		} ePixelShaderFX_Floor[2];
+
+		std::string FX_AsString(PixelShaderFX_Floor eIx)
+		{
+			switch (eIx)
+			{
+				case VireioCinema::CinemaRoomSetup::Floor_StringTheory:
+					return std::string("String Theory by nimitz");
+				case VireioCinema::CinemaRoomSetup::Floor_Bubbles:
+					return std::string("Bubbles! by iq & weyland");
+				case VireioCinema::CinemaRoomSetup::Floor_C64Plasma:
+					return std::string("C64 Plasma by ssdsa");
+				case VireioCinema::CinemaRoomSetup::Floor_Worley01:
+					return std::string("Worley Algorithm by Yeis");
+				case VireioCinema::CinemaRoomSetup::Floor_WaterCaustic:
+					return std::string("Tileable Water Caustic by Dave_Hoskins");
+				case VireioCinema::CinemaRoomSetup::Floor_Planets:
+					return std::string("Museum of random Planets by LukeRissacher");
+				case VireioCinema::CinemaRoomSetup::Floor_HypnoticDisco:
+					return std::string("Hypnotic Disco by xbe");
+				case VireioCinema::CinemaRoomSetup::Floor_VoronoiSmooth:
+					return std::string("Voronoi Smooth by iq");
+				default:
+					return std::string("User FX");
+					break;
+			}
+
+		}
+
+		PixelShaderTechnique GetTechnique(PixelShaderFX_Floor eIx)
+		{
+			switch (eIx)
+			{
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Bubbles:
+					return PixelShaderTechnique::Bubbles;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_C64Plasma:
+					return PixelShaderTechnique::C64Plasma;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory:
+					return PixelShaderTechnique::StringTheory;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_WaterCaustic:
+					return PixelShaderTechnique::WaterCaustic;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01:
+					return PixelShaderTechnique::Worley01;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Planets:
+					return PixelShaderTechnique::Planets;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_HypnoticDisco:
+					return PixelShaderTechnique::HypnoticDisco;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_VoronoiSmooth:
+					return PixelShaderTechnique::VoronoiSmooth;
+			}
+			return PixelShaderTechnique::Bubbles;
+		}
 
 		struct PixelShaderFX_Colors
 		{
@@ -615,6 +736,7 @@ private:
 		float fMenuScreenDepth;    /**< The depth of the menu screen, in physical meters. */
 		float fMenuScreenScale;    /**< The scale of the menu screen. */
 		float fMenuScreenRotateY;  /**< The rotation angle (y) of the menu screen, in degree. */
+		float fRoomScale;          /**< The scale of the gaming room. */
 
 		BOOL bMenuIsHUD;           /**< True if the menu is stick to the HMD yaw angle. */
 		BOOL bPerformanceMode;     /**< True if performance mode is on ***/

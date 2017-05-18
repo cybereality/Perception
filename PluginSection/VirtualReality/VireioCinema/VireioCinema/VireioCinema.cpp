@@ -161,6 +161,7 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.fMenuScreenDepth = 2.99f; /**< default : 2.99 meters depth level */
 	m_sCinemaRoomSetup.fMenuScreenScale = 1.0f; /**< default : 1.0 scale */
 	m_sCinemaRoomSetup.fMenuScreenRotateY = 0.0f; /**< default : 0.0 degree y rotation */
+	m_sCinemaRoomSetup.fRoomScale = 1.0f; /**< default : 1.0 scale */
 	m_sCinemaRoomSetup.bMenuIsHUD = FALSE;
 	m_sCinemaRoomSetup.bPerformanceMode = FALSE;
 	m_sCinemaRoomSetup.bImmersiveMode = FALSE;
@@ -197,6 +198,7 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.fMenuScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenDepth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fMenuScreenScale = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenScale, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenScale", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fMenuScreenRotateY = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenRotateY, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenRotateY", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fRoomScale = GetIniFileSetting(m_sCinemaRoomSetup.fRoomScale, "Stereo Cinema", "sCinemaRoomSetup.fRoomScale", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bMenuIsHUD = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bMenuIsHUD, "Stereo Cinema", "sCinemaRoomSetup.bMenuIsHUD", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bPerformanceMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.bImmersiveMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
@@ -207,9 +209,154 @@ m_unMenuModelIndex(0)
 
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "Cinema";
-#pragma region color ambient
+	m_sMenu.strSubMenu = "Cinema - All FX from ShaderToy.com";
+#pragma region FX
 	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Screen";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen::Screen_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Screen;
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Screen;
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen::Screen_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Wall B";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0];
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0];
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Wall F";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1];
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1];
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Wall L";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0];
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0];
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Wall R";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1];
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1];
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall::Wall_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Floor";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Floor[1];
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Floor[1];
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "FX Ceiling";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_NumberOfFX;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = (UINT*)&m_sCinemaRoomSetup.ePixelShaderFX_Floor[0];
+		sEntry.unValue = (UINT)m_sCinemaRoomSetup.ePixelShaderFX_Floor[0];
+		sEntry.bValueEnumeration = true;
+		for (UINT unIx = 0; unIx < VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_NumberOfFX; unIx++)
+		{
+			std::string strEnum = m_sCinemaRoomSetup.FX_AsString((VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor)unIx); sEntry.astrValueEnumeration.push_back(strEnum);
+		}
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+#pragma endregion
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Screen Depth";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.1f;
+		sEntry.fMaximum = 10.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fScreenDepth;
+		sEntry.fValue = m_sCinemaRoomSetup.fScreenDepth;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Room Scale";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.1f;
+		sEntry.fMaximum = 4.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fRoomScale;
+		sEntry.fValue = m_sCinemaRoomSetup.fRoomScale;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+#pragma region color ambient
+	/*{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Ambient Alpha";
 		sEntry.bIsActive = true;
@@ -220,8 +367,8 @@ m_unMenuModelIndex(0)
 		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.a;
 		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.a;
 		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
+		}
+		{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Ambient Red";
 		sEntry.bIsActive = true;
@@ -232,8 +379,8 @@ m_unMenuModelIndex(0)
 		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.r;
 		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.r;
 		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
+		}
+		{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Ambient Green";
 		sEntry.bIsActive = true;
@@ -244,8 +391,8 @@ m_unMenuModelIndex(0)
 		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.g;
 		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.g;
 		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
+		}
+		{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Ambient Blue";
 		sEntry.bIsActive = true;
@@ -256,7 +403,7 @@ m_unMenuModelIndex(0)
 		sEntry.pfValue = &m_sCinemaRoomSetup.sColorAmbient.b;
 		sEntry.fValue = m_sCinemaRoomSetup.sColorAmbient.b;
 		m_sMenu.asEntries.push_back(sEntry);
-	}
+		}*/
 #pragma endregion
 
 }
@@ -616,6 +763,71 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
 	if (!bValid) return nullptr;
 
+	// main menu update ?
+	if (m_sMenu.bOnChanged)
+	{
+		m_sMenu.bOnChanged = false;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMenu.asEntries[nIx].bOnChanged = false;
+				if (nIx < 7)
+				{
+					// get device and context
+					ID3D11Device* pcDevice = nullptr;
+					ID3D11DeviceContext* pcContext = nullptr;
+					if (SUCCEEDED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+					{
+						switch (nIx)
+						{
+							case 0: // screen
+								SAFE_RELEASE(m_pcPSGeometry11);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Screen))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+							case 1: // wall front
+								SAFE_RELEASE(m_asRenderModels[m_unWallFModelIndex].pcEffect);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallFModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+							case 2: // wall back
+								SAFE_RELEASE(m_asRenderModels[m_unWallBModelIndex].pcEffect);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallBModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+							case 3: // wall left
+								SAFE_RELEASE(m_asRenderModels[m_unWallLModelIndex].pcEffect);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallLModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+							case 4: // wall right
+								SAFE_RELEASE(m_asRenderModels[m_unWallRModelIndex].pcEffect);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallRModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+							case 5: // floor
+								SAFE_RELEASE(m_asRenderModels[m_unFloorModelIndex].pcEffect);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unFloorModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[1]))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+							case 6: // ceiling
+								SAFE_RELEASE(m_asRenderModels[m_unCeilingModelIndex].pcEffect);
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unCeilingModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[0]))))
+									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+								break;
+						}
+					}
+					SAFE_RELEASE(pcDevice);
+					SAFE_RELEASE(pcContext);
+				}
+			}
+		}
+	}
+
 	// get data
 	if (m_pfPitch) m_fPitch = *m_pfPitch;
 	if (m_pfYaw) m_fYaw = *m_pfYaw;
@@ -879,13 +1091,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	if (!m_pcPSGeometry11)
 	{
 		// create screen pixel shader technique by cinema room setup
-		PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
-		switch (m_sCinemaRoomSetup.ePixelShaderFX_Screen)
-		{
-			case CinemaRoomSetup::PixelShaderFX_Screen::Screen_GeometryDiffuseTexturedMouse:
-				eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
-				break;
-		}
+		PixelShaderTechnique eTechnique = m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Screen);
 		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, eTechnique)))
 			OutputDebugString(L"[CIN] Failed to create pixel shader. !");
 	}
@@ -1123,10 +1329,10 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create render models...
 	if (!m_asRenderModels.size())
 	{
-		// set room size by screen depth (+10cm)
-		float fSizeScale = m_sCinemaRoomSetup.fScreenDepth + 0.1f;
+		// set room size by default screen depth (3m) (+10cm)
+		float fSizeScale = 3.1f;
 #pragma region cinema screen
-		if (true/**TODO_ADD_BOOL_HERE**/)
+		if (true)
 		{
 			// set vertices
 			TexturedNormalVertex asVertices[] =
@@ -1146,11 +1352,12 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// and create the model for the gaming room
 			float fScale = m_sCinemaRoomSetup.fScreenWidth / 3.84f;
 			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth), 1920, 1080);
+			m_unScreenModelIndex = (UINT)m_asRenderModels.size();
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, 0.0f/* m_sCinemaRoomSetup.fScreenDepth*/), 1920, 1080);
 		}
 #pragma endregion
 #pragma region floor top/bottom
-		if (true/**TODO_ADD_BOOL_HERE**/)
+		if (true)
 		{
 			// set vertices
 			TexturedNormalVertex asVertices[] =
@@ -1165,41 +1372,14 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			WORD aunIndices[] = { 3, 1, 0, 3, 2, 1 };
 
 			// create bottom floor effect by cinema room setup
-			PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
-
-			switch (m_sCinemaRoomSetup.ePixelShaderFX_Floor[1])
-			{
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Bubbles:
-					eTechnique = PixelShaderTechnique::Bubbles;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_C64Plasma:
-					eTechnique = PixelShaderTechnique::C64Plasma;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory:
-					eTechnique = PixelShaderTechnique::StringTheory;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_WaterCaustic:
-					eTechnique = PixelShaderTechnique::WaterCaustic;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01:
-					eTechnique = PixelShaderTechnique::Worley01;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Planets:
-					eTechnique = PixelShaderTechnique::Planets;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_HypnoticDisco:
-					eTechnique = PixelShaderTechnique::HypnoticDisco;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_VoronoiSmooth:
-					eTechnique = PixelShaderTechnique::VoronoiSmooth;
-					break;
-			}
+			PixelShaderTechnique eTechnique = m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[1]);
 			ID3D11PixelShader* pcEffect = nullptr;
 			CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
 
 			// and create the model... scale here by the screen depth to ensure the screen is always seen
 			float fScale = fSizeScale / 2.0f;
 			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
+			m_unFloorModelIndex = (UINT)m_asRenderModels.size();
 			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 			// set indices top
@@ -1209,35 +1389,18 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			for (UINT unI = 0; unI < 4; unI++) asVertices[unI].sNormal *= -1.0f;
 
 			// create top floor effect by cinema room setup
-			PixelShaderTechnique eTechnique_top = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
-			switch (m_sCinemaRoomSetup.ePixelShaderFX_Floor[0])
-			{
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Bubbles:
-					eTechnique_top = PixelShaderTechnique::Bubbles;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_C64Plasma:
-					eTechnique_top = PixelShaderTechnique::C64Plasma;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory:
-					eTechnique_top = PixelShaderTechnique::StringTheory;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_WaterCaustic:
-					eTechnique_top = PixelShaderTechnique::WaterCaustic;
-					break;
-				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01:
-					eTechnique_top = PixelShaderTechnique::Worley01;
-					break;
-			}
+			PixelShaderTechnique eTechnique_top = m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[0]);
 			ID3D11PixelShader* pcEffect_top = nullptr;
 			CreatePixelShaderEffect(pcDevice, &pcEffect_top, eTechnique_top);
 
 			// and create the model... no more scale here since already scaled by first call
+			m_unCeilingModelIndex = (UINT)m_asRenderModels.size();
 			AddRenderModelD3D11(pcDevice, nullptr, pcEffect_top, asVertices, aunIndices_top, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 4.8f, 0.0f));
 
 		}
 #pragma endregion
 #pragma region walls
-		if (true/**TODO_ADD_BOOL_HERE**/)
+		if (true)
 		{
 			// set vertices
 			TexturedNormalVertex asVertices[] =
@@ -1287,15 +1450,19 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				{
 					case 0:
 						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0];
+						m_unWallLModelIndex = (UINT)m_asRenderModels.size();
 						break;
 					case 1:
 						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1];
+						m_unWallRModelIndex = (UINT)m_asRenderModels.size();
 						break;
 					case 2:
 						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0];
+						m_unWallFModelIndex = (UINT)m_asRenderModels.size();
 						break;
 					case 3:
 						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1];
+						m_unWallBModelIndex = (UINT)m_asRenderModels.size();
 						break;
 				}
 
@@ -1327,7 +1494,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				ID3D11PixelShader* pcEffect = nullptr;
 				CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
 
-				// and create the model... scale here by the screen depth to ensure the screen is always seen
+				// and create the model... scale here by the (default) screen depth to ensure the screen is seen
 				float fHeight = 600.0f;  // = (4.8f * 1200.0f) / 4.8f;
 				float fWidth = (fSizeScale * 1000.0f) / 4.0f;
 
@@ -1575,9 +1742,9 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	else
 		pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
 
-	// set world identity
+	// set screen world matrix
 	D3DXMATRIX sWorld;
-	D3DXMatrixIdentity(&sWorld);
+	D3DXMatrixTranslation(&sWorld, 0.0f, 0.0f, m_sCinemaRoomSetup.fScreenDepth);
 
 	// performance mode ?
 	UINT unRenderModelsNo = (UINT)m_asRenderModels.size();
@@ -1616,7 +1783,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 				pcContext->OMSetBlendState(m_pcBlendState, NULL, 0xffffffff);
 				pcContext->PSSetShader(m_pcPSMenuScreen11, NULL, 0);
 
-				// backup view matrix
+				// backup view matrix, we use the view matrix for the menu 
+				// screen since the world matrix is used for global scale
 				s_sViewBackup = m_sView;
 
 				// stuck to HMD yaw (+roll) angle ?
@@ -1678,6 +1846,9 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		// set back view matrix
 		if (m_unMenuModelIndex == unI)
 			m_sView = s_sViewBackup;
+		// set back world matrix after screen got rendered
+		else if (unI == 1)
+			D3DXMatrixScaling(&sWorld, m_sCinemaRoomSetup.fRoomScale, m_sCinemaRoomSetup.fRoomScale, m_sCinemaRoomSetup.fRoomScale);
 	}
 
 	// set back device
