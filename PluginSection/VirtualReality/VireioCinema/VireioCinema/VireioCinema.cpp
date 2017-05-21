@@ -902,10 +902,20 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
 	if (!bValid) return nullptr;
 
+	// save ini file ?
+	if (m_nIniFrameCount)
+	{
+		if (m_nIniFrameCount == 1)
+			SaveIniSettings();
+		m_nIniFrameCount--;
+	}
+
 	// main menu update ?
 	if (m_sMenu.bOnChanged)
 	{
+		// set back event bool, set ini file frame count
 		m_sMenu.bOnChanged = false;
+		m_nIniFrameCount = 300;
 
 		// loop through entries
 		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
@@ -1886,6 +1896,9 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		// performance mode ?
 		if ((m_sCinemaRoomSetup.bPerformanceMode) && (unI >= 2) && (unI != m_unMenuModelIndex)) continue;
 
+		// menu ?
+		if ((m_unMenuModelIndex == unI) && (!m_sMenu.bIsActive)) continue;
+
 		static D3DXMATRIX s_sViewBackup = {};
 
 		// set model buffers
@@ -2205,3 +2218,53 @@ HRESULT VireioCinema::CreateD3D11Device(bool bCreateSwapChain)
 		return unHR;
 	}
 }
+
+/**
+* Saves all settings to the VireioPerception.ini file.
+***/
+void VireioCinema::SaveIniSettings()
+{
+	// get file path
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+
+	// write to ini file
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.a, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.a", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.r, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.r", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.g, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.g", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.b, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.b", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.a, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.a", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.r, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.r", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.g, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.g", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.b, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.b", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.w, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.w", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.x, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.x", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.y, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.y", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.z, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.z", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Screen, "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Screen.b", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Floor[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Floor[0]", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Floor[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Floor[1]", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fScreenRotateX, "Stereo Cinema", "sCinemaRoomSetup.fScreenRotateX", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fScreenRotateY, "Stereo Cinema", "sCinemaRoomSetup.fScreenRotateY", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenDepth", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenScale, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenScale", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenRotateY, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenRotateY", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fRoomScale, "Stereo Cinema", "sCinemaRoomSetup.fRoomScale", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bMenuIsHUD, "Stereo Cinema", "sCinemaRoomSetup.bMenuIsHUD", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sCinemaRoomSetup.fGamma, "Stereo Cinema", "sCinemaRoomSetup.fGamma", szFilePathINI, bFileExists);
+	GetIniFileSetting((DWORD)m_unMouseTickCount, "Stereo Cinema", "unMouseTickCount", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sImmersiveFullscreenSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
+	GetIniFileSetting(m_sImmersiveFullscreenSettings.fVSD, "Stereo Presenter", "fVSD", szFilePathINI, bFileExists);
+}
+

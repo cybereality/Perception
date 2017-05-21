@@ -147,6 +147,10 @@ struct VireioMenuEntry
 struct VireioSubMenu
 {
 	/**
+	* True if menu is active.
+	***/
+	bool bIsActive;
+	/**
 	* True if any menu entry got changed.
 	***/
 	bool bOnChanged;

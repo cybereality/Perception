@@ -666,6 +666,13 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		{
 			m_bMenu = !m_bMenu;
 			m_bMenuHotkeySwitch = false;
+
+			for (UINT unIx = 0; unIx < 32; unIx++)
+			{
+				// set sub menu active if menu is active
+				if (m_apsSubMenues[unIx])
+					m_apsSubMenues[unIx]->bIsActive = m_bMenu;
+			}
 		}
 		else
 		if (m_bHotkeySwitch)
@@ -1414,7 +1421,15 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 
 			// main menu ? set menu bool to false
 			if (m_sMenuControl.nMenuIx == -1)
+			{
 				m_bMenu = false;
+				for (UINT unIx = 0; unIx < 32; unIx++)
+				{
+					// set sub menu active if menu is active
+					if (m_apsSubMenues[unIx])
+						m_apsSubMenues[unIx]->bIsActive = m_bMenu;
+				}
+			}
 			// ...otherwise go back to main menu
 			else m_sMenuControl.nMenuIx = -1;
 		}
