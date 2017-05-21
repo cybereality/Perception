@@ -1223,6 +1223,44 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 					// set the menu entry value
 					psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
 					break;
+				case VireioMenuEntry::EntryType::Entry_UInt:
+					if (!psSubMenu->asEntries[unIx].bValueEnumeration)
+					{
+						// change value, set event
+						*psSubMenu->asEntries[unIx].punValue += psSubMenu->asEntries[unIx].unChangeSize;
+						psSubMenu->asEntries[unIx].bOnChanged = true;
+						psSubMenu->bOnChanged = true;
+
+						// clamp value
+						if (*psSubMenu->asEntries[unIx].punValue > psSubMenu->asEntries[unIx].unMaximum)
+							*psSubMenu->asEntries[unIx].punValue = psSubMenu->asEntries[unIx].unMaximum;
+
+						// set the menu entry value
+						psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
+					}
+					break;
+				case VireioMenuEntry::EntryType::Entry_Int:
+					// change value, set event
+					*psSubMenu->asEntries[unIx].pnValue += psSubMenu->asEntries[unIx].nChangeSize;
+					psSubMenu->asEntries[unIx].bOnChanged = true;
+					psSubMenu->bOnChanged = true;
+
+					// clamp value
+					if (*psSubMenu->asEntries[unIx].pnValue > psSubMenu->asEntries[unIx].nMaximum)
+						*psSubMenu->asEntries[unIx].pnValue = psSubMenu->asEntries[unIx].nMaximum;
+
+					// set the menu entry value
+					psSubMenu->asEntries[unIx].nValue = *psSubMenu->asEntries[unIx].pnValue;
+					break;
+				case VireioMenuEntry::EntryType::Entry_Bool:
+					// change value, set event
+					*psSubMenu->asEntries[unIx].pbValue = !(*psSubMenu->asEntries[unIx].pbValue);
+					psSubMenu->asEntries[unIx].bOnChanged = true;
+					psSubMenu->bOnChanged = true;
+
+					// set the menu entry value
+					psSubMenu->asEntries[unIx].bValue = *psSubMenu->asEntries[unIx].pbValue;
+					break;
 			}
 		}
 
@@ -1255,6 +1293,44 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 
 					// set the menu entry value
 					psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
+					break;
+				case VireioMenuEntry::EntryType::Entry_UInt:
+					if (!psSubMenu->asEntries[unIx].bValueEnumeration)
+					{
+						// change value, set event
+						*psSubMenu->asEntries[unIx].punValue -= psSubMenu->asEntries[unIx].unChangeSize;
+						psSubMenu->asEntries[unIx].bOnChanged = true;
+						psSubMenu->bOnChanged = true;
+
+						// clamp value
+						if (*psSubMenu->asEntries[unIx].punValue > psSubMenu->asEntries[unIx].unMaximum)
+							*psSubMenu->asEntries[unIx].punValue = psSubMenu->asEntries[unIx].unMaximum;
+
+						// set the menu entry value
+						psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
+					}
+					break;
+				case VireioMenuEntry::EntryType::Entry_Int:
+					// change value, set event
+					*psSubMenu->asEntries[unIx].pnValue -= psSubMenu->asEntries[unIx].nChangeSize;
+					psSubMenu->asEntries[unIx].bOnChanged = true;
+					psSubMenu->bOnChanged = true;
+
+					// clamp value
+					if (*psSubMenu->asEntries[unIx].pnValue > psSubMenu->asEntries[unIx].nMaximum)
+						*psSubMenu->asEntries[unIx].pnValue = psSubMenu->asEntries[unIx].nMaximum;
+
+					// set the menu entry value
+					psSubMenu->asEntries[unIx].nValue = *psSubMenu->asEntries[unIx].pnValue;
+					break;
+				case VireioMenuEntry::EntryType::Entry_Bool:
+					// change value, set event
+					*psSubMenu->asEntries[unIx].pbValue = !(*psSubMenu->asEntries[unIx].pbValue);
+					psSubMenu->asEntries[unIx].bOnChanged = true;
+					psSubMenu->bOnChanged = true;
+
+					// set the menu entry value
+					psSubMenu->asEntries[unIx].bValue = *psSubMenu->asEntries[unIx].pbValue;
 					break;
 			}
 		}
@@ -1309,6 +1385,19 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			}
 			else
 			{
+				// only bool entries accept value change here
+				switch (psSubMenu->asEntries[unIx].eType)
+				{
+					case VireioMenuEntry::EntryType::Entry_Bool:
+						psSubMenu->asEntries[unIx].bValue = !psSubMenu->asEntries[unIx].bValue;
+						(*(psSubMenu->asEntries[unIx].pbValue)) = psSubMenu->asEntries[unIx].bValue;
+						break;
+					case VireioMenuEntry::EntryType::Entry_Int:
+					case VireioMenuEntry::EntryType::Entry_UInt:
+					case VireioMenuEntry::EntryType::Entry_Float:
+					default:
+						break;
+				}
 			}
 		}
 

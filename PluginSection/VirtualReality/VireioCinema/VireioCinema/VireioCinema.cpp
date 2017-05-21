@@ -75,8 +75,6 @@ m_punTexResolutionWidth(nullptr),
 m_pcBackBufferCopy(nullptr),
 m_pcBackBufferCopySR(nullptr),
 m_pcRS(nullptr),
-m_pbImmersiveMode(nullptr),
-m_pbPerformanceMode(nullptr),
 m_hDummy(nullptr),
 m_pcTexMenu(nullptr),
 m_pcTexMenuSRV(nullptr),
@@ -156,8 +154,10 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory;
 	m_sCinemaRoomSetup.ePixelShaderFX_Floor[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01;
 	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
-	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
+	m_sCinemaRoomSetup.fScreenLevel = 0.0f; /**< default : 2 meters height level */
 	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
+	m_sCinemaRoomSetup.fScreenRotateX = 0.0f; /**< default : 0.0 degree x rotation */
+	m_sCinemaRoomSetup.fScreenRotateY = 0.0f; /**< default : 0.0 degree y rotation */
 	m_sCinemaRoomSetup.fMenuScreenDepth = 2.99f; /**< default : 2.99 meters depth level */
 	m_sCinemaRoomSetup.fMenuScreenScale = 1.0f; /**< default : 1.0 scale */
 	m_sCinemaRoomSetup.fMenuScreenRotateY = 0.0f; /**< default : 0.0 degree y rotation */
@@ -195,13 +195,15 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenRotateX = GetIniFileSetting(m_sCinemaRoomSetup.fScreenRotateX, "Stereo Cinema", "sCinemaRoomSetup.fScreenRotateX", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenRotateY = GetIniFileSetting(m_sCinemaRoomSetup.fScreenRotateY, "Stereo Cinema", "sCinemaRoomSetup.fScreenRotateY", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fMenuScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenDepth", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fMenuScreenScale = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenScale, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenScale", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fMenuScreenRotateY = GetIniFileSetting(m_sCinemaRoomSetup.fMenuScreenRotateY, "Stereo Cinema", "sCinemaRoomSetup.fMenuScreenRotateY", szFilePathINI, bFileExists);
 	m_sCinemaRoomSetup.fRoomScale = GetIniFileSetting(m_sCinemaRoomSetup.fRoomScale, "Stereo Cinema", "sCinemaRoomSetup.fRoomScale", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.bMenuIsHUD = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bMenuIsHUD, "Stereo Cinema", "sCinemaRoomSetup.bMenuIsHUD", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.bPerformanceMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.bImmersiveMode = (BOOL)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.bMenuIsHUD = (GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bMenuIsHUD, "Stereo Cinema", "sCinemaRoomSetup.bMenuIsHUD", szFilePathINI, bFileExists) != 0);
+	m_sCinemaRoomSetup.bPerformanceMode = (GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bPerformanceMode, "Stereo Cinema", "sCinemaRoomSetup.bPerformanceMode", szFilePathINI, bFileExists) != 0);
+	m_sCinemaRoomSetup.bImmersiveMode = (GetIniFileSetting((DWORD)m_sCinemaRoomSetup.bImmersiveMode, "Stereo Cinema", "sCinemaRoomSetup.bImmersiveMode", szFilePathINI, bFileExists) != 0);
 	m_sCinemaRoomSetup.fGamma = GetIniFileSetting(m_sCinemaRoomSetup.fGamma, "Stereo Cinema", "sCinemaRoomSetup.fGamma", szFilePathINI, bFileExists);
 	m_unMouseTickCount = GetIniFileSetting((DWORD)m_unMouseTickCount, "Stereo Cinema", "unMouseTickCount", szFilePathINI, bFileExists);
 	m_sImmersiveFullscreenSettings.fIPD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
@@ -333,6 +335,30 @@ m_unMenuModelIndex(0)
 #pragma endregion
 	{
 		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Screen Width";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fScreenWidth;
+		sEntry.fValue = m_sCinemaRoomSetup.fScreenWidth;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Screen Level";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 15.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fScreenLevel;
+		sEntry.fValue = m_sCinemaRoomSetup.fScreenLevel;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Screen Depth";
 		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
@@ -345,16 +371,142 @@ m_unMenuModelIndex(0)
 	}
 	{
 		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Screen Rotation X";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -360.0f;
+		sEntry.fMaximum = 360.0f;
+		sEntry.fChangeSize = 3.0f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fScreenRotateX;
+		sEntry.fValue = m_sCinemaRoomSetup.fScreenRotateX;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Screen Rotation Y";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -360.0f;
+		sEntry.fMaximum = 360.0f;
+		sEntry.fChangeSize = 3.0f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fScreenRotateY;
+		sEntry.fValue = m_sCinemaRoomSetup.fScreenRotateY;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Room Scale";
 		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 0.1f;
+		sEntry.fMinimum = 0.5f;
 		sEntry.fMaximum = 4.0f;
 		sEntry.fChangeSize = 0.1f;
 		sEntry.pfValue = &m_sCinemaRoomSetup.fRoomScale;
 		sEntry.fValue = m_sCinemaRoomSetup.fRoomScale;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Menu Screen Scale";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 10.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fMenuScreenScale;
+		sEntry.fValue = m_sCinemaRoomSetup.fMenuScreenScale;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Menu Screen Depth";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.5f;
+		sEntry.fMaximum = 10.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fMenuScreenDepth;
+		sEntry.fValue = m_sCinemaRoomSetup.fMenuScreenDepth;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Menu Screen Rotate Y";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -360.0f;
+		sEntry.fMaximum = 360.0f;
+		sEntry.fChangeSize = 3.0f;
+		sEntry.pfValue = &m_sCinemaRoomSetup.fMenuScreenRotateY;
+		sEntry.fValue = m_sCinemaRoomSetup.fMenuScreenRotateY;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Menu as HUD";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_sCinemaRoomSetup.bMenuIsHUD;
+		sEntry.bValue = m_sCinemaRoomSetup.bMenuIsHUD;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Render Cinema Room";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_sCinemaRoomSetup.bPerformanceMode;
+		sEntry.bValue = m_sCinemaRoomSetup.bPerformanceMode;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Mouse Pointer Visible (ms)";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = 10000;
+		sEntry.unChangeSize = 100;
+		sEntry.punValue = &m_unMouseTickCount;
+		sEntry.unValue = m_unMouseTickCount;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Full Immersive Mode";
+		sEntry.bIsActive = false;
+		sEntry.bIsFullscreenswitch = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_sCinemaRoomSetup.bImmersiveMode;
+		sEntry.bValue = m_sCinemaRoomSetup.bImmersiveMode;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Inter-Pupillary distance";
+		sEntry.bIsActive = false;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0510f;
+		sEntry.fMaximum = 0.0770f;
+		sEntry.fChangeSize = 0.0001f;
+		sEntry.pfValue = &m_sImmersiveFullscreenSettings.fIPD;
+		sEntry.fValue = m_sImmersiveFullscreenSettings.fIPD;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Virtual Screen Distance";
+		sEntry.bIsActive = false;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.5f;
+		sEntry.fMaximum = 1.2f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sImmersiveFullscreenSettings.fVSD;
+		sEntry.fValue = m_sImmersiveFullscreenSettings.fVSD;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+
+
 #pragma region color ambient
 	/*{
 		VireioMenuEntry sEntry = {};
@@ -555,10 +707,6 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Projection Left";
 		case ProjectionRight:
 			return L"Projection Right";
-		case ImmersiveMode:
-			return L"Immersive Mode";
-		case PerformanceMode:
-			return L"Performance Mode";
 	}
 
 	return L"x";
@@ -622,9 +770,6 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 		case ProjectionLeft:
 		case ProjectionRight:
 			return NOD_Plugtype::AQU_D3DMATRIX;
-		case ImmersiveMode:
-		case PerformanceMode:
-			return NOD_Plugtype::AQU_INT;
 	}
 
 	return 0;
@@ -717,12 +862,6 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case ProjectionRight:
 			m_psProjection[1] = (D3DMATRIX*)pData;
-			break;
-		case ImmersiveMode:
-			m_pbImmersiveMode = (BOOL*)pData;
-			break;
-		case PerformanceMode:
-			m_pbPerformanceMode = (BOOL*)pData;
 			break;
 	}
 }
@@ -836,21 +975,6 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	if (m_pfPositionX) m_sPositionVector.x = *m_pfPositionX;
 	if (m_pfPositionY) m_sPositionVector.y = *m_pfPositionY;
 	if (m_pfPositionZ) m_sPositionVector.z = *m_pfPositionZ;
-
-	// modes initialized ?
-	static bool s_bModeInit = false;
-	if (!s_bModeInit)
-	{
-		// ensure the default ini values are set
-		if (m_pbImmersiveMode) *m_pbImmersiveMode = m_sCinemaRoomSetup.bImmersiveMode;
-		if (m_pbPerformanceMode) *m_pbPerformanceMode = m_sCinemaRoomSetup.bPerformanceMode;
-		s_bModeInit = true;
-	}
-	else
-	{
-		if (m_pbImmersiveMode) m_sCinemaRoomSetup.bImmersiveMode = *m_pbImmersiveMode;
-		if (m_pbPerformanceMode) m_sCinemaRoomSetup.bPerformanceMode = *m_pbPerformanceMode;
-	}
 
 	// render cinema for specified D3D version
 	switch (m_eD3DVersion)
@@ -1349,11 +1473,11 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// create the model for immersive mode
 			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f), 1920, 1080);
 
-			// and create the model for the gaming room
-			float fScale = m_sCinemaRoomSetup.fScreenWidth / 3.84f;
+			// and create the model for the gaming room... default screen width 6.0 m
+			float fScale = 6.0f / 3.84f;
 			D3DXVECTOR3 sScale = D3DXVECTOR3(fScale, fScale, fScale);
 			m_unScreenModelIndex = (UINT)m_asRenderModels.size();
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, 0.0f/* m_sCinemaRoomSetup.fScreenDepth*/), 1920, 1080);
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, sScale, D3DXVECTOR3(0.0f, 2.0f, 0.0f), 1920, 1080);
 		}
 #pragma endregion
 #pragma region floor top/bottom
@@ -1520,7 +1644,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
 			m_unMenuModelIndex = (UINT)m_asRenderModels.size();
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(m_sCinemaRoomSetup.fMenuScreenScale, m_sCinemaRoomSetup.fMenuScreenScale, m_sCinemaRoomSetup.fMenuScreenScale), D3DXVECTOR3(0.0f, 2.0f, m_sCinemaRoomSetup.fMenuScreenDepth));
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 2.0f, 0.0f));
 		}
 #pragma endregion
 	}
@@ -1743,20 +1867,25 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
 
 	// set screen world matrix
-	D3DXMATRIX sWorld;
-	D3DXMatrixTranslation(&sWorld, 0.0f, 0.0f, m_sCinemaRoomSetup.fScreenDepth);
-
-	// performance mode ?
-	UINT unRenderModelsNo = (UINT)m_asRenderModels.size();
-	if (m_sCinemaRoomSetup.bPerformanceMode) unRenderModelsNo = 2;
+	D3DXMATRIX sWorld, sRotateX, sRotateY, sTrans, sScale;
+	float fScale = m_sCinemaRoomSetup.fScreenWidth / 6.0f; // default screen width 6.0 m
+	D3DXMatrixScaling(&sScale, fScale, fScale, fScale);
+	D3DXMatrixRotationX(&sRotateX, (float)D3DXToRadian((double)m_sCinemaRoomSetup.fScreenRotateX));
+	D3DXMatrixRotationY(&sRotateY, (float)D3DXToRadian((double)m_sCinemaRoomSetup.fScreenRotateY));
+	D3DXMatrixTranslation(&sTrans, 0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth);
+	sWorld = sScale * sRotateX * sTrans * sRotateY;
 
 	// buffer data
 	UINT stride = sizeof(TexturedNormalVertex);
 	UINT offset = 0;
 
 	// loop through available render models, render
-	for (UINT unI = 1; unI < (UINT)unRenderModelsNo; unI++)
+	UINT unRenderModelsNo = (UINT)m_asRenderModels.size();
+	for (UINT unI = 1; unI < unRenderModelsNo; unI++)
 	{
+		// performance mode ?
+		if ((m_sCinemaRoomSetup.bPerformanceMode) && (unI >= 2) && (unI != m_unMenuModelIndex)) continue;
+
 		static D3DXMATRIX s_sViewBackup = {};
 
 		// set model buffers
@@ -1787,23 +1916,28 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 				// screen since the world matrix is used for global scale
 				s_sViewBackup = m_sView;
 
+				// setup view matrices
+				fScale = m_sCinemaRoomSetup.fMenuScreenScale / m_sCinemaRoomSetup.fRoomScale;
+				D3DXMatrixScaling(&sScale, fScale, fScale, fScale);
+
 				// stuck to HMD yaw (+roll) angle ?
 				if (m_sCinemaRoomSetup.bMenuIsHUD)
 				{
-					// center menu screen model
-					D3DXMatrixTranslation(&m_sView, 0.0f, -2.0f, 0.0f);
-
 					// rotate x axis for better reading
 					D3DXMATRIX sTemp;
 					D3DXMatrixRotationX(&sTemp, s_sViewBackup(1, 2));
 					m_sView *= sTemp;
+
+					// translate back from default y 2.0f
+					D3DXMatrixTranslation(&sTrans, 0.0f, -2.0f, m_sCinemaRoomSetup.fMenuScreenDepth);
+					m_sView = sScale * sTrans * sTemp;
 				}
 				else
 				{
-					// set rotation matrix
-					D3DXMATRIX sTemp;
-					D3DXMatrixRotationY(&sTemp, (float)D3DXToRadian((double)m_sCinemaRoomSetup.fMenuScreenRotateY));
-					m_sView = sTemp * s_sViewBackup;
+					// set view matrix based on view backup
+					D3DXMatrixTranslation(&sTrans, 0.0f, 0.0f, m_sCinemaRoomSetup.fMenuScreenDepth);
+					D3DXMatrixRotationY(&sRotateY, (float)D3DXToRadian((double)m_sCinemaRoomSetup.fMenuScreenRotateY));
+					m_sView = sScale * sTrans * sRotateY * s_sViewBackup;
 				}
 			}
 			else

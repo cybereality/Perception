@@ -80,7 +80,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
 #define NUMBER_OF_COMMANDERS                           4
-#define NUMBER_OF_DECOMMANDERS                        24
+#define NUMBER_OF_DECOMMANDERS                        22
 
 /**
 * Node Commander Enumeration.
@@ -120,8 +120,6 @@ enum VRC_Decommanders
 	ResolutionHeight,
 	ProjectionLeft,
 	ProjectionRight,
-	ImmersiveMode,
-	PerformanceMode,
 };
 
 
@@ -733,14 +731,16 @@ private:
 		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
 		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
 		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+		float fScreenRotateX;      /**< The rotation angle (x) of the screen, in degree. */
+		float fScreenRotateY;      /**< The rotation angle (y) of the screen, in degree. */
 		float fMenuScreenDepth;    /**< The depth of the menu screen, in physical meters. */
 		float fMenuScreenScale;    /**< The scale of the menu screen. */
 		float fMenuScreenRotateY;  /**< The rotation angle (y) of the menu screen, in degree. */
 		float fRoomScale;          /**< The scale of the gaming room. */
 
-		BOOL bMenuIsHUD;           /**< True if the menu is stick to the HMD yaw angle. */
-		BOOL bPerformanceMode;     /**< True if performance mode is on ***/
-		BOOL bImmersiveMode;       /**< True if full immersive mode is on ***/
+		bool bMenuIsHUD;           /**< True if the menu is stick to the HMD yaw angle. */
+		bool bPerformanceMode;     /**< True if performance mode is on ***/
+		bool bImmersiveMode;       /**< True if full immersive mode is on ***/
 	} m_sCinemaRoomSetup;
 	/**
 	* User settings for immersive fullscreen rendering.
@@ -750,14 +750,6 @@ private:
 		float fIPD;                    /**< Interpupillary distance, to be read from Stereo Presenter node **/
 		float fVSD;                    /**< Virtual screen distance, to be read from Stereo Presenter node **/
 	} m_sImmersiveFullscreenSettings;
-	/**
-	* Pointer to bool for immersive mode.
-	***/
-	BOOL* m_pbImmersiveMode;
-	/**
-	* Pointer to bool for performance mode.
-	***/
-	BOOL* m_pbPerformanceMode;
 	/**
 	* Cinema menu.
 	***/
