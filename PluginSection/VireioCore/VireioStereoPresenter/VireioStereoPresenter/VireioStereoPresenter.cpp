@@ -175,72 +175,6 @@ m_pbCinemaMode(nullptr)
 		m_sSubMenu.asEntries.push_back(sEntry);
 	}
 #pragma endregion
-	{
-		static float s_fDummy = 1.0f;
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Test Entry";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 0.0f;
-		sEntry.fMaximum = 100.0f;
-		sEntry.fChangeSize = 0.5f;
-		sEntry.pfValue = &s_fDummy;
-		sEntry.fValue = *sEntry.pfValue;
-		m_sSubMenu.asEntries.push_back(sEntry);
-	}
-	{
-		static float s_fDummy = 1.0f;
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Another dummy";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 0.0f;
-		sEntry.fMaximum = 100.0f;
-		sEntry.fChangeSize = 0.5f;
-		sEntry.pfValue = &s_fDummy;
-		sEntry.fValue = *sEntry.pfValue;
-		m_sSubMenu.asEntries.push_back(sEntry);
-	}
-	{
-		static float s_fDummy = 1.0f;
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Yet another dummy";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 0.0f;
-		sEntry.fMaximum = 100.0f;
-		sEntry.fChangeSize = 0.5f;
-		sEntry.pfValue = &s_fDummy;
-		sEntry.fValue = *sEntry.pfValue;
-		m_sSubMenu.asEntries.push_back(sEntry);
-	}
-	{
-		static float s_fDummy = 1.0f;
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Dummy Value";
-		sEntry.bIsActive = false;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 0.0f;
-		sEntry.fMaximum = 100.0f;
-		sEntry.fChangeSize = 0.5f;
-		sEntry.pfValue = &s_fDummy;
-		sEntry.fValue = *sEntry.pfValue;
-		m_sSubMenu.asEntries.push_back(sEntry);
-	}
-	{
-		static float s_fDummy = 1.0f;
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Next dummy Value";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 0.0f;
-		sEntry.fMaximum = 100.0f;
-		sEntry.fChangeSize = 0.5f;
-		sEntry.pfValue = &s_fDummy;
-		sEntry.fValue = *sEntry.pfValue;
-		m_sSubMenu.asEntries.push_back(sEntry);
-	}
-
 }
 
 /**
@@ -568,7 +502,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				m_sMainMenu.asEntries[nIx].bOnChanged = false;
 
 				// set new menu index.. selection to zero
-				m_sMenuControl.nMenuIx = nIx;
+				m_sMenuControl.nMenuIx = (INT)nIx;
 				m_sMenuControl.unSelectionFormer = m_sMenuControl.unSelection = 0;
 			}
 		}

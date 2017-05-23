@@ -98,7 +98,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVR\Lib\$(Platform)/$(Configuration)\VS2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
@@ -116,7 +116,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVR\Lib\$(Platform)/$(Configuration)\VS2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
@@ -132,13 +132,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(OVRSDKROOT)LibOVR\Include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVR\Lib\$(Platform)/$(Configuration)\VS2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
@@ -154,13 +155,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(OVRSDKROOT)LibOVR\Include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVR\Lib\$(Platform)/$(Configuration)\VS2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
