@@ -575,6 +575,9 @@ private:
 		enum PixelShaderFX_Screen
 		{
 			Screen_GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, draws mouse laser pointer **/
+			Screen_Filter,                        /**< TexturedVertex : "Filter" by kbjwes77 **/
+			Screen_Sharpen,                       /**< TexturedVertex : "Sharpen" by KimWest **/
+			Screen_LevelFilter,                   /**< TexturedVertex : "Level Filter" by sepehr **/
 			Screen_NumberOfFX
 		} ePixelShaderFX_Screen;
 
@@ -584,6 +587,12 @@ private:
 			{
 				case VireioCinema::CinemaRoomSetup::Screen_GeometryDiffuseTexturedMouse:
 					return std::string("Default Screen");
+				case VireioCinema::CinemaRoomSetup::Screen_Filter:
+					return std::string("Filter by kbjwes77");
+				case VireioCinema::CinemaRoomSetup::Screen_Sharpen:
+					return std::string("Sharpen by KimWest");
+				case VireioCinema::CinemaRoomSetup::Screen_LevelFilter:
+					return std::string("Level Filter by sepehr");
 				default:
 					return std::string("User FX");
 			}
@@ -595,6 +604,12 @@ private:
 			{
 				case VireioCinema::CinemaRoomSetup::Screen_GeometryDiffuseTexturedMouse:
 					return PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+				case VireioCinema::CinemaRoomSetup::Screen_Filter:
+					return PixelShaderTechnique::ScreenFilter;
+				case VireioCinema::CinemaRoomSetup::Screen_Sharpen:
+					return PixelShaderTechnique::ScreenSharpen;
+				case VireioCinema::CinemaRoomSetup::Screen_LevelFilter:
+					return PixelShaderTechnique::ScreenLevelFilter;
 			}
 			return PixelShaderTechnique::GeometryDiffuseTexturedMouse;
 		}

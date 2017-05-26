@@ -1968,6 +1968,330 @@ static const char* PS_TEXT_FX_002 =
 
 "}\n";
 #pragma endregion
+#pragma region PS_SCREEN_FILTER
+/**
+* Filter by kbjwes77.
+***/
+static const char* PS_SCREEN_FILTER =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// gamma correction
+"float     fGamma;\n"                // Gamma correction value 
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+"float easeInOutCubic(float f) {\n"
+"	const float d = 1.0;\n"
+"	const float b = 0.0;\n"
+"	const float c = 1.0;\n"
+"	float t = f;\n"
+"	if ((t /= d / 2.0) < 1.0) return c / 2.0 * t * t * t + b;\n"
+"	return c / 2.0 * ((t -= 2.0) * t * t + 2.0) + b;\n"
+"}\n"
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+"#define SHIFT 0.0\n"
+"#define TIME_SCALE 0.5\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+//"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+//"	float3 fragColor = vDiffuse.xyz;\n"
+
+//----------------------------------- Shadertoy code
+
+"vec2 uv = Input.vTexcoord;\n"
+//"vec2 uv = fragCoord.xy / iResolution.xy;// + vec2(0, iGlobalTime * TIME_SCALE);\n"
+
+"float uStep = 1.0 / sResolution.x;\n"
+
+"vec4 color = vec4(0.0, 0.0, 0.0, 1.0);\n"
+
+"color.x += max(0.15, g_txDiffuse.Sample(g_samLinear, vec2(uv.x + uStep * SHIFT * 3.0, uv.y)).x);\n"
+"color.z += max(0.25, g_txDiffuse.Sample(g_samLinear,vec2(uv.x + uStep * SHIFT * 0.1, uv.y)).z);\n"
+"color.y += (color.x + color.z + g_txDiffuse.Sample(g_samLinear, vec2(uv.x + uStep * SHIFT * 0.2, uv.y)).y) / 3.0;\n"
+//"color.x += max(0.15, texture(iChannel1, vec2(uv.x + uStep * SHIFT * 3.0, uv.y)).x);\n"
+//"color.z += max(0.25, texture(iChannel1, vec2(uv.x + uStep * SHIFT * 0.1, uv.y)).z);\n"
+//"color.y += (color.x + color.z + texture(iChannel1, vec2(uv.x + uStep * SHIFT * 0.2, uv.y)).y) / 3.0;\n"
+
+"float4 vDiffuse = color;\n"
+
+//----------------------------------- Shadertoy code end
+
+"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, sLightAmbient);\n"
+
+"   float fMouseX = abs(Input.vTexcoord.x - sMouse.x);\n"
+"   float fMouseY = abs(Input.vTexcoord.y - sMouse.y);\n"
+"   if (fMouseX < 0.01 && fMouseY < 0.01) {\n"
+
+"   float2 fAspect = float2(1.0, sResolution.y / sResolution.x);\n"
+"   float dist = distance(Input.vTexcoord * fAspect, sMouse.xy * fAspect);\n"
+"	float glowIntensity = 1.0 - (dist / 0.005);\n"
+"   float4 glowColor = pow(float4(0.2, 1.0, 0.5, 1.0), float4(1.0 - glowIntensity, 1.0 - glowIntensity, 1.0 - glowIntensity, 1.0));\n"
+"   glowIntensity = easeInOutCubic(glowIntensity); \n"
+"   glowIntensity *= 0.9; \n"
+"   if (glowIntensity > 0.0)\n"
+"   { return lerp(vDiffuse, glowColor, glowIntensity); } }\n"
+
+"   return pow (vDiffuse * vLighting, fGamma);\n"
+"}\n";
+#pragma endregion
+#pragma region PS_SCREEN_SHARPEN
+/**
+* Sharpen by KimWest.
+***/
+static const char* PS_SCREEN_SHARPEN =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// gamma correction
+"float     fGamma;\n"                // Gamma correction value 
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+"float easeInOutCubic(float f) {\n"
+"	const float d = 1.0;\n"
+"	const float b = 0.0;\n"
+"	const float c = 1.0;\n"
+"	float t = f;\n"
+"	if ((t /= d / 2.0) < 1.0) return c / 2.0 * t * t * t + b;\n"
+"	return c / 2.0 * ((t -= 2.0) * t * t + 2.0) + b;\n"
+"}\n"
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+"#define SHIFT 0.0\n"
+"#define TIME_SCALE 0.5\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+//"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+//"	float3 fragColor = vDiffuse.xyz;\n"
+
+//----------------------------------- Shadertoy code
+
+"vec2 uv = Input.vTexcoord;\n"
+//"vec2 uv = fragCoord.xy / iResolution.xy;\n
+
+"vec2 step = 1.0 / sResolution.xy;\n"
+
+"vec3 texA = g_txDiffuse.Sample(g_samLinear, uv + vec2(-step.x, -step.y) * 1.5).rgb;\n"
+"vec3 texB = g_txDiffuse.Sample(g_samLinear, uv + vec2(step.x, -step.y) * 1.5).rgb;\n"
+"vec3 texC = g_txDiffuse.Sample(g_samLinear, uv + vec2(-step.x, step.y) * 1.5).rgb;\n"
+"vec3 texD = g_txDiffuse.Sample(g_samLinear, uv + vec2(step.x, step.y) * 1.5).rgb;\n"
+
+"vec3 around = 0.25 * (texA + texB + texC + texD);\n"
+"vec3 center = g_txDiffuse.Sample(g_samLinear, uv).rgb;\n"
+
+"vec3 col = center + (center - around);\n"
+
+"float4 vDiffuse = float4(col, 1.0f);\n"
+
+//----------------------------------- Shadertoy code end
+
+"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, sLightAmbient);\n"
+
+"   float fMouseX = abs(Input.vTexcoord.x - sMouse.x);\n"
+"   float fMouseY = abs(Input.vTexcoord.y - sMouse.y);\n"
+"   if (fMouseX < 0.01 && fMouseY < 0.01) {\n"
+
+"   float2 fAspect = float2(1.0, sResolution.y / sResolution.x);\n"
+"   float dist = distance(Input.vTexcoord * fAspect, sMouse.xy * fAspect);\n"
+"	float glowIntensity = 1.0 - (dist / 0.005);\n"
+"   float4 glowColor = pow(float4(0.2, 1.0, 0.5, 1.0), float4(1.0 - glowIntensity, 1.0 - glowIntensity, 1.0 - glowIntensity, 1.0));\n"
+"   glowIntensity = easeInOutCubic(glowIntensity); \n"
+"   glowIntensity *= 0.9; \n"
+"   if (glowIntensity > 0.0)\n"
+"   { return lerp(vDiffuse, glowColor, glowIntensity); } }\n"
+
+"   return pow (vDiffuse * vLighting, fGamma);\n"
+"}\n";
+#pragma endregion
+#pragma region PS_SCREEN_LEVEL_FILTER
+/**
+* Level filter by sepehr.
+***/
+static const char* PS_SCREEN_LEVEL_FILTER =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// gamma correction
+"float     fGamma;\n"                // Gamma correction value 
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+"float easeInOutCubic(float f) {\n"
+"	const float d = 1.0;\n"
+"	const float b = 0.0;\n"
+"	const float c = 1.0;\n"
+"	float t = f;\n"
+"	if ((t /= d / 2.0) < 1.0) return c / 2.0 * t * t * t + b;\n"
+"	return c / 2.0 * ((t -= 2.0) * t * t + 2.0) + b;\n"
+"}\n"
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+//----------------------------------- Shadertoy code
+"float single_channel_level_filter(in float channel)\n"
+"{\n"
+// These mimic what you see in Photoshop level editor
+// Range is between 0 and 255 just like Photoshop.
+
+"	const float INPUT_BLACK = 74.00;\n"
+"	const float INPUT_GAMMA = 1.000;\n"
+"	const float INPUT_WHITE = 183.0;\n"
+"	const float OUTPUT_BLACK = 0.000;\n"
+"	const float OUTPUT_WHITE = 255.0;\n"
+
+"	return (pow(((channel * 255.0) - INPUT_BLACK) / (INPUT_WHITE - INPUT_BLACK),\n"
+"		INPUT_GAMMA) * (OUTPUT_WHITE - OUTPUT_BLACK) + OUTPUT_BLACK) / 255.0;\n"
+"}\n"
+
+"void multi_channel_level_filter(inout vec4 color)\n"
+"{\n"
+"	color.r = single_channel_level_filter(color.r);\n"
+"	color.g = single_channel_level_filter(color.g);\n"
+"	color.b = single_channel_level_filter(color.b);\n"
+"}\n"
+//----------------------------------- Shadertoy code end
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+//"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+//"	float3 fragColor = vDiffuse.xyz;\n"
+
+//----------------------------------- Shadertoy code
+
+// Source:
+// http://http.developer.nvidia.com/GPUGems/gpugems_ch22.html
+
+"   vec2 uv = Input.vTexcoord;\n"
+//"	vec2 uv = fragCoord.xy / iResolution.xy;\n"
+
+"   vec3 col = g_txDiffuse.Sample(g_samLinear, uv).rgb;\n"
+//"	fragColor = texture(iChannel0, uv);\n"
+
+"   float4 vDiffuse = float4(col, 1.0f);\n"
+"	multi_channel_level_filter(vDiffuse);\n"
+
+//----------------------------------- Shadertoy code end
+
+"	float4 vLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	vLighting = max(vLighting, sLightAmbient);\n"
+
+"   float fMouseX = abs(Input.vTexcoord.x - sMouse.x);\n"
+"   float fMouseY = abs(Input.vTexcoord.y - sMouse.y);\n"
+"   if (fMouseX < 0.01 && fMouseY < 0.01) {\n"
+
+"   float2 fAspect = float2(1.0, sResolution.y / sResolution.x);\n"
+"   float dist = distance(Input.vTexcoord * fAspect, sMouse.xy * fAspect);\n"
+"	float glowIntensity = 1.0 - (dist / 0.005);\n"
+"   float4 glowColor = pow(float4(0.2, 1.0, 0.5, 1.0), float4(1.0 - glowIntensity, 1.0 - glowIntensity, 1.0 - glowIntensity, 1.0));\n"
+"   glowIntensity = easeInOutCubic(glowIntensity); \n"
+"   glowIntensity *= 0.9; \n"
+"   if (glowIntensity > 0.0)\n"
+"   { return lerp(vDiffuse, glowColor, glowIntensity); } }\n"
+
+"   return pow (vDiffuse * vLighting, fGamma);\n"
+"}\n";
+#pragma endregion
 #pragma endregion
 
 /**
@@ -2005,6 +2329,9 @@ enum PixelShaderTechnique
 	TextFX_001,                    /**< TextFX 001 : Text fx 001 **/
 	MenuScreen,                    /**< MenuScreen : Menu screen shader, skips empty alpha fragments **/
 	TextFX_002,                    /**< TextFX 002 : Text fx 002 **/
+	ScreenFilter,                  /**< TexturedVertex : "Filter" by kbjwes77 **/
+	ScreenSharpen,                 /**< TexturedVertex : "Sharpen" by KimWest **/
+	ScreenLevelFilter,             /**< TexturedVertex : "Level Filter" by sepehr **/
 };
 
 /**
@@ -2721,6 +3048,15 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case TextFX_002:
 			hr = D3DX10CompileFromMemory(PS_TEXT_FX_002, strlen(PS_TEXT_FX_002), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case ScreenFilter:
+			hr = D3DX10CompileFromMemory(PS_SCREEN_FILTER, strlen(PS_SCREEN_FILTER), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case ScreenSharpen:
+			hr = D3DX10CompileFromMemory(PS_SCREEN_SHARPEN, strlen(PS_SCREEN_SHARPEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case ScreenLevelFilter:
+			hr = D3DX10CompileFromMemory(PS_SCREEN_LEVEL_FILTER, strlen(PS_SCREEN_LEVEL_FILTER), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		default:
 			return E_INVALIDARG;
