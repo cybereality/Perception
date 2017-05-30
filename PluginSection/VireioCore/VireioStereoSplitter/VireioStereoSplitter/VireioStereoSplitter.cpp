@@ -226,6 +226,23 @@ m_pppcSwapChain(nullptr)
 	// init d3d9ex specific vectors
 	m_aapcActiveProxyBackBufferSurfaces = std::vector<std::vector<IDirect3DStereoSurface9*>>();
 	m_apcActiveSwapChains = std::vector<IDirect3DSwapChain9*>();
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -404,6 +421,8 @@ LPWSTR StereoSplitter::GetCommanderName(DWORD unCommanderIndex)
 			return L"Stereo Output Texture Left";
 		case STS_Commanders::StereoTextureRight:
 			return L"Stereo Output Texture Right";
+		case VireioMenu:
+			return L"Vireio Menu";
 	}
 
 	return L"";
@@ -656,6 +675,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 ***/
 DWORD StereoSplitter::GetCommanderType(DWORD unCommanderIndex)
 {
+	if (unCommanderIndex == VireioMenu)
+		return  NOD_Plugtype::AQU_VOID;
 	return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
 }
 
@@ -912,6 +933,8 @@ void* StereoSplitter::GetOutputPointer(DWORD unCommanderIndex)
 			return (void*)&m_pcStereoBuffer[0];
 		case STS_Commanders::StereoTextureRight:
 			return (void*)&m_pcStereoBuffer[1];
+		case VireioMenu:
+			return (void*)&m_sMenu;
 	}
 
 	return nullptr;

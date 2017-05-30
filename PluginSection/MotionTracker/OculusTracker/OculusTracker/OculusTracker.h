@@ -50,8 +50,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "OVR_CAPI_D3D.h"
 #include "..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
-#define NUMBER_OF_COMMANDERS                          28
+#define NUMBER_OF_COMMANDERS                          29
 
 #define MATH_FLOAT_PI                (3.1415926f)
 #define MATH_FLOAT_TWOPI             (2.0f *MATH_FLOAT_PI)
@@ -331,6 +332,7 @@ enum OTR_Commanders
 	View,                        /**<  Current view matrix for the HMD ***/
 	ProjectionLeft,              /**<  Left projection matrix (LH) for the HMD ***/
 	ProjectionRight,             /**<  Right projection matrix (LH) for the HMD ***/
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
 };
 
 /**
@@ -447,6 +449,14 @@ private:
 	* Position origin (float).
 	***/
 	float m_afPositionOrigin[3];
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

@@ -74,6 +74,23 @@ m_hFont(nullptr)
 	m_nHotkeySync = GetIniFileSettingKeyCode("VK_BACK", "OSVR", "nHotkeySync", szFilePathINI, bFileExists);
 
 	m_cGameTimer.Reset();
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -272,6 +289,8 @@ LPWSTR OSVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"TargetWidth";
 		case OSVR_Commanders::TargetHeight:
 			return L"TargetHeight";
+		case VireioMenu:
+			return L"Vireio Menu";
 	}
 
 	return L"";
@@ -344,6 +363,8 @@ void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_sTargetSize.unWidth;
 		case OSVR_Commanders::TargetHeight:
 			return (void*)&m_sTargetSize.unHeight;
+		case VireioMenu:
+			return (void*)&m_sMenu;
 	}
 
 	return nullptr;

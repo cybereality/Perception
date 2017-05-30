@@ -64,9 +64,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
-#define NUMBER_OF_COMMANDERS                           2
+#define NUMBER_OF_COMMANDERS                           3
 #define NUMBER_OF_DECOMMANDERS                         58
 
 // enable for debug -> #define _DEBUG_VIREIO
@@ -77,7 +78,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 enum STS_Commanders
 {
 	StereoTextureLeft,
-	StereoTextureRight
+	StereoTextureRight,
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
 };
 
 /**
@@ -480,6 +482,14 @@ private:
 	* True if render target was switched.
 	***/
 	bool m_bRenderTargetWasSwitched;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

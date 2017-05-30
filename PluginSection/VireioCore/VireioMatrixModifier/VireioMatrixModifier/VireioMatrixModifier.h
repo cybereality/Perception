@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
 #include"..\..\..\..\Shared\ConfigDefaults.h"
 #include"..\..\..\..\Shared\pugixml.hpp"
+#include"..\..\..\Include\VireioMenu.h"
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
@@ -146,10 +147,12 @@ enum STS_Commanders
 	ppActiveRenderTargets_DX11,                                             /**< Active render targets DX11. Backup for render target operations. ***/
 	ppActiveDepthStencil_DX10,                                              /**< Active depth stencil DX10. Backup for render target operations. ***/
 	ppActiveDepthStencil_DX11,                                              /**< Active depth stencil DX11. Backup for render target operations. ***/
+	VireioMenu,                                                             /**<  The Vireio Menu node connector. ***/
 #elif defined(VIREIO_D3D9)
 	eDrawingSide,                                                           /**< Left/Right drawing side enumeration. Switches once per draw call ***/
 	pasVShaderConstantIndices,                                              /**< The constant rule indices for the actual vertex shader. ***/
 	pasPShaderConstantIndices,                                              /**< The constant rule indices for the actual pixel shader. ***/
+	VireioMenu,                                                             /**<  The Vireio Menu node connector. ***/
 #endif
 };
 
@@ -1581,6 +1584,14 @@ private:
 	* True if HUD operation (Viewport squish or Render Target switch) executed.
 	***/
 	BOOL m_bHudOperation;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/**

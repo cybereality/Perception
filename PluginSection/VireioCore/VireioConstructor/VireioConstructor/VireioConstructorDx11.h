@@ -53,11 +53,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3d11.lib")
 
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
+#define NUMBER_OF_COMMANDERS                           1
 #define NUMBER_OF_DECOMMANDERS                         13
+
+/**
+* Node Commander enumeration
+***/
+enum ODM_Commanders
+{
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
+};
 
 /**
 * Node Commander Enumeration.
@@ -99,9 +109,13 @@ public:
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
 	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
+	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
@@ -141,6 +155,14 @@ private:
 	* Contains all enumerated shader data structures.
 	***/
 	std::vector<Vireio_D3D11_Shader>* m_pasPShaders;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

@@ -142,6 +142,23 @@ m_bClearHUDRenderTarget(false)
 
 	// fill the "minus one" array for setting the unordered access views
 	memset(m_aunMinusOne, -1, sizeof(m_aunMinusOne));
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -332,6 +349,8 @@ LPWSTR StereoSplitter::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Stereo Output Texture Left";
 		case STS_Commanders::StereoTextureRight:
 			return L"Stereo Output Texture Right";
+		case VireioMenu:
+			return L"Vireio Menu";
 	}
 
 	return L"";
@@ -434,6 +453,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 ***/
 DWORD StereoSplitter::GetCommanderType(DWORD dwCommanderIndex)
 {
+	if (dwCommanderIndex == VireioMenu)
+		return  NOD_Plugtype::AQU_VOID;
 	return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 }
 
@@ -563,6 +584,8 @@ void* StereoSplitter::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pcTexView11[0];
 		case STS_Commanders::StereoTextureRight:
 			return (void*)&m_pcTexView11[1];
+		case VireioMenu:
+			return (void*)&m_sMenu;
 	}
 
 	return nullptr;
@@ -2116,78 +2139,78 @@ void StereoSplitter::XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceVi
 		}
 		else
 			// is a buffer ?
-			if (sDesc.ViewDimension == D3D11_SRV_DIMENSION_BUFFER)
+		if (sDesc.ViewDimension == D3D11_SRV_DIMENSION_BUFFER)
+		{
+			// set active buffer
+			apcActiveShaderResourceViews[dwIndexActive] = ppcShaderResourceViews[dwIndex];
+
+			// get the resource
+			ID3D11Resource* pcBuffer = nullptr;
+			apcActiveShaderResourceViews[dwIndexActive]->GetResource(&pcBuffer);
+			if (pcBuffer)
 			{
-				// set active buffer
-				apcActiveShaderResourceViews[dwIndexActive] = ppcShaderResourceViews[dwIndex];
+				// set twin for right side, first get the private data interface
+				ID3D11Buffer* pcStereoBuffer = nullptr;
+				UINT dwSize = sizeof(pcStereoBuffer);
+				pcBuffer->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcStereoBuffer);
 
-				// get the resource
-				ID3D11Resource* pcBuffer = nullptr;
-				apcActiveShaderResourceViews[dwIndexActive]->GetResource(&pcBuffer);
-				if (pcBuffer)
+				if (pcStereoBuffer)
 				{
-					// set twin for right side, first get the private data interface
-					ID3D11Buffer* pcStereoBuffer = nullptr;
-					UINT dwSize = sizeof(pcStereoBuffer);
-					pcBuffer->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcStereoBuffer);
-
-					if (pcStereoBuffer)
+					// get the private view from the stereo buffer
+					ID3D11ShaderResourceView* pcSRV = nullptr;
+					UINT dwSize = sizeof(pcSRV);
+					pcStereoBuffer->GetPrivateData(PDIID_ID3D11Buffer_ShaderResourceView_Right, &dwSize, (void*)&pcSRV);
+					if (pcSRV)
 					{
-						// get the private view from the stereo buffer
-						ID3D11ShaderResourceView* pcSRV = nullptr;
-						UINT dwSize = sizeof(pcSRV);
-						pcStereoBuffer->GetPrivateData(PDIID_ID3D11Buffer_ShaderResourceView_Right, &dwSize, (void*)&pcSRV);
+						// set stereo view internally
+						apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = pcSRV;
+
+						pcSRV->Release();
+					}
+					else
+					{
+						// no UAV present, create one
+						ID3D11Device* pcDevice = nullptr;
+						pcStereoBuffer->GetDevice(&pcDevice);
+						if (pcDevice)
+						{
+							pcDevice->CreateShaderResourceView(pcStereoBuffer, &sDesc, &pcSRV);
+							pcDevice->Release();
+						}
+
 						if (pcSRV)
 						{
 							// set stereo view internally
 							apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = pcSRV;
 
+							// set as private data interface to the stereo buffer
+							dwSize = sizeof(pcSRV);
+							pcStereoBuffer->SetPrivateDataInterface(PDIID_ID3D11Buffer_ShaderResourceView_Right, (const IUnknown*)pcSRV);
+
 							pcSRV->Release();
 						}
 						else
 						{
-							// no UAV present, create one
-							ID3D11Device* pcDevice = nullptr;
-							pcStereoBuffer->GetDevice(&pcDevice);
-							if (pcDevice)
-							{
-								pcDevice->CreateShaderResourceView(pcStereoBuffer, &sDesc, &pcSRV);
-								pcDevice->Release();
-							}
-
-							if (pcSRV)
-							{
-								// set stereo view internally
-								apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = pcSRV;
-
-								// set as private data interface to the stereo buffer
-								dwSize = sizeof(pcSRV);
-								pcStereoBuffer->SetPrivateDataInterface(PDIID_ID3D11Buffer_ShaderResourceView_Right, (const IUnknown*)pcSRV);
-
-								pcSRV->Release();
-							}
-							else
-							{
-								OutputDebugString(L"Failed to create shader resource view!");
-								apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = ppcShaderResourceViews[dwIndex];
-							}
+							OutputDebugString(L"Failed to create shader resource view!");
+							apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = ppcShaderResourceViews[dwIndex];
 						}
-						pcStereoBuffer->Release();
 					}
-					else
-						apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = ppcShaderResourceViews[dwIndex];
-
-					pcBuffer->Release();
+					pcStereoBuffer->Release();
 				}
-			}
-			else
-			{
-				OutputDebugString(L"Unknown Shader Resource View !");
+				else
+					apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = ppcShaderResourceViews[dwIndex];
 
-				// set shader resource view for both sides
-				apcActiveShaderResourceViews[dwIndexActive] = ppcShaderResourceViews[dwIndex];
-				apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = ppcShaderResourceViews[dwIndex];
+				pcBuffer->Release();
 			}
+		}
+		else
+		{
+			OutputDebugString(L"Unknown Shader Resource View !");
+
+			// set shader resource view for both sides
+			apcActiveShaderResourceViews[dwIndexActive] = ppcShaderResourceViews[dwIndex];
+			apcActiveShaderResourceViews[dwIndexActive + D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = ppcShaderResourceViews[dwIndex];
+		}
 	}
 }
 
@@ -2287,80 +2310,80 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContex
 		{
 			case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
 			{
-				// has this texture already a stereo twin ?
-				UINT dwSize = sizeof(pcResourceTwin);
-				pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
-				if (!dwSize)
-				{
-					// get the description and create the twin texture
-					D3D11_TEXTURE1D_DESC sDesc;
-					((ID3D11Texture1D*)pcResource)->GetDesc(&sDesc);
+													   // has this texture already a stereo twin ?
+													   UINT dwSize = sizeof(pcResourceTwin);
+													   pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+													   if (!dwSize)
+													   {
+														   // get the description and create the twin texture
+														   D3D11_TEXTURE1D_DESC sDesc;
+														   ((ID3D11Texture1D*)pcResource)->GetDesc(&sDesc);
 
-					if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcResourceTwin)))
-					{
-						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-						break;
-					}
-					else
-					{
-						pcContext->CopyResource(pcResourceTwin, pcResource);
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
-					}
-				}
+														   if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcResourceTwin)))
+														   {
+															   OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+															   break;
+														   }
+														   else
+														   {
+															   pcContext->CopyResource(pcResourceTwin, pcResource);
+															   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
+														   }
+													   }
 			}
-			break;
+				break;
 			case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
 			{
-				// has this texture already a stereo twin ?
-				UINT dwSize = sizeof(pcResourceTwin);
-				pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
-				if (!dwSize)
-				{
-					// get the description and create the twin texture
-					D3D11_TEXTURE2D_DESC sDesc;
-					((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
+													   // has this texture already a stereo twin ?
+													   UINT dwSize = sizeof(pcResourceTwin);
+													   pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+													   if (!dwSize)
+													   {
+														   // get the description and create the twin texture
+														   D3D11_TEXTURE2D_DESC sDesc;
+														   ((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
 
-					// handle sRGB formats : there was an error creating textures with one game... can't remember which one... hmm... this fixed it
-					if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
-						sDescRT11.Format = sDesc.Format;
+														   // handle sRGB formats : there was an error creating textures with one game... can't remember which one... hmm... this fixed it
+														   if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+															   sDescRT11.Format = sDesc.Format;
 
-					if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcResourceTwin)))
-					{
-						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-						break;
-					}
-					else
-					{
-						pcContext->CopyResource(pcResourceTwin, pcResource);
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
-					}
-				}
+														   if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcResourceTwin)))
+														   {
+															   OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+															   break;
+														   }
+														   else
+														   {
+															   pcContext->CopyResource(pcResourceTwin, pcResource);
+															   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
+														   }
+													   }
 			}
-			break;
+				break;
 			case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
 			{
-				// has this texture already a stereo twin ?
-				UINT dwSize = sizeof(pcResourceTwin);
-				pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
-				if (!dwSize)
-				{
-					// get the description and create the twin texture
-					D3D11_TEXTURE3D_DESC sDesc;
-					((ID3D11Texture3D*)pcResource)->GetDesc(&sDesc);
+													   // has this texture already a stereo twin ?
+													   UINT dwSize = sizeof(pcResourceTwin);
+													   pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+													   if (!dwSize)
+													   {
+														   // get the description and create the twin texture
+														   D3D11_TEXTURE3D_DESC sDesc;
+														   ((ID3D11Texture3D*)pcResource)->GetDesc(&sDesc);
 
-					if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture3D(&sDesc, NULL, (ID3D11Texture3D**)&pcResourceTwin)))
-					{
-						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-						break;
-					}
-					else
-					{
-						pcContext->CopyResource(pcResourceTwin, pcResource);
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
-					}
-				}
+														   if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture3D(&sDesc, NULL, (ID3D11Texture3D**)&pcResourceTwin)))
+														   {
+															   OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+															   break;
+														   }
+														   else
+														   {
+															   pcContext->CopyResource(pcResourceTwin, pcResource);
+															   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
+														   }
+													   }
 			}
-			break;
+				break;
 			default:
 				break;
 		}
@@ -2370,66 +2393,66 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContex
 		{
 			case D3D11_BIND_SHADER_RESOURCE:
 			{
-				// create the shader resource view
-				ID3D11ShaderResourceView* pcViewTwin = nullptr;
-				if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView(pcResourceTwin, &sDescSR11, &pcViewTwin)))
-					OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_SHADER_RESOURCE!");
-				else
-					if (pcResourceTwin)
-					{
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_ShaderResourceView, pcView);
-						// TODO !! create GUID for this ? need this ?
-						// pcView->SetPrivateDataInterface(PDIID_ID3D11ShaderResourceView_Stereo_Twin, pcViewTwin);
-						pcViewTwin->Release();
-					}
-				break;
+											   // create the shader resource view
+											   ID3D11ShaderResourceView* pcViewTwin = nullptr;
+											   if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView(pcResourceTwin, &sDescSR11, &pcViewTwin)))
+												   OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_SHADER_RESOURCE!");
+											   else
+											   if (pcResourceTwin)
+											   {
+												   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_ShaderResourceView, pcView);
+												   // TODO !! create GUID for this ? need this ?
+												   // pcView->SetPrivateDataInterface(PDIID_ID3D11ShaderResourceView_Stereo_Twin, pcViewTwin);
+												   pcViewTwin->Release();
+											   }
+											   break;
 			}
-			break;
+				break;
 			case D3D11_BIND_RENDER_TARGET:
 			{
-				// create the render target view twin
-				ID3D11RenderTargetView* pcViewTwin = nullptr;
-				if (FAILED(((ID3D11Device*)pcDevice)->CreateRenderTargetView(pcResourceTwin, &sDescRT11, &pcViewTwin)))
-					OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_RENDER_TARGET !");
-				else
-					if (pcResourceTwin)
-					{
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
-						pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcViewTwin);
-						pcViewTwin->Release();
-					}
+											 // create the render target view twin
+											 ID3D11RenderTargetView* pcViewTwin = nullptr;
+											 if (FAILED(((ID3D11Device*)pcDevice)->CreateRenderTargetView(pcResourceTwin, &sDescRT11, &pcViewTwin)))
+												 OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_RENDER_TARGET !");
+											 else
+											 if (pcResourceTwin)
+											 {
+												 pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
+												 pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcViewTwin);
+												 pcViewTwin->Release();
+											 }
 			}
-			break;
+				break;
 			case D3D11_BIND_DEPTH_STENCIL:
 			{
-				// create the depth stencil view twin
-				ID3D11DepthStencilView* pcViewTwin = nullptr;
-				if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView(pcResourceTwin, &sDescDS11, &pcViewTwin)))
-					OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_DEPTH_STENCIL !");
-				else
-					if (pcResourceTwin)
-					{
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
-						pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcViewTwin);
-						pcViewTwin->Release();
-					}
+											 // create the depth stencil view twin
+											 ID3D11DepthStencilView* pcViewTwin = nullptr;
+											 if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView(pcResourceTwin, &sDescDS11, &pcViewTwin)))
+												 OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_DEPTH_STENCIL !");
+											 else
+											 if (pcResourceTwin)
+											 {
+												 pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
+												 pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcViewTwin);
+												 pcViewTwin->Release();
+											 }
 			}
-			break;
+				break;
 			case D3D11_BIND_UNORDERED_ACCESS:
 			{
-				// create the unordered access view twin
-				ID3D11UnorderedAccessView* pcViewTwin = nullptr;
-				if (FAILED(((ID3D11Device*)pcDevice)->CreateUnorderedAccessView(pcResourceTwin, &sDescUAV11, &pcViewTwin)))
-					OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_UNORDERED_ACCESS !");
-				else
-					if (pcResourceTwin)
-					{
-						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_UnorderedAccessView, pcView);
-						pcView->SetPrivateDataInterface(PDIID_ID3D11UnorderedAccessView_Stereo_Twin, pcViewTwin);
-						pcViewTwin->Release();
-					}
+												// create the unordered access view twin
+												ID3D11UnorderedAccessView* pcViewTwin = nullptr;
+												if (FAILED(((ID3D11Device*)pcDevice)->CreateUnorderedAccessView(pcResourceTwin, &sDescUAV11, &pcViewTwin)))
+													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_BIND_UNORDERED_ACCESS !");
+												else
+												if (pcResourceTwin)
+												{
+													pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_UnorderedAccessView, pcView);
+													pcView->SetPrivateDataInterface(PDIID_ID3D11UnorderedAccessView_Stereo_Twin, pcViewTwin);
+													pcViewTwin->Release();
+												}
 			}
-			break;
+				break;
 			default:
 				break;
 		}
@@ -2698,58 +2721,58 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 
 	// switch vertex shader constant buffers
 	if (m_appcVSActiveConstantBuffers11)
-		if (*m_appcVSActiveConstantBuffers11)
-		{
-			// set all constant buffers for the left or right side
-			if (eSide == RenderPosition::Left)
-				pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[0]);
-			else
-				pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-		}
+	if (*m_appcVSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[0]);
+		else
+			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
 
 	// switch hull shader constant buffers
 	if (m_appcHSActiveConstantBuffers11)
-		if (*m_appcHSActiveConstantBuffers11)
-		{
-			// set all constant buffers for the left or right side
-			if (eSide == RenderPosition::Left)
-				pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[0]);
-			else
-				pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-		}
+	if (*m_appcHSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[0]);
+		else
+			pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
 
 	// switch domain shader constant buffers
 	if (m_appcDSActiveConstantBuffers11)
-		if (*m_appcDSActiveConstantBuffers11)
-		{
-			// set all constant buffers for the left or right side
-			if (eSide == RenderPosition::Left)
-				pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[0]);
-			else
-				pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-		}
+	if (*m_appcDSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[0]);
+		else
+			pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
 
 	// switch geometry shader constant buffers
 	if (m_appcGSActiveConstantBuffers11)
-		if (*m_appcGSActiveConstantBuffers11)
-		{
-			// set all constant buffers for the left or right side
-			if (eSide == RenderPosition::Left)
-				pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[0]);
-			else
-				pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-		}
+	if (*m_appcGSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[0]);
+		else
+			pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
 
 	// switch pixel shader constant buffers
 	if (m_appcPSActiveConstantBuffers11)
-		if (*m_appcPSActiveConstantBuffers11)
-		{
-			// set all constant buffers for the left or right side
-			if (eSide == RenderPosition::Left)
-				pcContext->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcPSActiveConstantBuffers11)[0]);
-			else
-				pcContext->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcPSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-		}
+	if (*m_appcPSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcPSActiveConstantBuffers11)[0]);
+		else
+			pcContext->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcPSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
 
 	// constant buffers are to be verified ?
 	if (m_dwVerifyConstantBuffers)
@@ -2763,17 +2786,17 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 			pcVertexShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
 		if (m_appcVSActiveConstantBuffers11)
-			if (*m_appcVSActiveConstantBuffers11)
+		if (*m_appcVSActiveConstantBuffers11)
+		{
+			// loop through the buffers
+			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+			if ((*m_appcVSActiveConstantBuffers11)[dwIndex])
 			{
-				// loop through the buffers
-				for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-					if ((*m_appcVSActiveConstantBuffers11)[dwIndex])
-					{
-						// set the current shader data as private data to the buffer
-						if ((pcVertexShader) && (dwDataSize))
-							((*m_appcVSActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
-					}
+				// set the current shader data as private data to the buffer
+				if ((pcVertexShader) && (dwDataSize))
+					((*m_appcVSActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 			}
+		}
 
 		if (pcVertexShader)
 			pcVertexShader->Release();

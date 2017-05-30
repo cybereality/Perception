@@ -118,6 +118,23 @@ m_pcTex11CopyHUD(nullptr)
 	bShowMirror = GetIniFileSetting(bShowMirror, "LibOVR", "bShowMirror", szFilePathINI, bFileExists);
 	if (bShowMirror) m_bShowMirror = true; else m_bShowMirror = false;
 	m_ePerfHudMode = (ovrPerfHudMode)GetIniFileSetting((DWORD)m_ePerfHudMode, "LibOVR", "ePerfHudMode", szFilePathINI, bFileExists);
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -185,6 +202,20 @@ HBITMAP OculusDirectMode::GetControl()
 }
 
 /**
+* Provides the name of the requested commander.
+***/
+LPWSTR OculusDirectMode::GetCommanderName(DWORD dwCommanderIndex)
+{
+	switch ((ODM_Commanders)dwCommanderIndex)
+	{
+		case VireioMenu:
+			return L"Vireio Menu";
+	}
+
+	return L"XXX";
+}
+
+/**
 * Provides the name of the requested decommander.
 ***/
 LPWSTR OculusDirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
@@ -211,6 +242,20 @@ LPWSTR OculusDirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 }
 
 /**
+* Returns the plug type for the requested commander.
+***/
+DWORD OculusDirectMode::GetCommanderType(DWORD dwCommanderIndex)
+{
+	switch ((ODM_Commanders)dwCommanderIndex)
+	{
+		case VireioMenu:
+			return NOD_Plugtype::AQU_VOID;
+	}
+
+	return 0;
+}
+
+/**
 * Returns the plug type for the requested decommander.
 ***/
 DWORD OculusDirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
@@ -234,6 +279,22 @@ DWORD OculusDirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 	}
 
 	return 0;
+}
+
+/**
+* Provides the output pointer for the requested commander.
+***/
+void* OculusDirectMode::GetOutputPointer(DWORD dwCommanderIndex)
+{
+	switch ((ODM_Commanders)dwCommanderIndex)
+	{
+		case ODM_Commanders::VireioMenu:
+			return (void*)&m_sMenu;
+		default:
+			break;
+	}
+
+	return nullptr;
 }
 
 /**

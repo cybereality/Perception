@@ -84,6 +84,23 @@ m_hHMD(nullptr)
 	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "LibOVR", "afPositionOrigin[0]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "LibOVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "LibOVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -344,6 +361,8 @@ LPWSTR OculusTracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"ProjectionLeft";
 		case OTR_Commanders::ProjectionRight:
 			return L"ProjectionRight";
+		case VireioMenu:
+			return L"Vireio Menu";
 	}
 
 	return L"";
@@ -448,6 +467,8 @@ void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_asProjection[0];
 		case OTR_Commanders::ProjectionRight:
 			return (void*)&m_asProjection[1];
+		case VireioMenu:
+			return (void*)&m_sMenu;
 		default:
 			break;
 	}

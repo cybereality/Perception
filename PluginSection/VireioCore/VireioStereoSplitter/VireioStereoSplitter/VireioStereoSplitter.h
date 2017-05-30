@@ -53,6 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"..\..\..\Include\Vireio_GUI.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 #include"VireioStereoSplitter_Proxy.h"
 #include"D3D9Ex_D3DX9_Methods.h"
@@ -91,7 +92,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_BUTTONSIZE                       488
 #define GUI_CONTROL_SPINSIZE                         980
 
-#define NUMBER_OF_COMMANDERS                           2
+#define NUMBER_OF_COMMANDERS                           3
 #define NUMBER_OF_DECOMMANDERS                       115
 
 #define DUPLICATE_RENDERTARGET_POS_X                  16
@@ -129,7 +130,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 enum STS_Commanders
 {
 	StereoTextureLeft,
-	StereoTextureRight
+	StereoTextureRight,
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
 };
 
 /**
@@ -761,6 +763,14 @@ private:
 	* True if the Splitter used a D3D9Ex device.
 	***/
 	bool m_bUseD3D9Ex;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

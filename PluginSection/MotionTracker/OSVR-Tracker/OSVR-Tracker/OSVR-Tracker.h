@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 
 #include "..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
 #define NUMBER_OF_COMMANDERS                          15
 
@@ -77,6 +78,7 @@ enum OSVR_Commanders
 	ProjectionRight,
 	TargetWidth,
 	TargetHeight,
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
 };
 
 /**
@@ -299,6 +301,14 @@ private:
 	* Key code for hotkey >Sync HMD Yaw<.
 	***/
 	UINT m_nHotkeySync;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

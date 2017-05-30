@@ -109,6 +109,23 @@ m_bHotkeySwitch(false)
 	DWORD bUseHotkeyF11 = 0;
 	bUseHotkeyF11 = GetIniFileSetting(bUseHotkeyF11, "OSVR", "bUseHotkeyF11", szFilePathINI, bFileExists);
 	if (bUseHotkeyF11 == 0) m_bHotkeySwitch = true;
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -170,6 +187,20 @@ HBITMAP OSVR_DirectMode::GetControl()
 }
 
 /**
+* Provides the name of the requested commander.
+***/
+LPWSTR OSVR_DirectMode::GetCommanderName(DWORD dwCommanderIndex)
+{
+	switch ((OSVR_Commanders)dwCommanderIndex)
+	{
+		case VireioMenu:
+			return L"Vireio Menu";
+	}
+
+	return L"XXX";
+}
+
+/**
 * Provides the name of the requested decommander.
 ***/
 LPWSTR OSVR_DirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
@@ -196,6 +227,20 @@ LPWSTR OSVR_DirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 }
 
 /**
+* Returns the plug type for the requested commander.
+***/
+DWORD OSVR_DirectMode::GetCommanderType(DWORD dwCommanderIndex)
+{
+	switch ((OSVR_Commanders)dwCommanderIndex)
+	{
+		case VireioMenu:
+			return NOD_Plugtype::AQU_VOID;
+	}
+
+	return 0;
+}
+
+/**
 * Returns the plug type for the requested decommander.
 ***/
 DWORD OSVR_DirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
@@ -217,6 +262,22 @@ DWORD OSVR_DirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 	}
 
 	return 0;
+}
+
+/**
+* Provides the output pointer for the requested commander.
+***/
+void* OSVR_DirectMode::GetOutputPointer(DWORD dwCommanderIndex)
+{
+	switch ((OSVR_Commanders)dwCommanderIndex)
+	{
+		case OSVR_Commanders::VireioMenu:
+			return (void*)&m_sMenu;
+		default:
+			break;
+	}
+
+	return nullptr;
 }
 
 /**

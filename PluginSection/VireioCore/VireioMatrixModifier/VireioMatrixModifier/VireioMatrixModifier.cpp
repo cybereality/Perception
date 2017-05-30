@@ -217,6 +217,23 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	m_sPageGameShaderRules.m_dwRegCountValue = 4;
 	m_sPageGameShaderRules.m_dwOperationToApply = 1;
 
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )
 	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
@@ -724,6 +741,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"ppActiveDepthStencil_DX10";
 		case ppActiveDepthStencil_DX11:
 			return L"ppActiveDepthStencil_DX11";
+		case VireioMenu:
+			return L"Vireio Menu";
 		default:
 			break;
 	}
@@ -736,6 +755,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"pasVShaderConstantIndices";
 		case pasPShaderConstantIndices:
 			return L"pasPShaderConstantIndices";
+		case VireioMenu:
+			return L"Vireio Menu";
 	}
 #endif
 
@@ -1194,6 +1215,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX10];
 		case ppActiveDepthStencil_DX11:
 			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11];
+		case VireioMenu:
+			return (void*)&m_sMenu;
 		default:
 			break;
 	}
@@ -1206,6 +1229,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pasVSConstantRuleIndices;
 		case pasPShaderConstantIndices:
 			return (void*)&m_pasPSConstantRuleIndices;
+		case VireioMenu:
+			return (void*)&m_sMenu;
 	}
 #endif
 

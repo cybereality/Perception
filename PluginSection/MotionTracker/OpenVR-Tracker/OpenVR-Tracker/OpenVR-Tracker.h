@@ -51,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 
 #include "..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -160,6 +161,7 @@ enum OpenVR_Commanders
 	ProjectionRight,
 	TargetWidth,
 	TargetHeight,
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
 };
 
 /**
@@ -419,6 +421,14 @@ private:
 	* 0..5 Axis index.
 	***/
 	float m_aafAxisScopeOrFactor[2][5];
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

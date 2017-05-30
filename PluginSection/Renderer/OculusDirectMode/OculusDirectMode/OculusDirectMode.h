@@ -80,8 +80,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"OVR_CAPI_D3D.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
+#define NUMBER_OF_COMMANDERS                            1
 #define NUMBER_OF_DECOMMANDERS                         11
+
+/**
+* Node Commander enumeration
+***/
+enum ODM_Commanders
+{
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
+};
 
 /**
 * Node Commander Enumeration.
@@ -209,9 +219,13 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
@@ -385,6 +399,14 @@ private:
 	* True if mirror is to be shown.
 	***/
 	bool m_bShowMirror;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

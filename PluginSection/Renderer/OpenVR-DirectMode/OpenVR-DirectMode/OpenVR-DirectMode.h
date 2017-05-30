@@ -76,7 +76,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+#include"..\..\..\Include\VireioMenu.h"
 
+#define NUMBER_OF_COMMANDERS                            1
 #define NUMBER_OF_DECOMMANDERS                         11
 
 #define OPENVR_OVERLAY_NAME                            "key.MTBS3D"
@@ -163,6 +165,14 @@ D3DXMATRIX GetHMDMatrixPoseEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye)
 }
 
 /**
+* Node Commander enumeration
+***/
+enum OpenVR_Commanders
+{
+	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
+};
+
+/**
 * Node Decommander Enumeration.
 ***/
 enum OpenVR_Decommanders
@@ -197,9 +207,13 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
@@ -446,6 +460,14 @@ private:
 		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
 		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
 	} m_sCinemaRoomSetup;
+	/**
+	* Vireio menu.
+	***/
+	VireioSubMenu m_sMenu;
+	/**
+	* Frames to save the ini file.
+	***/
+	INT m_nIniFrameCount;
 };
 
 /**

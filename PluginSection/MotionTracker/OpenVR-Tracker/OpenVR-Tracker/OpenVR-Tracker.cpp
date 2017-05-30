@@ -321,6 +321,23 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 		else
 			m_aabKeyExtended[unI][unJ] = FALSE;
 	}
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	{
+		static float fDummy = 0.0f;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 30.0f;
+		sEntry.fChangeSize = 0.1f;
+		sEntry.pfValue = &fDummy;
+		sEntry.fValue = fDummy;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
 }
 
 /**
@@ -521,6 +538,8 @@ LPWSTR OpenVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"TargetWidth";
 		case OpenVR_Commanders::TargetHeight:
 			return L"TargetHeight";
+		case VireioMenu:
+			return L"Vireio Menu";
 	}
 
 	return L"";
@@ -597,6 +616,8 @@ void* OpenVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_sTargetSize.unWidth;
 		case OpenVR_Commanders::TargetHeight:
 			return (void*)&m_sTargetSize.unHeight;
+		case VireioMenu:
+			return (void*)&m_sMenu;
 	}
 
 	return nullptr;
