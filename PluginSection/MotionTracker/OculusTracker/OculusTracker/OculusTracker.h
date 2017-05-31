@@ -360,10 +360,42 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
+	/*** OculusTracker private methods ***/
+	void MapButtonDown(UINT unControllerIx, UINT unButtonIx)
+	{
+		m_aabKeys[unControllerIx][unButtonIx] = TRUE;
+
+		if (m_aaunKeys[unControllerIx][unButtonIx] == VK_LBUTTON)
+			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_MBUTTON)
+			mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_RBUTTON)
+			mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+		else if (m_aabKeyExtended[unControllerIx][unButtonIx])
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE, 0);
+		else
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_SCANCODE, 0);
+	}
+	void MapButtonUp(UINT unControllerIx, UINT unButtonIx)
+	{
+		m_aabKeys[unControllerIx][unButtonIx] = FALSE;
+
+		if (m_aaunKeys[unControllerIx][unButtonIx] == VK_LBUTTON)
+			mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_MBUTTON)
+			mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+		else if (m_aaunKeys[unControllerIx][unButtonIx] == VK_RBUTTON)
+			mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+		else if (m_aabKeyExtended[unControllerIx][unButtonIx])
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+		else
+			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
+	}
+
 	/**
-	* The handle of the headset.
+	* The handle of the session.
 	***/
-	ovrSession m_hHMD;
+	ovrSession m_hSession;
 	/**
 	* The HMD description. 
 	***/
@@ -449,6 +481,30 @@ private:
 	* Position origin (float).
 	***/
 	float m_afPositionOrigin[3];
+	/**
+	* Keyboard codes assigned to buttons.
+	* 0..3 Controller index (0/1 - Touch; 2 Remote).
+	* 0..53 Button index.
+	***/
+	UINT m_aaunKeys[3][53];
+	/**
+	* True if button is pressed.
+	* 0..3 Controller index (0/1 - Touch; 2 Remote).
+	* 0..53 Button index.
+	***/
+	BOOL m_aabKeys[3][53];
+	/**
+	* True if button is an extended key.
+	* 0..3 Controller index (0/1 - Touch; 2 Remote).
+	* 0..53 Button index.
+	***/
+	BOOL m_aabKeyExtended[3][53];
+	/**
+	* Inner scope (no button) user setting structure for any axis pressed / not pressed or mouse movement emulation factor.
+	* 0..3 Controller index (0/1 - Touch; 2 Remote).
+	* 0..5 Axis index.
+	***/
+	float m_aafAxisScopeOrFactor[3][5];
 	/**
 	* Vireio menu.
 	***/

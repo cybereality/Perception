@@ -92,13 +92,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          21
+#define NUMBER_OF_COMMANDERS                          22
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  5000               
+#define GUI_HEIGHT                                  5250               
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
-#define NUMBER_OF_COMMANDERS                           3
+#define NUMBER_OF_COMMANDERS                           4
 #define NUMBER_OF_DECOMMANDERS                        22
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000     

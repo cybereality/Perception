@@ -173,7 +173,7 @@ struct VireioSubMenu
 	bool bOnExit;
 	/**
 	* Selection events.
-	* Up, Down, Left, Right, Accept.
+	* Up, Down, Left, Right, Accept, Back.
 	***/
-	bool bOnUp, bOnDown, bOnLeft, bOnRight, bOnAccept;
+	bool bOnUp, bOnDown, bOnLeft, bOnRight, bOnAccept, bOnBack;
 };

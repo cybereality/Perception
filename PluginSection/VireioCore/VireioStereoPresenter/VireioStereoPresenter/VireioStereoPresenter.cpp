@@ -583,6 +583,25 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	{
 #pragma region menu hotkeys
 		static bool bReleased = true;
+		static bool s_bOnMenu = false;
+
+		// keyboard menu on/off event
+		s_bOnMenu = GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51);
+		for (UINT unIx = 0; unIx < 32; unIx++)
+		{
+			// set menu bool event
+			if (m_apsSubMenues[unIx])
+			if (m_apsSubMenues[unIx]->bOnBack)
+			{
+				// main menu ? exit
+				if ((m_sMenuControl.nMenuIx == -1) && (!m_sMenuControl.eSelectionMovement))
+					s_bOnMenu = true;
+				else
+					m_abMenuEvents[VireioMenuEvent::OnExit] = TRUE;
+
+				m_apsSubMenues[unIx]->bOnBack = false;
+			}
+		}
 
 		// static hotkeys :  LCTRL+Q - toggle vireio menu
 		//                   F12 - toggle stereo output
@@ -591,16 +610,15 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			m_bHotkeySwitch = true;
 		}
 		else
-		if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
+		if (s_bOnMenu)
 		{
 			m_bMenuHotkeySwitch = true;
 		}
 		else
 		if (m_bMenuHotkeySwitch)
 		{
-			m_bMenu = !m_bMenu;
 			m_bMenuHotkeySwitch = false;
-
+			m_bMenu = !m_bMenu;
 			for (UINT unIx = 0; unIx < 32; unIx++)
 			{
 				// set sub menu active if menu is active
@@ -636,10 +654,32 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					m_abMenuEvents[VireioMenuEvent::OnUp] = TRUE;
 				if (sControllerState.Gamepad.sThumbLY < -28000)
 					m_abMenuEvents[VireioMenuEvent::OnDown] = TRUE;
-				if (sControllerState.Gamepad.sThumbLX < -28000)
-					m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
 				if (sControllerState.Gamepad.sThumbLX > 28000)
+					m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
+				if (sControllerState.Gamepad.sThumbLX < -28000)
 					m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
+			}
+
+			// loop through sub menues
+			for (UINT unIx = 0; unIx < 32; unIx++)
+			{
+				// set bool events
+				if (m_apsSubMenues[unIx])
+				{
+					if (m_apsSubMenues[unIx]->bOnUp) m_abMenuEvents[VireioMenuEvent::OnUp] = TRUE;
+					if (m_apsSubMenues[unIx]->bOnDown) m_abMenuEvents[VireioMenuEvent::OnDown] = TRUE;
+					if (m_apsSubMenues[unIx]->bOnLeft) m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
+					if (m_apsSubMenues[unIx]->bOnRight) m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
+					if (m_apsSubMenues[unIx]->bOnAccept) m_abMenuEvents[VireioMenuEvent::OnAccept] = TRUE;
+
+					// clear events
+					m_apsSubMenues[unIx]->bOnUp = false;
+					m_apsSubMenues[unIx]->bOnDown = false;
+					m_apsSubMenues[unIx]->bOnLeft = false;
+					m_apsSubMenues[unIx]->bOnRight = false;
+					m_apsSubMenues[unIx]->bOnAccept = false;
+					m_apsSubMenues[unIx]->bOnBack = false;
+				}
 			}
 #pragma endregion
 #pragma region menu update/render
@@ -1135,10 +1175,10 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			m_sMenuControl.unSelection++;
 		}
 		// left
-		if (m_abMenuEvents[VireioMenuEvent::OnLeft])
+		if (m_abMenuEvents[VireioMenuEvent::OnRight])
 		{
 			// set event
-			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::TriggerLeft;
+			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::TriggerRight;
 			m_sMenuControl.fActionTime = 0.1f;
 			m_sMenuControl.fActionStartTime = fGlobalTime;
 
@@ -1206,10 +1246,10 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 		}
 
 		// right
-		if (m_abMenuEvents[VireioMenuEvent::OnRight])
+		if (m_abMenuEvents[VireioMenuEvent::OnLeft])
 		{
 			// set event
-			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::TriggerRight;
+			m_sMenuControl.eSelectionMovement = MenuControl::SelectionMovement::TriggerLeft;
 			m_sMenuControl.fActionTime = 0.1f;
 			m_sMenuControl.fActionStartTime = fGlobalTime;
 

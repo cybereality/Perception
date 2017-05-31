@@ -56,7 +56,7 @@ m_bControlUpdate(false),
 m_hFont(nullptr),
 m_unRenderTextureWidth(0),
 m_unRenderTextureHeight(0),
-m_hHMD(nullptr)
+m_hSession(nullptr)
 {
 	ZeroMemory(&m_sDefaultFOVMatrixProjLeft, sizeof(D3DMATRIX));
 	ZeroMemory(&m_sDefaultFOVMatrixProjRight, sizeof(D3DMATRIX));
@@ -73,6 +73,25 @@ m_hHMD(nullptr)
 	m_afPositionOrigin[1] = 1.7f; /**< Default y tracking origin : 1.7 meters **/
 	m_afPositionOrigin[2] = 0.0f;
 
+	std::string astrVKCodes[] = { "VK_ESCAPE", "VK_CONTROL", "VK_ESCAPE", "X", "X", "X", "X", "VK_TAB", "VK_RBUTTON", "VK_LBUTTON", "VK_F4", "VK_F5", "VK_F6", // << Keys controller 0
+		"WM_MOUSEMOVE", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                         // << Keys controller 0 axis 
+		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                                    // << Keys controller 0 axis pressed
+		"VK_ESCAPE", "VK_R", "VK_E", "X", "X", "X", "X", "VK_C", "VK_RETURN", "VK_SPACE", "VK_F1", "VK_F2", "VK_F3",                                           // << Keys controller 1
+		"VK_A", "VK_D", "VK_S", "VK_W", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                        // << Keys controller 1 axis
+		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" };                                                  // << Keys controller 1 axis pressed
+
+	// set inner scope
+	for (UINT unI = 0; unI < 5; unI++)
+	{
+		m_aafAxisScopeOrFactor[0][unI] = 0.8f;
+		m_aafAxisScopeOrFactor[1][unI] = 0.8f;
+	}
+
+	// set movement factor for trackpad 0
+	m_aafAxisScopeOrFactor[0][0] = 10.0f;
+
+	// TODO !!
+
 	// locate or create the INI file
 	char szFilePathINI[1024];
 	GetCurrentDirectoryA(1024, szFilePathINI);
@@ -85,9 +104,39 @@ m_hHMD(nullptr)
 	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "LibOVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "LibOVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
 
+	// erase key bool field
+	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL)* 2 * 13);
+
+	// extended keys set ?
+	for (UINT unI = 0; unI < 2; unI++)
+	for (UINT unJ = 0; unJ < 53; unJ++)
+	{
+		if ((m_aaunKeys[unI][unJ] == VK_UP) ||
+			(m_aaunKeys[unI][unJ] == VK_DOWN) ||
+			(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_UP) ||
+			(m_aaunKeys[unI][unJ] == VK_SHIFT) ||
+			(m_aaunKeys[unI][unJ] == VK_CONTROL) ||
+			(m_aaunKeys[unI][unJ] == VK_BACK) ||
+			(m_aaunKeys[unI][unJ] == VK_INSERT) ||
+			(m_aaunKeys[unI][unJ] == VK_DELETE) ||
+			(m_aaunKeys[unI][unJ] == VK_HOME) ||
+			(m_aaunKeys[unI][unJ] == VK_END) ||
+			(m_aaunKeys[unI][unJ] == VK_MBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_RBUTTON) ||
+			(m_aaunKeys[unI][unJ] == VK_LCONTROL) ||
+			(m_aaunKeys[unI][unJ] == VK_RCONTROL) ||
+			(m_aaunKeys[unI][unJ] == VK_RMENU) ||
+			(m_aaunKeys[unI][unJ] == VK_LMENU))
+			m_aabKeyExtended[unI][unJ] = TRUE;
+		else
+			m_aabKeyExtended[unI][unJ] = FALSE;
+	}
+
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	m_sMenu.strSubMenu = "Oculus Tracker";
 	{
 		static float fDummy = 0.0f;
 		VireioMenuEntry sEntry = {};
@@ -108,11 +157,11 @@ m_hHMD(nullptr)
 ***/
 OculusTracker::~OculusTracker()
 {
-	if (m_hHMD)
+	if (m_hSession)
 	{
 		// set performance hud to zero
-		ovr_SetInt(m_hHMD, OVR_PERF_HUD_MODE, 0);
-		ovr_Destroy(m_hHMD);
+		ovr_SetInt(m_hSession, OVR_PERF_HUD_MODE, 0);
+		ovr_Destroy(m_hSession);
 	}
 	ovr_Shutdown();
 	if (m_hBitmapControl) CloseHandle(m_hBitmapControl);
@@ -192,7 +241,7 @@ HBITMAP OculusTracker::GetControl()
 			L"Segoe UI");
 
 		// Select the variable stock font into the specified device context. 
-		if ((hOldFont = (HFONT)SelectObject(hdcImage, m_hFont)) && (m_hHMD))
+		if ((hOldFont = (HFONT)SelectObject(hdcImage, m_hFont)) && (m_hSession))
 		{
 			int nY = 16;
 			std::wstringstream szBuffer;
@@ -256,14 +305,14 @@ HBITMAP OculusTracker::GetControl()
 
 			// resolution
 			wchar_t szBufferW[128];
-			if (m_hHMD)
+			if (m_hSession)
 				wsprintf(szBufferW, L"%u", m_unRenderTextureWidth);
 			else
 				wsprintf(szBufferW, L"0");
 			TextOut(hdcImage, 510, nY, L"TexResolution Width", 19);
 			int nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
-			if (m_hHMD)
+			if (m_hSession)
 				wsprintf(szBufferW, L"%u", m_unRenderTextureHeight);
 			else
 				wsprintf(szBufferW, L"0");
@@ -460,7 +509,7 @@ void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 		case OTR_Commanders::DefaultProjectionMatrixRight:
 			return (void*)&m_sDefaultFOVMatrixProjRight;
 		case OTR_Commanders::HMD_Handle:
-			return (void*)&m_hHMD;
+			return (void*)&m_hSession;
 		case OTR_Commanders::View:
 			return (void*)&m_sView;
 		case OTR_Commanders::ProjectionLeft:
@@ -499,14 +548,50 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		return nullptr;
 	}
 
-	if (m_hHMD)
+	if (m_hSession)
 	{
+#pragma region controller
+		// controller indices
+		static const uint32_t s_unIndexRemote = 0;
+		static const uint32_t s_unIndexTouch = 1;
+		static const uint32_t s_unIndexXBox = 2;
+
+		// get all connected input states
+		ovrInputState sInputState[3] = {};
+		unsigned int unControllersConnected = ovr_GetConnectedControllerTypes(m_hSession);
+		if (unControllersConnected & ovrControllerType_Remote)
+		{
+			ovr_GetInputState(m_hSession, ovrControllerType_Remote, &sInputState[s_unIndexRemote]);
+
+			// handle all remote buttons except Oculus private ones
+			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Up)
+				m_sMenu.bOnUp = true;
+			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Down)
+				m_sMenu.bOnDown = true;
+			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Left)
+				m_sMenu.bOnLeft = true;
+			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Right)
+				m_sMenu.bOnRight = true;
+			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Enter)
+				m_sMenu.bOnAccept = true;
+			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Back)
+				m_sMenu.bOnBack = true;
+		}
+		if (unControllersConnected & ovrControllerType_Touch)
+			ovr_GetInputState(m_hSession, ovrControllerType_Touch, &sInputState[s_unIndexTouch]);
+		if (unControllersConnected & ovrControllerType_XBox)
+			ovr_GetInputState(m_hSession, ovrControllerType_XBox, &sInputState[s_unIndexXBox]);
+
+
+
+#pragma endregion
+#pragma region hmd
 		/*// Start the sensor which informs of the Rift's pose and motion   .... obsolete for SDK 1.3.x ??
-		ovr_ConfigureTracking(m_hHMD, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection |
+		ovr_ConfigureTracking(m_hSession, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection |
 		ovrTrackingCap_Position, 0);*/
 
 		// get the current tracking state
-		ovrTrackingState sTrackingState = ovr_GetTrackingState(m_hHMD, ovr_GetTimeInSeconds(), false);
+		ovrTrackingState sTrackingState = ovr_GetTrackingState(m_hSession, ovr_GetTimeInSeconds(), false);
 
 		if (sTrackingState.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{
@@ -584,6 +669,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			D3DXMatrixTranslation(&sTranslation, (float)m_afPosition[0], (float)m_afPosition[1], (float)m_afPosition[2]);
 			m_sView = sTranslation * sRotation;
 		}
+#pragma endregion
 	}
 	else
 	{
@@ -595,7 +681,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			return nullptr;
 		}
 
-		result = ovr_Create(&m_hHMD, &m_sLuid);
+		result = ovr_Create(&m_hSession, &m_sLuid);
 		if (!OVR_SUCCESS(result))
 		{
 			OutputDebugString(L"[OVR] Failed to retreive HMD handle.");
@@ -604,15 +690,15 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		else
 			OutputDebugString(L"[OVR] HMD handle initialized !");
 
-		if (m_hHMD)
+		if (m_hSession)
 		{
 			// get the description and set pointers
-			m_sHMDDesc = ovr_GetHmdDesc(m_hHMD);
+			m_sHMDDesc = ovr_GetHmdDesc(m_hSession);
 
 			// Configure Stereo settings.
-			ovrSizei sRecommenedTex0Size = ovr_GetFovTextureSize(m_hHMD, ovrEye_Left,
+			ovrSizei sRecommenedTex0Size = ovr_GetFovTextureSize(m_hSession, ovrEye_Left,
 				m_sHMDDesc.DefaultEyeFov[0], 1.0f);
-			ovrSizei sRecommenedTex1Size = ovr_GetFovTextureSize(m_hHMD, ovrEye_Right,
+			ovrSizei sRecommenedTex1Size = ovr_GetFovTextureSize(m_hSession, ovrEye_Right,
 				m_sHMDDesc.DefaultEyeFov[1], 1.0f);
 
 			ovrSizei sTextureSize;
@@ -623,8 +709,8 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 
 			// get view offset
 			ovrEyeRenderDesc asEyeRenderDesc[2];
-			asEyeRenderDesc[0] = ovr_GetRenderDesc(m_hHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
-			asEyeRenderDesc[1] = ovr_GetRenderDesc(m_hHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
+			asEyeRenderDesc[0] = ovr_GetRenderDesc(m_hSession, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
+			asEyeRenderDesc[1] = ovr_GetRenderDesc(m_hSession, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
 			ovrVector3f asViewOffset[2] = { asEyeRenderDesc[0].HmdToEyeOffset, asEyeRenderDesc[1].HmdToEyeOffset };
 
 			// get projection matrices left/right
