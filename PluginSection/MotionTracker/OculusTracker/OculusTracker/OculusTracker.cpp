@@ -48,6 +48,70 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
 
 /**
+* Number of Oculus controller buttons.
+***/
+static const UINT unButtonNo = 13;
+
+/**
+* Ids of Oculus controller buttons.
+* Remote, Touch + XBox controller.
+***/
+static UINT aunButtonIds[] =
+{
+	ovrButton::ovrButton_A,
+	ovrButton::ovrButton_B,
+	ovrButton::ovrButton_RThumb,
+	ovrButton::ovrButton_RShoulder,
+	ovrButton::ovrButton_X,
+	ovrButton::ovrButton_Y,
+	ovrButton::ovrButton_LThumb,
+	ovrButton::ovrButton_LShoulder,
+	ovrButton::ovrButton_Up,
+	ovrButton::ovrButton_Down,
+	ovrButton::ovrButton_Left,
+	ovrButton::ovrButton_Right,
+	ovrButton::ovrButton_Enter,
+	ovrButton::ovrButton_Back,
+	ovrButton::ovrButton_VolUp,
+	ovrButton::ovrButton_VolDown,
+	ovrButton::ovrButton_Home,
+
+	// TODO !! axis as buttons
+};
+
+/**
+* Simple indexation of all possible ovr buttons.
+***/
+enum OvrButtonIx
+{
+	Index_ovrButton_A,
+	Index_ovrButton_B,
+	Index_ovrButton_RThumb,
+	Index_ovrButton_RShoulder,
+	Index_ovrButton_X,
+	Index_ovrButton_Y,
+	Index_ovrButton_LThumb,
+	Index_ovrButton_LShoulder,
+	Index_ovrButton_Up,
+	Index_ovrButton_Down,
+	Index_ovrButton_Left,
+	Index_ovrButton_Right,
+	Index_ovrButton_Enter,
+	Index_ovrButton_Back,
+	Index_ovrButton_VolUp,
+	Index_ovrButton_VolDown,
+	Index_ovrButton_Home,
+	Index_ovrButton_UpL,        /**< Left thumb stick. ***/
+	Index_ovrButton_DownL,
+	Index_ovrButton_LeftL,
+	Index_ovrButton_RightL,
+	Index_ovrButton_UpR,        /**< Right thumb stick. ***/
+	Index_ovrButton_DownR,
+	Index_ovrButton_LeftR,
+	Index_ovrButton_RightR,
+};
+
+/**
 * Constructor.
 ***/
 OculusTracker::OculusTracker() :AQU_Nodus(),
@@ -73,13 +137,33 @@ m_hSession(nullptr)
 	m_afPositionOrigin[1] = 1.7f; /**< Default y tracking origin : 1.7 meters **/
 	m_afPositionOrigin[2] = 0.0f;
 
-	std::string astrVKCodes[] = { "VK_ESCAPE", "VK_CONTROL", "VK_ESCAPE", "X", "X", "X", "X", "VK_TAB", "VK_RBUTTON", "VK_LBUTTON", "VK_F4", "VK_F5", "VK_F6", // << Keys controller 0
-		"WM_MOUSEMOVE", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                         // << Keys controller 0 axis 
-		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                                    // << Keys controller 0 axis pressed
-		"VK_ESCAPE", "VK_R", "VK_E", "X", "X", "X", "X", "VK_C", "VK_RETURN", "VK_SPACE", "VK_F1", "VK_F2", "VK_F3",                                           // << Keys controller 1
-		"VK_A", "VK_D", "VK_S", "VK_W", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                        // << Keys controller 1 axis
-		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" };                                                  // << Keys controller 1 axis pressed
-
+	// Touch predefined keyboard codes
+	std::string astrVKCodes_Touch[] = { "VK_RETURN", // Index_ovrButton_A
+		"VK_SPACE", // Index_ovrButton_B
+		"X", // Index_ovrButton_RThumb
+		"VK_BACK", // Index_ovrButton_RShoulder
+		"VK_LBUTTON", // Index_ovrButton_X
+		"VK_RBUTTON", // Index_ovrButton_Y
+		"X", // Index_ovrButton_LThumb
+		"VK_TAB", // Index_ovrButton_LShoulder
+		"X", // Index_ovrButton_Up
+		"X", // Index_ovrButton_Down
+		"X", // Index_ovrButton_Left
+		"X", // Index_ovrButton_Right
+		"VK_ESCAPE", // Index_ovrButton_Enter
+		"X", // Index_ovrButton_Back
+		"X", // Index_ovrButton_VolUp
+		"X", // Index_ovrButton_VolDown
+		"VK_C", // Index_ovrButton_Home
+		"VK_W", // Index_ovrButton_UpL
+		"VK_S", // Index_ovrButton_DownL
+		"VK_A", // Index_ovrButton_LeftL
+		"VK_D", // Index_ovrButton_RightL
+		"WM_MOUSEMOVE", // Index_ovrButton_UpR
+		"WM_MOUSEMOVE", // Index_ovrButton_DownR
+		"WM_MOUSEMOVE", // Index_ovrButton_LeftR
+		"WM_MOUSEMOVE" }; // Index_ovrButton_RightR
+			
 	// set inner scope
 	for (UINT unI = 0; unI < 5; unI++)
 	{
@@ -89,8 +173,6 @@ m_hSession(nullptr)
 
 	// set movement factor for trackpad 0
 	m_aafAxisScopeOrFactor[0][0] = 10.0f;
-
-	// TODO !!
 
 	// locate or create the INI file
 	char szFilePathINI[1024];
@@ -103,13 +185,41 @@ m_hSession(nullptr)
 	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "LibOVR", "afPositionOrigin[0]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "LibOVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "LibOVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
+	
+	// set default key codes > Touch
+	m_aaunKeys[1][Index_ovrButton_A] = GetIniFileSettingKeyCode(astrVKCodes_Touch[0], "LibOVR", "aaunKeys[1][Index_ovrButton_A]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_B] = GetIniFileSettingKeyCode(astrVKCodes_Touch[1], "LibOVR", "aaunKeys[1][Index_ovrButton_B]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RThumb] = GetIniFileSettingKeyCode(astrVKCodes_Touch[2], "LibOVR", "aaunKeys[1][Index_ovrButton_RThumb]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RShoulder] = GetIniFileSettingKeyCode(astrVKCodes_Touch[3], "LibOVR", "aaunKeys[1][Index_ovrButton_RShoulder]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_X] = GetIniFileSettingKeyCode(astrVKCodes_Touch[4], "LibOVR", "aaunKeys[1][Index_ovrButton_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Y] = GetIniFileSettingKeyCode(astrVKCodes_Touch[5], "LibOVR", "aaunKeys[1][Index_ovrButton_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LThumb] = GetIniFileSettingKeyCode(astrVKCodes_Touch[6], "LibOVR", "aaunKeys[1][Index_ovrButton_LThumb]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LShoulder] = GetIniFileSettingKeyCode(astrVKCodes_Touch[7], "LibOVR", "aaunKeys[1][Index_ovrButton_LShoulder]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Up] = GetIniFileSettingKeyCode(astrVKCodes_Touch[8], "LibOVR", "aaunKeys[1][Index_ovrButton_Up]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Down] = GetIniFileSettingKeyCode(astrVKCodes_Touch[9], "LibOVR", "aaunKeys[1][Index_ovrButton_Down]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Left] = GetIniFileSettingKeyCode(astrVKCodes_Touch[10], "LibOVR", "aaunKeys[1][Index_ovrButton_Left]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Right] = GetIniFileSettingKeyCode(astrVKCodes_Touch[11], "LibOVR", "aaunKeys[1][Index_ovrButton_Right]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Enter] = GetIniFileSettingKeyCode(astrVKCodes_Touch[12], "LibOVR", "aaunKeys[1][Index_ovrButton_Enter]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Back] = GetIniFileSettingKeyCode(astrVKCodes_Touch[13], "LibOVR", "aaunKeys[1][Index_ovrButton_Back]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_VolUp] = GetIniFileSettingKeyCode(astrVKCodes_Touch[14], "LibOVR", "aaunKeys[1][Index_ovrButton_VolUp]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_VolDown] = GetIniFileSettingKeyCode(astrVKCodes_Touch[15], "LibOVR", "aaunKeys[1][Index_ovrButton_VolDown]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Home] = GetIniFileSettingKeyCode(astrVKCodes_Touch[16], "LibOVR", "aaunKeys[1][Index_ovrButton_Home]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_UpL] = GetIniFileSettingKeyCode(astrVKCodes_Touch[17], "LibOVR", "aaunKeys[1][Index_ovrButton_UpL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_DownL] = GetIniFileSettingKeyCode(astrVKCodes_Touch[18], "LibOVR", "aaunKeys[1][Index_ovrButton_DownL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LeftL] = GetIniFileSettingKeyCode(astrVKCodes_Touch[19], "LibOVR", "aaunKeys[1][Index_ovrButton_LeftL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RightL] = GetIniFileSettingKeyCode(astrVKCodes_Touch[20], "LibOVR", "aaunKeys[1][Index_ovrButton_RightL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_UpR] = GetIniFileSettingKeyCode(astrVKCodes_Touch[21], "LibOVR", "aaunKeys[1][Index_ovrButton_UpR]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_DownR] = GetIniFileSettingKeyCode(astrVKCodes_Touch[22], "LibOVR", "aaunKeys[1][Index_ovrButton_DownR]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LeftR] = GetIniFileSettingKeyCode(astrVKCodes_Touch[23], "LibOVR", "aaunKeys[1][Index_ovrButton_LeftR]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RightR] = GetIniFileSettingKeyCode(astrVKCodes_Touch[24], "LibOVR", "aaunKeys[1][Index_ovrButton_RightR]", szFilePathINI, bFileExists);
+
 
 	// erase key bool field
-	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL)* 2 * 13);
+	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL)* 3 * 25);
 
 	// extended keys set ?
-	for (UINT unI = 0; unI < 2; unI++)
-	for (UINT unJ = 0; unJ < 53; unJ++)
+	for (UINT unI = 0; unI < 3; unI++)
+	for (UINT unJ = 0; unJ < 25; unJ++)
 	{
 		if ((m_aaunKeys[unI][unJ] == VK_UP) ||
 			(m_aaunKeys[unI][unJ] == VK_DOWN) ||
@@ -559,6 +669,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		// get all connected input states
 		ovrInputState sInputState[3] = {};
 		unsigned int unControllersConnected = ovr_GetConnectedControllerTypes(m_hSession);
+#pragma region Remote
 		if (unControllersConnected & ovrControllerType_Remote)
 		{
 			ovr_GetInputState(m_hSession, ovrControllerType_Remote, &sInputState[s_unIndexRemote]);
@@ -577,8 +688,28 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			if (sInputState[s_unIndexRemote].Buttons & ovrButton_Back)
 				m_sMenu.bOnBack = true;
 		}
+#pragma endregion
+#pragma region touch
 		if (unControllersConnected & ovrControllerType_Touch)
+		{
+			// get input state
 			ovr_GetInputState(m_hSession, ovrControllerType_Touch, &sInputState[s_unIndexTouch]);
+
+			// loop through controller buttons
+			for (UINT unButtonIx = 0; unButtonIx < unButtonNo; unButtonIx++)
+			{
+				// cast keyboard event
+				if (sInputState[s_unIndexTouch].Buttons & aunButtonIds[unButtonIx])
+				{
+					if (!m_aabKeys[s_unIndexTouch][unButtonIx])
+						MapButtonDown(s_unIndexTouch, unButtonIx);
+				}
+				else
+				if (m_aabKeys[s_unIndexTouch][unButtonIx])
+					MapButtonUp(s_unIndexTouch, unButtonIx);
+			}
+		}
+#pragma endregion
 		if (unControllersConnected & ovrControllerType_XBox)
 			ovr_GetInputState(m_hSession, ovrControllerType_XBox, &sInputState[s_unIndexXBox]);
 

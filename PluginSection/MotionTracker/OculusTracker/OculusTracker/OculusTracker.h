@@ -9,8 +9,8 @@ File <OculusTracker.h> and
 Class <OculusTracker> :
 Copyright (C) 2015 Denis Reischl
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus 
-repository and permitted to be used for open source plugins of any kind. 
+The stub class <AQU_Nodus> is the only public class from the Aquilinus
+repository and permitted to be used for open source plugins of any kind.
 Read the Aquilinus documentation for further information.
 
 Vireio Perception Version History:
@@ -100,7 +100,7 @@ enum Axis
 enum RotateDirection
 {
 	Rotate_CCW = 1,
-	Rotate_CW  = -1 
+	Rotate_CW = -1
 };
 
 /**
@@ -118,12 +118,12 @@ enum HandedSystem
 ***/
 enum AxisDirection
 {
-	Axis_Up    =  2,
-	Axis_Down  = -2,
-	Axis_Right =  1,
-	Axis_Left  = -1,
-	Axis_In    =  3,
-	Axis_Out   = -3
+	Axis_Up = 2,
+	Axis_Down = -2,
+	Axis_Right = 1,
+	Axis_Left = -1,
+	Axis_In = 3,
+	Axis_Out = -3
 };
 
 /**
@@ -141,46 +141,46 @@ struct __ovrQuatf : public ovrQuatf
 {
 	//float x, y, z, w;
 	template <Axis A1, Axis A2, Axis A3, RotateDirection D, HandedSystem S>
-	void GetEulerAngles(float *a, float *b, float *c) const 
+	void GetEulerAngles(float *a, float *b, float *c) const
 	{
 		static_assert((A1 != A2) && (A2 != A3) && (A1 != A3), "(A1 != A2) && (A2 != A3) && (A1 != A3)");
 
 		float Q[3] = { x, y, z };  //Quaternion components x,y,z
 
-		float ww  = w*w;
-		float Q11 = Q[A1]*Q[A1];
-		float Q22 = Q[A2]*Q[A2];
-		float Q33 = Q[A3]*Q[A3];
+		float ww = w*w;
+		float Q11 = Q[A1] * Q[A1];
+		float Q22 = Q[A2] * Q[A2];
+		float Q33 = Q[A3] * Q[A3];
 
 		float psign = float(-1);
 		// Determine whether even permutation
 		if (((A1 + 1) % 3 == A2) && ((A2 + 1) % 3 == A3))
 			psign = float(1);
 
-		float s2 = psign * float(2) * (psign*w*Q[A2] + Q[A1]*Q[A3]);
+		float s2 = psign * float(2) * (psign*w*Q[A2] + Q[A1] * Q[A3]);
 
 		if (s2 < float(-1) + ((float)MATH_DOUBLE_SINGULARITYRADIUS))
 		{ // South pole singularity
 			*a = float(0);
 			*b = -S*D*((float)MATH_DOUBLE_PIOVER2);
-			*c = S*D*atan2(float(2)*(psign*Q[A1]*Q[A2] + w*Q[A3]),
-				ww + Q22 - Q11 - Q33 );
+			*c = S*D*atan2(float(2)*(psign*Q[A1] * Q[A2] + w*Q[A3]),
+				ww + Q22 - Q11 - Q33);
 		}
 		else if (s2 > float(1) - ((float)MATH_DOUBLE_SINGULARITYRADIUS))
 		{  // North pole singularity
 			*a = float(0);
 			*b = S*D*((float)MATH_DOUBLE_PIOVER2);
-			*c = S*D*atan2(float(2)*(psign*Q[A1]*Q[A2] + w*Q[A3]),
+			*c = S*D*atan2(float(2)*(psign*Q[A1] * Q[A2] + w*Q[A3]),
 				ww + Q22 - Q11 - Q33);
 		}
 		else
 		{
-			*a = -S*D*atan2(float(-2)*(w*Q[A1] - psign*Q[A2]*Q[A3]),
+			*a = -S*D*atan2(float(-2)*(w*Q[A1] - psign*Q[A2] * Q[A3]),
 				ww + Q33 - Q11 - Q22);
 			*b = S*D*asin(s2);
-			*c = S*D*atan2(float(2)*(w*Q[A3] - psign*Q[A1]*Q[A2]),
+			*c = S*D*atan2(float(2)*(w*Q[A3] - psign*Q[A1] * Q[A2]),
 				ww + Q11 - Q22 - Q33);
-		}      
+		}
 		return;
 	}
 };
@@ -334,7 +334,8 @@ enum OTR_Commanders
 	ProjectionRight,             /**<  Right projection matrix (LH) for the HMD ***/
 	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
 };
-
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
 /**
 * Oculus Tracker Node Plugin.
 ***/
@@ -350,7 +351,7 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return 4+256+4; }
+	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
@@ -363,6 +364,12 @@ private:
 	/*** OculusTracker private methods ***/
 	void MapButtonDown(UINT unControllerIx, UINT unButtonIx)
 	{
+#ifdef _DEBUG_KEYS
+		OutputDebugString(L"Down");
+		DEBUG_UINT(unControllerIx);
+		DEBUG_HEX(unButtonIx);
+		DEBUG_HEX(m_aaunKeys[unControllerIx][unButtonIx]);
+#endif
 		m_aabKeys[unControllerIx][unButtonIx] = TRUE;
 
 		if (m_aaunKeys[unControllerIx][unButtonIx] == VK_LBUTTON)
@@ -378,6 +385,12 @@ private:
 	}
 	void MapButtonUp(UINT unControllerIx, UINT unButtonIx)
 	{
+#ifdef _DEBUG_KEYS
+		OutputDebugString(L"Up");
+		DEBUG_UINT(unControllerIx);
+		DEBUG_HEX(unButtonIx);
+		DEBUG_HEX(m_aaunKeys[unControllerIx][unButtonIx]);
+#endif
 		m_aabKeys[unControllerIx][unButtonIx] = FALSE;
 
 		if (m_aaunKeys[unControllerIx][unButtonIx] == VK_LBUTTON)
@@ -397,7 +410,7 @@ private:
 	***/
 	ovrSession m_hSession;
 	/**
-	* The HMD description. 
+	* The HMD description.
 	***/
 	ovrHmdDesc m_sHMDDesc;
 	/**
@@ -486,19 +499,19 @@ private:
 	* 0..3 Controller index (0/1 - Touch; 2 Remote).
 	* 0..53 Button index.
 	***/
-	UINT m_aaunKeys[3][53];
+	UINT m_aaunKeys[3][25];
 	/**
 	* True if button is pressed.
 	* 0..3 Controller index (0/1 - Touch; 2 Remote).
 	* 0..53 Button index.
 	***/
-	BOOL m_aabKeys[3][53];
+	BOOL m_aabKeys[3][25];
 	/**
 	* True if button is an extended key.
 	* 0..3 Controller index (0/1 - Touch; 2 Remote).
 	* 0..53 Button index.
 	***/
-	BOOL m_aabKeyExtended[3][53];
+	BOOL m_aabKeyExtended[3][25];
 	/**
 	* Inner scope (no button) user setting structure for any axis pressed / not pressed or mouse movement emulation factor.
 	* 0..3 Controller index (0/1 - Touch; 2 Remote).
