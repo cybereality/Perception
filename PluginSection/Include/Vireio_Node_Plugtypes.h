@@ -49,7 +49,7 @@ UINT GetVkCodeByString(std::string szCode)
 		wchar_t uc = szCode[3];
 		return (UINT)uc;
 	}
-	
+
 	if (szCode == "X") return                 0x00;
 	if (szCode == "VK_LBUTTON") return        0x01;
 	if (szCode == "VK_RBUTTON") return        0x02;
@@ -149,6 +149,122 @@ UINT GetVkCodeByString(std::string szCode)
 	if (szCode == "WM_MOUSEMOVE") return      WM_MOUSEMOVE;
 
 	return 0x00;
+}
+
+/**
+* Provides the initialization string by string.
+* Also returns string >WM_MOUSEMOVE< by code.
+***/
+std::string GetStringByVKCode(UINT unCode)
+{
+	// 0...9 or A...Z ??
+	if (((unCode >= (UINT)'0') && (unCode <= (UINT)'9')) ||
+		((unCode >= (UINT)'A') && (unCode <= (UINT)'Z')))
+	{
+		std::string szRet = std::string("VK_X");
+		szRet[3] = (char)unCode;
+		return szRet;
+	}
+
+	if (unCode == 0x00) return "X";
+	if (unCode == 0x01) return "VK_LBUTTON";
+	if (unCode == 0x02) return "VK_RBUTTON";
+	if (unCode == 0x03) return "VK_CANCEL";
+	if (unCode == 0x04) return "VK_MBUTTON";
+	if (unCode == 0x05) return "VK_XBUTTON1";
+	if (unCode == 0x06) return "VK_XBUTTON2";
+	if (unCode == 0x08) return "VK_BACK";
+	if (unCode == 0x09) return "VK_TAB";
+	if (unCode == 0x0C) return "VK_CLEAR";
+	if (unCode == 0x0D) return "VK_RETURN";
+	if (unCode == 0x10) return "VK_SHIFT";
+	if (unCode == 0x11) return "VK_CONTROL";
+	if (unCode == 0x12) return "VK_MENU";
+	if (unCode == 0x13) return "VK_PAUSE";
+	if (unCode == 0x14) return "VK_CAPITAL";
+	if (unCode == 0x15) return "VK_KANA";
+	if (unCode == 0x15) return "VK_HANGEUL";
+	if (unCode == 0x15) return "VK_HANGUL";
+	if (unCode == 0x17) return "VK_JUNJA";
+	if (unCode == 0x18) return "VK_FINAL";
+	if (unCode == 0x19) return "VK_HANJA";
+	if (unCode == 0x19) return "VK_KANJI";
+	if (unCode == 0x1B) return "VK_ESCAPE";
+	if (unCode == 0x1C) return "VK_CONVERT";
+	if (unCode == 0x1D) return "VK_NONCONVERT";
+	if (unCode == 0x1E) return "VK_ACCEPT";
+	if (unCode == 0x1F) return "VK_MODECHANGE";
+	if (unCode == 0x20) return "VK_SPACE";
+	if (unCode == 0x21) return "VK_PRIOR";
+	if (unCode == 0x22) return "VK_NEXT";
+	if (unCode == 0x23) return "VK_END";
+	if (unCode == 0x24) return "VK_HOME";
+	if (unCode == 0x25) return "VK_LEFT";
+	if (unCode == 0x26) return "VK_UP";
+	if (unCode == 0x27) return "VK_RIGHT";
+	if (unCode == 0x28) return "VK_DOWN";
+	if (unCode == 0x29) return "VK_SELECT";
+	if (unCode == 0x2A) return "VK_PRINT";
+	if (unCode == 0x2B) return "VK_EXECUTE";
+	if (unCode == 0x2C) return "VK_SNAPSHOT";
+	if (unCode == 0x2D) return "VK_INSERT";
+	if (unCode == 0x2E) return "VK_DELETE";
+	if (unCode == 0x2F) return "VK_HELP";
+	if (unCode == 0x5B) return "VK_LWIN";
+	if (unCode == 0x5C) return "VK_RWIN";
+	if (unCode == 0x5D) return "VK_APPS";
+	if (unCode == 0x5F) return "VK_SLEEP";
+	if (unCode == 0x60) return "VK_NUMPAD0";
+	if (unCode == 0x61) return "VK_NUMPAD1";
+	if (unCode == 0x62) return "VK_NUMPAD2";
+	if (unCode == 0x63) return "VK_NUMPAD3";
+	if (unCode == 0x64) return "VK_NUMPAD4";
+	if (unCode == 0x65) return "VK_NUMPAD5";
+	if (unCode == 0x66) return "VK_NUMPAD6";
+	if (unCode == 0x67) return "VK_NUMPAD7";
+	if (unCode == 0x68) return "VK_NUMPAD8";
+	if (unCode == 0x69) return "VK_NUMPAD9";
+	if (unCode == 0x6A) return "VK_MULTIPLY";
+	if (unCode == 0x6B) return "VK_ADD";
+	if (unCode == 0x6C) return "VK_SEPARATOR";
+	if (unCode == 0x6D) return "VK_SUBTRACT";
+	if (unCode == 0x6E) return "VK_DECIMAL";
+	if (unCode == 0x6F) return "VK_DIVIDE";
+	if (unCode == 0x70) return "VK_F1";
+	if (unCode == 0x71) return "VK_F2";
+	if (unCode == 0x72) return "VK_F3";
+	if (unCode == 0x73) return "VK_F4";
+	if (unCode == 0x74) return "VK_F5";
+	if (unCode == 0x75) return "VK_F6";
+	if (unCode == 0x76) return "VK_F7";
+	if (unCode == 0x77) return "VK_F8";
+	if (unCode == 0x78) return "VK_F9";
+	if (unCode == 0x79) return "VK_F10";
+	if (unCode == 0x7A) return "VK_F11";
+	if (unCode == 0x7B) return "VK_F12";
+	if (unCode == 0x7C) return "VK_F13";
+	if (unCode == 0x7D) return "VK_F14";
+	if (unCode == 0x7E) return "VK_F15";
+	if (unCode == 0x7F) return "VK_F16";
+	if (unCode == 0x80) return "VK_F17";
+	if (unCode == 0x81) return "VK_F18";
+	if (unCode == 0x82) return "VK_F19";
+	if (unCode == 0x83) return "VK_F20";
+	if (unCode == 0x84) return "VK_F21";
+	if (unCode == 0x85) return "VK_F22";
+	if (unCode == 0x86) return "VK_F23";
+	if (unCode == 0x87) return "VK_F24";
+	if (unCode == 0x90) return "VK_NUMLOCK";
+	if (unCode == 0x91) return "VK_SCROLL";
+	if (unCode == 0xA0) return "VK_LSHIFT";
+	if (unCode == 0xA1) return "VK_RSHIFT";
+	if (unCode == 0xA2) return "VK_LCONTROL";
+	if (unCode == 0xA3) return "VK_RCONTROL";
+	if (unCode == 0xA4) return "VK_LMENU";
+	if (unCode == 0xA5) return "VK_RMENU";
+	if (unCode == WM_MOUSEMOVE) return "WM_MOUSEMOVE";
+
+	return "X";
 }
 
 /**

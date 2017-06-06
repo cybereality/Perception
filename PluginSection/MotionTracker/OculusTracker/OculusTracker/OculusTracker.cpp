@@ -163,7 +163,7 @@ m_hSession(nullptr)
 		"WM_MOUSEMOVE", // Index_ovrButton_DownR
 		"WM_MOUSEMOVE", // Index_ovrButton_LeftR
 		"WM_MOUSEMOVE" }; // Index_ovrButton_RightR
-			
+
 	// set inner scope
 	for (UINT unI = 0; unI < 5; unI++)
 	{
@@ -185,7 +185,7 @@ m_hSession(nullptr)
 	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "LibOVR", "afPositionOrigin[0]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "LibOVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
 	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "LibOVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
-	
+
 	// set default key codes > Touch
 	m_aaunKeys[1][Index_ovrButton_A] = GetIniFileSettingKeyCode(astrVKCodes_Touch[0], "LibOVR", "aaunKeys[1][Index_ovrButton_A]", szFilePathINI, bFileExists);
 	m_aaunKeys[1][Index_ovrButton_B] = GetIniFileSettingKeyCode(astrVKCodes_Touch[1], "LibOVR", "aaunKeys[1][Index_ovrButton_B]", szFilePathINI, bFileExists);
@@ -248,17 +248,35 @@ m_hSession(nullptr)
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
 	m_sMenu.strSubMenu = "Oculus Tracker";
 	{
-		static float fDummy = 0.0f;
+		static UINT s_unDummy = 0;
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.strEntry = "Touch Button >A<";
 		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 1.0f;
-		sEntry.fMaximum = 30.0f;
-		sEntry.fChangeSize = 0.1f;
-		sEntry.pfValue = &fDummy;
-		sEntry.fValue = fDummy;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = 1;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = &s_unDummy;
+		sEntry.unValue = s_unDummy;
+		sEntry.bValueEnumeration = true;
+
+		// add "X"
+		std::string strX = std::string("X");
+		sEntry.astrValueEnumeration.push_back(strX);
+
+		// loop through VK codes, add possible strings
+		for (UINT unVK = 1; unVK < 256; unVK++)
+		{
+			std::string strEnum = GetStringByVKCode(unVK);
+			if (strEnum != "X")
+			{
+				sEntry.astrValueEnumeration.push_back(strEnum);
+				sEntry.unMaximum++;
+			}
+		}
+
 		m_sMenu.asEntries.push_back(sEntry);
+
 	}
 }
 
