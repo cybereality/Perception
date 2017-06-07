@@ -404,6 +404,7 @@ private:
 		else
 			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
 	}
+	void SaveIniSettings();
 
 	/**
 	* The handle of the session.

@@ -112,6 +112,38 @@ enum OvrButtonIx
 };
 
 /**
+* Names for the menu of the Touch controls.
+***/
+const std::string astrTouchControls[] =
+{
+	"Touch A",
+	"Touch B",
+	"Touch RThumb",
+	"Touch RShoulder",
+	"Touch X",
+	"Touch Y",
+	"Touch LThumb",
+	"Touch LShoulder",
+	"Touch Up",
+	"Touch Down",
+	"Touch Left",
+	"Touch Right",
+	"Touch Enter",
+	"Touch Back",
+	"Touch VolUp",
+	"Touch VolDown",
+	"Touch Home",
+	"Touch UpL",        /**< Left thumb stick. ***/
+	"Touch DownL",
+	"Touch LeftL",
+	"Touch RightL",
+	"Touch UpR",        /**< Right thumb stick. ***/
+	"Touch DownR",
+	"Touch LeftR",
+	"Touch RightR"
+};
+
+/**
 * Constructor.
 ***/
 OculusTracker::OculusTracker() :AQU_Nodus(),
@@ -120,7 +152,8 @@ m_bControlUpdate(false),
 m_hFont(nullptr),
 m_unRenderTextureWidth(0),
 m_unRenderTextureHeight(0),
-m_hSession(nullptr)
+m_hSession(nullptr),
+m_nIniFrameCount(0)
 {
 	ZeroMemory(&m_sDefaultFOVMatrixProjLeft, sizeof(D3DMATRIX));
 	ZeroMemory(&m_sDefaultFOVMatrixProjRight, sizeof(D3DMATRIX));
@@ -247,17 +280,20 @@ m_hSession(nullptr)
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
 	m_sMenu.strSubMenu = "Oculus Tracker";
+
+	// add touch menu options
+	static UINT s_unDummy[26];
+	for (UINT unIx = 0; unIx < 25; unIx++)
 	{
-		static UINT s_unDummy = 0;
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Touch Button >A<";
+		sEntry.strEntry = astrTouchControls[unIx];
 		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
 		sEntry.unMinimum = 0;
 		sEntry.unMaximum = 1;
 		sEntry.unChangeSize = 1;
-		sEntry.punValue = &s_unDummy;
-		sEntry.unValue = s_unDummy;
+		sEntry.punValue = &s_unDummy[unIx];
+		sEntry.unValue = s_unDummy[unIx];
 		sEntry.bValueEnumeration = true;
 
 		// add "X"
@@ -267,16 +303,61 @@ m_hSession(nullptr)
 		// loop through VK codes, add possible strings
 		for (UINT unVK = 1; unVK < 256; unVK++)
 		{
+			// get string
 			std::string strEnum = GetStringByVKCode(unVK);
 			if (strEnum != "X")
 			{
+				// is current selection ?
+				if (unVK == m_aaunKeys[1][unIx])
+				{
+					s_unDummy[unIx] = sEntry.unValue = (UINT)sEntry.astrValueEnumeration.size();
+				}
+
 				sEntry.astrValueEnumeration.push_back(strEnum);
 				sEntry.unMaximum++;
 			}
 		}
 
 		m_sMenu.asEntries.push_back(sEntry);
-
+	}
+	// position origin x
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Origin X";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -5.0f;
+		sEntry.fMaximum = 5.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_afPositionOrigin[0];
+		sEntry.fValue = m_afPositionOrigin[0];
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	// position origin y
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Origin Y";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -5.0f;
+		sEntry.fMaximum = 5.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_afPositionOrigin[1];
+		sEntry.fValue = m_afPositionOrigin[1];
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	// position origin z
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Origin Z";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -5.0f;
+		sEntry.fMaximum = 5.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_afPositionOrigin[2];
+		sEntry.fValue = m_afPositionOrigin[2];
+		m_sMenu.asEntries.push_back(sEntry);
 	}
 }
 
@@ -676,6 +757,39 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		return nullptr;
 	}
 
+	// save ini file ?
+	if (m_nIniFrameCount)
+	{
+		if (m_nIniFrameCount == 1)
+			SaveIniSettings();
+		m_nIniFrameCount--;
+	}
+
+	// main menu update ?
+	if (m_sMenu.bOnChanged)
+	{
+		// set back event bool, set ini file frame count
+		m_sMenu.bOnChanged = false;
+		m_nIniFrameCount = 300;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMenu.asEntries[nIx].bOnChanged = false;
+
+				// touch entries ?
+				if (nIx < 25)
+				{
+					// set new vk code by string
+					m_aaunKeys[1][nIx] = GetVkCodeByString(m_sMenu.asEntries[nIx].astrValueEnumeration[m_sMenu.asEntries[nIx].unValue]);
+				}
+			}
+		}
+	}
+
 	if (m_hSession)
 	{
 #pragma region controller
@@ -884,4 +998,46 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 	}
 
 	return nullptr;
+}
+
+/**
+* Saves all node related ini file settings.
+***/
+void OculusTracker::SaveIniSettings()
+{
+	// get file path
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+
+	// save ini file
+	m_aaunKeys[1][Index_ovrButton_A] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][0]), "LibOVR", "aaunKeys[1][Index_ovrButton_A]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_B] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][1]), "LibOVR", "aaunKeys[1][Index_ovrButton_B]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RThumb] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][2]), "LibOVR", "aaunKeys[1][Index_ovrButton_RThumb]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RShoulder] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][3]), "LibOVR", "aaunKeys[1][Index_ovrButton_RShoulder]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_X] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][4]), "LibOVR", "aaunKeys[1][Index_ovrButton_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Y] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][5]), "LibOVR", "aaunKeys[1][Index_ovrButton_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LThumb] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][6]), "LibOVR", "aaunKeys[1][Index_ovrButton_LThumb]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LShoulder] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][7]), "LibOVR", "aaunKeys[1][Index_ovrButton_LShoulder]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Up] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][8]), "LibOVR", "aaunKeys[1][Index_ovrButton_Up]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Down] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][9]), "LibOVR", "aaunKeys[1][Index_ovrButton_Down]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Left] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][10]), "LibOVR", "aaunKeys[1][Index_ovrButton_Left]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Right] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][11]), "LibOVR", "aaunKeys[1][Index_ovrButton_Right]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Enter] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][12]), "LibOVR", "aaunKeys[1][Index_ovrButton_Enter]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Back] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][13]), "LibOVR", "aaunKeys[1][Index_ovrButton_Back]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_VolUp] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][14]), "LibOVR", "aaunKeys[1][Index_ovrButton_VolUp]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_VolDown] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][15]), "LibOVR", "aaunKeys[1][Index_ovrButton_VolDown]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_Home] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][16]), "LibOVR", "aaunKeys[1][Index_ovrButton_Home]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_UpL] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][17]), "LibOVR", "aaunKeys[1][Index_ovrButton_UpL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_DownL] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][18]), "LibOVR", "aaunKeys[1][Index_ovrButton_DownL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LeftL] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][19]), "LibOVR", "aaunKeys[1][Index_ovrButton_LeftL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RightL] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][20]), "LibOVR", "aaunKeys[1][Index_ovrButton_RightL]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_UpR] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][21]), "LibOVR", "aaunKeys[1][Index_ovrButton_UpR]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_DownR] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][22]), "LibOVR", "aaunKeys[1][Index_ovrButton_DownR]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_LeftR] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][23]), "LibOVR", "aaunKeys[1][Index_ovrButton_LeftR]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_ovrButton_RightR] = GetIniFileSettingKeyCode(GetStringByVKCode(m_aaunKeys[1][24]), "LibOVR", "aaunKeys[1][Index_ovrButton_RightR]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "LibOVR", "afPositionOrigin[0]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "LibOVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "LibOVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
 }
