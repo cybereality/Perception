@@ -989,8 +989,8 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 				D3DXMatrixTranspose(&asProjection[unEye], &asProjection[unEye]);
 
 				// create view offset translation matrix
-				D3DXMatrixTranslation(&asToEye[unEye], asViewOffset[unEye].x, asViewOffset[unEye].y, asViewOffset[unEye].z);
-
+				D3DXMatrixTranslation(&asToEye[unEye], -asViewOffset[unEye].x, -asViewOffset[unEye].y, -asViewOffset[unEye].z);
+				
 				// create eventual projection
 				m_asProjection[unEye] = asToEye[unEye] * asProjection[unEye];
 			}
