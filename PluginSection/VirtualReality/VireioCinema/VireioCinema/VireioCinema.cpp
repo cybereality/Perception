@@ -1638,6 +1638,56 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			}
 		}
 #pragma endregion
+#pragma region left/right hand
+		if (false) // code added for possible future use
+		{
+			const float X = 0.525731f;
+			const float Z = 0.850651f;
+
+			// create vertices, normals are vertex positions
+			TexturedNormalVertex asVertices[12] =
+			{
+				{ D3DXVECTOR3(-X, 0.0f, Z), D3DXVECTOR3(-X, 0.0f, Z), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(X, 0.0f, Z), D3DXVECTOR3(X, 0.0f, Z), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-X, 0.0f, -Z), D3DXVECTOR3(-X, 0.0f, -Z), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(X, 0.0f, -Z), D3DXVECTOR3(X, 0.0f, -Z), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(0.0f, Z, X), D3DXVECTOR3(0.0f, Z, X), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(0.0f, Z, -X), D3DXVECTOR3(0.0f, Z, -X), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(0.0f, -Z, X), D3DXVECTOR3(0.0f, -Z, X), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(0.0f, -Z, -X), D3DXVECTOR3(0.0f, -Z, -X), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(Z, X, 0.0f), D3DXVECTOR3(Z, X, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-Z, X, 0.0f), D3DXVECTOR3(-Z, X, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(Z, -X, 0.0f), D3DXVECTOR3(Z, -X, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-Z, -X, 0.0f), D3DXVECTOR3(-Z, -X, 0.0f), D3DXVECTOR2(1.0f, 1.0f) }
+			};
+
+			// normalize normals
+			for (UINT unIx = 0; unIx < 12; unIx++)
+			{
+				D3DXVECTOR3 sCopy = {};
+				D3DXVec3Normalize(&sCopy, &asVertices[12].sNormal);
+				asVertices[12].sNormal = sCopy;
+			}
+
+			// create indices
+			WORD aunIndices[60] =
+			{
+				1, 4, 0, 4, 9, 0, 4, 5, 9, 8, 5, 4, 1, 8, 4,
+				1, 10, 8, 10, 3, 8, 8, 3, 5, 3, 2, 5, 3, 7, 2,
+				3, 10, 7, 10, 6, 7, 6, 11, 7, 6, 0, 11, 6, 1, 0,
+				10, 1, 6, 11, 0, 9, 2, 11, 9, 5, 2, 9, 11, 2, 7
+			};
+
+			// create effect
+			PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTextured;
+			ID3D11PixelShader* pcEffect = nullptr;
+			CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
+
+			// and create the model...
+			// m_unIndex = (UINT)m_asRenderModels.size();
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 12, 20, D3DXVECTOR3(0.02f, 0.02f, 0.02f), D3DXVECTOR3(0.0f, 0.2f, 0.0f));
+		}
+#pragma endregion
 #pragma region menu screen
 		if (true)
 		{
@@ -1657,6 +1707,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 2.0f, 0.0f));
 		}
 #pragma endregion
+
 	}
 
 	// create constant shader constants..
