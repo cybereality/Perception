@@ -57,6 +57,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
 /**
+* Little Oculus matrix helper.
+***/
+inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform, D3DXMATRIX* psTarget) {
+	D3DXMATRIX sTranslate, sOrientation, sScale;
+	D3DXQUATERNION sOrientationQ(sTransform.orientation.w, sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z);
+	D3DXMatrixTranslation(&sTranslate, sTransform.position.x, sTransform.position.y, sTransform.position.z);
+	D3DXMatrixRotationQuaternion(&sOrientation, &sOrientationQ);
+	D3DXMatrixScaling(&sScale, sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
+	*psTarget = sTranslate * sOrientation * sScale;
+}
+
+/**
 * Constructor.
 ***/
 OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
@@ -74,7 +86,9 @@ m_phHMD_Tracker(nullptr),
 m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr),
 m_ppcTexViewHud11(nullptr),
-m_pcTex11CopyHUD(nullptr)
+m_pcTex11CopyHUD(nullptr),
+m_psAvatar(nullptr),
+m_nLoadingAssets(0)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -389,6 +403,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	if (!m_bInit)
 	{
 #pragma region Init
+		// Initialize the platform module
+		if (ovr_PlatformInitializeWindows(OVR_SAMPLE_APP_ID) != ovrPlatformInitialize_Success)
+		{
+			MessageBox(NULL, L"[OCULUS] Startup error", L"Failed to initialize the Oculus platform", NULL);
+			exit(99);
+		}
+
 		if (!m_phHMD)
 		{
 			if (m_phHMD_Tracker)
@@ -434,6 +455,14 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				m_phHMD = &m_hHMD;
 			}
 		}
+
+		// Initialize the avatar module
+		ovrAvatar_Initialize(OVR_SAMPLE_APP_ID);
+
+		// Start retrieving the avatar specification
+		OutputDebugString(L"[OCULUS] Requesting avatar specification...\r\n");
+		ovrID unUserID = ovr_GetLoggedInUserID();
+		ovrAvatar_RequestAvatarSpecification(unUserID);
 
 		// get HMD description
 		m_sHMDDesc = ovr_GetHmdDesc(*m_phHMD);
@@ -584,6 +613,63 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	}
 	else
 	{
+#pragma region Avatar
+		// get avatar messages
+		if (ovrAvatarMessage* psMessage = ovrAvatarMessage_Pop())
+		{
+			{ wchar_t buf[128]; wsprintf(buf, L"[OVR] New Avatar Message... %x", ovrAvatarMessage_GetType(psMessage)); OutputDebugString(buf); }
+			switch (ovrAvatarMessage_GetType(psMessage))
+			{
+				case ovrAvatarMessageType_AvatarSpecification:
+					if (true)
+					{
+						// get the specification
+						const ovrAvatarMessage_AvatarSpecification* psASMessage = ovrAvatarMessage_GetAvatarSpecification(psMessage);
+
+						// Create the avatar instance
+						m_psAvatar = ovrAvatar_Create(psASMessage->avatarSpec, ovrAvatarCapability_All);
+
+						// Trigger load operations for all of the assets referenced by the avatar
+						uint32_t refCount = ovrAvatar_GetReferencedAssetCount(m_psAvatar);
+						for (uint32_t i = 0; i < refCount; ++i)
+						{
+							ovrAvatarAssetID id = ovrAvatar_GetReferencedAsset(m_psAvatar, i);
+							ovrAvatarAsset_BeginLoading(id);
+							++m_nLoadingAssets;
+						}
+					}
+					break;
+				case ovrAvatarMessageType_AssetLoaded:
+					if (true)
+					{
+						// get the loaded asset message
+						const ovrAvatarMessage_AssetLoaded* psALMessage = ovrAvatarMessage_GetAssetLoaded(psMessage);
+
+						// Determine the type of the asset that got loaded
+						ovrAvatarAssetType assetType = ovrAvatarAsset_GetType(psALMessage->asset);
+						void* data = nullptr;
+
+						// Call the appropriate loader function
+						switch (assetType)
+						{
+							case ovrAvatarAssetType_Mesh:
+								data = LoadMesh(pcDevice, ovrAvatarAsset_GetMeshData(psALMessage->asset));
+								break;
+							case ovrAvatarAssetType_Texture:
+								data = LoadTexture(pcDevice, ovrAvatarAsset_GetTextureData(psALMessage->asset));
+								break;
+						}
+
+						// Store the data that we loaded for the asset in the asset map
+						m_asAssetMap[psALMessage->assetID] = data;
+						--m_nLoadingAssets;
+					}
+					break;
+			}
+			OutputDebugString(L"[OVR] Avatar Message processed...");
+			ovrAvatarMessage_Free(psMessage);
+		}
+#pragma endregion
 #pragma region Render
 
 		// secondary hud active ? copy in case
@@ -969,4 +1055,163 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	pcDevice->Release();
 
 	return nullptr;
+}
+
+/**
+* Compute all world matrices.
+***/
+void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose)
+{
+	for (uint32_t i = 0; i < sLocalPose.jointCount; ++i)
+	{
+		D3DXMATRIX sLocal;
+		D3DMatrixFromOvrAvatarTransform(sLocalPose.jointTransform[i], &sLocal);
+
+		int parentIndex = sLocalPose.jointParents[i];
+		if (parentIndex < 0)
+		{
+			asWorldPose[i] = sLocal;
+		}
+		else
+		{
+			asWorldPose[i] = asWorldPose[parentIndex] * sLocal;
+		}
+	}
+}
+
+/**
+* Oculus mesh loader (D3D11).
+**/
+MeshData* OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data)
+{
+	MeshData* mesh = new MeshData();
+
+	// create the vertex buffer
+	D3D11_BUFFER_DESC sDesc = {};
+	sDesc.Usage = D3D11_USAGE_DEFAULT;
+	sDesc.ByteWidth = sizeof(ovrAvatarMeshVertex)* data->vertexCount;
+	sDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	sDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA sInitData;
+	ZeroMemory(&sInitData, sizeof(sInitData));
+	sInitData.pSysMem = data->vertexBuffer;
+	if (FAILED(pcDevice->CreateBuffer(&sDesc, &sInitData, &mesh->pcVertexBuffer)))
+		OutputDebugString(L"[OCULUS] Failed to create vertex buffer.");
+
+	// create index buffer
+	D3D11_BUFFER_DESC sIBDesc = {};
+	sIBDesc.Usage = D3D11_USAGE_DEFAULT;
+	sIBDesc.ByteWidth = sizeof(WORD)* data->indexCount;
+	sIBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	sIBDesc.CPUAccessFlags = 0;
+	ZeroMemory(&sInitData, sizeof(sInitData));
+	sInitData.pSysMem = data->indexBuffer;
+	if (FAILED(pcDevice->CreateBuffer(&sIBDesc, &sInitData, &mesh->pcElementBuffer)))
+		OutputDebugString(L"[OCULUS] Failed to create index buffer.");
+
+	// Translate the bind pose
+	ComputeWorldPose(data->skinnedBindPose, mesh->asBindPose);
+	for (uint32_t i = 0; i < data->skinnedBindPose.jointCount; ++i)
+		D3DXMatrixInverse(&mesh->asInverseBindPose[i], NULL, &mesh->asBindPose[i]);
+
+	return mesh;
+}
+
+/**
+* Loads a D3D11 texture from Oculus Avatar texture asset data.
+***/
+TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data)
+{
+	// Create a texture
+	TextureData* texture = new TextureData();
+	DXGI_FORMAT eFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	// Load the image data
+	switch (data->format)
+	{
+		// Handle uncompressed image data
+		case ovrAvatarTextureFormat_RGB24:
+			if (true)
+			{
+				// convert RGB->RGBA
+				BYTE* acData = new BYTE[data->sizeX * data->sizeY * sizeof(BYTE)* 4];
+				for (UINT unOffset = 0; unOffset < data->sizeX * data->sizeY; unOffset++)
+				{
+					acData[unOffset * 4] = data->textureData[unOffset * 3];
+					acData[unOffset * 4 + 1] = data->textureData[unOffset * 3 + 1];
+					acData[unOffset * 4 + 2] = data->textureData[unOffset * 3 + 2];
+					acData[unOffset * 4 + 3] = 255;
+				}
+
+				// create geometry texture
+				D3D11_TEXTURE2D_DESC sDesc = {};
+				ZeroMemory(&sDesc, sizeof(sDesc));
+				sDesc.Width = data->sizeX;
+				sDesc.Height = data->sizeY;
+				sDesc.MipLevels = 1; //data->mipCount; // TODO !! HANDLE MIPS
+				sDesc.ArraySize = 1;
+				sDesc.Format = eFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+				sDesc.SampleDesc.Count = 1;
+				sDesc.Usage = D3D11_USAGE_DEFAULT;
+				sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				D3D11_SUBRESOURCE_DATA sData;
+				ZeroMemory(&sData, sizeof(sData));
+				sData.pSysMem = acData;
+				sData.SysMemPitch = data->sizeX * 4;
+				if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &texture->pcTexture)))
+					OutputDebugString(L"[OCULUS] Failed to create model texture DXGI_FORMAT_R8G8B8A8_UNORM.");
+
+				delete[] acData;
+			}
+			break;
+
+			// Handle compressed image data
+		case ovrAvatarTextureFormat_DXT1:
+		case ovrAvatarTextureFormat_DXT5:
+			if (true)
+			{
+				// create geometry texture
+				D3D11_TEXTURE2D_DESC sDesc = {};
+				ZeroMemory(&sDesc, sizeof(sDesc));
+				sDesc.Width = data->sizeX;
+				sDesc.Height = data->sizeY;
+				sDesc.MipLevels = data->mipCount;
+				sDesc.ArraySize = 1;
+				if (data->format == ovrAvatarTextureFormat_DXT1)
+					sDesc.Format = eFormat = DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM;
+				else
+					sDesc.Format = eFormat = DXGI_FORMAT::DXGI_FORMAT_BC3_UNORM;
+				sDesc.SampleDesc.Count = 1;
+				sDesc.Usage = D3D11_USAGE_DEFAULT;
+				sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				// TODO !! INIT DATA NOT WORKING !!
+				/*D3D11_SUBRESOURCE_DATA sData;
+				ZeroMemory(&sData, sizeof(sData));
+				sData.pSysMem = data->textureData;
+				sData.SysMemPitch = data->sizeX * 4;*/
+				if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, &texture->pcTexture)))
+				{
+					if (data->format == ovrAvatarTextureFormat_DXT1)
+						OutputDebugString(L"[OCULUS] Failed to create model texture. DXGI_FORMAT_BC1_UNORM");
+					else
+						OutputDebugString(L"[OCULUS] Failed to create model texture. DXGI_FORMAT_BC3_UNORM");
+				}
+			}
+			break;
+	}
+
+	if (texture->pcTexture)
+	{
+		// create texture shader resource view
+		D3D11_SHADER_RESOURCE_VIEW_DESC sDesc = {};
+		sDesc.Format = eFormat;
+		sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		sDesc.Texture2D.MostDetailedMip = 0;
+		sDesc.Texture2D.MipLevels = data->mipCount;
+
+		if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)texture->pcTexture, &sDesc, &texture->pcSRV))))
+			OutputDebugString(L"[OCULUS] Failed to create model texture shader resource view!");
+	}
+
+	return texture;
 }

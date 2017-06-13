@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include"Resources.h"
 #include<vector>
+#include<map>
 #include<sstream>
 
 #include<Shlwapi.h>
@@ -76,8 +77,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Extras/OVR_Math.h"
 #define OVR_D3D_VERSION 11
+#define OVR_SAMPLE_APP_ID "958062084316416"
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
-#include"OVR_CAPI_D3D.h"
+#include <OVR_Avatar.h>
+#include <OVR_CAPI_D3D.h>
+#include <OVR_Platform.h>
+
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\..\Include\VireioMenu.h"
@@ -203,6 +208,28 @@ struct OculusTexture
 };
 
 /**
+* Oculus Mesh data structure (D3D11).
+***/
+struct MeshData
+{
+	// UINT unVertexArray;
+	ID3D11Buffer* pcVertexBuffer;
+	ID3D11Buffer* pcElementBuffer;
+	UINT unElementCount;
+	D3DXMATRIX asBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+	D3DXMATRIX asInverseBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+};
+
+/**
+* Simple texture data structure (D3D11).
+***/
+struct TextureData
+{
+	ID3D11Texture2D* pcTexture;
+	ID3D11ShaderResourceView* pcSRV;
+};
+
+/**
 * Oculus Direct Mode Node Plugin.
 ***/
 class OculusDirectMode : public AQU_Nodus
@@ -231,6 +258,11 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
+	/*** OculusDirectMode private methods ***/
+	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose);
+	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
+	TextureData* LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data);
+
 	/**
 	* True if OVR is initialized.
 	***/
@@ -399,6 +431,18 @@ private:
 	* True if mirror is to be shown.
 	***/
 	bool m_bShowMirror;
+	/**
+	* The Oculus Avatar.
+	***/
+	ovrAvatar* m_psAvatar;
+	/**
+	* Asset loading counter.
+	***/
+	int m_nLoadingAssets;
+	/**
+	* All Oulus Assets.
+	***/
+	std::map<ovrAvatarAssetID, void*> m_asAssetMap;
 	/**
 	* Vireio menu.
 	***/
