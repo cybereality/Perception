@@ -90,6 +90,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NUMBER_OF_COMMANDERS                            1
 #define NUMBER_OF_DECOMMANDERS                         11
 
+/**
+* Vertex shader input constants.
+***/
+struct ConstantsVS
+{
+	D3DXVECTOR3 viewPos;
+	D3DXMATRIX world;
+	D3DXMATRIX viewProj;
+	D3DXMATRIX meshPose[64];
+};
+
+/**
+* Fragment shader input constants.
+***/
+#define MAX_LAYER_COUNT 8
+struct FragmentVars
+{
+	float4 baseColor;
+	int baseMaskType;
+	float4 baseMaskParameters;
+	float4 baseMaskAxis;
+	float4 alphaMaskScaleOffset;
+	float4 normalMapScaleOffset;
+	float4 parallaxMapScaleOffset;
+	float4 roughnessMapScaleOffset;
+	float4x4 projectorInv;
+	bool useAlpha;
+	bool useNormalMap;
+	bool useRoughnessMap;
+	bool useProjector;
+	float elapsedSeconds;
+	int layerCount;
+	int layerSamplerModes[MAX_LAYER_COUNT];
+	int layerBlendModes[MAX_LAYER_COUNT];
+	int layerMaskTypes[MAX_LAYER_COUNT];
+	float4 layerColors[MAX_LAYER_COUNT];
+	float4 layerSurfaceScaleOffsets[MAX_LAYER_COUNT];
+	float4 layerSampleParameters[MAX_LAYER_COUNT];
+	float4 layerMaskParameters[MAX_LAYER_COUNT];
+	float4 layerMaskAxes[MAX_LAYER_COUNT];
+};
+
 
 /***
 * Oculus Avatar Vertex Shader.
@@ -202,19 +244,21 @@ static const char* PS_OCULUS_AVATAR =
 "	float2 vertexUV : TEXCOORD5;\n"
 "};\n"
 
+"Texture2D alphaMask : register(t0);\n"
+"Texture2D normalMap : register(t1);\n"
+"Texture2D parallaxMap : register(t2);\n"
+"Texture2D roughnessMap : register(t3);\n"
+"Texture2D layerSurfaces[MAX_LAYER_COUNT] : register(t4);\n"
+
 "cbuffer FragmentVars : register (b0)\n"
 "{\n"
 "	float4 baseColor;\n"
 "	int baseMaskType;\n"
 "	float4 baseMaskParameters;\n"
 "	float4 baseMaskAxis;\n"
-"	Texture2D alphaMask;\n"
 "	float4 alphaMaskScaleOffset;\n"
-"	Texture2D normalMap;\n"
 "	float4 normalMapScaleOffset;\n"
-"	Texture2D parallaxMap;\n"
 "	float4 parallaxMapScaleOffset;\n"
-"	Texture2D roughnessMap;\n"
 "	float4 roughnessMapScaleOffset;\n"
 
 "	float4x4 projectorInv;\n"
@@ -231,7 +275,6 @@ static const char* PS_OCULUS_AVATAR =
 "	int layerBlendModes[MAX_LAYER_COUNT];\n"
 "	int layerMaskTypes[MAX_LAYER_COUNT];\n"
 "	float4 layerColors[MAX_LAYER_COUNT];\n"
-"	Texture2D layerSurfaces[MAX_LAYER_COUNT];\n"
 "	float4 layerSurfaceScaleOffsets[MAX_LAYER_COUNT];\n"
 "	float4 layerSampleParameters[MAX_LAYER_COUNT];\n"
 "	float4 layerMaskParameters[MAX_LAYER_COUNT];\n"
@@ -570,6 +613,7 @@ private:
 	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose);
 	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
 	TextureData* LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data);
+	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const D3DXMATRIX world, const D3DXMATRIX view, const D3DXMATRIX proj, const D3DXVECTOR3 viewPos);
 
 	/**
 	* True if OVR is initialized.
@@ -751,6 +795,34 @@ private:
 	* All Oulus Assets.
 	***/
 	std::map<ovrAvatarAssetID, void*> m_asAssetMap;
+	/**
+	* Vertex shader constants.
+	***/
+	ConstantsVS m_sConstantsVS;
+	/**
+	* Fragment shader constants.
+	***/
+	FragmentVars m_sConstantsFS;
+	/**
+	* The avatar vertex shader.
+	***/
+	ID3D11VertexShader* m_pcVSAvatar;
+	/**
+	* The avatar pixel shader.
+	***/
+	ID3D11PixelShader* m_pcPSAvatar;
+	/**
+	* The avatar vertex layout.
+	***/
+	ID3D11InputLayout* m_pcILAvatar;
+	/**
+	* The constant buffer for the avatar vertex shader.
+	***/
+	ID3D11Buffer* m_pcCVSAvatar;
+	/**
+	* The constant buffer for the avatar pixel shader.
+	***/
+	ID3D11Buffer* m_pcCPSAvatar;
 	/**
 	* Vireio menu.
 	***/

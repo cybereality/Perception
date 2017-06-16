@@ -3142,10 +3142,20 @@ HRESULT CreateMatrixConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuf
 ***/
 HRESULT CreateGeometryConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuffer, UINT unSize)
 {
+#ifdef _DEBUG
+	{ wchar_t buf[128]; wsprintf(buf, L"Buffer Size %u", unSize); OutputDebugString(buf); }
+#endif
+	// multiple of 16 ?
+	UINT unS = unSize;
+	if (unS % 16)
+	{
+		unS += 16 - (unS % 16);
+	}
+
 	// Fill in a buffer description.
 	D3D11_BUFFER_DESC cbDesc;
 	ZeroMemory(&cbDesc, sizeof(D3D11_BUFFER_DESC));
-	cbDesc.ByteWidth = unSize;
+	cbDesc.ByteWidth = unS;
 	cbDesc.Usage = D3D11_USAGE_DEFAULT;
 	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cbDesc.MiscFlags = 0;

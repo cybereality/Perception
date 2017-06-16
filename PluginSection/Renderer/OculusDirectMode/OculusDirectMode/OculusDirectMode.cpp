@@ -88,7 +88,12 @@ m_pbZoomOut(nullptr),
 m_ppcTexViewHud11(nullptr),
 m_pcTex11CopyHUD(nullptr),
 m_psAvatar(nullptr),
-m_nLoadingAssets(0)
+m_nLoadingAssets(0),
+m_pcVSAvatar(nullptr),
+m_pcPSAvatar(nullptr),
+m_pcILAvatar(nullptr),
+m_pcCVSAvatar(nullptr),
+m_pcCPSAvatar(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -149,6 +154,9 @@ m_nLoadingAssets(0)
 		sEntry.fValue = fDummy;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
+
+	// fill in basic constants for avatar rendering
+
 }
 
 /**
@@ -156,17 +164,23 @@ m_nLoadingAssets(0)
 ***/
 OculusDirectMode::~OculusDirectMode()
 {
-	if (m_pcMirrorTextureD3D11) m_pcMirrorTextureD3D11->Release();
-	if (m_pcMirrorTextureD3D11HMD) m_pcMirrorTextureD3D11HMD->Release();
-	if (m_pcMirrorTexture) ovr_DestroyMirrorTexture(m_hHMD, m_pcMirrorTexture);
-	if (m_pcBackBufferRTVTemporary) m_pcBackBufferRTVTemporary->Release();
-	if (m_pcBackBufferTemporary) m_pcBackBufferTemporary->Release();
-	if (m_pcSwapChainTemporary) m_pcSwapChainTemporary->Release();
-	if (m_pcContextTemporary) m_pcContextTemporary->Release();
-	if (m_pcDeviceTemporary) m_pcDeviceTemporary->Release();
+	SAFE_RELEASE(m_pcVSAvatar);
+	SAFE_RELEASE(m_pcPSAvatar);
+	SAFE_RELEASE(m_pcILAvatar);
+	SAFE_RELEASE(m_pcCVSAvatar);
+	SAFE_RELEASE(m_pcCPSAvatar);
 
-	if (m_pcVertexShader11) m_pcVertexShader11->Release();
-	if (m_pcPixelShader11) m_pcPixelShader11->Release();
+	SAFE_RELEASE(m_pcMirrorTextureD3D11);
+	SAFE_RELEASE(m_pcMirrorTextureD3D11HMD);
+	if (m_pcMirrorTexture) ovr_DestroyMirrorTexture(m_hHMD, m_pcMirrorTexture);
+	SAFE_RELEASE(m_pcBackBufferRTVTemporary);
+	SAFE_RELEASE(m_pcBackBufferTemporary);
+	SAFE_RELEASE(m_pcSwapChainTemporary);
+	SAFE_RELEASE(m_pcContextTemporary);
+	SAFE_RELEASE(m_pcDeviceTemporary);
+
+	SAFE_RELEASE(m_pcVertexShader11);
+	SAFE_RELEASE(m_pcPixelShader11);
 	ovr_Destroy(m_hHMD);
 }
 
@@ -879,6 +893,96 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						}
 					}
 
+					// avatar vertex shader
+					if (!m_pcVSAvatar)
+					{
+						ID3D10Blob* pcShader;
+						HRESULT hr;
+
+						// compile shader
+						hr = D3DX10CompileFromMemory(VS_OCULUS_AVATAR, strlen(VS_OCULUS_AVATAR), NULL, NULL, NULL, "main", "vs_5_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+
+
+						// create shader
+						if (SUCCEEDED(hr))
+						{
+							//#ifdef _DEBUG
+							OutputDebugString(L"[OVR] : Avatar Vertex Shader compiled !");
+							//#endif
+							hr = m_pcDeviceTemporary->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcVSAvatar);
+
+							if (FAILED(hr))
+							{
+								OutputDebugString(L"[OVR] : Failed to create Avatar Vertex Shader !");
+								bAllCreated = false;
+							}
+							else
+							{
+								// create input layout
+								D3D11_INPUT_ELEMENT_DESC aLayout01[] =
+								{
+									{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 2, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 4, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 64, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+								};
+
+								UINT unNumElements = sizeof(aLayout01) / sizeof(aLayout01[0]);
+								hr = pcDevice->CreateInputLayout(aLayout01, unNumElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), &m_pcILAvatar);
+
+								if (FAILED(hr))
+								{
+									OutputDebugString(L"[OVR] Failed to create avatar input layout !");
+									bAllCreated = false;
+								}
+							}
+							pcShader->Release();
+						}
+					}
+
+					// create avatar pixel shader
+					if (!m_pcPSAvatar)
+					{
+						ID3D10Blob* pcShader;
+						HRESULT hr;
+
+						hr = D3DX10CompileFromMemory(PS_OCULUS_AVATAR, strlen(PS_OCULUS_AVATAR), NULL, NULL, NULL, "main", "ps_5_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+
+						// succeded ?
+						if (SUCCEEDED(hr))
+						{
+							OutputDebugString(L"[OVR] : Avatar Pixel shader compiled !");
+							m_pcDeviceTemporary->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcPSAvatar);
+							pcShader->Release();
+						}
+						else
+						{
+							OutputDebugString(L"[OVR] : Failed to create Avatar pixel shader !");
+							bAllCreated = false;
+						}
+					}
+
+					// create constant buffer
+					if (!m_pcCVSAvatar)
+					{
+						if (FAILED(CreateGeometryConstantBuffer(m_pcDeviceTemporary, &m_pcCVSAvatar, (UINT)sizeof(ConstantsVS))))
+						{
+							OutputDebugString(L"[OVR] Failed to create avatar vertex constant buffer.");
+							bAllCreated = false;
+						}
+					}
+
+					// create constant buffer
+					if (!m_pcCPSAvatar)
+					{
+						if (FAILED(CreateGeometryConstantBuffer(m_pcDeviceTemporary, &m_pcCPSAvatar, (UINT)sizeof(FragmentVars))))
+						{
+							OutputDebugString(L"[OVR] Failed to create avatar fragment constant buffer.");
+							bAllCreated = false;
+						}
+					}
 					if (bAllCreated)
 					{
 						// Set the input layout
@@ -942,6 +1046,93 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 						// Render a triangle
 						m_pcContextTemporary->Draw(6, 0);
+
+#pragma region render avatar
+						// update and set constant buffers
+						m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
+						m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
+						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcCVSAvatar);
+						m_pcContextTemporary->PSSetConstantBuffers(0, 1, &m_pcCPSAvatar);
+
+						// set input layout
+						m_pcContextTemporary->IASetInputLayout(m_pcILAvatar);
+
+						// set shaders
+						m_pcContextTemporary->VSSetShader(m_pcVSAvatar, 0, 0);
+						m_pcContextTemporary->PSSetShader(m_pcPSAvatar, 0, 0);
+
+						// Traverse over all components on the avatar
+						uint32_t componentCount = 0;
+						if (m_psAvatar)
+							componentCount = ovrAvatarComponent_Count(m_psAvatar);
+						else
+							OutputDebugString(L"[OVR] Avatar pending !");
+						for (uint32_t i = 0; i < componentCount; ++i)
+						{
+							const ovrAvatarComponent* component = ovrAvatarComponent_Get(m_psAvatar, i);
+
+							// Render each rebder part attached to the component
+							for (uint32_t j = 0; j < component->renderPartCount; ++j)
+							{
+								const ovrAvatarRenderPart* renderPart = component->renderParts[j];
+								ovrAvatarRenderPartType type = ovrAvatarRenderPart_GetType(renderPart);
+								switch (type)
+								{
+									case ovrAvatarRenderPartType_SkinnedMeshRender:
+										if (true)
+										{
+											// get mesh data
+											/*auto mesh = ovrAvatarRenderPart_GetSkinnedMeshRender(renderPart);
+
+											// Get the d3d mesh data for this mesh's asset
+											MeshData* data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
+											if (!data) continue;
+
+											// get view
+											ovrVector3f eyePosition = asEyeRenderPose[eye].Position;
+											ovrQuatf eyeOrientation = asEyeRenderPose[eye].Orientation;
+											D3DXQUATERNION glmOrientation = D3DXQUATERNION(eyeOrientation.x, eyeOrientation.y, eyeOrientation.z, eyeOrientation.w);
+											D3DXVECTOR3 eyeWorld = D3DXVECTOR3(eyePosition.x, eyePosition.y, eyePosition.z);
+											D3DXQUATERNION sTransform = glmOrientation * D3DXQUATERNION(0.0f, 0.0f, -1.0f, 0.0f);
+											D3DXVECTOR3 eyeForward = D3DXVECTOR3(sTransform.x, sTransform.y, sTransform.z);
+											sTransform = glmOrientation * D3DXQUATERNION(0.0f, -1.0f, 0.0f, 0.0f);
+											D3DXVECTOR3 eyeUp = D3DXVECTOR3(sTransform.x, sTransform.y, sTransform.z);
+											D3DXMATRIX view = {};
+											D3DXMatrixLookAtRH(&view, &eyeWorld, &(eyeWorld + eyeForward), &eyeUp);
+
+											ovrMatrix4f ovrProjection = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[eye], 0.01f, 1000.0f, ovrProjection_None);
+											D3DXMATRIX proj(
+												ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
+												ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
+												ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
+												ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
+												);
+
+											// Apply the vertex state
+											D3DXMATRIX world; D3DXMatrixIdentity(&world);
+											D3DXVECTOR3 viewPos = {};
+											SetMeshState(mesh->localTransform, data, mesh->skinnedPose, world, view, proj, viewPos);
+
+											// set vertex buffer, index buffer
+											stride = sizeof(ovrAvatarMeshVertex);
+											offset = 0;
+											m_pcContextTemporary->IASetVertexBuffers(0, 1, &data->pcVertexBuffer, &stride, &offset);
+											m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+											 // draw
+											 m_pcContextTemporary->Draw(data->unElementCount, 0);*/
+										}
+										break;
+									case ovrAvatarRenderPartType_SkinnedMeshRenderPBS:
+										//OutputDebugString(L"ovrAvatarRenderPartType_SkinnedMeshRenderPBS");
+										break;
+									case ovrAvatarRenderPartType_ProjectorRender:
+										//OutputDebugString(L"ovrAvatarRenderPartType_ProjectorRender");
+										break;
+								}
+							}
+						}
+#pragma endregion
 
 						// render hud ? only once
 						if ((m_pbZoomOut) && (eye))
@@ -1214,4 +1405,38 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 	}
 
 	return texture;
+}
+
+/**
+* Sets vertex shader constants.
+***/
+void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
+	const MeshData* data,
+	const ovrAvatarSkinnedMeshPose& skinnedPose,
+	const D3DXMATRIX world,
+	const D3DXMATRIX view,
+	const D3DXMATRIX proj,
+	const D3DXVECTOR3 viewPos
+	)
+{
+	// Compute the final world and viewProjection matrices for this part
+	D3DXMATRIX local;
+	D3DMatrixFromOvrAvatarTransform(localTransform, &local);
+	D3DXMATRIX worldMat = world * local;
+	D3DXMATRIX viewProjMat = proj * view;
+
+	// Compute the skinned pose
+	D3DXMATRIX* skinnedPoses = (D3DXMATRIX*)alloca(sizeof(D3DXMATRIX)* skinnedPose.jointCount);
+	ComputeWorldPose(skinnedPose, skinnedPoses);
+	for (uint32_t i = 0; i < skinnedPose.jointCount; ++i)
+	{
+		skinnedPoses[i] = skinnedPoses[i] * data->asInverseBindPose[i];
+	}
+
+	// Pass the world view position to the shader for view-dependent rendering
+	m_sConstantsVS.viewPos = viewPos;
+	// Assign the vertex uniforms
+	m_sConstantsVS.world = world;
+	m_sConstantsVS.viewProj = viewProjMat;
+	memcpy(&m_sConstantsVS.meshPose, skinnedPoses, sizeof(D3DXMATRIX)* skinnedPose.jointCount);
 }
