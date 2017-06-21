@@ -140,7 +140,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OVRPLATFORMSDKROOT)/Windows/;$(OVRAVATARSDKROOT)/Windows/;$(OVRSDKROOT)LibOVRKernel\Lib\Windows\Win32\Release\VS2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;$(OVRAVATARSDKROOT)/Windows/libovravatar.lib;$(OVRAVATARSDKROOT)\Samples\Dependencies\OVRPlatform\Windows\LibOVRPlatform32_1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2013/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
@@ -178,7 +178,6 @@
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\..\Dev\OVR\OVRPlatformSDK_v1.15.0\Windows\OVR_PlatformLoader.cpp" />
     <ClCompile Include="..\OculusDirectMode.cpp" />
   </ItemGroup>
   <ItemGroup>

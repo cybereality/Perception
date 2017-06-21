@@ -79,10 +79,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OVR_D3D_VERSION 11
 #define OVR_SAMPLE_APP_ID "958062084316416"
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Avatar.h>
+#endif
 #include <OVR_CAPI_D3D.h>
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Platform.h>
+#endif
 
+#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\..\Include\VireioMenu.h"
@@ -512,7 +517,15 @@ struct OculusTexture
 
 		ovrResult result = ovr_CreateTextureSwapChainDX(session, pcDevice, &desc, &TextureChain);
 		if (!OVR_SUCCESS(result))
+		{
+			{ wchar_t buf[128]; wsprintf(buf, L"[OVR] Failed ovr_CreateTextureSwapChainDX : %x", result); OutputDebugString(buf); }
+			{
+			wchar_t buf[128]; wsprintf(buf, L"[OVR] sizeW : %u", sizeW); OutputDebugString(buf);
+		}
+			{ wchar_t buf[128]; wsprintf(buf, L"[OVR] sizeH : %u", sizeH); OutputDebugString(buf); }
+
 			return false;
+		}
 
 		int textureCount = 0;
 		ovr_GetTextureSwapChainLength(Session, TextureChain, &textureCount);
@@ -558,6 +571,8 @@ struct OculusTexture
 	}
 };
 
+
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Oculus Mesh data structure (D3D11).
 ***/
@@ -579,6 +594,7 @@ struct TextureData
 	ID3D11Texture2D* pcTexture;
 	ID3D11ShaderResourceView* pcSRV;
 };
+#endif
 
 /**
 * Oculus Direct Mode Node Plugin.
@@ -609,11 +625,13 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 	/*** OculusDirectMode private methods ***/
 	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose);
 	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
 	TextureData* LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data);
 	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const D3DXMATRIX world, const D3DXMATRIX view, const D3DXMATRIX proj, const D3DXVECTOR3 viewPos);
+#endif
 
 	/**
 	* True if OVR is initialized.
@@ -783,6 +801,8 @@ private:
 	* True if mirror is to be shown.
 	***/
 	bool m_bShowMirror;
+
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 	/**
 	* The Oculus Avatar.
 	***/
@@ -795,6 +815,8 @@ private:
 	* All Oulus Assets.
 	***/
 	std::map<ovrAvatarAssetID, void*> m_asAssetMap;
+#endif
+
 	/**
 	* Vertex shader constants.
 	***/

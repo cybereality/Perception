@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"OculusDirectMode.h"
 
+#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
 
@@ -56,6 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT   3
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Little Oculus matrix helper.
 ***/
@@ -67,6 +69,7 @@ inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform
 	D3DXMatrixScaling(&sScale, sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
 	*psTarget = sTranslate * sOrientation * sScale;
 }
+#endif
 
 /**
 * Constructor.
@@ -87,8 +90,10 @@ m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr),
 m_ppcTexViewHud11(nullptr),
 m_pcTex11CopyHUD(nullptr),
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 m_psAvatar(nullptr),
 m_nLoadingAssets(0),
+#endif
 m_pcVSAvatar(nullptr),
 m_pcPSAvatar(nullptr),
 m_pcILAvatar(nullptr),
@@ -368,19 +373,12 @@ bool OculusDirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int
 ***/
 void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
-	// always skip more frames than the oculus tracker to ensure initialization is done
-	static UINT unFrameSkip = 200 + 10;
-	if (unFrameSkip > 0)
-	{
-		unFrameSkip--;
-		return nullptr;
-	}
-
 	// still needed ?
 	static float fAspect = 1.0f;
 
-	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
-	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT)) return nullptr;
+	if ((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod != METHOD_IDIRECT3DDEVICE9_PRESENT)) return nullptr;
+	if ((eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) && (eD3DMethod != METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)) return nullptr;
 	/*if (!m_bHotkeySwitch)
 	{
 	if (GetAsyncKeyState(VK_F11))
@@ -390,47 +388,80 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	return nullptr;
 	}*/
 
-	// cast swapchain
-	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
-	if (!pcSwapChain)
+	// always skip more frames than the oculus tracker to ensure initialization is done
+	static UINT unFrameSkip = 200 + 10;
+	if (unFrameSkip > 0)
 	{
-		OutputDebugString(L"Oculus Direct Mode Node : No swapchain !");
+		unFrameSkip--;
 		return nullptr;
 	}
+
 	// get device
 	ID3D11Device* pcDevice = nullptr;
-	pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+	IDXGISwapChain* pcSwapChain = nullptr;
+	switch (eD3DInterface)
+	{
+		case INTERFACE_IDXGISWAPCHAIN:
+			if (pThis)
+			{
+				// cast swapchain
+				pcSwapChain = (IDXGISwapChain*)pThis;
+
+				// and get the device from the swapchain
+				pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+			}
+			else
+			{
+				OutputDebugString(L"[OVR] : No swapchain !");
+				return nullptr;
+			}
+			break;
+		case INTERFACE_IDIRECT3DDEVICE9:
+		case INTERFACE_IDIRECT3DSWAPCHAIN9:
+			// get the d3d11 device from the connected tex view
+			if (m_ppcTexView11[0])
+			{
+				if (*(m_ppcTexView11[0]))
+					(*(m_ppcTexView11[0]))->GetDevice(&pcDevice);
+				// else return nullptr;
+			}
+			else OutputDebugString(L"[OVR] : Connect d3d 11 texture views to obtain d3d 11 device.");
+			break;
+	}
+
 	if (!pcDevice)
 	{
-		OutputDebugString(L"Oculus Direct Mode Node : No d3d 11 device !");
+		OutputDebugString(L"[OVR] : No d3d 11 device !");
 		return nullptr;
 	}
+
+
 	// get context
 	ID3D11DeviceContext* pcContext = nullptr;
 	pcDevice->GetImmediateContext(&pcContext);
 	if (!pcContext)
 	{
-		OutputDebugString(L"Oculus Direct Mode Node : No device context !");
+		OutputDebugString(L"[OVR] No device context !");
 		return nullptr;
 	}
 
 	if (!m_bInit)
 	{
 #pragma region Init
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 		// Initialize the platform module
 		if (ovr_PlatformInitializeWindows(OVR_SAMPLE_APP_ID) != ovrPlatformInitialize_Success)
 		{
-			MessageBox(NULL, L"[OCULUS] Startup error", L"Failed to initialize the Oculus platform", NULL);
+			MessageBox(NULL, L"[OVR] Startup error", L"Failed to initialize the Oculus platform", NULL);
 			exit(99);
 		}
-
+#endif
 		if (!m_phHMD)
 		{
 			if (m_phHMD_Tracker)
 			{
 				if (!(*m_phHMD_Tracker))
 				{
-					pcSwapChain->Release();
 					pcDevice->Release();
 					pcContext->Release();
 					return nullptr;
@@ -448,8 +479,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				ovrResult result = ovr_Initialize(nullptr);
 				if (!OVR_SUCCESS(result))
 				{
-					OutputDebugString(L"OculusDirectMode: Failed to initialize libOVR.");
-					pcSwapChain->Release();
+					OutputDebugString(L"[OVR] Failed to initialize libOVR.");
 					pcDevice->Release();
 					pcContext->Release();
 					return nullptr;
@@ -459,7 +489,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				result = ovr_Create(&m_hHMD, &m_sLuid);
 				if (!OVR_SUCCESS(result))
 				{
-					pcSwapChain->Release();
 					pcDevice->Release();
 					pcContext->Release();
 					return nullptr;
@@ -470,41 +499,44 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			}
 		}
 
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 		// Initialize the avatar module
 		ovrAvatar_Initialize(OVR_SAMPLE_APP_ID);
 
 		// Start retrieving the avatar specification
-		OutputDebugString(L"[OCULUS] Requesting avatar specification...\r\n");
+		OutputDebugString(L"[OVR] Requesting avatar specification...\r\n");
 		ovrID unUserID = ovr_GetLoggedInUserID();
 		ovrAvatar_RequestAvatarSpecification(unUserID);
-
+#endif
 		// get HMD description
 		m_sHMDDesc = ovr_GetHmdDesc(*m_phHMD);
 
-		// create temporary (OVR) device
-		IDXGIFactory * DXGIFactory;
-		IDXGIAdapter * Adapter;
-		if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)(&DXGIFactory))))
-			return(false);
-		if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
-			return(false);
-		if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
-			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcDeviceTemporary, NULL, &m_pcContextTemporary)))
-			return(false);
-		DXGIFactory->Release();
-
-		// Set max frame latency to 1
-		IDXGIDevice1* DXGIDevice1 = NULL;
-		HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
-		if (FAILED(hr) | (DXGIDevice1 == NULL))
+		if (!m_pcDeviceTemporary)
 		{
-			pcSwapChain->Release();
-			pcDevice->Release();
-			pcContext->Release();
-			return nullptr;
+			// create temporary (OVR) device
+			IDXGIFactory * DXGIFactory;
+			IDXGIAdapter * Adapter;
+			if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)(&DXGIFactory))))
+				return(false);
+			if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
+				return(false);
+			if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+				NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcDeviceTemporary, NULL, &m_pcContextTemporary)))
+				return(false);
+			DXGIFactory->Release();
+
+			// Set max frame latency to 1
+			IDXGIDevice1* DXGIDevice1 = NULL;
+			HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
+			if (FAILED(hr) | (DXGIDevice1 == NULL))
+			{
+				pcDevice->Release();
+				pcContext->Release();
+				return nullptr;
+			}
+			DXGIDevice1->SetMaximumFrameLatency(1);
+			DXGIDevice1->Release();
 		}
-		DXGIDevice1->SetMaximumFrameLatency(1);
-		DXGIDevice1->Release();
 
 		// Set a standard blend state, ie transparency from alpha
 		D3D11_BLEND_DESC bm;
@@ -522,14 +554,19 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		for (int eye = 0; eye < 2; ++eye)
 		{
 			ovrSizei sIdealSize = ovr_GetFovTextureSize(*m_phHMD, (ovrEyeType)eye, m_sHMDDesc.DefaultEyeFov[eye], 1.0f);
+			if (sIdealSize.w == 0)
+			{
+				// strange bug here... in D3D9 we get no size here
+				sIdealSize.w = 1200;
+				sIdealSize.h = 2160;
+			}
 			m_psEyeRenderTexture[eye] = new OculusTexture();
 
 			if (!m_psEyeRenderTexture[eye]->Init(m_pcDeviceTemporary, *m_phHMD, sIdealSize.w, sIdealSize.h))
 			{
-				OutputDebugString(L"OculusDirectMode: Failed to create eye texture.");
+				OutputDebugString(L"[OVR] Failed to create eye texture.");
 				m_bInit = true;
 
-				pcSwapChain->Release();
 				pcDevice->Release();
 				pcContext->Release();
 				return nullptr;
@@ -539,10 +576,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			m_psEyeRenderViewport[eye].Size = sIdealSize;
 			if (!m_psEyeRenderTexture[eye]->TextureChain)
 			{
-				OutputDebugString(L"OculusDirectMode: Failed to create texture chain.");
+				OutputDebugString(L"[OVR]: Failed to create texture chain.");
 				m_bInit = true;
 
-				pcSwapChain->Release();
 				pcDevice->Release();
 				pcContext->Release();
 				return nullptr;
@@ -550,70 +586,74 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			}
 		}
 
-		// get viewport size
-		ID3D11Texture2D* pcBackBuffer = nullptr;
-		D3D11_TEXTURE2D_DESC sDescBackBuffer = {};
-		pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
-		if (pcBackBuffer)
+		// mirror texture only available if D3D11
+		if (pcSwapChain)
 		{
-			pcBackBuffer->GetDesc(&sDescBackBuffer);
-			pcBackBuffer->Release();
-		}
+			// get viewport size
+			ID3D11Texture2D* pcBackBuffer = nullptr;
+			D3D11_TEXTURE2D_DESC sDescBackBuffer = {};
+			pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
+			if (pcBackBuffer)
+			{
+				pcBackBuffer->GetDesc(&sDescBackBuffer);
+				pcBackBuffer->Release();
+			}
 
-		// create HUD oculus texture swapchain
-		m_psEyeRenderTextureHUD = new OculusTexture();
-		if (!m_psEyeRenderTextureHUD->Init(m_pcDeviceTemporary, *m_phHMD, sDescBackBuffer.Width, sDescBackBuffer.Height))
-		{
-			OutputDebugString(L"[OVR] Failed to create HUD texture.");
-			m_bInit = true;
+			// create HUD oculus texture swapchain
+			m_psEyeRenderTextureHUD = new OculusTexture();
+			if (!m_psEyeRenderTextureHUD->Init(m_pcDeviceTemporary, *m_phHMD, sDescBackBuffer.Width, sDescBackBuffer.Height))
+			{
+				OutputDebugString(L"[OVR] Failed to create HUD texture.");
+				m_bInit = true;
 
-			pcSwapChain->Release();
-			pcDevice->Release();
-			pcContext->Release();
-			return nullptr;
-		}
 
-		// Create a mirror to see on the monitor.
-		D3D11_TEXTURE2D_DESC sTd = {};
-		sTd.ArraySize = 1;
-		sTd.Format = sDescBackBuffer.Format;
-		sTd.Width = (UINT)sDescBackBuffer.Width;
-		sTd.Height = (UINT)sDescBackBuffer.Height;
-		sTd.Usage = D3D11_USAGE_DEFAULT;
-		sTd.SampleDesc.Count = 1;
-		sTd.MipLevels = 1;
-		sTd.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
-		m_pcDeviceTemporary->CreateTexture2D(&sTd, nullptr, &m_pcMirrorTextureD3D11HMD);
-		ovrMirrorTextureDesc sMirrorDesc = {};
-		sMirrorDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
-		sMirrorDesc.Width = (UINT)sDescBackBuffer.Width;
-		sMirrorDesc.Height = (UINT)sDescBackBuffer.Height;
-		ovrResult result = ovr_CreateMirrorTextureDX(*m_phHMD, m_pcDeviceTemporary, &sMirrorDesc, &m_pcMirrorTexture);
-		if (!OVR_SUCCESS(result))
-		{
-			OutputDebugString(L"[OVR]: Failed to create mirror texture.");
-		}
+				pcDevice->Release();
+				pcContext->Release();
+				return nullptr;
+			}
 
-		// get shared handle
-		IDXGIResource* pcDXGIResource(NULL);
-		m_pcMirrorTextureD3D11HMD->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
-		HANDLE sharedHandle;
-		if (pcDXGIResource)
-		{
-			pcDXGIResource->GetSharedHandle(&sharedHandle);
-			pcDXGIResource->Release();
-		}
-		else OutputDebugString(L"[OVR] Failed to query IDXGIResource.");
+			// Create a mirror to see on the monitor.
+			D3D11_TEXTURE2D_DESC sTd = {};
+			sTd.ArraySize = 1;
+			sTd.Format = sDescBackBuffer.Format;
+			sTd.Width = (UINT)sDescBackBuffer.Width;
+			sTd.Height = (UINT)sDescBackBuffer.Height;
+			sTd.Usage = D3D11_USAGE_DEFAULT;
+			sTd.SampleDesc.Count = 1;
+			sTd.MipLevels = 1;
+			sTd.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+			m_pcDeviceTemporary->CreateTexture2D(&sTd, nullptr, &m_pcMirrorTextureD3D11HMD);
+			ovrMirrorTextureDesc sMirrorDesc = {};
+			sMirrorDesc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
+			sMirrorDesc.Width = (UINT)sDescBackBuffer.Width;
+			sMirrorDesc.Height = (UINT)sDescBackBuffer.Height;
+			ovrResult result = ovr_CreateMirrorTextureDX(*m_phHMD, m_pcDeviceTemporary, &sMirrorDesc, &m_pcMirrorTexture);
+			if (!OVR_SUCCESS(result))
+			{
+				OutputDebugString(L"[OVR]: Failed to create mirror texture.");
+			}
 
-		// open the shared handle with the temporary device
-		ID3D11Resource* pcResourceShared;
-		pcDevice->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
-		if (pcResourceShared)
-		{
-			pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcMirrorTextureD3D11));
-			pcResourceShared->Release();
+			// get shared handle
+			IDXGIResource* pcDXGIResource(NULL);
+			m_pcMirrorTextureD3D11HMD->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+			HANDLE sharedHandle;
+			if (pcDXGIResource)
+			{
+				pcDXGIResource->GetSharedHandle(&sharedHandle);
+				pcDXGIResource->Release();
+			}
+			else OutputDebugString(L"[OVR] Failed to query IDXGIResource.");
+
+			// open the shared handle with the temporary device
+			ID3D11Resource* pcResourceShared;
+			pcDevice->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+			if (pcResourceShared)
+			{
+				pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcMirrorTextureD3D11));
+				pcResourceShared->Release();
+			}
+			else OutputDebugString(L"[OVR] Could not open shared resource.");
 		}
-		else OutputDebugString(L"[OVR] Could not open shared resource.");
 
 		// Setup VR components, filling out description
 		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(*m_phHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
@@ -628,6 +668,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	else
 	{
 #pragma region Avatar
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 		// get avatar messages
 		if (ovrAvatarMessage* psMessage = ovrAvatarMessage_Pop())
 		{
@@ -683,6 +724,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			OutputDebugString(L"[OVR] Avatar Message processed...");
 			ovrAvatarMessage_Free(psMessage);
 		}
+#endif
 #pragma endregion
 #pragma region Render
 
@@ -1048,6 +1090,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->Draw(6, 0);
 
 #pragma region render avatar
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 						// update and set constant buffers
 						m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
 						m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
@@ -1102,11 +1145,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 											ovrMatrix4f ovrProjection = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[eye], 0.01f, 1000.0f, ovrProjection_None);
 											D3DXMATRIX proj(
-												ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
-												ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
-												ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
-												ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
-												);
+											ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
+											ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
+											ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
+											ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
+											);
 
 											// Apply the vertex state
 											D3DXMATRIX world; D3DXMatrixIdentity(&world);
@@ -1119,8 +1162,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											m_pcContextTemporary->IASetVertexBuffers(0, 1, &data->pcVertexBuffer, &stride, &offset);
 											m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-											 // draw
-											 m_pcContextTemporary->Draw(data->unElementCount, 0);*/
+											// draw
+											m_pcContextTemporary->Draw(data->unElementCount, 0);*/
 										}
 										break;
 									case ovrAvatarRenderPartType_SkinnedMeshRenderPBS:
@@ -1132,6 +1175,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 								}
 							}
 						}
+#endif
 #pragma endregion
 
 						// render hud ? only once
@@ -1159,6 +1203,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			// Commit rendering to the swap chain
 			m_psEyeRenderTexture[eye]->Commit();
 		}
+
 
 		// init our layers, first our full screen Fov layer.
 		ZeroMemory(&m_sLayerPrimal, sizeof(ovrLayerQuad));
@@ -1217,15 +1262,15 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		}
 		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, unLayerNumber);
 
-		// copy the mirror texture to the shared texture
-		ID3D11Texture2D* tex = nullptr;
-		ovr_GetMirrorTextureBufferDX(*m_phHMD, m_pcMirrorTexture, IID_PPV_ARGS(&tex));
-		m_pcContextTemporary->CopyResource(m_pcMirrorTextureD3D11HMD, tex);
-		tex->Release();
-
-		// Render mirror
-		if (m_bShowMirror)
+		// Render mirror.. only available if D3D11
+		if ((m_bShowMirror) && (pcSwapChain))
 		{
+			// copy the mirror texture to the shared texture
+			ID3D11Texture2D* tex = nullptr;
+			ovr_GetMirrorTextureBufferDX(*m_phHMD, m_pcMirrorTexture, IID_PPV_ARGS(&tex));
+			m_pcContextTemporary->CopyResource(m_pcMirrorTextureD3D11HMD, tex);
+			tex->Release();
+
 			ID3D11Texture2D* pcBackBuffer = nullptr;
 			pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
 			if (pcBackBuffer)
@@ -1235,9 +1280,16 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			}
 			else
 				OutputDebugString(L"[OVR] No Back Buffer");
+
+			if (!m_pcMirrorTextureD3D11) OutputDebugString(L"[OVR] No mirror texture!");
 		}
 
-		if (!m_pcMirrorTextureD3D11) OutputDebugString(L"[OVR] No mirror texture!");
+		// is a swapchain connected to the device ? call present in case
+		IDXGISwapChain* pcSwapchain = nullptr;
+		UINT unSize = sizeof(pcSwapchain);
+		pcDevice->GetPrivateData(PDIID_ID3D11Device_IDXGISwapChain, &unSize, &pcSwapchain);
+		if (pcSwapchain) pcSwapchain->Present(0, 0);
+
 #pragma endregion
 	}
 
@@ -1248,6 +1300,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	return nullptr;
 }
 
+#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Compute all world matrices.
 ***/
@@ -1383,9 +1436,9 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 				if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, &texture->pcTexture)))
 				{
 					if (data->format == ovrAvatarTextureFormat_DXT1)
-						OutputDebugString(L"[OCULUS] Failed to create model texture. DXGI_FORMAT_BC1_UNORM");
+						OutputDebugString(L"[OVR] Failed to create model texture. DXGI_FORMAT_BC1_UNORM");
 					else
-						OutputDebugString(L"[OCULUS] Failed to create model texture. DXGI_FORMAT_BC3_UNORM");
+						OutputDebugString(L"[OVR] Failed to create model texture. DXGI_FORMAT_BC3_UNORM");
 				}
 			}
 			break;
@@ -1401,7 +1454,7 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 		sDesc.Texture2D.MipLevels = data->mipCount;
 
 		if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)texture->pcTexture, &sDesc, &texture->pcSRV))))
-			OutputDebugString(L"[OCULUS] Failed to create model texture shader resource view!");
+			OutputDebugString(L"[OVR] Failed to create model texture shader resource view!");
 	}
 
 	return texture;
@@ -1440,3 +1493,4 @@ void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
 	m_sConstantsVS.viewProj = viewProjMat;
 	memcpy(&m_sConstantsVS.meshPose, skinnedPoses, sizeof(D3DXMATRIX)* skinnedPose.jointCount);
 }
+#endif

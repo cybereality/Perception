@@ -1100,6 +1100,8 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 ***/
 void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
+	OutputDebugString(L"[CIN] Init D3D9...");
+
 	// create d3d11 device/context/swapchain
 	if ((!m_pcD3D11Device) || (!m_pcD3D11Context))
 	{
@@ -1120,7 +1122,89 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
 	if ((!m_ppcTex9Input[0]) || (!m_ppcTex9Input[1]))
 	{
-		// TODO !! GET BACKBUFFER
+		// get back buffer
+		IDirect3DSurface9* pcBackBuffer = nullptr;
+		pcDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pcBackBuffer);
+
+		if (!pcBackBuffer)
+		{
+			OutputDebugString(L"[CIN] No D3D9 backbuffer available !");
+			return;
+		}
+
+		// get the description and create the copy texture
+		D3DSURFACE_DESC sDescSurfaceD3D9 = {};
+		pcBackBuffer->GetDesc(&sDescSurfaceD3D9);
+
+		// copy texture created ?
+		if (!m_pcTex9Copy[0])
+		{
+			HRESULT nHr = pcDevice->CreateTexture(sDescSurfaceD3D9.Width, sDescSurfaceD3D9.Height, 1, 0, sDescSurfaceD3D9.Format, D3DPOOL_SYSTEMMEM, &m_pcTex9Copy[0], NULL);
+			if (!m_pcTex9Copy[0])
+			{
+				DEBUG_HR(L"[CIN] Failed to create D3D9 copy texture : ", nHr);
+				return;
+			}
+		}
+
+		// release old texture
+		if (m_pcTexCopy11SRV[0]) m_pcTexCopy11SRV[0]->Release();
+		if (m_pcTexCopy11[0]) m_pcTexCopy11[0]->Release();
+
+		// copy d3d9 texture
+		IDirect3DSurface9* pcSurfaceDst = nullptr;
+		m_pcTex9Copy[0]->GetSurfaceLevel(0, &pcSurfaceDst);
+		pcDevice->GetRenderTargetData(pcBackBuffer, pcSurfaceDst);
+		//		pcDevice->StretchRect(pcBackBuffer, NULL, pcSurfaceDst, NULL, D3DTEXF_NONE); // USE THIS HERE ???
+		if (pcBackBuffer) pcBackBuffer->Release();
+
+		// lock and create d3d11 tex
+		D3DLOCKED_RECT sRect = {};
+		if (SUCCEEDED(pcSurfaceDst->LockRect(&sRect, NULL, NULL)))
+		{
+			D3D11_TEXTURE2D_DESC sDesc = {};
+			sDesc.Width = sDescSurfaceD3D9.Width;
+			sDesc.Height = sDescSurfaceD3D9.Height;
+			sDesc.MipLevels = 1;
+			sDesc.ArraySize = 1;
+			sDesc.Format = GetDXGI_Format(sDescSurfaceD3D9.Format);
+			sDesc.SampleDesc.Count = 1;
+			sDesc.SampleDesc.Quality = 0;
+			sDesc.Usage = D3D11_USAGE_DEFAULT;
+			sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			sDesc.CPUAccessFlags = 0;
+			sDesc.MiscFlags = 0;
+			D3D11_SUBRESOURCE_DATA sData = {};
+			sData.pSysMem = sRect.pBits;
+			sData.SysMemPitch = sRect.Pitch;
+			if (FAILED(m_pcD3D11Device->CreateTexture2D(&sDesc, &sData, (ID3D11Texture2D**)&m_pcTexCopy11[0])))
+			{
+				OutputDebugString(L"[CIN] Failed to create copy texture !");
+				return;
+			}
+
+			pcSurfaceDst->UnlockRect();
+
+			// create shader resource view
+			if (m_pcTexCopy11[0])
+			{
+				if (FAILED(m_pcD3D11Device->CreateShaderResourceView(m_pcTexCopy11[0], NULL, &m_pcTexCopy11SRV[0])))
+					OutputDebugString(L"[CIN] Failed to create shader resource view.");
+			}
+
+			// set stereo to mono
+			m_pcTexCopy11[1] = m_pcTexCopy11[0];
+			m_pcTexCopy11SRV[1] = m_pcTexCopy11SRV[0];
+
+		}
+
+		if (pcSurfaceDst) pcSurfaceDst->Release();
+
+
+		if ((m_pcD3D11Device) || (m_pcD3D11Context))
+		{
+			RenderD3D11(m_pcD3D11Device, m_pcD3D11Context, nullptr);
+		}
 		return;
 	}
 	else
@@ -1741,7 +1825,11 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 				m_apcTex11InputSRV[1] = m_pcTexCopy11SRV[1];
 			}
 			else
+			{
+				DEBUG_HEX(m_pcTexCopy11SRV[0]);
+				DEBUG_HEX(m_pcTexCopy11SRV[1]);
 				return;
+			}
 		case VireioCinema::D3D_10:
 			break;
 		case VireioCinema::D3D_11:
