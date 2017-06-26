@@ -539,11 +539,12 @@ HBITMAP OculusTracker::GetControl()
 			TextOut(hdcImage, 150, nY, L"Default FOV Projection Matrix Left", 34); nY += 64;
 			TextOut(hdcImage, 150, nY, L"Default FOV Projection Matrix Right", 35); nY += 64;
 
-			// handle, matrices
+			// handle, matrices, menu
 			TextOut(hdcImage, 150, nY, L"HMD Handle", 10); nY += 64;
 			TextOut(hdcImage, 150, nY, L"View", 4); nY += 64;
 			TextOut(hdcImage, 150, nY, L"Projection Left", 15); nY += 64;
 			TextOut(hdcImage, 150, nY, L"Projection Right", 16); nY += 64;
+			TextOut(hdcImage, 150, nY, L"Vireio Menu", 11); nY += 64;
 
 			// Display the text string for the provoker
 			szBuffer << m_sHMDDesc.ProductName << " " << m_sHMDDesc.Resolution.w << "x" << m_sHMDDesc.Resolution.h;
@@ -663,6 +664,8 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 		case OTR_Commanders::ProjectionLeft:
 		case OTR_Commanders::ProjectionRight:
 			return NOD_Plugtype::AQU_D3DMATRIX;
+		case VireioMenu:
+			return NOD_Plugtype::AQU_VOID;
 	}
 
 	return 0;

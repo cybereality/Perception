@@ -531,7 +531,24 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					// get device and context
 					ID3D11Device* pcDevice = nullptr;
 					ID3D11DeviceContext* pcContext = nullptr;
-					if (SUCCEEDED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+					HRESULT nHr = S_OK;
+					if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+						nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
+					else
+					{
+						if (m_ppcTexView11[0])
+						{
+							if (*(m_ppcTexView11[0]))
+								(*(m_ppcTexView11[0]))->GetDevice(&pcDevice);
+							if (pcDevice)
+								pcDevice->GetImmediateContext(&pcContext);
+							else nHr = E_FAIL;
+							if (!pcContext) nHr = E_FAIL;
+						}
+						else
+							nHr = E_FAIL;
+					}
+					if (SUCCEEDED(nHr))
 					{
 						HRESULT nHr;
 						// get base directory
@@ -579,7 +596,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		bControllerAttached = true;
 	}
 
-	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+	if (true)
 	{
 #pragma region menu hotkeys
 		static bool bReleased = true;
@@ -690,15 +707,32 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// get device and context
 			ID3D11Device* pcDevice = nullptr;
 			ID3D11DeviceContext* pcContext = nullptr;
-			if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+			HRESULT nHr = S_OK;
+			if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+				nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
+			else
+			{
+				if (m_ppcTexView11[0])
+				{
+					if (*(m_ppcTexView11[0]))
+						(*(m_ppcTexView11[0]))->GetDevice(&pcDevice);
+					if (pcDevice)
+						pcDevice->GetImmediateContext(&pcContext);
+					else nHr = E_FAIL;
+					if (!pcContext) nHr = E_FAIL;
+				}
+				else
+					nHr = E_FAIL;
+			}
+			if (FAILED(nHr))
 			{
 				// release frame texture+view
 				if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
 				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 				return nullptr;
 			}
-			// create the depth stencil
-			if (!m_pcDSGeometry11)
+			// create the depth stencil... if D3D11
+			if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT) && (!m_pcDSGeometry11))
 			{
 				ID3D11Texture2D* pcBackBuffer = nullptr;
 				((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
@@ -774,6 +808,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				}
 			}
 			else
+			if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 			{
 				// set first active render target - the stored back buffer - get the stored private data view
 				ID3D11Texture2D* pcBackBuffer = nullptr;
@@ -805,7 +840,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 
 			// create the font class if not present 
-			HRESULT nHr = S_OK;
+			nHr = S_OK;
 			if (!m_pcFontSegeo128)
 			{
 				// get base directory
@@ -850,7 +885,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 #pragma region draw stereo (optionally)
 
 		// draw stereo target to screen (optionally)
-		if (m_eStereoMode)
+		if ((m_eStereoMode) && (eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 		{
 			// DX 11
 			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))

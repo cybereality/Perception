@@ -929,7 +929,15 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 					// get device and context
 					ID3D11Device* pcDevice = nullptr;
 					ID3D11DeviceContext* pcContext = nullptr;
-					if (SUCCEEDED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+					HRESULT nHr = S_OK;
+					if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+						nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
+					else
+					{
+						if (m_pcD3D11Device) pcDevice = m_pcD3D11Device; else nHr = E_FAIL;
+						if (m_pcD3D11Context) pcContext = m_pcD3D11Context; else nHr = E_FAIL;
+					}
+					if (SUCCEEDED(nHr))
 					{
 						switch (nIx)
 						{
@@ -970,8 +978,11 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 								break;
 						}
 					}
-					SAFE_RELEASE(pcDevice);
-					SAFE_RELEASE(pcContext);
+					if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+					{
+						SAFE_RELEASE(pcDevice);
+						SAFE_RELEASE(pcContext);
+					}
 				}
 			}
 		}
