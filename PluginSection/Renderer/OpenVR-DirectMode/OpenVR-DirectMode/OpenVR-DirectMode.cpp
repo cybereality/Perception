@@ -236,7 +236,7 @@ m_bRenderModelsCreated(false)
 	m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 
 	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
-	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
+	m_sCinemaRoomSetup.fScreenLevel = 0.0f; /**< default : 0 meters height level */
 	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
 
 	// locate or create the INI file
