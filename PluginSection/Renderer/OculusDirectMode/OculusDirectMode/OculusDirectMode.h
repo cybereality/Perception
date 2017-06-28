@@ -79,11 +79,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OVR_D3D_VERSION 11
 #define OVR_SAMPLE_APP_ID "958062084316416"
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Avatar.h>
 #endif
 #include <OVR_CAPI_D3D.h>
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Platform.h>
 #endif
 
@@ -572,7 +572,7 @@ struct OculusTexture
 };
 
 
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Oculus Mesh data structure (D3D11).
 ***/
@@ -625,7 +625,7 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 	/*** OculusDirectMode private methods ***/
 	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose);
 	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
@@ -802,7 +802,7 @@ private:
 	***/
 	bool m_bShowMirror;
 
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 	/**
 	* The Oculus Avatar.
 	***/

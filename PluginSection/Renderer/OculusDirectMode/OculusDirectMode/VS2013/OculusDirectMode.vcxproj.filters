@@ -7,6 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\OculusDirectMode.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Dev\OVR\ovr_avatar_sdk_1.15.0\OVRAvatarSDK\Samples\Dependencies\OVRPlatform\Windows\OVR_PlatformLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />

@@ -57,7 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT   3
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Little Oculus matrix helper.
 ***/
@@ -90,7 +90,7 @@ m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr),
 m_ppcTexViewHud11(nullptr),
 m_pcTex11CopyHUD(nullptr),
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 m_psAvatar(nullptr),
 m_nLoadingAssets(0),
 #endif
@@ -448,7 +448,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	if (!m_bInit)
 	{
 #pragma region Init
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 		// Initialize the platform module
 		if (ovr_PlatformInitializeWindows(OVR_SAMPLE_APP_ID) != ovrPlatformInitialize_Success)
 		{
@@ -499,7 +499,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			}
 		}
 
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 		// Initialize the avatar module
 		ovrAvatar_Initialize(OVR_SAMPLE_APP_ID);
 
@@ -668,7 +668,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	else
 	{
 #pragma region Avatar
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 		// get avatar messages
 		if (ovrAvatarMessage* psMessage = ovrAvatarMessage_Pop())
 		{
@@ -751,7 +751,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
 		ovrTrackingState sHmdState = ovr_GetTrackingState(*m_phHMD, ovr_GetTimeInSeconds(), false);
 		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
-		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		FLOAT colorBlack[4] = { 0.5f, 0.5f, 0.5f, 0.0f };
 		double sensorSampleTime = ovr_GetTimeInSeconds();
 
 		// render
@@ -1087,10 +1087,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->PSSetShader(m_pcPixelShader11, 0, 0);
 
 						// Render a triangle
-						m_pcContextTemporary->Draw(6, 0);
+						//m_pcContextTemporary->Draw(6, 0);
 
 #pragma region render avatar
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 						// update and set constant buffers
 						m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
 						m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
@@ -1122,10 +1122,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 								switch (type)
 								{
 									case ovrAvatarRenderPartType_SkinnedMeshRender:
+										//OutputDebugString(L"ovrAvatarRenderPartType_SkinnedMeshRender");
 										if (true)
 										{
 											// get mesh data
-											/*auto mesh = ovrAvatarRenderPart_GetSkinnedMeshRender(renderPart);
+											auto mesh = ovrAvatarRenderPart_GetSkinnedMeshRender(renderPart);
 
 											// Get the d3d mesh data for this mesh's asset
 											MeshData* data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
@@ -1145,11 +1146,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 											ovrMatrix4f ovrProjection = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[eye], 0.01f, 1000.0f, ovrProjection_None);
 											D3DXMATRIX proj(
-											ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
-											ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
-											ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
-											ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
-											);
+												ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
+												ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
+												ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
+												ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
+												);
 
 											// Apply the vertex state
 											D3DXMATRIX world; D3DXMatrixIdentity(&world);
@@ -1163,7 +1164,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 											// draw
-											m_pcContextTemporary->Draw(data->unElementCount, 0);*/
+											m_pcContextTemporary->Draw(data->unElementCount, 0);
 										}
 										break;
 									case ovrAvatarRenderPartType_SkinnedMeshRenderPBS:
@@ -1304,7 +1305,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	return nullptr;
 }
 
-#ifndef _WIN32 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Compute all world matrices.
 ***/
@@ -1356,6 +1357,7 @@ MeshData* OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMesh
 	sInitData.pSysMem = data->indexBuffer;
 	if (FAILED(pcDevice->CreateBuffer(&sIBDesc, &sInitData, &mesh->pcElementBuffer)))
 		OutputDebugString(L"[OCULUS] Failed to create index buffer.");
+	mesh->unElementCount = data->indexCount;
 
 	// Translate the bind pose
 	ComputeWorldPose(data->skinnedBindPose, mesh->asBindPose);
