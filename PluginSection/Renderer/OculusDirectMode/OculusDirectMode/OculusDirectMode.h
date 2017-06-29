@@ -92,6 +92,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\..\Include\VireioMenu.h"
 
+// #define _CREATE_MESH_FILES // define this to output mesh data to c++ ".h" files
+#ifdef _CREATE_MESH_FILES
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#endif
+
 #define NUMBER_OF_COMMANDERS                            1
 #define NUMBER_OF_DECOMMANDERS                         11
 

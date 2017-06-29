@@ -751,7 +751,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
 		ovrTrackingState sHmdState = ovr_GetTrackingState(*m_phHMD, ovr_GetTimeInSeconds(), false);
 		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
-		FLOAT colorBlack[4] = { 0.5f, 0.5f, 0.5f, 0.0f };
+		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		double sensorSampleTime = ovr_GetTimeInSeconds();
 
 		// render
@@ -1087,7 +1087,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->PSSetShader(m_pcPixelShader11, 0, 0);
 
 						// Render a triangle
-						//m_pcContextTemporary->Draw(6, 0);
+						m_pcContextTemporary->Draw(6, 0);
 
 #pragma region render avatar
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
@@ -1328,12 +1328,92 @@ void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPo
 	}
 }
 
+
+const ovrAvatarMeshVertex asAvatarVertices[] =
+{ { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f },
+{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f } };
+
 /**
 * Oculus mesh loader (D3D11).
 **/
 MeshData* OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data)
 {
 	MeshData* mesh = new MeshData();
+
+#ifdef _CREATE_MESH_FILES // if defined, outputs all mesh data to c++ ".h" files
+	// get the file name
+	std::ofstream ofMeshfile;
+	std::stringstream strFileName;
+	strFileName << "OculusMesh_" << data->vertexCount << ".h";
+
+	// open file and set manipulators
+	ofMeshfile.open(strFileName.str().c_str());
+	ofMeshfile << std::fixed << std::setw(11) << std::setprecision(6);
+
+	// write header
+	ofMeshfile << "/********************************************************************\n";
+	ofMeshfile << "Vireio Perception: Open-Source Stereoscopic 3D Driver\n";
+	ofMeshfile << "Copyright (C) 2012 Andres Hernandez\n";
+
+	ofMeshfile << "This file was exported from Vireio using Oculus Avatar SDK.\n";
+	ofMeshfile << "Data Copyright : Copyright 2014-2016 Oculus VR, LLC All Rights reserved.\n\n";
+
+	ofMeshfile << "Vireio Perception Version History :.\n";
+	ofMeshfile << "v1.0.0 2012 by Andres Hernandez.\n";
+	ofMeshfile << "v1.0.X 2013 by John Hicks, Neil Schneider.\n";
+	ofMeshfile << "v1.1.x 2013 by Primary Coding Author : Chris Drain.\n";
+	ofMeshfile << "Team Support : John Hicks, Phil Larkson, Neil Schneider.\n";
+	ofMeshfile << "v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown.\n";
+	ofMeshfile << "v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown, Samuel Austin.\n";
+	ofMeshfile << "and Neil Schneider.\n\n";
+
+	ofMeshfile << "This program is free software : you can redistribute it and / or modify.\n";
+	ofMeshfile << "it under the terms of the GNU Lesser General Public License as published by.\n";
+	ofMeshfile << "the Free Software Foundation, either version 3 of the License, or.\n";
+	ofMeshfile << "(at your option) any later version..\n\n";
+
+	ofMeshfile << "This program is distributed in the hope that it will be useful,.\n";
+	ofMeshfile << "but WITHOUT ANY WARRANTY; without even the implied warranty of.\n";
+	ofMeshfile << "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the.\n";
+	ofMeshfile << "GNU Lesser General Public License for more details..\n\n";
+
+	ofMeshfile << "You should have received a copy of the GNU Lesser General Public License.\n";
+	ofMeshfile << "along with this program.If not, see < http://www.gnu.org/licenses/>..\n";
+	ofMeshfile << "********************************************************************/\n\n";
+
+	// loop through vertices
+	ofMeshfile << "const uint32_t unAvatarVertexCount_" << data->vertexCount << " = " << data->vertexCount << ";\n";
+	ofMeshfile << "const ovrAvatarMeshVertex asAvatarVertices_" << data->vertexCount << "[] = {\n";
+	for (uint16_t unIx = 0; unIx < data->vertexCount; unIx++)
+	{
+		ofMeshfile << "	{ " << data->vertexBuffer[unIx].x << "," << data->vertexBuffer[unIx].y << "," << data->vertexBuffer[unIx].z << ","
+			<< data->vertexBuffer[unIx].nx << "," << data->vertexBuffer[unIx].ny << "," << data->vertexBuffer[unIx].nz << ","
+			<< data->vertexBuffer[unIx].tx << "," << data->vertexBuffer[unIx].ty << "," << data->vertexBuffer[unIx].tz << "," << data->vertexBuffer[unIx].tw << ","
+			<< data->vertexBuffer[unIx].u << "," << data->vertexBuffer[unIx].v << ","
+			<< (UINT)data->vertexBuffer[unIx].blendIndices[0] << "," << (UINT)data->vertexBuffer[unIx].blendIndices[1] << "," << (UINT)data->vertexBuffer[unIx].blendIndices[2] << "," << (UINT)data->vertexBuffer[unIx].blendIndices[3] << ","
+			<< data->vertexBuffer[unIx].blendWeights[0] << "," << data->vertexBuffer[unIx].blendWeights[1] << "," << data->vertexBuffer[unIx].blendWeights[2] << "," << data->vertexBuffer[unIx].blendWeights[3] << "}";
+		if (unIx < (data->vertexCount - 1))
+			ofMeshfile << ",\n";
+		else
+			ofMeshfile << "};\n\n";
+	}
+	// loop through indices
+	ofMeshfile << "const uint32_t unAvatarIndexCount_" << data->vertexCount << " = " << data->indexCount << ";\n";
+	ofMeshfile << "const uint32_t aunAvatarVertices_" << data->vertexCount << "[] = {\n";
+	for (uint16_t unIx = 0; unIx < data->indexCount; unIx++)
+	{
+		ofMeshfile << data->indexBuffer[unIx];
+		if (unIx < (data->indexCount - 1))
+		{
+			ofMeshfile << ",";
+			if (unIx % 16 == 15)
+				ofMeshfile << "\n";
+		}
+		else
+			ofMeshfile << "};\n\n";
+	}
+	ofMeshfile.close();
+#endif
 
 	// create the vertex buffer
 	D3D11_BUFFER_DESC sDesc = {};
