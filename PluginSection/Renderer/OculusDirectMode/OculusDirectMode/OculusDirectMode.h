@@ -109,7 +109,7 @@ struct ConstantsVS
 {
 	D3DXVECTOR3 viewPos;
 	D3DXMATRIX world;
-	D3DXMATRIX viewProj;
+	XMMATRIX viewProj;
 	D3DXMATRIX meshPose[64];
 };
 
@@ -184,7 +184,7 @@ static const char* VS_OCULUS_AVATAR =
 
 "OutputVS main(InputVS sInput)\n"
 "{\n"
-"	float4 vertexPose;\n"
+/*"	float4 vertexPose;\n"
 "	vertexPose = mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
 "	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
 "	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
@@ -212,6 +212,11 @@ static const char* VS_OCULUS_AVATAR =
 "	sOutput.vertexNormal = mul(normalPose, world).xyz;\n"
 "	sOutput.vertexTangent = mul(tangentPose, world).xyz;\n"
 "	sOutput.vertexBitangent = normalize(cross(sOutput.vertexNormal, sOutput.vertexTangent) * sInput.tangent.w);\n"
+"	sOutput.vertexUV = sInput.texCoord;\n"*/
+
+// NO SKINNING SIMPLE TEST
+"	OutputVS sOutput;\n"
+"	sOutput.position = mul(float4(sInput.position, 1.0f), viewProj);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"
 
 "	return sOutput;\n"
@@ -415,7 +420,7 @@ static const char* PS_OCULUS_AVATAR =
 
 "float4 main(OutputVS sInput) : SV_TARGET\n"
 "{\n"
-"	float3 worldNormal = normalize(sInput.vertexNormal);\n"
+/*"	float3 worldNormal = normalize(sInput.vertexNormal);\n"
 "	float3x3 tangentTransform = float3x3(sInput.vertexTangent, sInput.vertexBitangent, worldNormal);\n"
 
 "	float2 uv = sInput.vertexUV;\n"
@@ -434,10 +439,10 @@ static const char* PS_OCULUS_AVATAR =
 "	{\n"
 "		surfaceNormal.xy = normalMap.Sample(samplerAvatar, uv * normalMapScaleOffset.xy + normalMapScaleOffset.zw).xy * 2.0 - 1.0;\n"
 "		surfaceNormal.z = sqrt(1.0 - dot(surfaceNormal.xy, surfaceNormal.xy));\n"
-"	}\n"
+"	}\n"*/
 
-"	float4 color = baseColor;\n"
-"	for (int i = 0; i < layerCount; ++i)\n"
+"	float4 color = float4(1.0f, 1.0f, 1.0f, 1.0f);\n"//baseColor;\n"
+/*"	for (int i = 0; i < layerCount; ++i)\n"
 "	{\n"
 "		float3 layerColor = ComputeColor(sInput.vertexViewDir, layerSamplerModes[i], uv, layerColors[i], layerSurfaces[i], layerSurfaceScaleOffsets[i], layerSampleParameters[i], tangentTransform, worldNormal, surfaceNormal);\n"
 "		float layerMask = ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, layerMaskTypes[i], layerMaskParameters[i], layerMaskAxes[i], tangentTransform, worldNormal, surfaceNormal);\n"
@@ -448,7 +453,7 @@ static const char* PS_OCULUS_AVATAR =
 "	{\n"
 "		color.a *= alphaMask.Sample(samplerAvatar, uv * alphaMaskScaleOffset.xy + alphaMaskScaleOffset.zw).r;\n"
 "	}\n"
-"	color.a *= ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, baseMaskType, baseMaskParameters, baseMaskAxis, tangentTransform, worldNormal, surfaceNormal);\n"
+"	color.a *= ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, baseMaskType, baseMaskParameters, baseMaskAxis, tangentTransform, worldNormal, surfaceNormal);\n"*/
 
 "	return color;\n"
 "}\n";
