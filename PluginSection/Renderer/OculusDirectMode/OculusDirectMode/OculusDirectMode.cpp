@@ -58,16 +58,70 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+#define AVATAR_MESH_LEFT_TOUCH 0x557a26331850dbf
+#define AVATAR_MESH_RIGHT_HAND 0x6a4ae11446026286
+#define AVATAR_MESH_RIGHT_TOUCH 0x6feb9283b780b5a3
+#define AVATAR_MESH_CHEST 0x7f1ca835aeb1b69e
+#define AVATAR_MESH_RING 0x8e78d539875b1886
+#define AVATAR_MESH_HEAD 0xaf8f894a6872ef92
+#define AVATAR_MESH_HMD 0xc9d9e6ab35efc3a0
+#define AVATAR_MESH_THROAT 0xe986b9ff5f964dad
+#define AVATAR_MESH_LEFT_HAND 0xf82847a6b3ddf1a6
+
 /**
 * Little Oculus matrix helper.
 ***/
-inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform, D3DXMATRIX* psTarget) {
-	D3DXMATRIX sTranslate, sOrientation, sScale;
-	D3DXQUATERNION sOrientationQ(sTransform.orientation.w, sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z);
-	D3DXMatrixTranslation(&sTranslate, sTransform.position.x, sTransform.position.y, sTransform.position.z);
-	D3DXMatrixRotationQuaternion(&sOrientation, &sOrientationQ);
-	D3DXMatrixScaling(&sScale, sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
-	*psTarget = sTranslate * sOrientation * sScale;
+inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform, XMMATRIX* psTarget) {
+	XMMATRIX sTranslate, sOrientation, sScale;
+	XMVECTOR sOrientationQ = XMVectorSet(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
+	sTranslate = XMMatrixTranslation(sTransform.position.x, sTransform.position.y, sTransform.position.z);
+	sOrientation = XMMatrixRotationQuaternion(sOrientationQ);
+	sScale = XMMatrixScaling(sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
+	*psTarget = sScale * sOrientation * sTranslate;
+}
+/**
+* Method from mirror sample.
+***/
+static void AvatarHandInputStateFromOvr(const ovrAvatarTransform& transform, const ovrInputState& inputState, ovrHandType hand, ovrAvatarHandInputState* state)
+{
+	state->transform = transform;
+	state->buttonMask = 0;
+	state->touchMask = 0;
+	state->joystickX = inputState.Thumbstick[hand].x;
+	state->joystickY = inputState.Thumbstick[hand].y;
+	state->indexTrigger = inputState.IndexTrigger[hand];
+	state->handTrigger = inputState.HandTrigger[hand];
+	state->isActive = false;
+	if (hand == ovrHand_Left)
+	{
+		if (inputState.Buttons & ovrButton_X) state->buttonMask |= ovrAvatarButton_One;
+		if (inputState.Buttons & ovrButton_Y) state->buttonMask |= ovrAvatarButton_Two;
+		if (inputState.Buttons & ovrButton_Enter) state->buttonMask |= ovrAvatarButton_Three;
+		if (inputState.Buttons & ovrButton_LThumb) state->buttonMask |= ovrAvatarButton_Joystick;
+		if (inputState.Touches & ovrTouch_X) state->touchMask |= ovrAvatarTouch_One;
+		if (inputState.Touches & ovrTouch_Y) state->touchMask |= ovrAvatarTouch_Two;
+		if (inputState.Touches & ovrTouch_LThumb) state->touchMask |= ovrAvatarTouch_Joystick;
+		if (inputState.Touches & ovrTouch_LThumbRest) state->touchMask |= ovrAvatarTouch_ThumbRest;
+		if (inputState.Touches & ovrTouch_LIndexTrigger) state->touchMask |= ovrAvatarTouch_Index;
+		if (inputState.Touches & ovrTouch_LIndexPointing) state->touchMask |= ovrAvatarTouch_Pointing;
+		if (inputState.Touches & ovrTouch_LThumbUp) state->touchMask |= ovrAvatarTouch_ThumbUp;
+		state->isActive = (inputState.ControllerType & ovrControllerType_LTouch) != 0;
+	}
+	else if (hand == ovrHand_Right)
+	{
+		if (inputState.Buttons & ovrButton_A) state->buttonMask |= ovrAvatarButton_One;
+		if (inputState.Buttons & ovrButton_B) state->buttonMask |= ovrAvatarButton_Two;
+		if (inputState.Buttons & ovrButton_Home) state->buttonMask |= ovrAvatarButton_Three;
+		if (inputState.Buttons & ovrButton_RThumb) state->buttonMask |= ovrAvatarButton_Joystick;
+		if (inputState.Touches & ovrTouch_A) state->touchMask |= ovrAvatarTouch_One;
+		if (inputState.Touches & ovrTouch_B) state->touchMask |= ovrAvatarTouch_Two;
+		if (inputState.Touches & ovrTouch_RThumb) state->touchMask |= ovrAvatarTouch_Joystick;
+		if (inputState.Touches & ovrTouch_RThumbRest) state->touchMask |= ovrAvatarTouch_ThumbRest;
+		if (inputState.Touches & ovrTouch_RIndexTrigger) state->touchMask |= ovrAvatarTouch_Index;
+		if (inputState.Touches & ovrTouch_RIndexPointing) state->touchMask |= ovrAvatarTouch_Pointing;
+		if (inputState.Touches & ovrTouch_RThumbUp) state->touchMask |= ovrAvatarTouch_ThumbUp;
+		state->isActive = (inputState.ControllerType & ovrControllerType_RTouch) != 0;
+	}
 }
 #endif
 
@@ -698,6 +752,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						{
 							case ovrAvatarAssetType_Mesh:
 								data = LoadMesh(pcDevice, ovrAvatarAsset_GetMeshData(psALMessage->asset));
+								//{ char buf[128]; sprintf(buf, "[OVR] Asset loaded (mesh) %" PRIx64, psALMessage->assetID); OutputDebugStringA(buf); }
 								break;
 							case ovrAvatarAssetType_Texture:
 								data = LoadTexture(pcDevice, ovrAvatarAsset_GetTextureData(psALMessage->asset));
@@ -1075,6 +1130,62 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 #pragma region render avatar
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+						ovrAvatarTransform hmd;
+						ovrAvatarTransform left;
+						ovrAvatarTransform right;
+						if (m_psAvatar)
+						{
+							// Convert the OVR inputs into Avatar SDK inputs
+							ovrInputState touchState;
+							ovr_GetInputState(*m_phHMD, ovrControllerType_Active, &touchState);
+							ovrTrackingState trackingState = ovr_GetTrackingState(*m_phHMD, 0.0, false);
+
+							hmd.position.x = trackingState.HeadPose.ThePose.Position.x;
+							hmd.position.y = trackingState.HeadPose.ThePose.Position.y;
+							hmd.position.z = trackingState.HeadPose.ThePose.Position.z;
+							hmd.orientation.x = trackingState.HeadPose.ThePose.Orientation.x;
+							hmd.orientation.y = trackingState.HeadPose.ThePose.Orientation.y;
+							hmd.orientation.z = trackingState.HeadPose.ThePose.Orientation.z;
+							hmd.orientation.w = trackingState.HeadPose.ThePose.Orientation.w;
+							hmd.scale.x = 1.0f;
+							hmd.scale.y = 1.0f;
+							hmd.scale.z = 1.0f;
+
+							left.position.x = trackingState.HandPoses[ovrHand_Left].ThePose.Position.x;
+							left.position.y = trackingState.HandPoses[ovrHand_Left].ThePose.Position.y;
+							left.position.z = trackingState.HandPoses[ovrHand_Left].ThePose.Position.z;
+							left.orientation.x = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.x;
+							left.orientation.y = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.y;
+							left.orientation.z = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.z;
+							left.orientation.w = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.w;
+							left.scale.x = 1.0f;
+							left.scale.y = 1.0f;
+							left.scale.z = 1.0f;
+
+							right.position.x = trackingState.HandPoses[ovrHand_Right].ThePose.Position.x;
+							right.position.y = trackingState.HandPoses[ovrHand_Right].ThePose.Position.y;
+							right.position.z = trackingState.HandPoses[ovrHand_Right].ThePose.Position.z;
+							right.orientation.x = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.x;
+							right.orientation.y = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.y;
+							right.orientation.z = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.z;
+							right.orientation.w = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.w;
+							right.scale.x = 1.0f;
+							right.scale.y = 1.0f;
+							right.scale.z = 1.0f;
+
+							// for some unknown reason the following codeblock does not work....
+							/*ovrAvatarHandInputState inputStateLeft;
+							AvatarHandInputStateFromOvr(left, touchState, ovrHand_Left, &inputStateLeft);
+
+							ovrAvatarHandInputState inputStateRight;
+							AvatarHandInputStateFromOvr(right, touchState, ovrHand_Right, &inputStateRight);
+
+							// Update the avatar pose from the inputs
+							ovrAvatarPose_UpdateBody(m_psAvatar, hmd);
+							ovrAvatarPose_UpdateHands(m_psAvatar, inputStateLeft, inputStateRight);
+							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);*/
+						}
+
 						// build the matrices
 						XMFLOAT4X4 sWorld, sView, sProjection;
 
@@ -1151,10 +1262,26 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 												// Get the d3d mesh data for this mesh's asset
 												data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
+												if ((mesh->meshAssetID != AVATAR_MESH_LEFT_HAND) &&
+													(mesh->meshAssetID != AVATAR_MESH_RIGHT_HAND))
+													continue;
 
 												// Apply the material state
 												SetMaterialState(&mesh->materialState, nullptr);
 												m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
+												// world
+												XMMATRIX sScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+												XMStoreFloat4x4(&sWorld, sScale);
+
+												// Set constants
+												XMMATRIX sW = XMLoadFloat4x4(&sWorld);
+												XMMATRIX sV = XMLoadFloat4x4(&sView);
+												XMMATRIX sP = XMLoadFloat4x4(&sProjection);
+												XMVECTOR sVP = XMVectorSet(eyePosition.x, eyePosition.y, eyePosition.z, 0.0f);
+												if (mesh->meshAssetID == AVATAR_MESH_LEFT_HAND)
+													SetMeshState(left, data, mesh->skinnedPose, sW, sV, sP, sVP);
+												else
+													SetMeshState(right, data, mesh->skinnedPose, sW, sV, sP, sVP);
 											}
 											else
 											{
@@ -1163,18 +1290,25 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 												// Get the d3d mesh data for this mesh's asset
 												data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
+												if ((mesh->meshAssetID != AVATAR_MESH_LEFT_HAND) &&
+													(mesh->meshAssetID != AVATAR_MESH_RIGHT_HAND))
+													continue;
+
+												// world
+												XMMATRIX sScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+												XMStoreFloat4x4(&sWorld, sScale);
+
+												// Set constants
+												XMMATRIX sW = XMLoadFloat4x4(&sWorld);
+												XMMATRIX sV = XMLoadFloat4x4(&sView);
+												XMMATRIX sP = XMLoadFloat4x4(&sProjection);
+												XMVECTOR sVP = XMVectorSet(eyePosition.x, eyePosition.y, eyePosition.z, 0.0f);
+												if (mesh->meshAssetID == AVATAR_MESH_LEFT_HAND)
+													SetMeshState(left, data, mesh->skinnedPose, sW, sV, sP, sVP);
+												else
+													SetMeshState(right, data, mesh->skinnedPose, sW, sV, sP, sVP);
 											}
 											if (!data) continue;
-
-											// world
-											XMMATRIX sScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-											XMStoreFloat4x4(&sWorld, sScale);
-
-											// Set constants
-											XMMATRIX sW = XMLoadFloat4x4(&sWorld);
-											XMMATRIX sV = XMLoadFloat4x4(&sView);
-											XMMATRIX sP = XMLoadFloat4x4(&sProjection);
-											m_sConstantsVS.viewProj = XMMatrixTranspose(sW*sV*sP);
 											m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
 
 											// set vertex buffer, index buffer
@@ -1326,11 +1460,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 /**
 * Compute all world matrices.
 ***/
-void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose)
+void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, XMMATRIX* asWorldPose)
 {
 	for (uint32_t i = 0; i < sLocalPose.jointCount; ++i)
 	{
-		D3DXMATRIX sLocal;
+		XMMATRIX sLocal;
 		D3DMatrixFromOvrAvatarTransform(sLocalPose.jointTransform[i], &sLocal);
 
 		int parentIndex = sLocalPose.jointParents[i];
@@ -1454,7 +1588,7 @@ MeshData* OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMesh
 	// Translate the bind pose
 	ComputeWorldPose(data->skinnedBindPose, mesh->asBindPose);
 	for (uint32_t i = 0; i < data->skinnedBindPose.jointCount; ++i)
-		D3DXMatrixInverse(&mesh->asInverseBindPose[i], NULL, &mesh->asBindPose[i]);
+		mesh->asInverseBindPose[i] = XMMatrixInverse(NULL, mesh->asBindPose[i]);
 
 	return mesh;
 }
@@ -1564,32 +1698,32 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
 	const MeshData* data,
 	const ovrAvatarSkinnedMeshPose& skinnedPose,
-	const D3DXMATRIX world,
-	const D3DXMATRIX view,
-	const D3DXMATRIX proj,
-	const D3DXVECTOR3 viewPos
+	const XMMATRIX world,
+	const XMMATRIX view,
+	const XMMATRIX proj,
+	const XMVECTOR viewPos
 	)
 {
 	// Compute the final world and viewProjection matrices for this part
-	D3DXMATRIX local;
+	XMMATRIX local;
 	D3DMatrixFromOvrAvatarTransform(localTransform, &local);
-	D3DXMATRIX worldMat = world * local;
-	D3DXMATRIX viewProjMat = proj * view;
+	XMMATRIX worldMat = local;//XMMatrixTranslation(localTransform.position.x, localTransform.position.y, localTransform.position.z);//world * local;
+	XMMATRIX viewProjMat = view * proj;
 
 	// Compute the skinned pose
-	D3DXMATRIX* skinnedPoses = (D3DXMATRIX*)alloca(sizeof(D3DXMATRIX)* skinnedPose.jointCount);
+	/*XMMATRIX* skinnedPoses = (XMMATRIX*)alloca(sizeof(XMMATRIX)* skinnedPose.jointCount);
 	ComputeWorldPose(skinnedPose, skinnedPoses);
 	for (uint32_t i = 0; i < skinnedPose.jointCount; ++i)
 	{
-		skinnedPoses[i] = skinnedPoses[i] * data->asInverseBindPose[i];
-	}
+	skinnedPoses[i] = skinnedPoses[i] * data->asInverseBindPose[i];
+	}*/
 
 	// Pass the world view position to the shader for view-dependent rendering
 	m_sConstantsVS.viewPos = viewPos;
 	// Assign the vertex uniforms
-	m_sConstantsVS.world = world;
-	// m_sConstantsVS.viewProj = viewProjMat; // TODO !!! DX11 matrices !!
-	memcpy(&m_sConstantsVS.meshPose, skinnedPoses, sizeof(D3DXMATRIX)* skinnedPose.jointCount);
+	m_sConstantsVS.world = XMMatrixTranspose(worldMat);
+	m_sConstantsVS.viewProj = XMMatrixTranspose(viewProjMat);
+	//memcpy(&m_sConstantsVS.meshPose, skinnedPoses, sizeof(XMMATRIX)* skinnedPose.jointCount);
 }
 
 /**

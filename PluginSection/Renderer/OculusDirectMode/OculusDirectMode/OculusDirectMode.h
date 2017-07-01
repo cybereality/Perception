@@ -85,6 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <OVR_CAPI_D3D.h>
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Platform.h>
+#include <inttypes.h>
 #endif
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
@@ -107,10 +108,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 struct ConstantsVS
 {
-	D3DXVECTOR3 viewPos;
-	D3DXMATRIX world;
+	XMVECTOR viewPos;
+	XMMATRIX world;
 	XMMATRIX viewProj;
-	D3DXMATRIX meshPose[64];
+	XMMATRIX meshPose[64];
 };
 
 /**
@@ -154,7 +155,7 @@ struct FragmentVars
 static const char* VS_OCULUS_AVATAR =
 "cbuffer ConstantsVS : register (b0)\n"
 "{\n"
-"	float3 viewPos;\n"
+"	float4 viewPos;\n"
 "	float4x4 world;\n"
 "	float4x4 viewProj;\n"
 "	float4x4 meshPose[64];\n"
@@ -207,7 +208,7 @@ static const char* VS_OCULUS_AVATAR =
 "	OutputVS sOutput;\n"
 "	sOutput.vertexWorldPos = mul(vertexPose, world).xyz;\n"
 "	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0), viewProj);\n"
-"	sOutput.vertexViewDir = normalize(viewPos - sOutput.vertexWorldPos.xyz);\n"
+"	sOutput.vertexViewDir = normalize(viewPos - sOutput.vertexWorldPos).xyz;\n"
 "	sOutput.vertexObjPos = sOutput.position.xyz;\n"
 "	sOutput.vertexNormal = mul(normalPose, world).xyz;\n"
 "	sOutput.vertexTangent = mul(tangentPose, world).xyz;\n"
@@ -216,7 +217,8 @@ static const char* VS_OCULUS_AVATAR =
 
 // NO SKINNING SIMPLE TEST
 "	OutputVS sOutput;\n"
-"	sOutput.position = mul(float4(sInput.position, 1.0f), viewProj);\n"
+"	sOutput.vertexWorldPos = mul(float4(sInput.position, 1.0f), world).xyz;\n"
+"	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0f), viewProj);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"
 
 "	return sOutput;\n"
@@ -702,8 +704,8 @@ struct MeshData
 	ID3D11Buffer* pcVertexBuffer;
 	ID3D11Buffer* pcElementBuffer;
 	UINT unElementCount;
-	D3DXMATRIX asBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
-	D3DXMATRIX asInverseBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+	XMMATRIX asBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+	XMMATRIX asInverseBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
 };
 
 /**
@@ -747,10 +749,10 @@ public:
 private:
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 	/*** OculusDirectMode private methods ***/
-	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose);
+	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, XMMATRIX* asWorldPose);
 	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
 	TextureData* LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data);
-	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const D3DXMATRIX world, const D3DXMATRIX view, const D3DXMATRIX proj, const D3DXVECTOR3 viewPos);
+	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const XMMATRIX world, const XMMATRIX view, const XMMATRIX proj, const XMVECTOR viewPos);
 	void SetMaterialState(const ovrAvatarMaterialState* state, XMMATRIX* projectorInv);
 #endif
 
