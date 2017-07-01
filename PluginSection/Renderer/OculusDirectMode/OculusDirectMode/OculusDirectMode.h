@@ -420,7 +420,7 @@ static const char* PS_OCULUS_AVATAR =
 
 "float4 main(OutputVS sInput) : SV_TARGET\n"
 "{\n"
-/*"	float3 worldNormal = normalize(sInput.vertexNormal);\n"
+"	float3 worldNormal = normalize(sInput.vertexNormal);\n"
 "	float3x3 tangentTransform = float3x3(sInput.vertexTangent, sInput.vertexBitangent, worldNormal);\n"
 
 "	float2 uv = sInput.vertexUV;\n"
@@ -439,10 +439,10 @@ static const char* PS_OCULUS_AVATAR =
 "	{\n"
 "		surfaceNormal.xy = normalMap.Sample(samplerAvatar, uv * normalMapScaleOffset.xy + normalMapScaleOffset.zw).xy * 2.0 - 1.0;\n"
 "		surfaceNormal.z = sqrt(1.0 - dot(surfaceNormal.xy, surfaceNormal.xy));\n"
-"	}\n"*/
+"	}\n"
 
-"	float4 color = float4(1.0f, 1.0f, 1.0f, 1.0f);\n"//baseColor;\n"
-/*"	for (int i = 0; i < layerCount; ++i)\n"
+"	float4 color = baseColor;\n"
+"	for (int i = 0; i < layerCount; ++i)\n"
 "	{\n"
 "		float3 layerColor = ComputeColor(sInput.vertexViewDir, layerSamplerModes[i], uv, layerColors[i], layerSurfaces[i], layerSurfaceScaleOffsets[i], layerSampleParameters[i], tangentTransform, worldNormal, surfaceNormal);\n"
 "		float layerMask = ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, layerMaskTypes[i], layerMaskParameters[i], layerMaskAxes[i], tangentTransform, worldNormal, surfaceNormal);\n"
@@ -453,7 +453,9 @@ static const char* PS_OCULUS_AVATAR =
 "	{\n"
 "		color.a *= alphaMask.Sample(samplerAvatar, uv * alphaMaskScaleOffset.xy + alphaMaskScaleOffset.zw).r;\n"
 "	}\n"
-"	color.a *= ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, baseMaskType, baseMaskParameters, baseMaskAxis, tangentTransform, worldNormal, surfaceNormal);\n"*/
+"	color.a *= ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, baseMaskType, baseMaskParameters, baseMaskAxis, tangentTransform, worldNormal, surfaceNormal);\n"
+
+"	color.a += 0.2f;"
 
 "	return color;\n"
 "}\n";
@@ -749,6 +751,7 @@ private:
 	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
 	TextureData* LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data);
 	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const D3DXMATRIX world, const D3DXMATRIX view, const D3DXMATRIX proj, const D3DXVECTOR3 viewPos);
+	void SetMaterialState(const ovrAvatarMaterialState* state, XMMATRIX* projectorInv);
 #endif
 
 	/**

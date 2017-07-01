@@ -373,20 +373,9 @@ bool OculusDirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int
 ***/
 void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
-	// still needed ?
-	static float fAspect = 1.0f;
-
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT)) return nullptr;
 	if ((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod != METHOD_IDIRECT3DDEVICE9_PRESENT)) return nullptr;
 	if ((eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) && (eD3DMethod != METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)) return nullptr;
-	/*if (!m_bHotkeySwitch)
-	{
-	if (GetAsyncKeyState(VK_F11))
-	{
-	m_bHotkeySwitch = true;
-	}
-	return nullptr;
-	}*/
 
 	// always skip more frames than the oculus tracker to ensure initialization is done
 	static UINT unFrameSkip = 200 + 10;
@@ -836,11 +825,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						else OutputDebugString(L"[OVR] No Texture available.");
 					}
 
-					// aspect ratio
-					fAspect = (float)sDesc.Width / (float)sDesc.Height;
-
-					// TODO !! DX9 // DX10 !!
-
 					// get shared handle
 					IDXGIResource* pcDXGIResource(NULL);
 					m_pcTex11Copy[eye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
@@ -1167,6 +1151,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 												// Get the d3d mesh data for this mesh's asset
 												data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
+
+												// Apply the material state
+												SetMaterialState(&mesh->materialState, nullptr);
+												m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
 											}
 											else
 											{
@@ -1196,7 +1184,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 											// draw
-											m_pcContextTemporary->Draw(data->unElementCount, 0);
+											m_pcContextTemporary->DrawIndexed(data->unElementCount, 0, 0);
 										}
 										break;
 									case ovrAvatarRenderPartType_ProjectorRender:
@@ -1603,4 +1591,94 @@ void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
 	// m_sConstantsVS.viewProj = viewProjMat; // TODO !!! DX11 matrices !!
 	memcpy(&m_sConstantsVS.meshPose, skinnedPoses, sizeof(D3DXMATRIX)* skinnedPose.jointCount);
 }
+
+/**
+* Sets fragment shader constants.
+**/
+void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMMATRIX* projectorInv)
+{
+	// Assign the fragment uniforms
+	m_sConstantsFS.useAlpha = state->alphaMaskTextureID != 0;
+	m_sConstantsFS.useNormalMap = state->normalMapTextureID != 0;
+	m_sConstantsFS.useRoughnessMap = state->roughnessMapTextureID != 0;
+
+	// Update and set time
+	static float fTime = 0.0f;
+	static DWORD unTimeStart = 0;
+	DWORD unTimeCurrent = GetTickCount();
+	if (unTimeStart == 0)
+		unTimeStart = unTimeCurrent;
+	fTime = (unTimeCurrent - unTimeStart) / 1000.0f;
+	m_sConstantsFS.elapsedSeconds = fTime;
+
+	if (projectorInv)
+	{
+		m_sConstantsFS.useProjector = 1;
+		m_sConstantsFS.projectorInv = *projectorInv;
+	}
+	else
+	{
+		m_sConstantsFS.useProjector = 0;
+	}
+
+	int textureSlot = 1;
+	m_sConstantsFS.baseColor = XMFLOAT4(&state->baseColor.x);
+	m_sConstantsFS.baseMaskType = state->baseMaskType;
+	m_sConstantsFS.baseMaskParameters = XMFLOAT4(&state->baseMaskParameters.x);
+	m_sConstantsFS.baseMaskAxis = XMFLOAT4(&state->baseMaskAxis.x);
+	//m_sConstantsFS.alphaMask = state->alphaMaskTextureID;
+	m_sConstantsFS.alphaMaskScaleOffset = XMFLOAT4(&state->alphaMaskScaleOffset.x);
+	//m_sConstantsFS.normalMap", state->normalMapTextureID;
+	m_sConstantsFS.normalMapScaleOffset = XMFLOAT4(&state->normalMapScaleOffset.x);
+	//m_sConstantsFS.parallaxMap", state->parallaxMapTextureID;
+	m_sConstantsFS.parallaxMapScaleOffset = XMFLOAT4(&state->parallaxMapScaleOffset.x);
+	//m_sConstantsFS.roughnessMap", state->roughnessMapTextureID;
+	m_sConstantsFS.roughnessMapScaleOffset = XMFLOAT4(&state->roughnessMapScaleOffset.x);
+
+	struct LayerUniforms
+	{
+		int layerSamplerModes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		int layerBlendModes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		int layerMaskTypes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		ovrAvatarVector4f layerColors[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		int layerSurfaces[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		ovrAvatarAssetID layerSurfaceIDs[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		ovrAvatarVector4f layerSurfaceScaleOffsets[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		ovrAvatarVector4f layerSampleParameters[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		ovrAvatarVector4f layerMaskParameters[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+		ovrAvatarVector4f layerMaskAxes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
+	} layerUniforms;
+	memset(&layerUniforms, 0, sizeof(layerUniforms));
+	for (uint32_t i = 0; i < state->layerCount; ++i)
+	{
+		const ovrAvatarMaterialLayerState& layerState = state->layers[i];
+		layerUniforms.layerSamplerModes[i] = layerState.sampleMode;
+		layerUniforms.layerBlendModes[i] = layerState.blendMode;
+		layerUniforms.layerMaskTypes[i] = layerState.maskType;
+		layerUniforms.layerColors[i] = layerState.layerColor;
+		layerUniforms.layerSurfaces[i] = textureSlot++;
+		layerUniforms.layerSurfaceIDs[i] = layerState.sampleTexture;
+		layerUniforms.layerSurfaceScaleOffsets[i] = layerState.sampleScaleOffset;
+		layerUniforms.layerSampleParameters[i] = layerState.sampleParameters;
+		layerUniforms.layerMaskParameters[i] = layerState.maskParameters;
+		layerUniforms.layerMaskAxes[i] = layerState.maskAxis;
+	}
+
+	m_sConstantsFS.layerCount = state->layerCount;
+	memcpy(m_sConstantsFS.layerSamplerModes, layerUniforms.layerSamplerModes, OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT*sizeof(int));
+	memcpy(m_sConstantsFS.layerBlendModes, layerUniforms.layerBlendModes, OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT*sizeof(int));
+	memcpy(m_sConstantsFS.layerMaskTypes, layerUniforms.layerMaskTypes, OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT*sizeof(int));
+	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
+		m_sConstantsFS.layerColors[unIx] = XMFLOAT4(&layerUniforms.layerColors[unIx].x);
+	//m_sConstantsFS.layerSurfaces", OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT, layerUniforms.layerSurfaces, layerUniforms.layerSurfaceIDs;
+	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
+		m_sConstantsFS.layerSurfaceScaleOffsets[unIx] = XMFLOAT4(&layerUniforms.layerSurfaceScaleOffsets[unIx].x);
+	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
+		m_sConstantsFS.layerSampleParameters[unIx] = XMFLOAT4(&layerUniforms.layerSampleParameters[unIx].x);
+	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
+		m_sConstantsFS.layerMaskParameters[unIx] = XMFLOAT4(&layerUniforms.layerMaskParameters[unIx].x);
+	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
+		m_sConstantsFS.layerMaskAxes[unIx] = XMFLOAT4(&layerUniforms.layerMaskAxes[unIx].x);
+}
+
 #endif
