@@ -583,6 +583,112 @@ struct OculusTexture
 	}
 };
 
+/**
+* Definitions of axes for coordinate and rotation conversions.
+* LibOVR 0.4.x enumeration.
+***/
+enum Axis
+{
+	Axis_X = 0, Axis_Y = 1, Axis_Z = 2
+};
+
+/**
+* RotateDirection describes the rotation direction around an axis, interpreted as follows:
+*  CW  - Clockwise while looking "down" from positive axis towards the origin.
+*  CCW - Counter-clockwise while looking from the positive axis towards the origin,
+*        which is in the negative axis direction.
+*  CCW is the default for the RHS coordinate system. Oculus standard RHS coordinate
+*  system defines Y up, X right, and Z back (pointing out from the screen). In this
+*  system Rotate_CCW around Z will specifies counter-clockwise rotation in XY plane.
+* LibOVR 0.4.x enumeration.
+***/
+enum RotateDirection
+{
+	Rotate_CCW = 1,
+	Rotate_CW = -1
+};
+
+/**
+* Constants for right handed and left handed coordinate systems
+* LibOVR 0.4.x enumeration.
+***/
+enum HandedSystem
+{
+	Handed_R = 1, Handed_L = -1
+};
+
+/**
+* AxisDirection describes which way the coordinate axis points. Used by WorldAxes.
+* LibOVR 0.4.x enumeration.
+***/
+enum AxisDirection
+{
+	Axis_Up = 2,
+	Axis_Down = -2,
+	Axis_Right = 1,
+	Axis_Left = -1,
+	Axis_In = 3,
+	Axis_Out = -3
+};
+
+/**
+* GetEulerAngles extracts Euler angles from the quaternion, in the specified order of
+* axis rotations and the specified coordinate system. Right-handed coordinate system
+* is the default, with CCW rotations while looking in the negative axis direction.
+* Here a,b,c, are the Yaw/Pitch/Roll angles to be returned.
+* rotation a around axis A1
+* is followed by rotation b around axis A2
+* is followed by rotation c around axis A3
+* rotations are CCW or CW (D) in LH or RH coordinate system (S)
+* (LibOVR 0.4.x method)
+***/
+struct __ovrQuatf : public ovrQuatf
+{
+	//float x, y, z, w;
+	template <Axis A1, Axis A2, Axis A3, RotateDirection D, HandedSystem S>
+	void GetEulerAngles(float *a, float *b, float *c) const
+	{
+		static_assert((A1 != A2) && (A2 != A3) && (A1 != A3), "(A1 != A2) && (A2 != A3) && (A1 != A3)");
+
+		float Q[3] = { x, y, z };  //Quaternion components x,y,z
+
+		float ww = w*w;
+		float Q11 = Q[A1] * Q[A1];
+		float Q22 = Q[A2] * Q[A2];
+		float Q33 = Q[A3] * Q[A3];
+
+		float psign = float(-1);
+		// Determine whether even permutation
+		if (((A1 + 1) % 3 == A2) && ((A2 + 1) % 3 == A3))
+			psign = float(1);
+
+		float s2 = psign * float(2) * (psign*w*Q[A2] + Q[A1] * Q[A3]);
+
+		if (s2 < float(-1) + ((float)MATH_DOUBLE_SINGULARITYRADIUS))
+		{ // South pole singularity
+			*a = float(0);
+			*b = -S*D*((float)MATH_DOUBLE_PIOVER2);
+			*c = S*D*atan2(float(2)*(psign*Q[A1] * Q[A2] + w*Q[A3]),
+				ww + Q22 - Q11 - Q33);
+		}
+		else if (s2 > float(1) - ((float)MATH_DOUBLE_SINGULARITYRADIUS))
+		{  // North pole singularity
+			*a = float(0);
+			*b = S*D*((float)MATH_DOUBLE_PIOVER2);
+			*c = S*D*atan2(float(2)*(psign*Q[A1] * Q[A2] + w*Q[A3]),
+				ww + Q22 - Q11 - Q33);
+		}
+		else
+		{
+			*a = -S*D*atan2(float(-2)*(w*Q[A1] - psign*Q[A2] * Q[A3]),
+				ww + Q33 - Q11 - Q22);
+			*b = S*D*asin(s2);
+			*c = S*D*atan2(float(2)*(w*Q[A3] - psign*Q[A1] * Q[A2]),
+				ww + Q11 - Q22 - Q33);
+		}
+		return;
+	}
+};
 
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**

@@ -1091,6 +1091,40 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 #pragma region render avatar
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+						// build the matrices
+						XMFLOAT4X4 sWorld, sView, sProjection;
+
+						// world
+						XMMATRIX W = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+						XMStoreFloat4x4(&sWorld, W);
+
+						// view
+						ovrVector3f eyePosition = asEyeRenderPose[eye].Position;
+						__ovrQuatf eyeOrientation;
+						eyeOrientation.x = asEyeRenderPose[eye].Orientation.x;
+						eyeOrientation.y = asEyeRenderPose[eye].Orientation.y;
+						eyeOrientation.z = asEyeRenderPose[eye].Orientation.z;
+						eyeOrientation.w = asEyeRenderPose[eye].Orientation.w;
+						float fEuler[3];
+						eyeOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&fEuler[1], &fEuler[0], &fEuler[2]);
+						XMMATRIX sRotation;
+						XMMATRIX sPitch = XMMatrixRotationX(fEuler[0]);
+						XMMATRIX sYaw = XMMatrixRotationY(fEuler[1]);
+						XMMATRIX sRoll = XMMatrixRotationZ(fEuler[2]);
+						sRotation = sYaw * sPitch * sRoll;
+						XMMATRIX sTranslation = XMMatrixTranslation(-eyePosition.x, -eyePosition.y, -eyePosition.z);
+						XMStoreFloat4x4(&sView, sTranslation * sRotation);
+
+						// projection...
+						ovrMatrix4f ovrProjection = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[eye], 0.01f, 1000.0f, ovrProjection_None);
+						XMMATRIX sPro(
+							ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
+							ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
+							ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
+							ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
+							);
+						XMStoreFloat4x4(&sProjection, sPro);
+
 						// update and set constant buffers
 						m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
 						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcCVSAvatar);
@@ -1144,63 +1178,15 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											}
 											if (!data) continue;
 
-											// get view
-											/*ovrVector3f eyePosition = asEyeRenderPose[eye].Position;
-											ovrQuatf eyeOrientation = asEyeRenderPose[eye].Orientation;
-											D3DXQUATERNION glmOrientation = D3DXQUATERNION(eyeOrientation.x, eyeOrientation.y, eyeOrientation.z, eyeOrientation.w);
-											D3DXVECTOR3 eyeWorld = D3DXVECTOR3(eyePosition.x, eyePosition.y, eyePosition.z);
-											D3DXQUATERNION sTransform = glmOrientation * D3DXQUATERNION(0.0f, 0.0f, -1.0f, 0.0f);
-											D3DXVECTOR3 eyeForward = D3DXVECTOR3(sTransform.x, sTransform.y, sTransform.z);
-											sTransform = glmOrientation * D3DXQUATERNION(0.0f, -1.0f, 0.0f, 0.0f);
-											D3DXVECTOR3 eyeUp = D3DXVECTOR3(sTransform.x, sTransform.y, sTransform.z);
-											D3DXMATRIX view = {};
-											D3DXMatrixLookAtRH(&view, &eyeWorld, &(eyeWorld + eyeForward), &eyeUp);
-
-											ovrMatrix4f ovrProjection = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[eye], 0.01f, 1000.0f, ovrProjection_None);
-											D3DXMATRIX proj(
-											ovrProjection.M[0][0], ovrProjection.M[1][0], ovrProjection.M[2][0], ovrProjection.M[3][0],
-											ovrProjection.M[0][1], ovrProjection.M[1][1], ovrProjection.M[2][1], ovrProjection.M[3][1],
-											ovrProjection.M[0][2], ovrProjection.M[1][2], ovrProjection.M[2][2], ovrProjection.M[3][2],
-											ovrProjection.M[0][3], ovrProjection.M[1][3], ovrProjection.M[2][3], ovrProjection.M[3][3]
-											);
-
-											// Apply the vertex state
-											D3DXMATRIX world; D3DXMatrixIdentity(&world);
-											D3DXVECTOR3 viewPos = {};
-											SetMeshState(mesh->localTransform, data, mesh->skinnedPose, world, view, proj, viewPos);*/
-
-											// Build the matrix.
-											XMFLOAT4X4 sWorld, sView, sProj;
-
 											// world
-											XMMATRIX W = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-											XMStoreFloat4x4(&sWorld, W);
-
-											// view
-											static float fPhi = 0.0f;
-											static float fTheta = 0.0f;
-											float fRadius = 5.0f;
-											fPhi += 0.001f;
-											fTheta += 0.0005f;
-											float x = fRadius*sinf(fPhi)*cosf(fTheta);
-											float z = fRadius*sinf(fPhi)*sinf(fTheta);
-											float y = 1.0f;//fRadius*cosf(fPhi);
-											XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-											XMVECTOR target = XMVectorZero();
-											XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-											XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
-											XMStoreFloat4x4(&sView, V);
-
-											// projection...
-											XMMATRIX sPro = XMMatrixPerspectiveFovLH(0.25f*3.14f, 1800.0f / 900.0f, 1.0f, 1000.0f);
-											XMStoreFloat4x4(&sProj, sPro);
+											XMMATRIX sScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+											XMStoreFloat4x4(&sWorld, sScale);
 
 											// Set constants
-											XMMATRIX world = XMLoadFloat4x4(&sWorld);
-											XMMATRIX view = XMLoadFloat4x4(&sView);
-											XMMATRIX proj = XMLoadFloat4x4(&sProj);
-											m_sConstantsVS.viewProj = XMMatrixTranspose(world*view*proj);
+											XMMATRIX sW = XMLoadFloat4x4(&sWorld);
+											XMMATRIX sV = XMLoadFloat4x4(&sView);
+											XMMATRIX sP = XMLoadFloat4x4(&sProjection);
+											m_sConstantsVS.viewProj = XMMatrixTranspose(sW*sV*sP);
 											m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
 
 											// set vertex buffer, index buffer
