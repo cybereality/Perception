@@ -859,7 +859,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		// get the current tracking state
 		ovrTrackingState sTrackingState = ovr_GetTrackingState(m_hSession, ovr_GetTimeInSeconds(), false);
 
-		if (sTrackingState.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
+		if (TRUE)//(sTrackingState.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{
 			// get pose
 			ovrPoseStatef sPoseState = sTrackingState.HeadPose;
@@ -923,17 +923,44 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			m_afPosition[1] = (float)-m_sPose.Position.y - m_afPositionOrigin[1];
 			m_afPosition[2] = (float)m_sPose.Position.z + m_afPositionOrigin[2];
 
+			// get eye render pose and other fields
+			ovrEyeRenderDesc asEyeRenderDesc[2];
+			asEyeRenderDesc[0] = ovr_GetRenderDesc(m_hSession, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
+			asEyeRenderDesc[1] = ovr_GetRenderDesc(m_hSession, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
+			ovrVector3f      asHmdToEyeViewOffset[2] = { asEyeRenderDesc[0].HmdToEyeOffset, asEyeRenderDesc[1].HmdToEyeOffset };
+			ovrPosef         asEyeRenderPose[2];
+			ovr_CalcEyePoses(sTrackingState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
+			D3DXMATRIX sView[2];
+			for (UINT unEye = 0; unEye < 2; unEye++)
+			{
+				// create view matrix from rotation and position
+				D3DXMATRIX sRotation;
+				D3DXMATRIX sPitch, sYaw, sRoll;
+				D3DXMatrixRotationX(&sPitch, m_fEulerPredicted[0]);
+				D3DXMatrixRotationY(&sYaw, m_fEulerPredicted[1]);
+				D3DXMatrixRotationZ(&sRoll, -m_fEulerPredicted[2]);
+				sRotation = sYaw * sPitch * sRoll;
+				D3DXMATRIX sTranslation;
+				D3DXMatrixTranslation(&sTranslation, (float)-asEyeRenderPose[unEye].Position.x - m_afPositionOrigin[0], (float)-asEyeRenderPose[unEye].Position.y - m_afPositionOrigin[1], (float)asEyeRenderPose[unEye].Position.z + m_afPositionOrigin[2]);
+				sView[unEye] = sTranslation * sRotation;
+			}
+			D3DXMatrixIdentity(&m_sView);
 
-			// create view matrix from rotation and position
-			D3DXMATRIX sRotation;
-			D3DXMATRIX sPitch, sYaw, sRoll;
-			D3DXMatrixRotationX(&sPitch, m_fEulerPredicted[0]);
-			D3DXMatrixRotationY(&sYaw, m_fEulerPredicted[1]);
-			D3DXMatrixRotationZ(&sRoll, -m_fEulerPredicted[2]);
-			sRotation = sYaw * sPitch * sRoll;
-			D3DXMATRIX sTranslation;
-			D3DXMatrixTranslation(&sTranslation, (float)m_afPosition[0], (float)m_afPosition[1], (float)m_afPosition[2]);
-			m_sView = sTranslation * sRotation;
+			// get projection matrices left/right
+			D3DXMATRIX asToEye[2];
+			D3DXMATRIX asProjection[2];
+			for (UINT unEye = 0; unEye < 2; unEye++)
+			{
+				// get ovr projection
+				ovrMatrix4f sProj = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[unEye], 0.01f, 30.0f, ovrProjection_LeftHanded);
+
+				// create dx projection
+				asProjection[unEye] = D3DXMATRIX(&sProj.M[0][0]);
+				D3DXMatrixTranspose(&asProjection[unEye], &asProjection[unEye]);
+
+				// create eventual projection
+				m_asProjection[unEye] = sView[unEye] * asProjection[unEye];
+			}
 		}
 #pragma endregion
 	}
@@ -993,7 +1020,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 
 				// create view offset translation matrix
 				D3DXMatrixTranslation(&asToEye[unEye], -asViewOffset[unEye].x, -asViewOffset[unEye].y, -asViewOffset[unEye].z);
-				
+
 				// create eventual projection
 				m_asProjection[unEye] = asToEye[unEye] * asProjection[unEye];
 			}
