@@ -751,11 +751,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						switch (assetType)
 						{
 							case ovrAvatarAssetType_Mesh:
-								data = LoadMesh(pcDevice, ovrAvatarAsset_GetMeshData(psALMessage->asset));
+								data = LoadMesh(m_pcDeviceTemporary, ovrAvatarAsset_GetMeshData(psALMessage->asset));
 								//{ char buf[128]; sprintf(buf, "[OVR] Asset loaded (mesh) %" PRIx64, psALMessage->assetID); OutputDebugStringA(buf); }
 								break;
 							case ovrAvatarAssetType_Texture:
-								data = LoadTexture(pcDevice, ovrAvatarAsset_GetTextureData(psALMessage->asset));
+								data = LoadTexture(m_pcDeviceTemporary, ovrAvatarAsset_GetTextureData(psALMessage->asset));
 								break;
 						}
 
@@ -1635,7 +1635,9 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 				sData.pSysMem = acData;
 				sData.SysMemPitch = data->sizeX * 4;
 				if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &texture->pcTexture)))
-					OutputDebugString(L"[OCULUS] Failed to create model texture DXGI_FORMAT_R8G8B8A8_UNORM.");
+					OutputDebugString(L"[OVR] Failed to create model texture DXGI_FORMAT_R8G8B8A8_UNORM.");
+				else
+					OutputDebugString(L"[OVR] Created Avatar Texture DXGI_FORMAT_R8G8B8A8_UNORM");
 
 				delete[] acData;
 			}
@@ -1647,30 +1649,73 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 			if (true)
 			{
 				// create geometry texture
-				D3D11_TEXTURE2D_DESC sDesc = {};
-				ZeroMemory(&sDesc, sizeof(sDesc));
-				sDesc.Width = data->sizeX;
-				sDesc.Height = data->sizeY;
-				sDesc.MipLevels = data->mipCount;
-				sDesc.ArraySize = 1;
 				if (data->format == ovrAvatarTextureFormat_DXT1)
-					sDesc.Format = eFormat = DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM;
+					eFormat = DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM;
 				else
-					sDesc.Format = eFormat = DXGI_FORMAT::DXGI_FORMAT_BC3_UNORM;
-				sDesc.SampleDesc.Count = 1;
-				sDesc.Usage = D3D11_USAGE_DEFAULT;
-				sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-				// TODO !! INIT DATA NOT WORKING !!
-				/*D3D11_SUBRESOURCE_DATA sData;
-				ZeroMemory(&sData, sizeof(sData));
-				sData.pSysMem = data->textureData;
-				sData.SysMemPitch = data->sizeX * 4;*/
-				if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, &texture->pcTexture)))
+					eFormat = DXGI_FORMAT::DXGI_FORMAT_BC3_UNORM;
+
+				// create a dds file in memory... code from https://github.com/ClemensX/ShadedPath12/blob/master/ShadedPath12/ShadedPath12/vr.cpp
+				DDS_HEADER sHeader = {};
+				int nBlockSize;
+				if (data->format == ovrAvatarTextureFormat_DXT1)
+				{
+					nBlockSize = 8;
+					sHeader.ddspf.dwFourCC = 0x31545844;
+				}
+				else
+				{
+					nBlockSize = 16;
+					sHeader.ddspf.dwFourCC = 0x35545844;
+				}
+				sHeader.dwSize = 0x7c;
+				sHeader.dwFlags = 0xa1007;
+				sHeader.dwHeight = data->sizeY;
+				sHeader.dwWidth = data->sizeX;
+				sHeader.dwPitchOrLinearSize = nBlockSize * max(1, ((sHeader.dwWidth + 3) / 4)) * max(1, ((sHeader.dwHeight + 3) / 4));
+				sHeader.dwDepth = 1;
+				sHeader.dwMipMapCount = data->mipCount;
+				sHeader.dwCaps = 0x401008;
+
+				sHeader.ddspf.dwSize = 0x20;
+				sHeader.ddspf.dwFlags = 0x04;
+
+				// create memory file stream
+				std::stringstream oMemoryFileStream;
+				/*std::ofstream oMemoryFileStream;
+				oMemoryFileStream.open("TEXTEST.dds");*/
+				uint32_t dwMagicNumber = DDS_MAGIC;
+				oMemoryFileStream.write((const char*)&dwMagicNumber, 4);
+				oMemoryFileStream.write((const char*)&sHeader, sizeof(sHeader));
+
+				int total = 0;
+				for (uint32_t level = 0, offset = 0, width = data->sizeX, height = data->sizeY; level < data->mipCount; ++level)
+				{
+					// int levelSize = blockSize * (width / 4) * (height / 4);
+					int levelSize = nBlockSize * max(1, ((width + 3) / 4)) * max(1, ((height + 3) / 4));
+
+					total += levelSize;
+					const char *mem = ((const char*)data->textureData) + offset;
+					oMemoryFileStream.write(mem, levelSize);
+					offset += levelSize;
+					width /= 2;
+					height /= 2;
+				}
+				//oMemoryFileStream.close();
+				HRESULT nHr = S_OK;
+				D3DX11CreateTextureFromMemory(pcDevice, oMemoryFileStream.str().c_str(), oMemoryFileStream.str().length(), NULL, NULL, (ID3D11Resource**)&texture->pcTexture, &nHr);
+				if (FAILED(nHr))
 				{
 					if (data->format == ovrAvatarTextureFormat_DXT1)
 						OutputDebugString(L"[OVR] Failed to create model texture. DXGI_FORMAT_BC1_UNORM");
 					else
 						OutputDebugString(L"[OVR] Failed to create model texture. DXGI_FORMAT_BC3_UNORM");
+				}
+				else
+				{
+					if (data->format == ovrAvatarTextureFormat_DXT1)
+						OutputDebugString(L"[OVR] Created Avatar Texture DXGI_FORMAT_BC1_UNORM");
+					else
+						OutputDebugString(L"[OVR] Created Avatar Texture DXGI_FORMAT_BC3_UNORM");
 				}
 			}
 			break;
@@ -1683,7 +1728,7 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 		sDesc.Format = eFormat;
 		sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		sDesc.Texture2D.MostDetailedMip = 0;
-		sDesc.Texture2D.MipLevels = data->mipCount;
+		sDesc.Texture2D.MipLevels = 1; // data->mipCount; // TODO !! MIP COUNT
 
 		if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)texture->pcTexture, &sDesc, &texture->pcSRV))))
 			OutputDebugString(L"[OVR] Failed to create model texture shader resource view!");
@@ -1755,20 +1800,73 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		m_sConstantsFS.useProjector = 0;
 	}
 
-	int textureSlot = 1;
+	// set base params
 	m_sConstantsFS.baseColor = XMFLOAT4(&state->baseColor.x);
 	m_sConstantsFS.baseMaskType = state->baseMaskType;
 	m_sConstantsFS.baseMaskParameters = XMFLOAT4(&state->baseMaskParameters.x);
 	m_sConstantsFS.baseMaskAxis = XMFLOAT4(&state->baseMaskAxis.x);
-	//m_sConstantsFS.alphaMask = state->alphaMaskTextureID;
+
+	// set texture SRVs
+	int textureSlot = 5; // ?? NEED THIS ??
+	ID3D11ShaderResourceView* apcSRV[4] = { nullptr, nullptr, nullptr, nullptr };
+	if (state->alphaMaskTextureID)
+	{
+		void* data = m_asAssetMap[state->alphaMaskTextureID];
+		if (data)
+		{
+			TextureData* psTexData = (TextureData*)data;
+			apcSRV[0] = psTexData->pcSRV;
+			if (apcSRV[0])
+				m_pcContextTemporary->PSSetShaderResources(0, 1, &apcSRV[0]);
+			else
+				m_pcContextTemporary->PSSetShaderResources(0, 1, nullptr);
+		}
+	}
 	m_sConstantsFS.alphaMaskScaleOffset = XMFLOAT4(&state->alphaMaskScaleOffset.x);
-	//m_sConstantsFS.normalMap", state->normalMapTextureID;
+	if (state->normalMapTextureID)
+	{
+		void* data = m_asAssetMap[state->normalMapTextureID];
+		if (data)
+		{
+			TextureData* psTexData = (TextureData*)data;
+			apcSRV[1] = psTexData->pcSRV;
+			if (apcSRV[1])
+				m_pcContextTemporary->PSSetShaderResources(1, 1, &apcSRV[1]);
+			else
+				m_pcContextTemporary->PSSetShaderResources(1, 1, nullptr);
+		}
+	}
 	m_sConstantsFS.normalMapScaleOffset = XMFLOAT4(&state->normalMapScaleOffset.x);
-	//m_sConstantsFS.parallaxMap", state->parallaxMapTextureID;
+	if (state->parallaxMapTextureID)
+	{
+		void* data = m_asAssetMap[state->parallaxMapTextureID];
+		if (data)
+		{
+			TextureData* psTexData = (TextureData*)data;
+			apcSRV[2] = psTexData->pcSRV;
+			if (apcSRV[2])
+				m_pcContextTemporary->PSSetShaderResources(2, 1, &apcSRV[2]);
+			else
+				m_pcContextTemporary->PSSetShaderResources(2, 1, nullptr);
+		}
+	}
 	m_sConstantsFS.parallaxMapScaleOffset = XMFLOAT4(&state->parallaxMapScaleOffset.x);
-	//m_sConstantsFS.roughnessMap", state->roughnessMapTextureID;
+	if (state->roughnessMapTextureID)
+	{
+		void* data = m_asAssetMap[state->roughnessMapTextureID];
+		if (data)
+		{
+			TextureData* psTexData = (TextureData*)data;
+			apcSRV[3] = psTexData->pcSRV;
+			if (apcSRV[3])
+				m_pcContextTemporary->PSSetShaderResources(3, 1, &apcSRV[3]);
+			else
+				m_pcContextTemporary->PSSetShaderResources(3, 1, nullptr);
+		}
+	}
 	m_sConstantsFS.roughnessMapScaleOffset = XMFLOAT4(&state->roughnessMapScaleOffset.x);
 
+		// TODO !! LAYERS
 	struct LayerUniforms
 	{
 		int layerSamplerModes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];

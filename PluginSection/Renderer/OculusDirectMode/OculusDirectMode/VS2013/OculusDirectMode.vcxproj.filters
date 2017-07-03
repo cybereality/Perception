@@ -4,6 +4,7 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\OculusDirectMode.h" />
     <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\DDS.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\OculusDirectMode.cpp" />

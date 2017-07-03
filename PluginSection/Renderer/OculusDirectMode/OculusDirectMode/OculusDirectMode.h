@@ -60,6 +60,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
+#include <D3DX11.h>
+#pragma comment(lib, "d3dx11.lib")
+
 #include <d3d10_1.h>
 #pragma comment(lib, "d3d10_1.lib")
 
@@ -86,6 +89,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Platform.h>
 #include <inttypes.h>
+#include "DDS.h"
 #endif
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
@@ -221,6 +225,12 @@ static const char* VS_OCULUS_AVATAR =
 "	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0f), viewProj);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"
 
+"	sOutput.vertexViewDir = normalize(viewPos - sOutput.vertexWorldPos).xyz;\n"
+"	sOutput.vertexObjPos = sOutput.position.xyz;\n"
+"	sOutput.vertexNormal = mul(float4(sInput.normal, 1.0f), world).xyz;\n"
+"	sOutput.vertexTangent = mul(sInput.tangent, world).xyz;\n"
+"	sOutput.vertexBitangent = normalize(cross(sOutput.vertexNormal, sOutput.vertexTangent) * sInput.tangent.w);\n"
+
 "	return sOutput;\n"
 "}\n";
 
@@ -231,7 +241,7 @@ static const char* VS_OCULUS_AVATAR =
 * HLSL conversion by Denis Reischl
 ***/
 static const char* PS_OCULUS_AVATAR =
-"Texture2D textureAvatar : register(t0);\n"
+//"Texture2D textureAvatar : register(t0);\n"
 "SamplerState samplerAvatar : register(s0);\n"
 
 "#define SAMPLE_MODE_COLOR 0\n"
@@ -450,6 +460,8 @@ static const char* PS_OCULUS_AVATAR =
 "		float layerMask = ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, layerMaskTypes[i], layerMaskParameters[i], layerMaskAxes[i], tangentTransform, worldNormal, surfaceNormal);\n"
 "		color.rgb = ComputeBlend(layerBlendModes[i], color.rgb, layerColor, layerMask);\n"
 "	}\n"
+
+"	color.a += 0.4f;"
 
 "	if (useAlpha)\n"
 "	{\n"
