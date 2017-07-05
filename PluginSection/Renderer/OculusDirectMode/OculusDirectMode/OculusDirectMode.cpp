@@ -152,7 +152,9 @@ m_pcVSAvatar(nullptr),
 m_pcPSAvatar(nullptr),
 m_pcILAvatar(nullptr),
 m_pcCVSAvatar(nullptr),
-m_pcCPSAvatar(nullptr)
+m_pcCPSAvatar(nullptr),
+m_pcDSStateLess(nullptr),
+m_pcDSStateEqual(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -170,6 +172,11 @@ m_pcCPSAvatar(nullptr)
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
 	m_pcSamplerState = nullptr;
+
+	m_pcDSGeometry11[0] = nullptr;
+	m_pcDSGeometry11[1] = nullptr;
+	m_pcDSVGeometry11[0] = nullptr;
+	m_pcDSVGeometry11[1] = nullptr;
 
 	m_bInit = false;
 	m_phHMD = nullptr;
@@ -228,6 +235,14 @@ OculusDirectMode::~OculusDirectMode()
 	SAFE_RELEASE(m_pcILAvatar);
 	SAFE_RELEASE(m_pcCVSAvatar);
 	SAFE_RELEASE(m_pcCPSAvatar);
+
+	SAFE_RELEASE(m_pcDSStateLess);
+	SAFE_RELEASE(m_pcDSStateEqual);
+
+	SAFE_RELEASE(m_pcDSVGeometry11[0]);
+	SAFE_RELEASE(m_pcDSVGeometry11[1]);
+	SAFE_RELEASE(m_pcDSGeometry11[0]);
+	SAFE_RELEASE(m_pcDSGeometry11[1]);
 
 	SAFE_RELEASE(m_pcMirrorTextureD3D11);
 	SAFE_RELEASE(m_pcMirrorTextureD3D11HMD);
@@ -1064,6 +1079,94 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							bAllCreated = false;
 						}
 					}
+
+					// create the depth stencil
+					if (!m_pcDSGeometry11[0])
+					{
+						ID3D11Texture2D* pcResource = nullptr;
+						if (m_ppcTexView11[0])
+							(*m_ppcTexView11)[0]->GetResource((ID3D11Resource**)&pcResource);
+
+						if (pcResource)
+						{
+							D3D11_TEXTURE2D_DESC sDesc;
+							pcResource->GetDesc(&sDesc);
+							pcResource->Release();
+
+							// Create depth stencil textures
+							D3D11_TEXTURE2D_DESC descDepth;
+							ZeroMemory(&descDepth, sizeof(descDepth));
+							descDepth.Width = sDesc.Width;
+							descDepth.Height = sDesc.Height;
+							descDepth.MipLevels = 1;
+							descDepth.ArraySize = 1;
+							descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+							descDepth.SampleDesc.Count = 1;
+							descDepth.SampleDesc.Quality = 0;
+							descDepth.Usage = D3D11_USAGE_DEFAULT;
+							descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+							descDepth.CPUAccessFlags = 0;
+							descDepth.MiscFlags = 0;
+							if (FAILED(m_pcDeviceTemporary->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[0])))
+								OutputDebugString(L"[OVR] Failed to create depth stencil.");
+							if (FAILED(m_pcDeviceTemporary->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[1])))
+								OutputDebugString(L"[OVR] Failed to create depth stencil.");
+
+							// Create the depth stencil views
+							D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+							ZeroMemory(&descDSV, sizeof(descDSV));
+							descDSV.Format = descDepth.Format;
+							descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+							descDSV.Texture2D.MipSlice = 0;
+							if (FAILED(m_pcDeviceTemporary->CreateDepthStencilView(m_pcDSGeometry11[0], &descDSV, &m_pcDSVGeometry11[0])))
+								OutputDebugString(L"[OVR] Failed to create depth stencil view.");
+							if (FAILED(m_pcDeviceTemporary->CreateDepthStencilView(m_pcDSGeometry11[1], &descDSV, &m_pcDSVGeometry11[1])))
+								OutputDebugString(L"[OVR] Failed to create depth stencil view.");
+						}
+					}
+
+					// depth stencil state less
+					if (!m_pcDSStateLess)
+					{
+						D3D11_DEPTH_STENCIL_DESC sDesc = {};
+						sDesc.DepthEnable = TRUE;
+						sDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+						sDesc.DepthFunc = D3D11_COMPARISON_LESS;
+						sDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+						sDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+						sDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+						sDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+						sDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+						if (FAILED(m_pcDeviceTemporary->CreateDepthStencilState(&sDesc, &m_pcDSStateLess)))
+							OutputDebugString(L"[OVR] Failed to create depth stencil state.");
+					}
+					// depth stencil state equal
+					if (!m_pcDSStateEqual)
+					{
+						D3D11_DEPTH_STENCIL_DESC sDesc = {};
+						sDesc.DepthEnable = TRUE;
+						sDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+						sDesc.DepthFunc = D3D11_COMPARISON_EQUAL;
+						sDesc.StencilEnable = FALSE;
+						sDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+						sDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+						sDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+						sDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+						sDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+						sDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+						if (FAILED(m_pcDeviceTemporary->CreateDepthStencilState(&sDesc, &m_pcDSStateEqual)))
+							OutputDebugString(L"[OVR] Failed to create depth stencil state.");
+					}
+
 					if (bAllCreated)
 					{
 						// Set the input layout
@@ -1232,6 +1335,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->VSSetShader(m_pcVSAvatar, 0, 0);
 						m_pcContextTemporary->PSSetShader(m_pcPSAvatar, 0, 0);
 
+						// clear and set the depth stencil
+						m_pcContextTemporary->ClearDepthStencilView(m_pcDSVGeometry11[eye], D3D11_CLEAR_DEPTH, 1.0f, 0);
+						m_pcContextTemporary->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11[eye]);
+
 						// Traverse over all components on the avatar
 						uint32_t componentCount = 0;
 						if (m_psAvatar)
@@ -1255,6 +1362,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 										if (true)
 										{
 											MeshData* data = nullptr;
+											bool bSelfOccluding = false;
 											if (type == ovrAvatarRenderPartType_SkinnedMeshRender)
 											{
 												// get mesh data
@@ -1282,6 +1390,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 													SetMeshState(left, data, mesh->skinnedPose, sW, sV, sP, sVP);
 												else
 													SetMeshState(right, data, mesh->skinnedPose, sW, sV, sP, sVP);
+
+												// set visibility options
+												if (mesh->visibilityMask & ovrAvatarVisibilityFlag_SelfOccluding) bSelfOccluding = true;
 											}
 											else
 											{
@@ -1307,6 +1418,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 													SetMeshState(left, data, mesh->skinnedPose, sW, sV, sP, sVP);
 												else
 													SetMeshState(right, data, mesh->skinnedPose, sW, sV, sP, sVP);
+
+												// set visibility options
+												if (mesh->visibilityMask & ovrAvatarVisibilityFlag_SelfOccluding) bSelfOccluding = true;
 											}
 											if (!data) continue;
 											m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
@@ -1317,6 +1431,15 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											m_pcContextTemporary->IASetVertexBuffers(0, 1, &data->pcVertexBuffer, &stride, &offset);
 											m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
 
+											// Write to depth first for self-occlusion
+											m_pcContextTemporary->OMSetDepthStencilState(m_pcDSStateLess, 1);
+											if (bSelfOccluding)
+											{
+												m_pcContextTemporary->OMSetRenderTargets(0, nullptr, m_pcDSVGeometry11[eye]);
+												m_pcContextTemporary->DrawIndexed(data->unElementCount, 0, 0);
+												m_pcContextTemporary->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11[eye]);
+												m_pcContextTemporary->OMSetDepthStencilState(m_pcDSStateEqual, 1);
+											}
 											// draw
 											m_pcContextTemporary->DrawIndexed(data->unElementCount, 0, 0);
 										}
@@ -1866,7 +1989,7 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 	}
 	m_sConstantsFS.roughnessMapScaleOffset = XMFLOAT4(&state->roughnessMapScaleOffset.x);
 
-		// TODO !! LAYERS
+	// TODO !! LAYERS
 	struct LayerUniforms
 	{
 		int layerSamplerModes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];

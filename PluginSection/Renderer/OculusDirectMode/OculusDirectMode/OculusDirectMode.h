@@ -981,6 +981,22 @@ private:
 	***/
 	ID3D11Buffer* m_pcCPSAvatar;
 	/**
+	* The depth stencil DX11 left/right.
+	***/
+	ID3D11Texture2D* m_pcDSGeometry11[2];
+	/**
+	* Depth stencil state less.
+	***/
+	ID3D11DepthStencilState* m_pcDSStateLess;
+	/**
+	* Depth stencil state equal.
+	***/
+	ID3D11DepthStencilState* m_pcDSStateEqual;
+	/**
+	* The depth stencil view DX11.
+	***/
+	ID3D11DepthStencilView* m_pcDSVGeometry11[2];
+	/**
 	* Vireio menu.
 	***/
 	VireioSubMenu m_sMenu;
