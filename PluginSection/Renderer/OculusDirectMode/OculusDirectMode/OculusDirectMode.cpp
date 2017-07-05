@@ -1930,21 +1930,20 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 	m_sConstantsFS.baseMaskAxis = XMFLOAT4(&state->baseMaskAxis.x);
 
 	// set texture SRVs
-	int textureSlot = 5; // ?? NEED THIS ??
-	ID3D11ShaderResourceView* apcSRV[4] = { nullptr, nullptr, nullptr, nullptr };
+	UINT textureSlot = 0; 
 	if (state->alphaMaskTextureID)
 	{
 		void* data = m_asAssetMap[state->alphaMaskTextureID];
 		if (data)
 		{
 			TextureData* psTexData = (TextureData*)data;
-			apcSRV[0] = psTexData->pcSRV;
-			if (apcSRV[0])
-				m_pcContextTemporary->PSSetShaderResources(0, 1, &apcSRV[0]);
+			if (psTexData->pcSRV)
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
 			else
-				m_pcContextTemporary->PSSetShaderResources(0, 1, nullptr);
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
 		}
 	}
+	textureSlot++;
 	m_sConstantsFS.alphaMaskScaleOffset = XMFLOAT4(&state->alphaMaskScaleOffset.x);
 	if (state->normalMapTextureID)
 	{
@@ -1952,13 +1951,13 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		if (data)
 		{
 			TextureData* psTexData = (TextureData*)data;
-			apcSRV[1] = psTexData->pcSRV;
-			if (apcSRV[1])
-				m_pcContextTemporary->PSSetShaderResources(1, 1, &apcSRV[1]);
+			if (psTexData->pcSRV)
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
 			else
-				m_pcContextTemporary->PSSetShaderResources(1, 1, nullptr);
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
 		}
 	}
+	textureSlot++;
 	m_sConstantsFS.normalMapScaleOffset = XMFLOAT4(&state->normalMapScaleOffset.x);
 	if (state->parallaxMapTextureID)
 	{
@@ -1966,13 +1965,13 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		if (data)
 		{
 			TextureData* psTexData = (TextureData*)data;
-			apcSRV[2] = psTexData->pcSRV;
-			if (apcSRV[2])
-				m_pcContextTemporary->PSSetShaderResources(2, 1, &apcSRV[2]);
+			if (psTexData->pcSRV)
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
 			else
-				m_pcContextTemporary->PSSetShaderResources(2, 1, nullptr);
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
 		}
 	}
+	textureSlot++;
 	m_sConstantsFS.parallaxMapScaleOffset = XMFLOAT4(&state->parallaxMapScaleOffset.x);
 	if (state->roughnessMapTextureID)
 	{
@@ -1980,16 +1979,15 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		if (data)
 		{
 			TextureData* psTexData = (TextureData*)data;
-			apcSRV[3] = psTexData->pcSRV;
-			if (apcSRV[3])
-				m_pcContextTemporary->PSSetShaderResources(3, 1, &apcSRV[3]);
+			if (psTexData->pcSRV)
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
 			else
-				m_pcContextTemporary->PSSetShaderResources(3, 1, nullptr);
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
 		}
 	}
+	textureSlot++;
 	m_sConstantsFS.roughnessMapScaleOffset = XMFLOAT4(&state->roughnessMapScaleOffset.x);
 
-	// TODO !! LAYERS
 	struct LayerUniforms
 	{
 		int layerSamplerModes[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT];
@@ -2011,8 +2009,16 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		layerUniforms.layerBlendModes[i] = layerState.blendMode;
 		layerUniforms.layerMaskTypes[i] = layerState.maskType;
 		layerUniforms.layerColors[i] = layerState.layerColor;
-		layerUniforms.layerSurfaces[i] = textureSlot++;
-		layerUniforms.layerSurfaceIDs[i] = layerState.sampleTexture;
+		void* data = m_asAssetMap[layerState.sampleTexture];
+		if (data)
+		{
+			TextureData* psTexData = (TextureData*)data;
+			if (psTexData->pcSRV)
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
+			else
+				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+		}
+		textureSlot++;
 		layerUniforms.layerSurfaceScaleOffsets[i] = layerState.sampleScaleOffset;
 		layerUniforms.layerSampleParameters[i] = layerState.sampleParameters;
 		layerUniforms.layerMaskParameters[i] = layerState.maskParameters;
@@ -2025,7 +2031,6 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 	memcpy(m_sConstantsFS.layerMaskTypes, layerUniforms.layerMaskTypes, OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT*sizeof(int));
 	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
 		m_sConstantsFS.layerColors[unIx] = XMFLOAT4(&layerUniforms.layerColors[unIx].x);
-	//m_sConstantsFS.layerSurfaces", OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT, layerUniforms.layerSurfaces, layerUniforms.layerSurfaceIDs;
 	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
 		m_sConstantsFS.layerSurfaceScaleOffsets[unIx] = XMFLOAT4(&layerUniforms.layerSurfaceScaleOffsets[unIx].x);
 	for (UINT unIx = 0; unIx < OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT; unIx++)
