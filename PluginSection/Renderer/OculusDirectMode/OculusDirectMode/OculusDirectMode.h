@@ -125,7 +125,6 @@ struct ConstantsVS
 struct FragmentVars
 {
 	float4 baseColor;
-	int baseMaskType;
 	float4 baseMaskParameters;
 	float4 baseMaskAxis;
 	float4 alphaMaskScaleOffset;
@@ -133,10 +132,11 @@ struct FragmentVars
 	float4 parallaxMapScaleOffset;
 	float4 roughnessMapScaleOffset;
 	float4x4 projectorInv;
-	bool useAlpha;
-	bool useNormalMap;
-	bool useRoughnessMap;
-	bool useProjector;
+	int baseMaskType;
+	BOOL useAlpha;
+	BOOL useNormalMap;
+	BOOL useRoughnessMap;
+	BOOL useProjector;
 	float elapsedSeconds;
 	int layerCount;
 	int layerSamplerModes[MAX_LAYER_COUNT];
@@ -282,7 +282,6 @@ static const char* PS_OCULUS_AVATAR =
 "cbuffer FragmentVars : register (b0)\n"
 "{\n"
 "	float4 baseColor;\n"
-"	int baseMaskType;\n"
 "	float4 baseMaskParameters;\n"
 "	float4 baseMaskAxis;\n"
 "	float4 alphaMaskScaleOffset;\n"
@@ -292,10 +291,11 @@ static const char* PS_OCULUS_AVATAR =
 
 "	float4x4 projectorInv;\n"
 
-"	bool useAlpha;\n"
-"	bool useNormalMap;\n"
-"	bool useRoughnessMap;\n"
-"	bool useProjector;\n"
+"	int baseMaskType;\n"
+"	int useAlpha;\n"
+"	int useNormalMap;\n"
+"	int useRoughnessMap;\n"
+"	int useProjector;\n"
 "	float elapsedSeconds;\n"
 
 "	int layerCount;\n"
@@ -318,9 +318,7 @@ static const char* PS_OCULUS_AVATAR =
 "		return normalize(mul(tangentTransform, surface));\n"
 "	}\n"
 "	else\n"
-"	{\n"
 "		return worldNormal;\n"
-"	}\n"
 "}\n"
 
 "float3 ComputeColor(float3 vertexViewDir, int sampleMode, float2 uv, float4 color, Texture2D surface, float4 surfaceScaleOffset, float4 sampleParameters, float3x3 tangentTransform, float3 worldNormal, float3 surfaceNormal)\n"
@@ -398,9 +396,11 @@ static const char* PS_OCULUS_AVATAR =
 "		float fadeStart = maskParameters.y;\n"
 "		float fadeEnd = maskParameters.z;\n"
 "		float normalMapStrength = maskParameters.w;\n"
-"		float d = 1.0 - max(0.0, dot(vertexViewDir, ComputeNormal(tangentTransform, worldNormal, surfaceNormal, normalMapStrength)));\n"
+"		float d = 1.0 - max(0.0, abs(dot(vertexViewDir, ComputeNormal(tangentTransform, worldNormal, surfaceNormal, normalMapStrength))));\n"
 "		float p = pow(abs(d), power);\n"
+//"		return clamp(lerp(0.0f, 1.0f, p), 0.0, 1.0);\n"
 "		return clamp(lerp(fadeStart, fadeEnd, p), 0.0, 1.0);\n"
+
 "	}\n"
 "	else if (maskType == MASK_TYPE_PULSE)\n"
 "	{\n"
@@ -461,7 +461,7 @@ static const char* PS_OCULUS_AVATAR =
 "		color.rgb = ComputeBlend(layerBlendModes[i], color.rgb, layerColor, layerMask);\n"
 "	}\n"
 
-"	color.a += 0.4f;"
+//"	color.a += 0.4f;"
 
 "	if (useAlpha)\n"
 "	{\n"
@@ -469,7 +469,7 @@ static const char* PS_OCULUS_AVATAR =
 "	}\n"
 "	color.a *= ComputeMask(sInput.vertexViewDir, sInput.vertexObjPos, baseMaskType, baseMaskParameters, baseMaskAxis, tangentTransform, worldNormal, surfaceNormal);\n"
 
-"	color.a += 0.2f;"
+//"	color.a += 0.2f;"
 
 "	return color;\n"
 "}\n";
