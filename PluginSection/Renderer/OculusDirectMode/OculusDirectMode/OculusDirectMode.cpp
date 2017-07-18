@@ -71,6 +71,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Little Oculus matrix helper.
 ***/
+inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform, D3DXMATRIX* psTarget) {
+	/*XMMATRIX sTranslate, sOrientation, sScale;
+	XMVECTOR sOrientationQ = XMVectorSet(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
+	sTranslate = XMMatrixTranslation(sTransform.position.x, sTransform.position.y, sTransform.position.z);
+	sOrientation = XMMatrixRotationQuaternion(sOrientationQ);
+	sScale = XMMatrixScaling(sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
+	*psTarget = sScale * sOrientation * sTranslate;*/
+	D3DXMATRIX sTranslate, sOrientation, sScale;
+	D3DXQUATERNION sOrientationQ = D3DXVECTOR4(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
+	D3DXMatrixTranslation(&sTranslate, sTransform.position.x, sTransform.position.y, sTransform.position.z);
+	D3DXMatrixRotationQuaternion(&sOrientation, &sOrientationQ);
+	D3DXMatrixScaling(&sScale, sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
+	*psTarget = sScale * sOrientation * sTranslate;
+}
+/**
+* Little Oculus matrix helper.
+***/
 inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform, XMMATRIX* psTarget) {
 	XMMATRIX sTranslate, sOrientation, sScale;
 	XMVECTOR sOrientationQ = XMVectorSet(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
@@ -156,6 +173,9 @@ m_pcCPSAvatar(nullptr),
 m_pcDSStateLess(nullptr),
 m_pcDSStateEqual(nullptr)
 {
+	// add a zero asset as zero index
+	m_asAssetMap.push_back(AvatarData());
+
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
 	m_pcTex11Copy[0] = nullptr;
@@ -220,9 +240,6 @@ m_pcDSStateEqual(nullptr)
 		sEntry.fValue = fDummy;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
-
-	// fill in basic constants for avatar rendering
-
 }
 
 /**
@@ -230,6 +247,9 @@ m_pcDSStateEqual(nullptr)
 ***/
 OculusDirectMode::~OculusDirectMode()
 {
+	// TODO !! RELEASE ALL AVATAR ASSETS
+	// for (auto uIx = 0; uIx < m_asAssetMap.size(); uIx++)
+
 	SAFE_RELEASE(m_pcVSAvatar);
 	SAFE_RELEASE(m_pcPSAvatar);
 	SAFE_RELEASE(m_pcILAvatar);
@@ -760,22 +780,24 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 						// Determine the type of the asset that got loaded
 						ovrAvatarAssetType assetType = ovrAvatarAsset_GetType(psALMessage->asset);
-						void* data = nullptr;
+						AvatarData sData;
 
 						// Call the appropriate loader function
 						switch (assetType)
 						{
 							case ovrAvatarAssetType_Mesh:
-								data = LoadMesh(m_pcDeviceTemporary, ovrAvatarAsset_GetMeshData(psALMessage->asset));
+								LoadMesh(m_pcDeviceTemporary, ovrAvatarAsset_GetMeshData(psALMessage->asset), &sData.sMesh);
 								//{ char buf[128]; sprintf(buf, "[OVR] Asset loaded (mesh) %" PRIx64, psALMessage->assetID); OutputDebugStringA(buf); }
 								break;
 							case ovrAvatarAssetType_Texture:
-								data = LoadTexture(m_pcDeviceTemporary, ovrAvatarAsset_GetTextureData(psALMessage->asset));
+								LoadTexture(m_pcDeviceTemporary, ovrAvatarAsset_GetTextureData(psALMessage->asset), &sData.sTexture);
 								break;
 						}
 
 						// Store the data that we loaded for the asset in the asset map
-						m_asAssetMap[psALMessage->assetID] = data;
+						uint32_t uIndex = (uint32_t)m_asAssetMap.size();
+						m_asAssetMap.push_back(sData);
+						m_auAssetIndexMap[psALMessage->assetID] = uIndex;
 						--m_nLoadingAssets;
 					}
 					break;
@@ -786,7 +808,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 #endif
 #pragma endregion
 #pragma region Render
-
 		// secondary hud active ? copy in case
 		if ((m_pbZoomOut) && (m_ppcTexViewHud11))
 		{
@@ -1369,7 +1390,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 												auto mesh = ovrAvatarRenderPart_GetSkinnedMeshRender(renderPart);
 
 												// Get the d3d mesh data for this mesh's asset
-												data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
+												uint32_t uIndex = m_auAssetIndexMap[mesh->meshAssetID];
+												if (uIndex == 0) continue;
+												data = &m_asAssetMap[uIndex].sMesh;
+												if (!data) continue;
 												if ((mesh->meshAssetID != AVATAR_MESH_LEFT_HAND) &&
 													(mesh->meshAssetID != AVATAR_MESH_RIGHT_HAND))
 													continue;
@@ -1400,7 +1424,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 												auto mesh = ovrAvatarRenderPart_GetSkinnedMeshRenderPBS(renderPart);
 
 												// Get the d3d mesh data for this mesh's asset
-												data = (MeshData*)m_asAssetMap[mesh->meshAssetID];
+												uint32_t uIndex = m_auAssetIndexMap[mesh->meshAssetID];
+												if (uIndex == 0) continue;
+												data = &m_asAssetMap[uIndex].sMesh;
+												if (!data) continue;
 												if ((mesh->meshAssetID != AVATAR_MESH_LEFT_HAND) &&
 													(mesh->meshAssetID != AVATAR_MESH_RIGHT_HAND))
 													continue;
@@ -1422,7 +1449,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 												// set visibility options
 												if (mesh->visibilityMask & ovrAvatarVisibilityFlag_SelfOccluding) bSelfOccluding = true;
 											}
-											if (!data) continue;
 											m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
 
 											// set vertex buffer, index buffer
@@ -1575,7 +1601,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	// release d3d11 device + context... 
 	pcContext->Release();
 	pcDevice->Release();
-
 	return nullptr;
 }
 
@@ -1583,11 +1608,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 /**
 * Compute all world matrices.
 ***/
-void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, XMMATRIX* asWorldPose)
+void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose)
 {
 	for (uint32_t i = 0; i < sLocalPose.jointCount; ++i)
 	{
-		XMMATRIX sLocal;
+		D3DXMATRIX sLocal;
 		D3DMatrixFromOvrAvatarTransform(sLocalPose.jointTransform[i], &sLocal);
 
 		int parentIndex = sLocalPose.jointParents[i];
@@ -1605,9 +1630,9 @@ void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPo
 /**
 * Oculus mesh loader (D3D11).
 **/
-MeshData* OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data)
+void OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data, MeshData* mesh)
 {
-	MeshData* mesh = new MeshData();
+	if (!mesh) return;
 
 #ifdef _CREATE_MESH_FILES // if defined, outputs all mesh data to c++ ".h" files
 	// get the file name
@@ -1709,20 +1734,17 @@ MeshData* OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMesh
 	mesh->unElementCount = data->indexCount;
 
 	// Translate the bind pose
-	ComputeWorldPose(data->skinnedBindPose, mesh->asBindPose);
+	ComputeWorldPose(data->skinnedBindPose, (D3DXMATRIX*)mesh->asBindPose);
 	for (uint32_t i = 0; i < data->skinnedBindPose.jointCount; ++i)
-		mesh->asInverseBindPose[i] = XMMatrixInverse(NULL, mesh->asBindPose[i]);
-
-	return mesh;
+		D3DXMatrixInverse((D3DXMATRIX*)&mesh->asInverseBindPose[i], NULL, (D3DXMATRIX*)&mesh->asBindPose[i]);
 }
 
 /**
 * Loads a D3D11 texture from Oculus Avatar texture asset data.
 ***/
-TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data)
+void OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data, TextureData* texture)
 {
-	// Create a texture
-	TextureData* texture = new TextureData();
+	if (!texture) return;
 	DXGI_FORMAT eFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	// Load the image data
@@ -1856,8 +1878,6 @@ TextureData* OculusDirectMode::LoadTexture(ID3D11Device* pcDevice, const ovrAvat
 		if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)texture->pcTexture, &sDesc, &texture->pcSRV))))
 			OutputDebugString(L"[OVR] Failed to create model texture shader resource view!");
 	}
-
-	return texture;
 }
 
 /**
@@ -1875,23 +1895,25 @@ void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
 	// Compute the final world and viewProjection matrices for this part
 	XMMATRIX local;
 	D3DMatrixFromOvrAvatarTransform(localTransform, &local);
-	XMMATRIX worldMat = local;//XMMatrixTranslation(localTransform.position.x, localTransform.position.y, localTransform.position.z);//world * local;
+	XMMATRIX worldMat = local;//world * local;
 	XMMATRIX viewProjMat = view * proj;
 
 	// Compute the skinned pose
-	/*XMMATRIX* skinnedPoses = (XMMATRIX*)alloca(sizeof(XMMATRIX)* skinnedPose.jointCount);
+	static D3DXMATRIX skinnedPoses[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
 	ComputeWorldPose(skinnedPose, skinnedPoses);
 	for (uint32_t i = 0; i < skinnedPose.jointCount; ++i)
 	{
-	skinnedPoses[i] = skinnedPoses[i] * data->asInverseBindPose[i];
-	}*/
+		D3DXMATRIX sSkinned = skinnedPoses[i];
+		D3DXMATRIX sInvBind = data->asInverseBindPose[i];
+		D3DXMATRIX sMeshPose = sSkinned * sInvBind;
+		m_sConstantsVS.meshPose[i] = sMeshPose;
+	}
 
 	// Pass the world view position to the shader for view-dependent rendering
 	m_sConstantsVS.viewPos = viewPos;
 	// Assign the vertex uniforms
 	m_sConstantsVS.world = XMMatrixTranspose(worldMat);
 	m_sConstantsVS.viewProj = XMMatrixTranspose(viewProjMat);
-	//memcpy(&m_sConstantsVS.meshPose, skinnedPoses, sizeof(XMMATRIX)* skinnedPose.jointCount);
 }
 
 /**
@@ -1930,59 +1952,75 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 	m_sConstantsFS.baseMaskAxis = XMFLOAT4(&state->baseMaskAxis.x);
 
 	// set texture SRVs
-	UINT textureSlot = 0; 
+	UINT textureSlot = 0;
 	if (state->alphaMaskTextureID)
 	{
-		void* data = m_asAssetMap[state->alphaMaskTextureID];
-		if (data)
+		uint32_t uIndex = m_auAssetIndexMap[state->alphaMaskTextureID];
+		if (uIndex)
 		{
-			TextureData* psTexData = (TextureData*)data;
-			if (psTexData->pcSRV)
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
-			else
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			AvatarData* data = &m_asAssetMap[uIndex];
+			if (data)
+			{
+				TextureData* psTexData = &data->sTexture;
+				if (psTexData->pcSRV)
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
+				else
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			}
 		}
 	}
 	textureSlot++;
 	m_sConstantsFS.alphaMaskScaleOffset = XMFLOAT4(&state->alphaMaskScaleOffset.x);
 	if (state->normalMapTextureID)
 	{
-		void* data = m_asAssetMap[state->normalMapTextureID];
-		if (data)
+		uint32_t uIndex = m_auAssetIndexMap[state->alphaMaskTextureID];
+		if (uIndex)
 		{
-			TextureData* psTexData = (TextureData*)data;
-			if (psTexData->pcSRV)
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
-			else
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			AvatarData* data = &m_asAssetMap[uIndex];
+			if (data)
+			{
+				TextureData* psTexData = &data->sTexture;
+				if (psTexData->pcSRV)
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
+				else
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			}
 		}
 	}
 	textureSlot++;
 	m_sConstantsFS.normalMapScaleOffset = XMFLOAT4(&state->normalMapScaleOffset.x);
 	if (state->parallaxMapTextureID)
 	{
-		void* data = m_asAssetMap[state->parallaxMapTextureID];
-		if (data)
+		uint32_t uIndex = m_auAssetIndexMap[state->alphaMaskTextureID];
+		if (uIndex)
 		{
-			TextureData* psTexData = (TextureData*)data;
-			if (psTexData->pcSRV)
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
-			else
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			AvatarData* data = &m_asAssetMap[uIndex];
+			if (data)
+			{
+				TextureData* psTexData = &data->sTexture;
+				if (psTexData->pcSRV)
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
+				else
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			}
 		}
 	}
 	textureSlot++;
 	m_sConstantsFS.parallaxMapScaleOffset = XMFLOAT4(&state->parallaxMapScaleOffset.x);
 	if (state->roughnessMapTextureID)
 	{
-		void* data = m_asAssetMap[state->roughnessMapTextureID];
-		if (data)
+		uint32_t uIndex = m_auAssetIndexMap[state->alphaMaskTextureID];
+		if (uIndex)
 		{
-			TextureData* psTexData = (TextureData*)data;
-			if (psTexData->pcSRV)
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
-			else
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			AvatarData* data = &m_asAssetMap[uIndex];
+			if (data)
+			{
+				TextureData* psTexData = &data->sTexture;
+				if (psTexData->pcSRV)
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
+				else
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			}
 		}
 	}
 	textureSlot++;
@@ -2009,14 +2047,18 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		layerUniforms.layerBlendModes[i] = layerState.blendMode;
 		layerUniforms.layerMaskTypes[i] = layerState.maskType;
 		layerUniforms.layerColors[i] = layerState.layerColor;
-		void* data = m_asAssetMap[layerState.sampleTexture];
-		if (data)
+		uint32_t uIndex = m_auAssetIndexMap[layerState.sampleTexture];
+		if (uIndex)
 		{
-			TextureData* psTexData = (TextureData*)data;
-			if (psTexData->pcSRV)
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
-			else
-				m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			AvatarData* data = &m_asAssetMap[uIndex];
+			if (data)
+			{
+				TextureData* psTexData = &data->sTexture;
+				if (psTexData->pcSRV)
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, &psTexData->pcSRV);
+				else
+					m_pcContextTemporary->PSSetShaderResources(textureSlot, 1, nullptr);
+			}
 		}
 		textureSlot++;
 		layerUniforms.layerSurfaceScaleOffsets[i] = layerState.sampleScaleOffset;

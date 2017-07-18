@@ -115,7 +115,7 @@ struct ConstantsVS
 	XMVECTOR viewPos;
 	XMMATRIX world;
 	XMMATRIX viewProj;
-	XMMATRIX meshPose[64];
+	D3DXMATRIX meshPose[64];
 };
 
 /**
@@ -219,16 +219,42 @@ static const char* VS_OCULUS_AVATAR =
 "	sOutput.vertexBitangent = normalize(cross(sOutput.vertexNormal, sOutput.vertexTangent) * sInput.tangent.w);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"*/
 
-// NO SKINNING SIMPLE TEST
+"	float4 vertexPose;\n"
+"	vertexPose = mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
+"	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
+"	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
+"	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[3])]) * sInput.poseWeights[3];\n"
+
+"	float4 normalPose;\n"
+"	normalPose = mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
+"	normalPose += mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
+"	normalPose += mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
+"	normalPose += mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[3])]) * sInput.poseWeights[3];\n"
+"	normalPose = normalize(normalPose);\n"
+
+"	float4 tangentPose;\n"
+"	tangentPose = mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
+"	tangentPose += mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
+"	tangentPose += mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
+"	tangentPose += mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[3])]) * sInput.poseWeights[3];\n"
+"	tangentPose = normalize(tangentPose);\n"
+
 "	OutputVS sOutput;\n"
-"	sOutput.vertexWorldPos = mul(float4(sInput.position, 1.0f), world).xyz;\n"
+
+//"	sOutput.vertexWorldPos = mul(float4(sInput.position, 1.0f), world).xyz;\n"
+
+"	sOutput.vertexWorldPos = mul(float4(vertexPose, 1.0f), world).xyz;\n"
 "	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0f), viewProj);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"
 
 "	sOutput.vertexViewDir = normalize(viewPos - sOutput.vertexWorldPos).xyz;\n"
 "	sOutput.vertexObjPos = sOutput.position.xyz;\n"
-"	sOutput.vertexNormal = mul(float4(sInput.normal, 1.0f), world).xyz;\n"
-"	sOutput.vertexTangent = mul(sInput.tangent, world).xyz;\n"
+
+//"	sOutput.vertexNormal = mul(float4(sInput.normal, 1.0f), world).xyz;\n"
+//"	sOutput.vertexTangent = mul(sInput.tangent, world).xyz;\n"
+
+"	sOutput.vertexNormal = mul(normalPose, world).xyz;\n"
+"	sOutput.vertexTangent = mul(tangentPose, world).xyz;\n"
 "	sOutput.vertexBitangent = normalize(cross(sOutput.vertexNormal, sOutput.vertexTangent) * sInput.tangent.w);\n"
 
 "	return sOutput;\n"
@@ -398,7 +424,6 @@ static const char* PS_OCULUS_AVATAR =
 "		float normalMapStrength = maskParameters.w;\n"
 "		float d = 1.0 - max(0.0, abs(dot(vertexViewDir, ComputeNormal(tangentTransform, worldNormal, surfaceNormal, normalMapStrength))));\n"
 "		float p = pow(abs(d), power);\n"
-//"		return clamp(lerp(0.0f, 1.0f, p), 0.0, 1.0);\n"
 "		return clamp(lerp(fadeStart, fadeEnd, p), 0.0, 1.0);\n"
 
 "	}\n"
@@ -716,8 +741,8 @@ struct MeshData
 	ID3D11Buffer* pcVertexBuffer;
 	ID3D11Buffer* pcElementBuffer;
 	UINT unElementCount;
-	XMMATRIX asBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
-	XMMATRIX asInverseBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+	_D3DMATRIX asBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+	_D3DMATRIX asInverseBindPose[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
 };
 
 /**
@@ -727,6 +752,17 @@ struct TextureData
 {
 	ID3D11Texture2D* pcTexture;
 	ID3D11ShaderResourceView* pcSRV;
+};
+/**
+* Data structure union.
+***/
+struct AvatarData
+{
+	union
+	{
+		TextureData sTexture;
+		MeshData sMesh;
+	};
 };
 #endif
 
@@ -761,9 +797,9 @@ public:
 private:
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 	/*** OculusDirectMode private methods ***/
-	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, XMMATRIX* asWorldPose);
-	MeshData* LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data);
-	TextureData* LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data);
+	void ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPose, D3DXMATRIX* asWorldPose);
+	void LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data, MeshData* mesh);
+	void LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data, TextureData* texture);
 	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const XMMATRIX world, const XMMATRIX view, const XMMATRIX proj, const XMVECTOR viewPos);
 	void SetMaterialState(const ovrAvatarMaterialState* state, XMMATRIX* projectorInv);
 #endif
@@ -947,9 +983,13 @@ private:
 	***/
 	int m_nLoadingAssets;
 	/**
-	* All Oulus Assets.
+	* All Oculus Asset indices.
 	***/
-	std::map<ovrAvatarAssetID, void*> m_asAssetMap;
+	std::map<ovrAvatarAssetID, uint32_t> m_auAssetIndexMap;
+	/**
+	* All Oculus Assets.
+	***/
+	std::vector<AvatarData> m_asAssetMap;
 #endif
 
 	/**
