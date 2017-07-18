@@ -1042,8 +1042,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 									{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 									{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 									{ "TEXCOORD", 2, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-									{ "TEXCOORD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-									{ "TEXCOORD", 4, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 64, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 3, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+									{ "TEXCOORD", 4, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 52, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 								};
 
 								UINT unNumElements = sizeof(aLayout01) / sizeof(aLayout01[0]);
@@ -1906,6 +1906,13 @@ void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
 		D3DXMATRIX sSkinned = skinnedPoses[i];
 		D3DXMATRIX sInvBind = data->asInverseBindPose[i];
 		D3DXMATRIX sMeshPose = sSkinned * sInvBind;
+
+		// TEST
+		// D3DXMatrixIdentity(&sMeshPose);
+		//float fAngle = D3DXToRadian(float(i * 50 + 50));
+		//D3DXMatrixRotationX(&sMeshPose, fAngle);
+
+		D3DXMatrixInverse(&sMeshPose, NULL, &sMeshPose);
 		m_sConstantsVS.meshPose[i] = sMeshPose;
 	}
 

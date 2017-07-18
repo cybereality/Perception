@@ -243,7 +243,7 @@ static const char* VS_OCULUS_AVATAR =
 
 //"	sOutput.vertexWorldPos = mul(float4(sInput.position, 1.0f), world).xyz;\n"
 
-"	sOutput.vertexWorldPos = mul(float4(vertexPose, 1.0f), world).xyz;\n"
+"	sOutput.vertexWorldPos = mul(vertexPose, world).xyz;\n"
 "	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0f), viewProj);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"
 
