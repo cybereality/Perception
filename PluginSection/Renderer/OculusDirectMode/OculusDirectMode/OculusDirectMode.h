@@ -171,7 +171,7 @@ static const char* VS_OCULUS_AVATAR =
 "	float3 normal : TEXCOORD0;\n"
 "	float4 tangent : TEXCOORD1;\n"
 "	float2 texCoord : TEXCOORD2;\n"
-"	float4 poseIndices : TEXCOORD3;\n"
+"	uint4 poseIndices : TEXCOORD3;\n"
 "	float4 poseWeights : TEXCOORD4;\n"
 "};\n"
 
