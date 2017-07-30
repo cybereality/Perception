@@ -189,35 +189,6 @@ static const char* VS_OCULUS_AVATAR =
 
 "OutputVS main(InputVS sInput)\n"
 "{\n"
-/*"	float4 vertexPose;\n"
-"	vertexPose = mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
-"	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
-"	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
-"	vertexPose += mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[3])]) * sInput.poseWeights[3];\n"
-
-"	float4 normalPose;\n"
-"	normalPose = mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
-"	normalPose += mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
-"	normalPose += mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
-"	normalPose += mul(float4(sInput.normal, 1.0), meshPose[int(sInput.poseIndices[3])]) * sInput.poseWeights[3];\n"
-"	normalPose = normalize(normalPose);\n"
-
-"	float4 tangentPose;\n"
-"	tangentPose = mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
-"	tangentPose += mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[1])]) * sInput.poseWeights[1];\n"
-"	tangentPose += mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[2])]) * sInput.poseWeights[2];\n"
-"	tangentPose += mul(float4(sInput.tangent.xyz, 1.0), meshPose[int(sInput.poseIndices[3])]) * sInput.poseWeights[3];\n"
-"	tangentPose = normalize(tangentPose);\n"
-
-"	OutputVS sOutput;\n"
-"	sOutput.vertexWorldPos = mul(vertexPose, world).xyz;\n"
-"	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0), viewProj);\n"
-"	sOutput.vertexViewDir = normalize(viewPos - sOutput.vertexWorldPos).xyz;\n"
-"	sOutput.vertexObjPos = sOutput.position.xyz;\n"
-"	sOutput.vertexNormal = mul(normalPose, world).xyz;\n"
-"	sOutput.vertexTangent = mul(tangentPose, world).xyz;\n"
-"	sOutput.vertexBitangent = normalize(cross(sOutput.vertexNormal, sOutput.vertexTangent) * sInput.tangent.w);\n"
-"	sOutput.vertexUV = sInput.texCoord;\n"*/
 
 "	float4 vertexPose;\n"
 "	vertexPose = mul(float4(sInput.position, 1.0), meshPose[int(sInput.poseIndices[0])]) * sInput.poseWeights[0];\n"
@@ -241,17 +212,12 @@ static const char* VS_OCULUS_AVATAR =
 
 "	OutputVS sOutput;\n"
 
-//"	sOutput.vertexWorldPos = mul(float4(sInput.position, 1.0f), world).xyz;\n"
-
 "	sOutput.vertexWorldPos = mul(vertexPose, world).xyz;\n"
 "	sOutput.position = mul(float4(sOutput.vertexWorldPos, 1.0f), viewProj);\n"
 "	sOutput.vertexUV = sInput.texCoord;\n"
 
 "	sOutput.vertexViewDir = normalize(viewPos - sOutput.vertexWorldPos).xyz;\n"
 "	sOutput.vertexObjPos = sOutput.position.xyz;\n"
-
-//"	sOutput.vertexNormal = mul(float4(sInput.normal, 1.0f), world).xyz;\n"
-//"	sOutput.vertexTangent = mul(sInput.tangent, world).xyz;\n"
 
 "	sOutput.vertexNormal = mul(normalPose, world).xyz;\n"
 "	sOutput.vertexTangent = mul(tangentPose, world).xyz;\n"
@@ -1036,6 +1002,10 @@ private:
 	* The depth stencil view DX11.
 	***/
 	ID3D11DepthStencilView* m_pcDSVGeometry11[2];
+	/**
+	* The rasterizer state (for self occlusion culling is turned off)
+	***/
+	ID3D11RasterizerState* m_pcRS;
 	/**
 	* Vireio menu.
 	***/

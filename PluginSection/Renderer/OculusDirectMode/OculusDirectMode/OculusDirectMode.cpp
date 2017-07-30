@@ -167,7 +167,8 @@ m_pcILAvatar(nullptr),
 m_pcCVSAvatar(nullptr),
 m_pcCPSAvatar(nullptr),
 m_pcDSStateLess(nullptr),
-m_pcDSStateEqual(nullptr)
+m_pcDSStateEqual(nullptr),
+m_pcRS(nullptr)
 {
 	// add a zero asset as zero index
 	m_asAssetMap.push_back(AvatarData());
@@ -1183,6 +1184,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						if (FAILED(m_pcDeviceTemporary->CreateDepthStencilState(&sDesc, &m_pcDSStateEqual)))
 							OutputDebugString(L"[OVR] Failed to create depth stencil state.");
 					}
+					// rasterizer state
+					if (!m_pcRS)
+					{
+						D3D11_RASTERIZER_DESC sDesc = {};
+						sDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+						sDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
+						sDesc.FrontCounterClockwise = FALSE;
+						sDesc.DepthBias = 0;
+						sDesc.SlopeScaledDepthBias = 0.0f;
+						sDesc.DepthBiasClamp = 0.0f;
+						sDesc.DepthClipEnable = TRUE;
+						sDesc.ScissorEnable = FALSE;
+						sDesc.MultisampleEnable = FALSE;
+						sDesc.AntialiasedLineEnable = FALSE;
+						if (FAILED(m_pcDeviceTemporary->CreateRasterizerState(&sDesc, &m_pcRS)))
+							OutputDebugString(L"[OVR] Failed to create rasterizer state.");
+					}
 
 					if (bAllCreated)
 					{
@@ -1293,8 +1311,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							right.scale.y = 1.0f;
 							right.scale.z = 1.0f;
 
-							// for some unknown reason the following codeblock does not work....
-							/*ovrAvatarHandInputState inputStateLeft;
+							// create input states
+							ovrAvatarHandInputState inputStateLeft;
 							AvatarHandInputStateFromOvr(left, touchState, ovrHand_Left, &inputStateLeft);
 
 							ovrAvatarHandInputState inputStateRight;
@@ -1303,7 +1321,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							// Update the avatar pose from the inputs
 							ovrAvatarPose_UpdateBody(m_psAvatar, hmd);
 							ovrAvatarPose_UpdateHands(m_psAvatar, inputStateLeft, inputStateRight);
-							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);*/
+							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);
 						}
 
 						// build the matrices
@@ -1355,6 +1373,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						// clear and set the depth stencil
 						m_pcContextTemporary->ClearDepthStencilView(m_pcDSVGeometry11[eye], D3D11_CLEAR_DEPTH, 1.0f, 0);
 						m_pcContextTemporary->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11[eye]);
+
+						// set rasterizer state
+						m_pcContextTemporary->RSSetState(m_pcRS);
 
 						// Traverse over all components on the avatar
 						uint32_t componentCount = 0;
@@ -1472,6 +1493,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 								}
 							}
 						}
+
+						// set rasterizer to null
+						m_pcContextTemporary->RSSetState(nullptr);
 #endif
 #pragma endregion
 
