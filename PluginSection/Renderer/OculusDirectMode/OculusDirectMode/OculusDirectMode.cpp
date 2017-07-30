@@ -72,17 +72,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Little Oculus matrix helper.
 ***/
 inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform, D3DXMATRIX* psTarget) {
-	/*XMMATRIX sTranslate, sOrientation, sScale;
-	XMVECTOR sOrientationQ = XMVectorSet(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
-	sTranslate = XMMatrixTranslation(sTransform.position.x, sTransform.position.y, sTransform.position.z);
-	sOrientation = XMMatrixRotationQuaternion(sOrientationQ);
-	sScale = XMMatrixScaling(sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
-	*psTarget = sScale * sOrientation * sTranslate;*/
 	D3DXMATRIX sTranslate, sOrientation, sScale;
-	D3DXQUATERNION sOrientationQ = D3DXVECTOR4(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
 	D3DXMatrixTranslation(&sTranslate, sTransform.position.x, sTransform.position.y, sTransform.position.z);
-	D3DXMatrixRotationQuaternion(&sOrientation, &sOrientationQ);
 	D3DXMatrixScaling(&sScale, sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
+
+	D3DXQUATERNION sOrientationQ = D3DXVECTOR4(sTransform.orientation.x, sTransform.orientation.y, sTransform.orientation.z, sTransform.orientation.w);
+	D3DXMatrixRotationQuaternion(&sOrientation, &sOrientationQ);
+
 	*psTarget = sScale * sOrientation * sTranslate;
 }
 /**
@@ -1622,7 +1618,7 @@ void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPo
 		}
 		else
 		{
-			asWorldPose[i] = asWorldPose[parentIndex] * sLocal;
+			asWorldPose[i] = sLocal * asWorldPose[parentIndex];
 		}
 	}
 }
@@ -1633,6 +1629,35 @@ void OculusDirectMode::ComputeWorldPose(const ovrAvatarSkinnedMeshPose& sLocalPo
 void OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data, MeshData* mesh)
 {
 	if (!mesh) return;
+
+	// create the vertex buffer
+	D3D11_BUFFER_DESC sDesc = {};
+	sDesc.Usage = D3D11_USAGE_DEFAULT;
+	sDesc.ByteWidth = sizeof(ovrAvatarMeshVertex)* data->vertexCount;
+	sDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	sDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA sInitData;
+	ZeroMemory(&sInitData, sizeof(sInitData));
+	sInitData.pSysMem = data->vertexBuffer;
+	if (FAILED(pcDevice->CreateBuffer(&sDesc, &sInitData, &mesh->pcVertexBuffer)))
+		OutputDebugString(L"[OVR] Failed to create vertex buffer.");
+
+	// create index buffer
+	D3D11_BUFFER_DESC sIBDesc = {};
+	sIBDesc.Usage = D3D11_USAGE_DEFAULT;
+	sIBDesc.ByteWidth = sizeof(WORD)* data->indexCount; // TODO !! UINT ??????
+	sIBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	sIBDesc.CPUAccessFlags = 0;
+	ZeroMemory(&sInitData, sizeof(sInitData));
+	sInitData.pSysMem = data->indexBuffer;
+	if (FAILED(pcDevice->CreateBuffer(&sIBDesc, &sInitData, &mesh->pcElementBuffer)))
+		OutputDebugString(L"[OVR] Failed to create index buffer.");
+	mesh->unElementCount = data->indexCount;
+
+	// Translate the bind pose
+	ComputeWorldPose(data->skinnedBindPose, (D3DXMATRIX*)mesh->asBindPose);
+	for (uint32_t i = 0; i < data->skinnedBindPose.jointCount; ++i)
+		D3DXMatrixInverse((D3DXMATRIX*)&mesh->asInverseBindPose[i], NULL, (D3DXMATRIX*)&mesh->asBindPose[i]);
 
 #ifdef _CREATE_MESH_FILES // if defined, outputs all mesh data to c++ ".h" files
 	// get the file name
@@ -1707,36 +1732,63 @@ void OculusDirectMode::LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAsset
 			ofMeshfile << "};\n\n";
 	}
 	ofMeshfile.close();
+
+	// get the file name
+	strFileName = std::stringstream();
+	strFileName << "OculusBindPose_" << data->vertexCount << ".h";
+
+	// open file and set manipulators
+	ofMeshfile.open(strFileName.str().c_str());
+	ofMeshfile << std::fixed << std::setw(11) << std::setprecision(6);
+
+	// write header
+	ofMeshfile << "/********************************************************************\n";
+	ofMeshfile << "Vireio Perception: Open-Source Stereoscopic 3D Driver\n";
+	ofMeshfile << "Copyright (C) 2012 Andres Hernandez\n";
+
+	ofMeshfile << "This file was exported from Vireio using Oculus Avatar SDK.\n";
+	ofMeshfile << "Data Copyright : Copyright 2014-2016 Oculus VR, LLC All Rights reserved.\n\n";
+
+	ofMeshfile << "Vireio Perception Version History :.\n";
+	ofMeshfile << "v1.0.0 2012 by Andres Hernandez.\n";
+	ofMeshfile << "v1.0.X 2013 by John Hicks, Neil Schneider.\n";
+	ofMeshfile << "v1.1.x 2013 by Primary Coding Author : Chris Drain.\n";
+	ofMeshfile << "Team Support : John Hicks, Phil Larkson, Neil Schneider.\n";
+	ofMeshfile << "v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown.\n";
+	ofMeshfile << "v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown, Samuel Austin.\n";
+	ofMeshfile << "and Neil Schneider.\n\n";
+
+	ofMeshfile << "This program is free software : you can redistribute it and / or modify.\n";
+	ofMeshfile << "it under the terms of the GNU Lesser General Public License as published by.\n";
+	ofMeshfile << "the Free Software Foundation, either version 3 of the License, or.\n";
+	ofMeshfile << "(at your option) any later version..\n\n";
+
+	ofMeshfile << "This program is distributed in the hope that it will be useful,.\n";
+	ofMeshfile << "but WITHOUT ANY WARRANTY; without even the implied warranty of.\n";
+	ofMeshfile << "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the.\n";
+	ofMeshfile << "GNU Lesser General Public License for more details..\n\n";
+
+	ofMeshfile << "You should have received a copy of the GNU Lesser General Public License.\n";
+	ofMeshfile << "along with this program.If not, see < http://www.gnu.org/licenses/>..\n";
+	ofMeshfile << "********************************************************************/\n\n";
+
+	// loop through vertices
+	ofMeshfile << "const uint32_t unJointCount_" << data->vertexCount << " = " << data->skinnedBindPose.jointCount << ";\n";
+	ofMeshfile << "const D3DXMATRIX asBindPose_" << data->vertexCount << "[] = {\n";
+	for (uint16_t unIx = 0; unIx < data->skinnedBindPose.jointCount; unIx++)
+	{
+		ofMeshfile << "	{ " << mesh->asBindPose[unIx].m[0][0] << "f," << mesh->asBindPose[unIx].m[0][1] << "f," << mesh->asBindPose[unIx].m[0][2] << "f," << mesh->asBindPose[unIx].m[0][3] << "f,"
+			<< mesh->asBindPose[unIx].m[1][0] << "f," << mesh->asBindPose[unIx].m[1][1] << "f," << mesh->asBindPose[unIx].m[1][2] << "f," << mesh->asBindPose[unIx].m[1][3] << "f,"
+			<< mesh->asBindPose[unIx].m[2][0] << "f," << mesh->asBindPose[unIx].m[2][1] << "f," << mesh->asBindPose[unIx].m[2][2] << "f," << mesh->asBindPose[unIx].m[2][3] << "f,"
+			<< mesh->asBindPose[unIx].m[3][0] << "f," << mesh->asBindPose[unIx].m[3][1] << "f," << mesh->asBindPose[unIx].m[3][2] << "f," << mesh->asBindPose[unIx].m[3][3] << "f"
+			<< "}";
+		if (unIx < (data->skinnedBindPose.jointCount - 1))
+			ofMeshfile << ",\n";
+		else
+			ofMeshfile << "};\n\n";
+	}
+	ofMeshfile.close();
 #endif
-
-	// create the vertex buffer
-	D3D11_BUFFER_DESC sDesc = {};
-	sDesc.Usage = D3D11_USAGE_DEFAULT;
-	sDesc.ByteWidth = sizeof(ovrAvatarMeshVertex)* data->vertexCount;
-	sDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	sDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA sInitData;
-	ZeroMemory(&sInitData, sizeof(sInitData));
-	sInitData.pSysMem = data->vertexBuffer;
-	if (FAILED(pcDevice->CreateBuffer(&sDesc, &sInitData, &mesh->pcVertexBuffer)))
-		OutputDebugString(L"[OVR] Failed to create vertex buffer.");
-
-	// create index buffer
-	D3D11_BUFFER_DESC sIBDesc = {};
-	sIBDesc.Usage = D3D11_USAGE_DEFAULT;
-	sIBDesc.ByteWidth = sizeof(WORD)* data->indexCount; // TODO !! UINT ??????
-	sIBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	sIBDesc.CPUAccessFlags = 0;
-	ZeroMemory(&sInitData, sizeof(sInitData));
-	sInitData.pSysMem = data->indexBuffer;
-	if (FAILED(pcDevice->CreateBuffer(&sIBDesc, &sInitData, &mesh->pcElementBuffer)))
-		OutputDebugString(L"[OVR] Failed to create index buffer.");
-	mesh->unElementCount = data->indexCount;
-
-	// Translate the bind pose
-	ComputeWorldPose(data->skinnedBindPose, (D3DXMATRIX*)mesh->asBindPose);
-	for (uint32_t i = 0; i < data->skinnedBindPose.jointCount; ++i)
-		D3DXMatrixInverse((D3DXMATRIX*)&mesh->asInverseBindPose[i], NULL, (D3DXMATRIX*)&mesh->asBindPose[i]);
 }
 
 /**
