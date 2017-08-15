@@ -88,9 +88,130 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <OVR_CAPI_D3D.h>
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #include <OVR_Platform.h>
-#include <inttypes.h>
 #include "DDS.h"
+#else
+typedef uint64_t ovrAvatarAssetID;
+/// The maximum joint count that can be in a skinned mesh renderer.
+///
+#define OVR_AVATAR_MAXIMUM_JOINT_COUNT 64
+/// The maximum number of material layers.
+///
+#define OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT 8
+/// Mesh Vertex
+/// custom mesh vertex declaration
+typedef struct ovrAvatarMeshVertex_
+{
+	float   x;  ///< X component of the position
+	float   y;  ///< Y component of the position
+	float   z;  ///< Z component of the position
+	float   nx; ///< X component of the normal
+	float   ny; ///< Y component of the normal
+	float   nz; ///< Z component of the normal
+	float	tx; ///< X component of the tangent
+	float	ty; ///< Y component of the tangent
+	float	tz; ///< Z component of the tangent
+	float	tw; ///< W component of the tangent
+	float   u;  ///< U component of texture coordinates
+	float   v;  ///< V component of texture coordinates
+	uint8_t blendIndices[4]; ///< Joint indices for skin weighting
+	float   blendWeights[4]; ///< Blend weights for skin weighting
+} ovrAvatarMeshVertex;
+/// 3D Vector Type
+///
+typedef struct ovrAvatarVector3f_
+{
+	float x, y, z;
+} ovrAvatarVector3f;
+
+/// 4D Vector Type
+///
+typedef struct ovrAvatarVector4f_
+{
+	float x, y, z, w;
+} ovrAvatarVector4f;
+
+/// Quaternion Type
+///
+typedef struct ovrAvatarQuatf_
+{
+	float x, y, z, w;
+} ovrAvatarQuatf;
+/// Transform Type
+///
+typedef struct ovrAvatarTransform_
+{
+	ovrAvatarVector3f position;
+	ovrAvatarQuatf orientation;
+	ovrAvatarVector3f scale;
+} ovrAvatarTransform;
+/// Material Mask Types
+/// Masks programmatically control which portions of the surface this layer is applied to.
+/// See reference shaders for implementation details.
+///
+typedef enum ovrAvatarMaterialMaskType_
+{
+	ovrAvatarMaterialMaskType_None,           ///< No mask is applied to this layer.
+	ovrAvatarMaterialMaskType_Positional,     ///< A mask is applied to this based on vertex position.
+	ovrAvatarMaterialMaskType_ViewReflection, ///< A mask is applied to this based on reflection of view vector.
+	ovrAvatarMaterialMaskType_Fresnel,        ///< A mask is applied based on view direction's angle of incidence.
+	ovrAvatarMaterialMaskType_Pulse,          ///< Like positional, but varying over time.
+	ovrAvatarMaterialMaskType_Count
+} ovrAvatarMaterialMaskType;
+/// Material Layer Blend Modes
+///
+typedef enum ovrAvatarMaterialLayerBlendMode_
+{
+	ovrAvatarMaterialLayerBlendMode_Add,      ///< The color value of this layer is added to the layers before it.
+	ovrAvatarMaterialLayerBlendMode_Multiply, ///< The color value of this layer is multiplied with the layers before it.
+	ovrAvatarMaterialLayerBlendMode_Count
+} ovrAvatarMaterialLayerBlendMode;
+/// Material Layer Sample Modes
+///
+typedef enum ovrAvatarMaterialLayerSampleMode_
+{
+	ovrAvatarMaterialLayerSampleMode_Color,                ///< This layer's color value comes from the color constant.
+	ovrAvatarMaterialLayerSampleMode_Texture,              ///< This layer's color value comes from the layer's texture sampler.
+	ovrAvatarMaterialLayerSampleMode_TextureSingleChannel, ///< This layer's color value comes from a channel in the layer's texture sampler specified by the sample parameters.
+	ovrAvatarMaterialLayerSampleMode_Parallax,             ///< This layer's color value comes from the layer's texture sampler with coordinates modified by the material's parallax texture.
+	ovrAvatarMaterialLayerSampleMode_RDSM,                 ///< This layer's color value comes from the layer's texture sampler with coordinates modified by the material's roughness texture.
+	ovrAvatarMaterialLayerSampleMode_Count
+} ovrAvatarMaterialLayerSampleMode;
+/// Material Layer State
+///
+typedef struct ovrAvatarMaterialLayerState_
+{
+	ovrAvatarMaterialLayerBlendMode     blendMode;         ///< Blend mode of the material layer
+	ovrAvatarMaterialLayerSampleMode    sampleMode;        ///< Sample mode of the material layer
+	ovrAvatarMaterialMaskType			maskType;          ///< Mask type of the material layer
+	ovrAvatarVector4f					layerColor;        ///< Layer color
+	ovrAvatarVector4f                   sampleParameters;  ///< Parameters driving sample mode
+	ovrAvatarAssetID                    sampleTexture;     ///< Sample texture id (0 if unused)
+	ovrAvatarVector4f					sampleScaleOffset; ///< UV scale and offset parameters for the sample texture
+	ovrAvatarVector4f                   maskParameters;    ///< Parameters driving the layer mask
+	ovrAvatarVector4f                   maskAxis;          ///< Axis used by some mask types
+} ovrAvatarMaterialLayerState;
+/// Material state
+///
+typedef struct ovrAvatarMaterialState_
+{
+	ovrAvatarVector4f			baseColor;               ///< Underlying base color for the material
+	ovrAvatarMaterialMaskType	baseMaskType;            ///< Mask type of the base color
+	ovrAvatarVector4f			baseMaskParameters;      ///< Parameters for the base mask type
+	ovrAvatarVector4f			baseMaskAxis;            ///< Axis used by some mask types
+	ovrAvatarAssetID            alphaMaskTextureID;      ///< Texture id for the base alpha mask (0 if unused)
+	ovrAvatarVector4f			alphaMaskScaleOffset;    ///< UV scale and offset parameters for the alpha mask
+	ovrAvatarAssetID			normalMapTextureID;      ///< Texture id for the normal map (0 if unused)
+	ovrAvatarVector4f			normalMapScaleOffset;    ///< UV scale and offset parameters for the normal map
+	ovrAvatarAssetID            parallaxMapTextureID;    ///< Texture id for the parallax map (0 if unused)
+	ovrAvatarVector4f			parallaxMapScaleOffset;  ///< UV scale and offset parameters for the parallax map
+	ovrAvatarAssetID			roughnessMapTextureID;   ///< Texture id for the roughness map (0 if unused)
+	ovrAvatarVector4f			roughnessMapScaleOffset; ///< UV scale and offset parameters for the roughness map
+	uint32_t                    layerCount;              ///< Number of layers
+	ovrAvatarMaterialLayerState layers[OVR_AVATAR_MAX_MATERIAL_LAYER_COUNT]; ///< State for each material layer
+} ovrAvatarMaterialState;
+#include"OculusMesh_4070.h" // include mesh for 32 bit
 #endif
+#include <inttypes.h>
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
@@ -697,7 +818,7 @@ struct __ovrQuatf : public ovrQuatf
 	}
 };
 
-#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+//#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Oculus Mesh data structure (D3D11).
 ***/
@@ -730,7 +851,7 @@ struct AvatarData
 		MeshData sMesh;
 	};
 };
-#endif
+//#endif
 
 /**
 * Oculus Direct Mode Node Plugin.
@@ -767,8 +888,8 @@ private:
 	void LoadMesh(ID3D11Device* pcDevice, const ovrAvatarMeshAssetData* data, MeshData* mesh);
 	void LoadTexture(ID3D11Device* pcDevice, const ovrAvatarTextureAssetData* data, TextureData* texture);
 	void SetMeshState(const ovrAvatarTransform& localTransform, const MeshData* data, const ovrAvatarSkinnedMeshPose& skinnedPose, const XMMATRIX world, const XMMATRIX view, const XMMATRIX proj, const XMVECTOR viewPos);
-	void SetMaterialState(const ovrAvatarMaterialState* state, XMMATRIX* projectorInv);
 #endif
+	void SetMaterialState(const ovrAvatarMaterialState* state, XMMATRIX* projectorInv);
 
 	/**
 	* True if OVR is initialized.
@@ -944,6 +1065,7 @@ private:
 	* The Oculus Avatar.
 	***/
 	ovrAvatar* m_psAvatar;
+#endif
 	/**
 	* Asset loading counter.
 	***/
@@ -956,8 +1078,6 @@ private:
 	* All Oculus Assets.
 	***/
 	std::vector<AvatarData> m_asAssetMap;
-#endif
-
 	/**
 	* Vertex shader constants.
 	***/

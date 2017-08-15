@@ -5,6 +5,7 @@
     <ClInclude Include="..\OculusDirectMode.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\DDS.h" />
+    <ClInclude Include="..\OculusMesh_4070.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\OculusDirectMode.cpp" />

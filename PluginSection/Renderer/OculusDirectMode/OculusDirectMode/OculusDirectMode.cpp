@@ -57,7 +57,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT   3
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
-#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 #define AVATAR_MESH_LEFT_TOUCH 0x557a26331850dbf
 #define AVATAR_MESH_RIGHT_HAND 0x6a4ae11446026286
 #define AVATAR_MESH_RIGHT_TOUCH 0x6feb9283b780b5a3
@@ -92,6 +91,7 @@ inline void D3DMatrixFromOvrAvatarTransform(const ovrAvatarTransform& sTransform
 	sScale = XMMatrixScaling(sTransform.scale.x, sTransform.scale.y, sTransform.scale.z);
 	*psTarget = sScale * sOrientation * sTranslate;
 }
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 /**
 * Method from mirror sample.
 ***/
@@ -159,8 +159,8 @@ m_ppcTexViewHud11(nullptr),
 m_pcTex11CopyHUD(nullptr),
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 m_psAvatar(nullptr),
-m_nLoadingAssets(0),
 #endif
+m_nLoadingAssets(0),
 m_pcVSAvatar(nullptr),
 m_pcPSAvatar(nullptr),
 m_pcILAvatar(nullptr),
@@ -170,8 +170,10 @@ m_pcDSStateLess(nullptr),
 m_pcDSStateEqual(nullptr),
 m_pcRS(nullptr)
 {
-	// add a zero asset as zero index
+#ifdef _WIN64
+	// add a zero asset as zero index.. only for 64bit
 	m_asAssetMap.push_back(AvatarData());
+#endif
 
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -802,6 +804,45 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			OutputDebugString(L"[OVR] Avatar Message processed...");
 			ovrAvatarMessage_Free(psMessage);
 		}
+#else
+		if (!m_asAssetMap.size())
+		{
+			// create the meshes manually for 32bit
+			AvatarData sData = {};
+
+			// create the vertex buffer
+			D3D11_BUFFER_DESC sDesc = {};
+			sDesc.Usage = D3D11_USAGE_DEFAULT;
+			sDesc.ByteWidth = sizeof(ovrAvatarMeshVertex)* unAvatarVertexCount_4070;
+			sDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			sDesc.CPUAccessFlags = 0;
+			D3D11_SUBRESOURCE_DATA sInitData;
+			ZeroMemory(&sInitData, sizeof(sInitData));
+			sInitData.pSysMem = asAvatarVertices_4070;
+			if (FAILED(m_pcDeviceTemporary->CreateBuffer(&sDesc, &sInitData, &sData.sMesh.pcVertexBuffer)))
+				OutputDebugString(L"[OVR] Failed to create vertex buffer.");
+
+			// create index buffer
+			D3D11_BUFFER_DESC sIBDesc = {};
+			sIBDesc.Usage = D3D11_USAGE_DEFAULT;
+			sIBDesc.ByteWidth = sizeof(WORD)*unAvatarIndexCount_4070;
+			sIBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			sIBDesc.CPUAccessFlags = 0;
+			ZeroMemory(&sInitData, sizeof(sInitData));
+			sInitData.pSysMem = aunAvatarIndices_4070;
+			if (FAILED(m_pcDeviceTemporary->CreateBuffer(&sIBDesc, &sInitData, &sData.sMesh.pcElementBuffer)))
+				OutputDebugString(L"[OVR] Failed to create index buffer.");
+			sData.sMesh.unElementCount = unAvatarIndexCount_4070;
+
+			// Translate the bind pose
+			for (uint32_t i = 0; i < unJointCount_4070; ++i)
+			{
+				sData.sMesh.asBindPose[i] = asBindPose_4070[i];
+				D3DXMatrixInverse((D3DXMATRIX*)&sData.sMesh.asInverseBindPose[i], NULL, (D3DXMATRIX*)&sData.sMesh.asBindPose[i]);
+			}
+
+			m_asAssetMap.push_back(sData);
+		}
 #endif
 #pragma endregion
 #pragma region Render
@@ -1267,11 +1308,14 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->Draw(6, 0);
 
 #pragma region render avatar
-#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 						ovrAvatarTransform hmd;
 						ovrAvatarTransform left;
 						ovrAvatarTransform right;
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 						if (m_psAvatar)
+#else
+						if (true)
+#endif
 						{
 							// Convert the OVR inputs into Avatar SDK inputs
 							ovrInputState touchState;
@@ -1311,6 +1355,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							right.scale.y = 1.0f;
 							right.scale.z = 1.0f;
 
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 							// create input states
 							ovrAvatarHandInputState inputStateLeft;
 							AvatarHandInputStateFromOvr(left, touchState, ovrHand_Left, &inputStateLeft);
@@ -1322,6 +1367,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							ovrAvatarPose_UpdateBody(m_psAvatar, hmd);
 							ovrAvatarPose_UpdateHands(m_psAvatar, inputStateLeft, inputStateRight);
 							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);
+#endif
 						}
 
 						// build the matrices
@@ -1377,6 +1423,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						// set rasterizer state
 						m_pcContextTemporary->RSSetState(m_pcRS);
 
+#ifdef _WIN64
 						// Traverse over all components on the avatar
 						uint32_t componentCount = 0;
 						if (m_psAvatar)
@@ -1491,6 +1538,97 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 										//OutputDebugString(L"ovrAvatarRenderPartType_ProjectorRender");
 										break;
 								}
+							}
+						}
+
+						// set rasterizer to null
+						m_pcContextTemporary->RSSetState(nullptr);
+#else
+						// render by hand for 32bit
+						for (uint32_t i = 0; i < (uint32_t)m_asAssetMap.size(); ++i)
+						{
+							// get mesh... in the 32bit asset map we only have meshes
+							MeshData* data = &m_asAssetMap[i].sMesh;
+
+							// Apply the material state
+							ovrAvatarMaterialState sState = {};
+							sState.baseColor.x = 0.676471f;
+							sState.baseColor.y = 0.852941f;
+							sState.baseColor.z = 1.0f;
+							sState.baseColor.w = 1.0f;
+
+							sState.baseMaskType = ovrAvatarMaterialMaskType_Fresnel;
+
+							sState.baseMaskParameters.x = 0.5f;
+							sState.baseMaskParameters.y = 0.0f;
+							sState.baseMaskParameters.z = 1.0f;
+							sState.baseMaskParameters.w = 1.0f;
+
+							sState.layerCount = 1;
+							SetMaterialState(&sState, nullptr);
+							m_pcContextTemporary->UpdateSubresource(m_pcCPSAvatar, 0, NULL, &m_sConstantsFS, 0, 0);
+
+							// set vertex buffer, index buffer
+							stride = sizeof(ovrAvatarMeshVertex_);
+							offset = 0;
+							m_pcContextTemporary->IASetVertexBuffers(0, 1, &data->pcVertexBuffer, &stride, &offset);
+							m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+							// TODO !! LOAD RIGHT HAND MESH
+							for (unsigned uEye = 0; uEye < 2; uEye++)
+							{
+								// world... x -1 for right hand
+								XMMATRIX sScale, sLocal;
+								if (uEye == 0)
+								{
+									sScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+									D3DMatrixFromOvrAvatarTransform(left, &sLocal);
+								}
+								else
+								{
+									sScale = XMMatrixScaling(-1.0f, 1.0f, 1.0f);
+									D3DMatrixFromOvrAvatarTransform(right, &sLocal);
+								}
+
+								// Set constants
+								XMMATRIX sV = XMLoadFloat4x4(&sView);
+								XMMATRIX sP = XMLoadFloat4x4(&sProjection);
+								XMVECTOR sVP = XMVectorSet(eyePosition.x, eyePosition.y, eyePosition.z, 0.0f);
+
+								// Compute the final world and viewProjection matrices for this part
+								XMMATRIX worldMat = sScale * sLocal;
+								XMMATRIX viewProjMat = sV * sP;
+
+								// Compute the skinned pose
+								//static D3DXMATRIX skinnedPoses[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
+								//ComputeWorldPose(skinnedPose, skinnedPoses);
+								for (uint32_t i = 0; i < unJointCount_4070; ++i)
+								{
+									D3DXMATRIX sSkinned = data->asBindPose[i];
+									D3DXMATRIX sInvBind = data->asInverseBindPose[i];
+									D3DXMATRIX sMeshPose = sInvBind * sSkinned;
+
+									D3DXMatrixTranspose(&sMeshPose, &sMeshPose);
+									m_sConstantsVS.meshPose[i] = sMeshPose;
+								}
+
+								// Pass the world view position to the shader for view-dependent rendering
+								m_sConstantsVS.viewPos = sVP;
+								// Assign the vertex uniforms
+								m_sConstantsVS.world = XMMatrixTranspose(worldMat);
+								m_sConstantsVS.viewProj = XMMatrixTranspose(viewProjMat);
+								m_pcContextTemporary->UpdateSubresource(m_pcCVSAvatar, 0, NULL, &m_sConstantsVS, 0, 0);
+								// Write to depth first for self-occlusion
+								m_pcContextTemporary->OMSetDepthStencilState(m_pcDSStateLess, 1);
+								if (true) // self occluding
+								{
+									m_pcContextTemporary->OMSetRenderTargets(0, nullptr, m_pcDSVGeometry11[eye]);
+									m_pcContextTemporary->DrawIndexed(data->unElementCount, 0, 0);
+									m_pcContextTemporary->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11[eye]);
+									m_pcContextTemporary->OMSetDepthStencilState(m_pcDSStateEqual, 1);
+								}
+								// draw
+								m_pcContextTemporary->DrawIndexed(data->unElementCount, 0, 0);
 							}
 						}
 
@@ -1993,7 +2131,7 @@ void OculusDirectMode::SetMeshState(const ovrAvatarTransform& localTransform,
 	m_sConstantsVS.world = XMMatrixTranspose(worldMat);
 	m_sConstantsVS.viewProj = XMMatrixTranspose(viewProjMat);
 }
-
+#endif
 /**
 * Sets fragment shader constants.
 **/
@@ -2161,4 +2299,3 @@ void OculusDirectMode::SetMaterialState(const ovrAvatarMaterialState* state, XMM
 		m_sConstantsFS.layerMaskAxes[unIx] = XMFLOAT4(&layerUniforms.layerMaskAxes[unIx].x);
 }
 
-#endif

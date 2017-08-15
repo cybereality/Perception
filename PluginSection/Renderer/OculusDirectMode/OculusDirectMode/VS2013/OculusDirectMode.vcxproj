@@ -176,6 +176,7 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\DDS.h" />
     <ClInclude Include="..\OculusDirectMode.h" />
+    <ClInclude Include="..\OculusMesh_4070.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
