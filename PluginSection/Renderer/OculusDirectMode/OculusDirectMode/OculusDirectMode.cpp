@@ -1314,6 +1314,21 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 						if (m_psAvatar)
 #else
+						/*
+						* Current hand pose enumeration.
+						**/
+						enum OculusHandPose
+						{
+							default,//: finger 0 + 1 on touch but not pressed, finger 3 - 5 released
+							pinch,//: finger 0 + 1 pressed, finger 3 - 5 released
+							fist,// : all fingers pressed
+							point_relaxed,//: finger 0 on touch, finger 1 fully up, finger 3 - 5 released
+							thumb_relaxed,//: finger 0 fully up, finger 1 on touch, finger 3 - 5 released
+							thumb_point_relaxed,//: finger 0 + 1 fully up, finger 3 - 5 released
+							point,// : finger 0 on touch or pressed, finger 1 fully up, finger 3 - 5 pressed
+							thumb,// : finger 0 fully up, finger 1 on touch or pressed, finger 3 - 5 pressed
+							thumb_point,// : finger 0 + 1 fully up, finger 3 - 5 pressed
+						} eHandPose[2];
 						if (true)
 #endif
 						{
@@ -1367,6 +1382,56 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							ovrAvatarPose_UpdateBody(m_psAvatar, hmd);
 							ovrAvatarPose_UpdateHands(m_psAvatar, inputStateLeft, inputStateRight);
 							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);
+#else
+							// set the hand poses manually... 
+							bool bPointL = (touchState.Touches & ovrTouch_LIndexPointing);
+							bool bFistL = (touchState.HandTrigger[ovrHand_Left] > 0.5f);
+							bool bPinchL = (touchState.IndexTrigger[ovrHand_Left] > 0.5f);
+
+							// thumb down ?
+							if (touchState.Touches & (ovrTouch_X | ovrTouch_Y | ovrTouch_LThumb | ovrTouch_LThumbRest))
+							{
+								// pointer (index finger) up ?
+								if (bPointL)
+								{
+									if (bFistL)
+										eHandPose[ovrHand_Left] = OculusHandPose::point;
+									else
+										eHandPose[ovrHand_Left] = OculusHandPose::point_relaxed;
+								}
+								else
+								{
+									if (bFistL)
+										eHandPose[ovrHand_Left] = OculusHandPose::fist;
+									else
+									{
+										if (bPinchL)
+											eHandPose[ovrHand_Left] = OculusHandPose::pinch;
+										else
+											eHandPose[ovrHand_Left] = OculusHandPose::default;
+									}
+								}
+
+							}
+							else
+								// thumb up ?
+							{
+								// pointer (index finger) up ?
+								if (bPointL)
+								{
+									if (bFistL)
+										eHandPose[ovrHand_Left] = OculusHandPose::thumb_point;
+									else
+										eHandPose[ovrHand_Left] = OculusHandPose::thumb_point_relaxed;
+								}
+								else
+								{
+									if (bFistL)
+										eHandPose[ovrHand_Left] = OculusHandPose::thumb;
+									else
+										eHandPose[ovrHand_Left] = OculusHandPose::thumb_relaxed;
+								}
+							}
 #endif
 						}
 
@@ -1600,11 +1665,43 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 								XMMATRIX viewProjMat = sV * sP;
 
 								// Compute the skinned pose
-								//static D3DXMATRIX skinnedPoses[OVR_AVATAR_MAXIMUM_JOINT_COUNT];
-								//ComputeWorldPose(skinnedPose, skinnedPoses);
+
 								for (uint32_t i = 0; i < unJointCount_4070; ++i)
 								{
-									D3DXMATRIX sSkinned = data->asBindPose[i];
+									D3DXMATRIX sSkinned = asPoseDefault[i];
+									switch (eHandPose[ovrHand_Left])
+									{
+										case default:
+											sSkinned = asPoseDefault[i];
+											break;
+										case pinch:
+											sSkinned = asPosePinch[i];
+											break;
+										case fist:
+											sSkinned = asPoseFist[i];
+											break;
+										case point_relaxed:
+											sSkinned = asPosePointRelaxed[i];
+											break;
+										case thumb_relaxed:
+											sSkinned = asPoseThumbRelaxed1[i]; // < we have two thumb_relaxed poses here, did choose asPoseThumbRelaxed1
+											break;
+										case thumb_point_relaxed:
+											sSkinned = asPoseThumbPointRelaxed[i];
+											break;
+										case point:
+											sSkinned = asPosePoint[i];
+											break;
+										case thumb:
+											sSkinned = asPoseThumb[i];
+											break;
+										case thumb_point:
+											sSkinned = asPoseThumbPoint[i];
+											break;
+										default:
+											break;
+									}
+
 									D3DXMATRIX sInvBind = data->asInverseBindPose[i];
 									D3DXMATRIX sMeshPose = sInvBind * sSkinned;
 
