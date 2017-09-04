@@ -168,7 +168,8 @@ m_pcCVSAvatar(nullptr),
 m_pcCPSAvatar(nullptr),
 m_pcDSStateLess(nullptr),
 m_pcDSStateEqual(nullptr),
-m_pcRS(nullptr)
+m_pcRS(nullptr),
+m_pcRS_RightHand(nullptr)
 {
 #ifdef _WIN64
 	// add a zero asset as zero index.. only for 64bit
@@ -246,9 +247,15 @@ m_pcRS(nullptr)
 ***/
 OculusDirectMode::~OculusDirectMode()
 {
-	// TODO !! RELEASE ALL AVATAR ASSETS
-	// for (auto uIx = 0; uIx < m_asAssetMap.size(); uIx++)
+	// release all avatar stuff... first two members of the asset union are IUnknown interfaces
+	for (size_t uIx = 0; uIx < m_asAssetMap.size(); uIx++)
+	{
+		SAFE_RELEASE(m_asAssetMap[uIx].sMesh.pcElementBuffer);
+		SAFE_RELEASE(m_asAssetMap[uIx].sMesh.pcVertexBuffer);
+	}
 
+	SAFE_RELEASE(m_pcRS_RightHand);
+	SAFE_RELEASE(m_pcRS);
 	SAFE_RELEASE(m_pcVSAvatar);
 	SAFE_RELEASE(m_pcPSAvatar);
 	SAFE_RELEASE(m_pcILAvatar);
@@ -466,7 +473,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	if ((eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) && (eD3DMethod != METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)) return nullptr;
 
 	// always skip more frames than the oculus tracker to ensure initialization is done
-	static UINT unFrameSkip = 200 + 10;
+	static UINT unFrameSkip = 200 + 100;
 	if (unFrameSkip > 0)
 	{
 		unFrameSkip--;
@@ -1243,6 +1250,24 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							OutputDebugString(L"[OVR] Failed to create rasterizer state.");
 					}
 
+					// own state for right hand, for 32bit we render the right hand as a copy of the left
+					if (!m_pcRS_RightHand)
+					{
+						D3D11_RASTERIZER_DESC sDesc = {};
+						sDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+						sDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+						sDesc.FrontCounterClockwise = FALSE;
+						sDesc.DepthBias = 0;
+						sDesc.SlopeScaledDepthBias = 0.0f;
+						sDesc.DepthBiasClamp = 0.0f;
+						sDesc.DepthClipEnable = TRUE;
+						sDesc.ScissorEnable = FALSE;
+						sDesc.MultisampleEnable = FALSE;
+						sDesc.AntialiasedLineEnable = FALSE;
+						if (FAILED(m_pcDeviceTemporary->CreateRasterizerState(&sDesc, &m_pcRS_RightHand)))
+							OutputDebugString(L"[OVR] Failed to create rasterizer state.");
+					}
+
 					if (bAllCreated)
 					{
 						// Set the input layout
@@ -1383,53 +1408,66 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							ovrAvatarPose_UpdateHands(m_psAvatar, inputStateLeft, inputStateRight);
 							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);
 #else
-							// set the hand poses manually... 
-							bool bPointL = (touchState.Touches & ovrTouch_LIndexPointing);
-							bool bFistL = (touchState.HandTrigger[ovrHand_Left] > 0.5f);
-							bool bPinchL = (touchState.IndexTrigger[ovrHand_Left] > 0.5f);
-
-							// thumb down ?
-							if (touchState.Touches & (ovrTouch_X | ovrTouch_Y | ovrTouch_LThumb | ovrTouch_LThumbRest))
+							for (unsigned uHand = 0; uHand < 2; uHand++)
 							{
-								// pointer (index finger) up ?
-								if (bPointL)
+								// set the hand poses manually... 
+								bool bPoint = false;
+								if (uHand)
 								{
-									if (bFistL)
-										eHandPose[ovrHand_Left] = OculusHandPose::point;
-									else
-										eHandPose[ovrHand_Left] = OculusHandPose::point_relaxed;
+									if (touchState.Touches & ovrTouch_RIndexPointing) bPoint = true;
 								}
 								else
 								{
-									if (bFistL)
-										eHandPose[ovrHand_Left] = OculusHandPose::fist;
+									if (touchState.Touches & ovrTouch_LIndexPointing) bPoint = true;
+								}
+								bool bFist = (touchState.HandTrigger[uHand] > 0.5f);
+								bool bPinch = (touchState.IndexTrigger[uHand] > 0.5f);
+
+								// thumb down ?
+								unsigned uTouchStates = (ovrTouch_X | ovrTouch_Y | ovrTouch_LThumb | ovrTouch_LThumbRest);
+								if (uHand) uTouchStates = (ovrTouch_A | ovrTouch_B | ovrTouch_RThumb | ovrTouch_RThumbRest);
+								if (touchState.Touches & uTouchStates)
+								{
+									// pointer (index finger) up ?
+									if (bPoint)
+									{
+										if (bFist)
+											eHandPose[uHand] = OculusHandPose::point;
+										else
+											eHandPose[uHand] = OculusHandPose::point_relaxed;
+									}
 									else
 									{
-										if (bPinchL)
-											eHandPose[ovrHand_Left] = OculusHandPose::pinch;
+										if (bFist)
+											eHandPose[uHand] = OculusHandPose::fist;
 										else
-											eHandPose[ovrHand_Left] = OculusHandPose::default;
+										{
+											if (bPinch)
+												eHandPose[uHand] = OculusHandPose::pinch;
+											else
+												eHandPose[uHand] = OculusHandPose::default;
+										}
 									}
-								}
 
-							}
-							else
-								// thumb up ?
-							{
-								// pointer (index finger) up ?
-								if (bPointL)
-								{
-									if (bFistL)
-										eHandPose[ovrHand_Left] = OculusHandPose::thumb_point;
-									else
-										eHandPose[ovrHand_Left] = OculusHandPose::thumb_point_relaxed;
 								}
 								else
+									// thumb up ?
 								{
-									if (bFistL)
-										eHandPose[ovrHand_Left] = OculusHandPose::thumb;
+									// pointer (index finger) up ?
+									if (bPoint)
+									{
+										if (bFist)
+											eHandPose[uHand] = OculusHandPose::thumb_point;
+										else
+											eHandPose[uHand] = OculusHandPose::thumb_point_relaxed;
+									}
 									else
-										eHandPose[ovrHand_Left] = OculusHandPose::thumb_relaxed;
+									{
+										if (bFist)
+											eHandPose[uHand] = OculusHandPose::thumb;
+										else
+											eHandPose[uHand] = OculusHandPose::thumb_relaxed;
+									}
 								}
 							}
 #endif
@@ -1485,10 +1523,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->ClearDepthStencilView(m_pcDSVGeometry11[eye], D3D11_CLEAR_DEPTH, 1.0f, 0);
 						m_pcContextTemporary->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11[eye]);
 
+#ifdef _WIN64
 						// set rasterizer state
 						m_pcContextTemporary->RSSetState(m_pcRS);
 
-#ifdef _WIN64
 						// Traverse over all components on the avatar
 						uint32_t componentCount = 0;
 						if (m_psAvatar)
@@ -1639,12 +1677,12 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							m_pcContextTemporary->IASetVertexBuffers(0, 1, &data->pcVertexBuffer, &stride, &offset);
 							m_pcContextTemporary->IASetIndexBuffer(data->pcElementBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-							// TODO !! LOAD RIGHT HAND MESH
-							for (unsigned uEye = 0; uEye < 2; uEye++)
+							// render both hands
+							for (unsigned uHand = 0; uHand < 2; uHand++)
 							{
 								// world... x -1 for right hand
 								XMMATRIX sScale, sLocal;
-								if (uEye == 0)
+								if (uHand == 0)
 								{
 									sScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 									D3DMatrixFromOvrAvatarTransform(left, &sLocal);
@@ -1665,11 +1703,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 								XMMATRIX viewProjMat = sV * sP;
 
 								// Compute the skinned pose
-
 								for (uint32_t i = 0; i < unJointCount_4070; ++i)
 								{
 									D3DXMATRIX sSkinned = asPoseDefault[i];
-									switch (eHandPose[ovrHand_Left])
+									switch (eHandPose[uHand])
 									{
 										case default:
 											sSkinned = asPoseDefault[i];
@@ -1702,12 +1739,137 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											break;
 									}
 
+									// FOR FUTURE USE ! matrix animation blending basics, to be done
+									if (false)
+									{
+										// get quaternions of default and fist pose
+										D3DXMATRIX sBind = data->asBindPose[i];
+										D3DXQUATERNION sQ, sQ1;
+										D3DXQuaternionRotationMatrix(&sQ, &asPoseDefault[i]);
+										D3DXQuaternionRotationMatrix(&sQ1, &asPoseFist[i]);
+
+										// get euler angles from those quaternions
+										__ovrQuatf sQ2, sQ3;
+										sQ2.x = sQ.x;
+										sQ2.y = sQ.y;
+										sQ2.z = sQ.z;
+										sQ2.w = sQ.w;
+
+										sQ3.x = sQ1.x;
+										sQ3.y = sQ1.y;
+										sQ3.z = sQ1.z;
+										sQ3.w = sQ1.w;
+										float fEuler[3], fEuler1[3];
+										sQ2.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_L >(&fEuler[1], &fEuler[0], &fEuler[2]);
+										sQ3.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_L >(&fEuler1[1], &fEuler1[0], &fEuler1[2]);
+										D3DXVECTOR3 sV, sV1, sV3;
+
+										// static const bools (for each joint [0..24]) determining wether counter-clockwise-rotation(true) or clockwise-rotation (false) of the euler angles [0..2]
+										static const bool s_abCCW[25][3] = {
+											{ false, false, false },
+											{ false, false, false },
+											{ true, false, true },
+											{ false, false, false },
+											{ true, false, true },
+											{ true, false, true },
+											{ true, false, true },
+											{ true, false, true },
+											{ false, false, true },
+											{ false, false, true },
+											{ false, false, true },
+											{ false, false, true },
+											{ true, false, true },
+											{ false, true, true },
+											{ false, true, true },
+											{ false, true, false },
+											{ false, true, false },
+											{ false, true, true },
+											{ false, true, true },
+											{ false, true, false },
+											{ false, true, false },
+											{ false, true, true },
+											{ false, true, true },
+											{ false, true, true },
+											{ false, true, true }
+										};
+
+										// do basic blend
+										sV.x = (fEuler[0] + fEuler1[0]) / 2.0f;
+										sV.y = (fEuler[1] + fEuler1[1]) / 2.0f;
+										sV.z = (fEuler[2] + fEuler1[2]) / 2.0f;
+
+										// counter-clockwise ?
+										if (s_abCCW[i][0])
+										{
+											// fEuler < x < fEuler1
+											if (fEuler[0] < fEuler1[0])
+											{
+												if (sV.x > 0) sV.x -= MATH_FLOAT_PI / 2.0f; else sV.x += MATH_FLOAT_PI / 2.0f;
+											}
+										}
+										else
+										{
+											// fEuler > x > fEuler1
+											if (fEuler[0] > fEuler1[0])
+											{
+												if (sV.x > 0) sV.x -= MATH_FLOAT_PI / 2.0f; else sV.x += MATH_FLOAT_PI / 2.0f;
+											}
+										}
+										if (s_abCCW[i][1])
+										{
+											// fEuler < x < fEuler1
+											if (fEuler[1] < fEuler1[1])
+											{
+												if (sV.y > 0) sV.y -= MATH_FLOAT_PI / 2.0f; else sV.y += MATH_FLOAT_PI / 2.0f;
+											}
+										}
+										else
+										{
+											// fEuler > x > fEuler1
+											if (fEuler[1] > fEuler1[1])
+											{
+												if (sV.y > 0) sV.y -= MATH_FLOAT_PI / 2.0f; else sV.y += MATH_FLOAT_PI / 2.0f;
+											}
+										}
+										if (s_abCCW[i][2])
+										{
+											// fEuler < x < fEuler1
+											if (fEuler[2] < fEuler1[2])
+											{
+												if (sV.z > 0) sV.z -= MATH_FLOAT_PI / 2.0f; else sV.z += MATH_FLOAT_PI / 2.0f;
+											}
+										}
+										else
+										{
+											// fEuler > x > fEuler1
+											if (fEuler[2] > fEuler1[2])
+											{
+												if (sV.z > 0) sV.z -= MATH_FLOAT_PI / 2.0f; else sV.z += MATH_FLOAT_PI / 2.0f;
+											}
+										}
+
+										// set rotation matrix
+										D3DXMatrixRotationYawPitchRoll(&sSkinned, sV.y, sV.x, sV.z);
+
+										// add translation
+										sSkinned(3, 0) = (asPoseDefault[i](3, 0) + asPoseFist[i](3, 0)) / 2.0f;
+										sSkinned(3, 1) = (asPoseDefault[i](3, 1) + asPoseFist[i](3, 1)) / 2.0f;
+										sSkinned(3, 2) = (asPoseDefault[i](3, 2) + asPoseFist[i](3, 2)) / 2.0f;
+									}
+
+
 									D3DXMATRIX sInvBind = data->asInverseBindPose[i];
 									D3DXMATRIX sMeshPose = sInvBind * sSkinned;
 
 									D3DXMatrixTranspose(&sMeshPose, &sMeshPose);
 									m_sConstantsVS.meshPose[i] = sMeshPose;
 								}
+
+								// set rasterizer state... right hand has own state due to reversed triangles
+								if (uHand)
+									m_pcContextTemporary->RSSetState(m_pcRS_RightHand);
+								else
+									m_pcContextTemporary->RSSetState(m_pcRS);
 
 								// Pass the world view position to the shader for view-dependent rendering
 								m_sConstantsVS.viewPos = sVP;

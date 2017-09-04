@@ -1127,6 +1127,10 @@ private:
 	***/
 	ID3D11RasterizerState* m_pcRS;
 	/**
+	* Own state for the right hand due to reversed mesh triangles.
+	***/
+	ID3D11RasterizerState* m_pcRS_RightHand;
+	/**
 	* Vireio menu.
 	***/
 	VireioSubMenu m_sMenu;
