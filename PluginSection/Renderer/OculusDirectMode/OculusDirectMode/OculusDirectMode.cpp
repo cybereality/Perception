@@ -226,18 +226,36 @@ m_pcRS_RightHand(nullptr)
 
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	m_sMenu.strSubMenu = "Oculus Direct Mode";
+
 	{
-		static float fDummy = 0.0f;
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.strEntry = "Show Mirror (D3D11)";
 		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 1.0f;
-		sEntry.fMaximum = 30.0f;
-		sEntry.fChangeSize = 0.1f;
-		sEntry.pfValue = &fDummy;
-		sEntry.fValue = fDummy;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_bShowMirror;
+		sEntry.bValue = m_bShowMirror;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		static unsigned s_uDummy = 0;
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "OVR PerfHud";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = 6;
+		sEntry.unChangeSize = 1;
+		sEntry.bValueEnumeration = true;
+		{ std::string strEnum = "Off"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "PerfSummary"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "LatencyTiming"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "AppRenderTiming"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "CompRenderTiming"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "VersionInfo"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		{ std::string strEnum = "AswStats"; sEntry.astrValueEnumeration.push_back(strEnum); }
+		sEntry.punValue = &s_uDummy;
+		sEntry.unValue = m_ePerfHudMode;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
 }
@@ -478,6 +496,49 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	{
 		unFrameSkip--;
 		return nullptr;
+	}
+
+	// save ini file ?
+	if (m_nIniFrameCount)
+	{
+		if (m_nIniFrameCount == 1)
+		{
+			// save ini settings.. get file path
+			char szFilePathINI[1024];
+			GetCurrentDirectoryA(1024, szFilePathINI);
+			strcat_s(szFilePathINI, "\\VireioPerception.ini");
+			bool bFileExists = false;
+			DWORD bShowMirror = m_bShowMirror;
+			bShowMirror = GetIniFileSetting(bShowMirror, "LibOVR", "bShowMirror", szFilePathINI, bFileExists);
+			m_ePerfHudMode = (ovrPerfHudMode)GetIniFileSetting((DWORD)m_ePerfHudMode, "LibOVR", "ePerfHudMode", szFilePathINI, bFileExists);
+		}
+		m_nIniFrameCount--;
+	}
+
+	// main menu update ?
+	if (m_sMenu.bOnChanged)
+	{
+		// set back event bool, set ini file frame count
+		m_sMenu.bOnChanged = false;
+		m_nIniFrameCount = 300;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMenu.asEntries[nIx].bOnChanged = false;
+
+				// performance hud ?
+				if (nIx = 1)
+				{
+					// set chosen performance hud option
+					m_ePerfHudMode = (ovrPerfHudMode)m_sMenu.asEntries[nIx].unValue;
+					ovr_SetInt(*m_phHMD, OVR_PERF_HUD_MODE, (int)m_ePerfHudMode);
+				}
+			}
+		}
 	}
 
 	// get device
@@ -1472,6 +1533,62 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 											eHandPose[uHand] = OculusHandPose::thumb_relaxed;
 									}
 								}
+
+								// set cinema matrix/position ... get pose matrix
+								D3DXMATRIX sPoseMatrix;
+								D3DXQUATERNION sOrientation;
+								sOrientation.x = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.x;
+								sOrientation.y = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.y;
+								sOrientation.z = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.z;
+								sOrientation.w = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.w;
+								D3DXMatrixRotationQuaternion(&sPoseMatrix, &sOrientation);
+
+								// get position
+								D3DXVECTOR3 sPosition;
+								sPosition.x = trackingState.HandPoses[ovrHand_Left].ThePose.Position.x;
+								sPosition.y = trackingState.HandPoses[ovrHand_Left].ThePose.Position.y;
+								sPosition.z = trackingState.HandPoses[ovrHand_Left].ThePose.Position.z;
+
+								// transform direction vector using this matrix and normalize it, negate
+								/*D3DXVECTOR3 sDirectionZ = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+								D3DXVECTOR4 sDirection;
+								D3DXVec3Transform(&sDirection, &sDirectionZ, &sPoseMatrix);
+								sDirection.x *= -1.0f;
+								sDirection.y *= -1.0f;
+								D3DXVec4Normalize(&sDirection, &sDirection);
+								float fPlaneDistanceZ = sPosition.z + 3.0f;//m_sCinemaRoomSetup.fScreenDepth;
+
+								// get intersection point to screen...
+								D3DXVECTOR3 sIntersect = D3DXVECTOR3(sDirection.x * (1.0f / sDirection.z), sDirection.y * (1.0f / sDirection.z), 0.0f);
+								sIntersect *= fPlaneDistanceZ;
+
+								// add position to intersection point
+								sIntersect.x += sPosition.x;
+								sIntersect.y += sPosition.y;
+
+								// substract the height of the screen center and negate
+								sIntersect.y -= 0.0f;
+								sIntersect.y *= -1.0f;
+
+								// set new mouse cursor position
+								float fXClip = 3.0f; //m_sCinemaRoomSetup.fScreenWidth / 2.0f;
+								float fYClip = fXClip / 1.777777777777778f;
+								if ((sIntersect.x >= -fXClip) && (sIntersect.y >= -fYClip) && (sIntersect.x <= fXClip) && (sIntersect.y <= fYClip) && (sDirection.z > 0.0f))
+								{
+								RECT sDesktop;
+								HWND pDesktop = GetDesktopWindow();
+								GetWindowRect(pDesktop, &sDesktop);
+								float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
+								float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
+
+								SetCursorPos((int)fXPos, (int)fYPos);
+								//bMouseCursorSet = true;
+
+								// hardware emulation... if ever needed
+								// POINT sPoint;
+								// GetCursorPos(&sPoint);
+								// mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);
+								}*/
 							}
 #endif
 						}
