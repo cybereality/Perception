@@ -555,7 +555,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				ovrResult result = ovr_Initialize(nullptr);
 
 				// set same handle as created by Oculus tracker node
+				OutputDebugString(L"[OVR] Receive session handle from tracker node.");
 				m_phHMD = m_phHMD_Tracker;
+				unFrameSkip = 100;
+				return nullptr;
 			}
 			else
 			{
