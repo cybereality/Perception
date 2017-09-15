@@ -614,6 +614,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 				// for some reason we have to initialize OVR here again ?!
 				ovrResult result = ovr_Initialize(nullptr);
+				if (!OVR_SUCCESS(result))
+				{
+					OutputDebugString(L"[OVR] Failed to initialize libOVR.");
+					pcDevice->Release();
+					pcContext->Release();
+					return nullptr;
+				}
 
 				// set same handle as created by Oculus tracker node
 				OutputDebugString(L"[OVR] Receive session handle from tracker node.");
@@ -946,6 +953,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		// render
 		for (int eye = 0; eye < 2; eye++)
 		{
+#pragma region create and render
 			// set viewport
 			D3D11_VIEWPORT sD3Dvp;
 			sD3Dvp.Width = (float)m_psEyeRenderViewport[eye].Size.w;
@@ -1396,13 +1404,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						// Render a triangle
 						m_pcContextTemporary->Draw(6, 0);
 
+#pragma endregion
 #pragma region render avatar
-						ovrAvatarTransform hmd;
-						ovrAvatarTransform left;
-						ovrAvatarTransform right;
-#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
-						if (m_psAvatar)
-#else
 						/*
 						* Current hand pose enumeration.
 						**/
@@ -1418,6 +1421,16 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							thumb,// : finger 0 fully up, finger 1 on touch or pressed, finger 3 - 5 pressed
 							thumb_point,// : finger 0 + 1 fully up, finger 3 - 5 pressed
 						} eHandPose[2];
+
+						// transforms
+						ovrAvatarTransform hmd, left, right;
+
+						// true if touch controller [left/right] is available
+						bool bTouchAvailable[2];
+
+#ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
+						if (m_psAvatar)
+#else
 						if (true)
 #endif
 						{
@@ -1437,27 +1450,39 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							hmd.scale.y = 1.0f;
 							hmd.scale.z = 1.0f;
 
-							left.position.x = trackingState.HandPoses[ovrHand_Left].ThePose.Position.x;
-							left.position.y = trackingState.HandPoses[ovrHand_Left].ThePose.Position.y;
-							left.position.z = trackingState.HandPoses[ovrHand_Left].ThePose.Position.z;
-							left.orientation.x = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.x;
-							left.orientation.y = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.y;
-							left.orientation.z = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.z;
-							left.orientation.w = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.w;
-							left.scale.x = 1.0f;
-							left.scale.y = 1.0f;
-							left.scale.z = 1.0f;
+							if (trackingState.HandStatusFlags[ovrHand_Left])
+							{
+								left.position.x = trackingState.HandPoses[ovrHand_Left].ThePose.Position.x;
+								left.position.y = trackingState.HandPoses[ovrHand_Left].ThePose.Position.y;
+								left.position.z = trackingState.HandPoses[ovrHand_Left].ThePose.Position.z;
+								left.orientation.x = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.x;
+								left.orientation.y = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.y;
+								left.orientation.z = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.z;
+								left.orientation.w = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.w;
+								left.scale.x = 1.0f;
+								left.scale.y = 1.0f;
+								left.scale.z = 1.0f;
+								bTouchAvailable[ovrHand_Left] = true;
+							}
+							else
+								bTouchAvailable[ovrHand_Left] = false;
 
-							right.position.x = trackingState.HandPoses[ovrHand_Right].ThePose.Position.x;
-							right.position.y = trackingState.HandPoses[ovrHand_Right].ThePose.Position.y;
-							right.position.z = trackingState.HandPoses[ovrHand_Right].ThePose.Position.z;
-							right.orientation.x = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.x;
-							right.orientation.y = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.y;
-							right.orientation.z = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.z;
-							right.orientation.w = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.w;
-							right.scale.x = 1.0f;
-							right.scale.y = 1.0f;
-							right.scale.z = 1.0f;
+							if (trackingState.HandStatusFlags[ovrHand_Left])
+							{
+								right.position.x = trackingState.HandPoses[ovrHand_Right].ThePose.Position.x;
+								right.position.y = trackingState.HandPoses[ovrHand_Right].ThePose.Position.y;
+								right.position.z = trackingState.HandPoses[ovrHand_Right].ThePose.Position.z;
+								right.orientation.x = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.x;
+								right.orientation.y = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.y;
+								right.orientation.z = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.z;
+								right.orientation.w = trackingState.HandPoses[ovrHand_Right].ThePose.Orientation.w;
+								right.scale.x = 1.0f;
+								right.scale.y = 1.0f;
+								right.scale.z = 1.0f;
+								bTouchAvailable[ovrHand_Right] = true;
+							}
+							else
+								bTouchAvailable[ovrHand_Right] = false;
 
 #ifdef _WIN64 // TODO !! NO 32BIT SUPPORT FOR AVATAR SDK RIGHT NOW
 							// create input states
@@ -1471,7 +1496,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							ovrAvatarPose_UpdateBody(m_psAvatar, hmd);
 							ovrAvatarPose_UpdateHands(m_psAvatar, inputStateLeft, inputStateRight);
 							ovrAvatarPose_Finalize(m_psAvatar, m_sConstantsFS.elapsedSeconds);
-#else
+#endif
 							for (unsigned uHand = 0; uHand < 2; uHand++)
 							{
 								// set the hand poses manually... 
@@ -1534,63 +1559,25 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 									}
 								}
 
-								// set cinema matrix/position ... get pose matrix
-								D3DXMATRIX sPoseMatrix;
-								D3DXQUATERNION sOrientation;
-								sOrientation.x = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.x;
-								sOrientation.y = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.y;
-								sOrientation.z = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.z;
-								sOrientation.w = trackingState.HandPoses[ovrHand_Left].ThePose.Orientation.w;
-								D3DXMatrixRotationQuaternion(&sPoseMatrix, &sOrientation);
-
-								// get position
-								D3DXVECTOR3 sPosition;
-								sPosition.x = trackingState.HandPoses[ovrHand_Left].ThePose.Position.x;
-								sPosition.y = trackingState.HandPoses[ovrHand_Left].ThePose.Position.y;
-								sPosition.z = trackingState.HandPoses[ovrHand_Left].ThePose.Position.z;
-
-								// transform direction vector using this matrix and normalize it, negate
-								/*D3DXVECTOR3 sDirectionZ = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
-								D3DXVECTOR4 sDirection;
-								D3DXVec3Transform(&sDirection, &sDirectionZ, &sPoseMatrix);
-								sDirection.x *= -1.0f;
-								sDirection.y *= -1.0f;
-								D3DXVec4Normalize(&sDirection, &sDirection);
-								float fPlaneDistanceZ = sPosition.z + 3.0f;//m_sCinemaRoomSetup.fScreenDepth;
-
-								// get intersection point to screen...
-								D3DXVECTOR3 sIntersect = D3DXVECTOR3(sDirection.x * (1.0f / sDirection.z), sDirection.y * (1.0f / sDirection.z), 0.0f);
-								sIntersect *= fPlaneDistanceZ;
-
-								// add position to intersection point
-								sIntersect.x += sPosition.x;
-								sIntersect.y += sPosition.y;
-
-								// substract the height of the screen center and negate
-								sIntersect.y -= 0.0f;
-								sIntersect.y *= -1.0f;
-
-								// set new mouse cursor position
-								float fXClip = 3.0f; //m_sCinemaRoomSetup.fScreenWidth / 2.0f;
-								float fYClip = fXClip / 1.777777777777778f;
-								if ((sIntersect.x >= -fXClip) && (sIntersect.y >= -fYClip) && (sIntersect.x <= fXClip) && (sIntersect.y <= fYClip) && (sDirection.z > 0.0f))
+								if (bTouchAvailable[uHand])
 								{
-								RECT sDesktop;
-								HWND pDesktop = GetDesktopWindow();
-								GetWindowRect(pDesktop, &sDesktop);
-								float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
-								float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
+									// set cinema matrix/position ... get pose matrix
+									D3DXQUATERNION sOrientation;
+									sOrientation.x = trackingState.HandPoses[uHand].ThePose.Orientation.x;
+									sOrientation.y = trackingState.HandPoses[uHand].ThePose.Orientation.y;
+									sOrientation.z = trackingState.HandPoses[uHand].ThePose.Orientation.z;
+									sOrientation.w = trackingState.HandPoses[uHand].ThePose.Orientation.w;
+									D3DXMatrixRotationQuaternion(&m_sMenu.sPoseMatrix[uHand], &sOrientation);
 
-								SetCursorPos((int)fXPos, (int)fYPos);
-								//bMouseCursorSet = true;
+									// get position
+									m_sMenu.sPosition[uHand].x = trackingState.HandPoses[uHand].ThePose.Position.x;
+									m_sMenu.sPosition[uHand].y = trackingState.HandPoses[uHand].ThePose.Position.y;
+									m_sMenu.sPosition[uHand].z = trackingState.HandPoses[uHand].ThePose.Position.z;
 
-								// hardware emulation... if ever needed
-								// POINT sPoint;
-								// GetCursorPos(&sPoint);
-								// mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);
-								}*/
+									// pose available
+									m_sMenu.bHandPosesPresent = true;
+								}
 							}
-#endif
 						}
 
 						// build the matrices
@@ -1800,6 +1787,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 							// render both hands
 							for (unsigned uHand = 0; uHand < 2; uHand++)
 							{
+								// touch controller present ?
+								if (!bTouchAvailable[uHand]) continue;
+
 								// world... x -1 for right hand
 								XMMATRIX sScale, sLocal;
 								if (uHand == 0)
@@ -2015,7 +2005,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->RSSetState(nullptr);
 #endif
 #pragma endregion
-
+#pragma region hud
 						// render hud ? only once
 						if ((m_pbZoomOut) && (eye) && (pcSwapChain))
 						{
@@ -2037,6 +2027,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 				if (pcResource) pcResource->Release();
 			}
+#pragma endregion
 
 			// Commit rendering to the swap chain
 			m_psEyeRenderTexture[eye]->Commit();

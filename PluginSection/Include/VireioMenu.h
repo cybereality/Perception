@@ -176,4 +176,20 @@ struct VireioSubMenu
 	* Up, Down, Left, Right, Accept, Back.
 	***/
 	bool bOnUp, bOnDown, bOnLeft, bOnRight, bOnAccept, bOnBack;
+	/**
+	* True if hand poses are present.
+	***/
+	bool bHandPosesPresent;
+	/**
+	* True if the node requests hand poses.
+	***/
+	bool bHandPosesRequest;
+	/*
+	* The pose matrices for left/right eye (if bHandPosesPresent is true).
+	**/
+	D3DXMATRIX sPoseMatrix[2];
+	/*
+	* The position vectors for left / right eye (if bHandPosesPresent is true).
+	**/
+	D3DXVECTOR3 sPosition[2];
 };

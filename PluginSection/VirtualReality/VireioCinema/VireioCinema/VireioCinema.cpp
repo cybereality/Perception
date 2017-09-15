@@ -212,6 +212,10 @@ m_unMenuModelIndex(0)
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
 	m_sMenu.strSubMenu = "Cinema - All FX from ShaderToy.com";
+
+	// this node requests hand pose data
+	m_sMenu.bHandPosesRequest = true;
+
 #pragma region FX
 	{
 		VireioMenuEntry sEntry = {};
@@ -985,6 +989,54 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 					}
 				}
 			}
+		}
+	}
+
+	// hand poses available ?
+	for (UINT uHand = 0; uHand < 2; uHand++)
+	{
+		// pose available ?
+		if (m_sMenu.sPosition[uHand].y == 0.0f) continue;
+
+		// transform direction vector using this matrix and normalize it, negate
+		D3DXVECTOR3 sDirectionZ = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+		D3DXVECTOR4 sDirection;
+		D3DXVec3Transform(&sDirection, &sDirectionZ, &m_sMenu.sPoseMatrix[uHand]);
+		sDirection.x *= -1.0f;
+		sDirection.y *= -1.0f;
+		D3DXVec4Normalize(&sDirection, &sDirection);
+		float fPlaneDistanceZ = m_sMenu.sPosition[uHand].z + m_sCinemaRoomSetup.fScreenDepth;
+
+		// get intersection point to screen...
+		D3DXVECTOR3 sIntersect = D3DXVECTOR3(sDirection.x * (1.0f / sDirection.z), sDirection.y * (1.0f / sDirection.z), 0.0f);
+		sIntersect *= fPlaneDistanceZ;
+
+		// add position to intersection point
+		sIntersect.x += m_sMenu.sPosition[uHand].x;
+		sIntersect.y += m_sMenu.sPosition[uHand].y;
+
+		// substract the height of the screen center and negate
+		sIntersect.y -= m_sCinemaRoomSetup.fScreenLevel + 2.0f;
+		sIntersect.y *= -1.0f;
+
+		// set new mouse cursor position
+		float fXClip = m_sCinemaRoomSetup.fScreenWidth / 2.0f;
+		float fYClip = fXClip / 1.777777777777778f;
+		if ((sIntersect.x >= -fXClip) && (sIntersect.y >= -fYClip) && (sIntersect.x <= fXClip) && (sIntersect.y <= fYClip) && (sDirection.z > 0.0f))
+		{
+			RECT sDesktop;
+			HWND pDesktop = GetDesktopWindow();
+			GetWindowRect(pDesktop, &sDesktop);
+			float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
+			float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
+
+			SetCursorPos((int)fXPos, (int)fYPos);
+			//bMouseCursorSet = true;
+
+			// hardware emulation... if ever needed
+			// POINT sPoint;
+			// GetCursorPos(&sPoint);
+			// mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);
 		}
 	}
 

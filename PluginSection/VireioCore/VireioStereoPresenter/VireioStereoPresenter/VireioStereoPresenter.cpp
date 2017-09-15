@@ -602,22 +602,39 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		static bool bReleased = true;
 		static bool s_bOnMenu = false;
 
-		// keyboard menu on/off event
+		// keyboard menu on/off event + get hand poses
+		UINT uIxHandPoses = 0, uIxPoseRequest = 0;
 		s_bOnMenu = GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51);
 		for (UINT unIx = 0; unIx < 32; unIx++)
 		{
 			// set menu bool event
 			if (m_apsSubMenues[unIx])
-			if (m_apsSubMenues[unIx]->bOnBack)
 			{
-				// main menu ? exit
-				if ((m_sMenuControl.nMenuIx == -1) && (!m_sMenuControl.eSelectionMovement))
-					s_bOnMenu = true;
-				else
-					m_abMenuEvents[VireioMenuEvent::OnExit] = TRUE;
+				if (m_apsSubMenues[unIx]->bOnBack)
+				{
+					// main menu ? exit
+					if ((m_sMenuControl.nMenuIx == -1) && (!m_sMenuControl.eSelectionMovement))
+						s_bOnMenu = true;
+					else
+						m_abMenuEvents[VireioMenuEvent::OnExit] = TRUE;
 
-				m_apsSubMenues[unIx]->bOnBack = false;
+					m_apsSubMenues[unIx]->bOnBack = false;
+				}
+
+				// hand poses ?
+				if (m_apsSubMenues[unIx]->bHandPosesPresent)
+					uIxHandPoses = unIx;
+				if (m_apsSubMenues[unIx]->bHandPosesRequest)
+					uIxPoseRequest = unIx;
 			}
+		}
+		if ((m_apsSubMenues[uIxHandPoses]) && (m_apsSubMenues[uIxPoseRequest]))
+		{
+			// copy the hand pose data to the request node
+			m_apsSubMenues[uIxPoseRequest]->sPoseMatrix[0] = m_apsSubMenues[uIxHandPoses]->sPoseMatrix[0];
+			m_apsSubMenues[uIxPoseRequest]->sPoseMatrix[1] = m_apsSubMenues[uIxHandPoses]->sPoseMatrix[1];
+			m_apsSubMenues[uIxPoseRequest]->sPosition[0] = m_apsSubMenues[uIxHandPoses]->sPosition[0];
+			m_apsSubMenues[uIxPoseRequest]->sPosition[1] = m_apsSubMenues[uIxHandPoses]->sPosition[1];
 		}
 
 		// static hotkeys :  LCTRL+Q - toggle vireio menu
