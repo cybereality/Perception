@@ -900,6 +900,10 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 ***/
 void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+#ifdef _DEBUG_CIN
+	{ wchar_t buf[128]; wsprintf(buf, L"[CIN] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+	
 	// only present accepted
 	bool bValid = false;
 	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||

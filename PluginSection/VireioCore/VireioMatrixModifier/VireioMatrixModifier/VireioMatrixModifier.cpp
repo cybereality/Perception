@@ -1569,6 +1569,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 {
 	static HRESULT nHr = S_OK;
 
+	//#define _DEBUG_MAM
 #ifdef _DEBUG_MAM
 	{ wchar_t buf[128]; wsprintf(buf, L"[MAM] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
@@ -2634,7 +2635,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// set back modified constants... TODO !! make this optionally... shouldn't need that maybe
 						// if (m_pcActiveVertexShader)
 						// m_pcActiveVertexShader->SetShaderOld((IDirect3DDevice9*)pThis, &m_afRegistersVertex[0]);
-						
+
 						// set new active shader
 						m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*>(*m_ppcShader_Vertex);
 
@@ -2643,7 +2644,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// replace call, set actual shader
 						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
-						
+
 						// update shader constants for active side
 						m_pcActiveVertexShader->SetShader(&m_afRegistersVertex[0]);
 
@@ -2700,7 +2701,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF((*m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_pasPSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
 						}
 					}
-					
+
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					return (void*)&nHr;
@@ -3006,7 +3007,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// create the actual shader
 						IDirect3DVertexShader9* pcActualVShader = NULL;
 						nHr = ((IDirect3DDevice9*)pThis)->CreateVertexShader(*m_ppunFunction, &pcActualVShader);
-						
+
 						// create the proxy shader
 						if (SUCCEEDED(nHr))
 						{

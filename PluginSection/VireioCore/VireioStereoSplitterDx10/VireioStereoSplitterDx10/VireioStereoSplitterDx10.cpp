@@ -827,7 +827,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 {
 
 #ifdef _DEBUG_STS
-	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+	{ wchar_t buf[128]; wsprintf(buf, L"[STS] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
 	// set node behavior to "double call" for this method
