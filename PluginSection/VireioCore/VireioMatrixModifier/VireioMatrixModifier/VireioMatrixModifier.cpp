@@ -2235,6 +2235,31 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									strStream << L"VSSetConstantBuffers : " << sPrivateData.dwHash;
 									m_aszDebugTrace.push_back(strStream.str().c_str());
 								}
+
+								// move up/down on list if "W" or "S" key is pressed and released
+								static bool s_bW = false, s_bS = false;
+								if (GetAsyncKeyState(0x57))
+									s_bW = true;
+								else
+								{
+									if (s_bW)
+									{
+										// send a virtual windows event to the control in the gui
+										WindowsEvent(VIRTUAL_EVENT_CONTROL_UP, (WPARAM)m_sPageShader.m_dwHashCodes, 0);
+									}
+									s_bW = false;
+								}
+								if (GetAsyncKeyState(0x53))
+									s_bS = true;
+								else
+								{
+									if (s_bS)
+									{
+										// send a virtual windows event to the control in the gui
+										WindowsEvent(VIRTUAL_EVENT_CONTROL_DOWN, (WPARAM)m_sPageShader.m_dwHashCodes, 0);
+									}
+									s_bS = false;
+								}
 							}
 							if (m_bBufferIndexDebug)
 							{

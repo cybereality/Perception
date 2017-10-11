@@ -35,6 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_CONTROLS_PER_PAGE 2048
 
+#define VIRTUAL_EVENT_CONTROL_UP 0x0f0f0f00
+#define VIRTUAL_EVENT_CONTROL_DOWN 0x0f0f0f01
+
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%i", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
