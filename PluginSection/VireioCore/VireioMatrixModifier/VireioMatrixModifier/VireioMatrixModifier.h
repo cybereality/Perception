@@ -139,8 +139,8 @@ enum STS_Commanders
 	asVShaderData,                                                          /**< The shader data vector. ***/
 	asPShaderData,                                                          /**< The shader data vector. ***/
 	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
-	SwitchRenderTarget,                                                     /**< Option to switch the render target for the game HUD and GUI. ***/
-	HudOperation,                                                           /**< True if any HUD operation is executed. ***/
+	SwitchRenderTarget,                                                     /**< Option to switch the render target to exclude shaders beeing drawn. ***/
+	RESERVED00,                                                             /**< RESERVED ***/
 	SecondaryRenderTarget_DX10,                                             /**< Secondary (HUD) render target mono DX10. ***/
 	SecondaryRenderTarget_DX11,                                             /**< Secondary (HUD) render target mono DX11. ***/
 	ppActiveRenderTargets_DX10,                                             /**< Active render targets DX10. Backup for render target operations. ***/
@@ -1577,13 +1577,9 @@ private:
 	***/
 	char m_acData[MAX_DATA_SIZE];
 	/**
-	* Option to switch the render target for game HUD and GUI.
+	* Option to switch the render target to exclude shaders beeing drawn.
 	***/
 	BOOL m_bSwitchRenderTarget;
-	/**
-	* True if HUD operation (Viewport squish or Render Target switch) executed.
-	***/
-	BOOL m_bHudOperation;
 	/**
 	* Vireio menu.
 	***/

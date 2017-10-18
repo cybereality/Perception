@@ -154,7 +154,6 @@ m_ppbConstantData(nullptr),
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
 m_bSwitchRenderTarget(FALSE),
-m_bHudOperation(FALSE),
 m_eCurrentRenderingSide(RenderPosition::Left)
 {
 	// create a new HRESULT pointer
@@ -727,8 +726,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"View Adjustments";
 		case SwitchRenderTarget:
 			return L"Switch Render Target";
-		case HudOperation:
-			return L"HUD Operation";
+		case RESERVED00:
+			return L"RESERVED00";
 		case SecondaryRenderTarget_DX10:
 			return L"SecondaryRenderTarget_DX10";
 		case SecondaryRenderTarget_DX11:
@@ -961,8 +960,9 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 		case ViewAdjustments:
 			return NOD_Plugtype::AQU_INT;
 		case SwitchRenderTarget:
-		case HudOperation:
 			return NOD_Plugtype::AQU_INT;
+		case RESERVED00:
+			return NOD_Plugtype::AQU_SIZE_T;
 		case SecondaryRenderTarget_DX10:
 			return NOD_Plugtype::AQU_PNT_ID3D10SHADERRESOURCEVIEW;
 		case SecondaryRenderTarget_DX11:
@@ -1201,8 +1201,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pcShaderViewAdjustment;
 		case SwitchRenderTarget:
 			return (void*)&m_bSwitchRenderTarget;
-		case HudOperation:
-			return (void*)&m_bHudOperation;
+		case RESERVED00:
+			return nullptr; // TODO !! RESERVED
 		case SecondaryRenderTarget_DX10:
 			return (void*)&m_pcSecondaryRenderTargetSRView10;
 		case SecondaryRenderTarget_DX11:
@@ -1946,109 +1946,17 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (m_pcActiveVertexShader11)
 							m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
-						// any hud operation taking place ?
-						static BOOL bOldHudCount = 0;
+						// render target switched ? set back for new shader
 						if (m_bSwitchRenderTarget)
 						{
-							if (!m_bHudOperation)
-							{
-								// restore render targets by backup
-								if (m_eCurrentRenderingSide == RenderPosition::Left)
-									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-								else
-									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
+							// restore render targets by backup
+							if (m_eCurrentRenderingSide == RenderPosition::Left)
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+							else
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
 
-							}
 							m_bSwitchRenderTarget = false;
 						}
-
-						if (bOldHudCount < m_bHudOperation)
-						{
-							// new frame, clear secondary render target view
-							const float fColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
-
-							bOldHudCount = m_bHudOperation;
-						}
-
-						if (m_bHudOperation)
-						{
-							if (!m_pcSecondaryRenderTarget11)
-							{
-								// get device
-								ID3D11Device* pcDevice = nullptr;
-								ID3D11DeviceContext* pcContext = (ID3D11DeviceContext*)pThis;
-								pcContext->GetDevice(&pcDevice);
-								if (pcDevice)
-								{
-									// get the viewport
-									UINT unNumViewports = 1;
-									D3D11_VIEWPORT sViewport;
-									pcContext->RSGetViewports(&unNumViewports, &sViewport);
-
-									if (unNumViewports)
-									{
-										// fill the description
-										D3D11_TEXTURE2D_DESC sDescTex;
-										sDescTex.Width = (UINT)sViewport.Width;
-										sDescTex.Height = (UINT)sViewport.Height;
-										sDescTex.MipLevels = 1;
-										sDescTex.ArraySize = 1;
-										sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-										sDescTex.SampleDesc.Count = 1;
-										sDescTex.SampleDesc.Quality = 0;
-										sDescTex.Usage = D3D11_USAGE_DEFAULT;
-										sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-										sDescTex.CPUAccessFlags = 0;
-										sDescTex.MiscFlags = 0;
-
-										// create secondary render target
-										pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
-										if (m_pcSecondaryRenderTarget11)
-										{
-											// create render target view
-											if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
-												OutputDebugString(L"MAM: Failed to create secondary render target view.");
-
-											// create shader resource view
-											if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
-												OutputDebugString(L"MAM: Failed to create secondary render target shader resource view.");
-										}
-										else OutputDebugString(L"MAM: Failed to create secondary render target !");
-									}
-									else OutputDebugString(L"MAM: No Viewport present !");
-
-									pcDevice->Release();
-								}
-							}
-
-							// loop through fetched hash codes
-							for (UINT unI = 0; unI < (UINT)m_aunFetchedHashCodes.size(); unI++)
-							{
-								// switch render targets
-								if ((sPrivateData.dwHash == m_aunFetchedHashCodes[unI]))
-								{
-									// switch render targets to temporary
-									m_bSwitchRenderTarget = true;
-
-									// set secondary render target
-									if (m_eCurrentRenderingSide == RenderPosition::Left)
-										((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-									else
-										((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
-								}
-							}
-
-							if (!m_bSwitchRenderTarget)
-							{
-								// restore render targets by backup
-								if (m_eCurrentRenderingSide == RenderPosition::Left)
-									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-								else
-									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
-							}
-						}
-						else bOldHudCount = m_bHudOperation;
 
 						// currently chosen ?
 						if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
@@ -2096,11 +2004,130 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									}
 								}
 
+								// secondary render target present ?
+								if (!m_pcSecondaryRenderTarget11)
+								{
+									// get device
+									ID3D11Device* pcDevice = nullptr;
+									ID3D11DeviceContext* pcContext = (ID3D11DeviceContext*)pThis;
+									pcContext->GetDevice(&pcDevice);
+									if (pcDevice)
+									{
+										// get the viewport
+										UINT unNumViewports = 1;
+										D3D11_VIEWPORT sViewport;
+										pcContext->RSGetViewports(&unNumViewports, &sViewport);
+
+										if (unNumViewports)
+										{
+											// fill the description
+											D3D11_TEXTURE2D_DESC sDescTex;
+											sDescTex.Width = (UINT)sViewport.Width;
+											sDescTex.Height = (UINT)sViewport.Height;
+											sDescTex.MipLevels = 1;
+											sDescTex.ArraySize = 1;
+											sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+											sDescTex.SampleDesc.Count = 1;
+											sDescTex.SampleDesc.Quality = 0;
+											sDescTex.Usage = D3D11_USAGE_DEFAULT;
+											sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+											sDescTex.CPUAccessFlags = 0;
+											sDescTex.MiscFlags = 0;
+
+											// create secondary render target
+											pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
+											if (m_pcSecondaryRenderTarget11)
+											{
+												// create render target view
+												if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
+													OutputDebugString(L"MAM: Failed to create secondary render target view.");
+
+												// create shader resource view
+												if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
+													OutputDebugString(L"MAM: Failed to create secondary render target shader resource view.");
+											}
+											else OutputDebugString(L"MAM: Failed to create secondary render target !");
+										}
+										else OutputDebugString(L"MAM: No Viewport present !");
+
+										pcDevice->Release();
+									}
+								}
+
 								// switch render targets to temporary
 								m_bSwitchRenderTarget = true;
 
 								// set secondary render target
 								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
+							}
+						}
+
+						
+
+						// loop through fetched hash codes
+						for (UINT unI = 0; unI < (UINT)m_aunFetchedHashCodes.size(); unI++)
+						{
+							// switch render targets
+							if ((sPrivateData.dwHash == m_aunFetchedHashCodes[unI]))
+							{
+								// secondary render target present ?
+								if (!m_pcSecondaryRenderTarget11)
+								{
+									// get device
+									ID3D11Device* pcDevice = nullptr;
+									ID3D11DeviceContext* pcContext = (ID3D11DeviceContext*)pThis;
+									pcContext->GetDevice(&pcDevice);
+									if (pcDevice)
+									{
+										// get the viewport
+										UINT unNumViewports = 1;
+										D3D11_VIEWPORT sViewport;
+										pcContext->RSGetViewports(&unNumViewports, &sViewport);
+
+										if (unNumViewports)
+										{
+											// fill the description
+											D3D11_TEXTURE2D_DESC sDescTex;
+											sDescTex.Width = (UINT)sViewport.Width;
+											sDescTex.Height = (UINT)sViewport.Height;
+											sDescTex.MipLevels = 1;
+											sDescTex.ArraySize = 1;
+											sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+											sDescTex.SampleDesc.Count = 1;
+											sDescTex.SampleDesc.Quality = 0;
+											sDescTex.Usage = D3D11_USAGE_DEFAULT;
+											sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+											sDescTex.CPUAccessFlags = 0;
+											sDescTex.MiscFlags = 0;
+
+											// create secondary render target
+											pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
+											if (m_pcSecondaryRenderTarget11)
+											{
+												// create render target view
+												if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
+													OutputDebugString(L"MAM: Failed to create secondary render target view.");
+
+												// create shader resource view
+												if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
+													OutputDebugString(L"MAM: Failed to create secondary render target shader resource view.");
+											}
+											else OutputDebugString(L"MAM: Failed to create secondary render target !");
+										}
+										else OutputDebugString(L"MAM: No Viewport present !");
+
+										pcDevice->Release();
+									}
+								}
+
+								// switch render targets to temporary
+								m_bSwitchRenderTarget = true;
+
+								// set secondary render target
+								if (m_eCurrentRenderingSide == RenderPosition::Left)
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+								else
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
 							}
 						}
 
@@ -3286,9 +3313,6 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				// "Hash Codes" - List
 				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwHashCodes)
 				{
-					// turn off HUD operation
-					m_bHudOperation = false;
-
 					INT nSelection = 0;
 
 					// get current selection of the shader constant list
