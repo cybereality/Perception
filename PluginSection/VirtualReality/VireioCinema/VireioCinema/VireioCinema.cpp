@@ -456,7 +456,7 @@ m_unMenuModelIndex(0)
 	}
 	{
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Render Cinema Room";
+		sEntry.strEntry = "Hide Cinema Room";
 		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
 		sEntry.pbValue = &m_sCinemaRoomSetup.bPerformanceMode;
@@ -478,7 +478,7 @@ m_unMenuModelIndex(0)
 	{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Full Immersive Mode";
-		sEntry.bIsActive = false;
+		sEntry.bIsActive = true;
 		sEntry.bIsFullscreenswitch = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
 		sEntry.pbValue = &m_sCinemaRoomSetup.bImmersiveMode;
@@ -488,7 +488,7 @@ m_unMenuModelIndex(0)
 	{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Inter-Pupillary distance";
-		sEntry.bIsActive = false;
+		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
 		sEntry.fMinimum = 0.0510f;
 		sEntry.fMaximum = 0.0770f;
@@ -500,7 +500,7 @@ m_unMenuModelIndex(0)
 	{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Virtual Screen Distance";
-		sEntry.bIsActive = false;
+		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
 		sEntry.fMinimum = 0.5f;
 		sEntry.fMaximum = 1.2f;

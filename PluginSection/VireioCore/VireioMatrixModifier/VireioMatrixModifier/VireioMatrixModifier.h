@@ -56,6 +56,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\..\Shared\pugixml.hpp"
 #include"..\..\..\Include\VireioMenu.h"
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
