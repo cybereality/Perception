@@ -45,6 +45,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include"Resources.h"
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
@@ -763,6 +766,10 @@ private:
 	* True if the Splitter used a D3D9Ex device.
 	***/
 	bool m_bUseD3D9Ex;
+	/**
+	* True if stereo images should be streched to monitor output.
+	***/
+	bool m_bMonitorStereo;
 	/**
 	* Vireio menu.
 	***/

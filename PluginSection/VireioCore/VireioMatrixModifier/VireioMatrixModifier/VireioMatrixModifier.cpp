@@ -194,9 +194,7 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	m_sGameConfiguration.bPFOVToggle = false;
 	m_pcShaderViewAdjustment = std::make_shared<ViewAdjustment>(m_psHmdInfo, &m_sGameConfiguration);
 
-	// init
-	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
-	m_pcShaderViewAdjustment->ComputeViewTransforms();
+	
 
 	// clear GUI page structures
 	ZeroMemory(&m_sPageDebug, sizeof(PageDebug));
@@ -313,6 +311,11 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 		sEntry.bValue = m_sGameConfiguration.bPFOVToggle;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
+
+	// init
+	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
+	m_pcShaderViewAdjustment->ComputeViewTransforms();
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )

@@ -223,24 +223,35 @@ m_pppcSwapChain(nullptr)
 	// use a D3D9Ex device ? only available by setting, false by constructor
 	m_bUseD3D9Ex = false;
 
+	// default... monitor stereo output on
+	m_bMonitorStereo = true;
+
 	// init d3d9ex specific vectors
 	m_aapcActiveProxyBackBufferSurfaces = std::vector<std::vector<IDirect3DStereoSurface9*>>();
 	m_apcActiveSwapChains = std::vector<IDirect3DSwapChain9*>();
 
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	DWORD bMonitorStereo = m_bMonitorStereo;
+	bMonitorStereo = GetIniFileSetting(bMonitorStereo, "Stereo Splitter", "bMonitorStereo", szFilePathINI, bFileExists);
+	if (bMonitorStereo) m_bMonitorStereo = true; else m_bMonitorStereo = false;
+	
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	m_sMenu.strSubMenu = "Stereo Splitter";
 	{
-		static float fDummy = 0.0f;
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.strEntry = "Monitor Stereo";
 		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 1.0f;
-		sEntry.fMaximum = 30.0f;
-		sEntry.fChangeSize = 0.1f;
-		sEntry.pfValue = &fDummy;
-		sEntry.fValue = fDummy;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_bMonitorStereo;
+		sEntry.bValue = m_bMonitorStereo;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
 }
@@ -1376,6 +1387,41 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #ifdef _DEBUG_STEREO_SPLITTER
 	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
+
+	// save ini file ?
+	if (m_nIniFrameCount)
+	{
+		if (m_nIniFrameCount == 1)
+		{
+			// save ini settings.. get file path
+			char szFilePathINI[1024];
+			GetCurrentDirectoryA(1024, szFilePathINI);
+			strcat_s(szFilePathINI, "\\VireioPerception.ini");
+			bool bFileExists = false;
+			DWORD bMonitorStereo = m_bMonitorStereo;
+			bMonitorStereo = GetIniFileSetting(bMonitorStereo, "Stereo Splitter", "bMonitorStereo", szFilePathINI, bFileExists);
+			if (bMonitorStereo) m_bMonitorStereo = true; else m_bMonitorStereo = false;
+		}
+		m_nIniFrameCount--;
+	}
+
+	// main menu update ?
+	if (m_sMenu.bOnChanged)
+	{
+		// set back event bool, set ini file frame count
+		m_sMenu.bOnChanged = false;
+		m_nIniFrameCount = 300;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMenu.asEntries[nIx].bOnChanged = false;
+			}
+		}
+	}
 
 	static HRESULT nHr = S_OK;
 
@@ -3986,11 +4032,31 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice, bool bInit)
 				if (m_pcStereoBufferSurface[0])
 				{
 					pcDevice->StretchRect(m_pcActiveBackBufferSurface[0], NULL, m_pcStereoBufferSurface[0], NULL, D3DTEXF_NONE);
+					
+					// monitor stereo output ?
+					if (m_bMonitorStereo)
+					{
+						D3DSURFACE_DESC sDesc = {};
+						if (m_pcActiveBackBufferSurface[0]) m_pcActiveBackBufferSurface[0]->GetDesc(&sDesc);
+						RECT sRect = { 0, 0, sDesc.Width >> 1, sDesc.Height };
+						pcDevice->StretchRect(m_pcStereoBufferSurface[0], NULL, m_pcActiveBackBufferSurface[0], &sRect, D3DTEXF_NONE);
+					}
+
 					m_pcStereoBufferSurface[0]->Release();
 				}
 				if (m_pcStereoBufferSurface[1])
 				{
 					pcDevice->StretchRect(m_pcActiveBackBufferSurface[1], NULL, m_pcStereoBufferSurface[1], NULL, D3DTEXF_NONE);
+
+					// monitor stereo output ?
+					if (m_bMonitorStereo)
+					{
+						D3DSURFACE_DESC sDesc = {};
+						if (m_pcActiveBackBufferSurface[0]) m_pcActiveBackBufferSurface[0]->GetDesc(&sDesc);
+						RECT sRect = { sDesc.Width >> 1, 0, sDesc.Width, sDesc.Height};
+						pcDevice->StretchRect(m_pcStereoBufferSurface[1], NULL, m_pcActiveBackBufferSurface[0], &sRect, D3DTEXF_NONE);
+					}
+
 					m_pcStereoBufferSurface[1]->Release();
 				}
 			}

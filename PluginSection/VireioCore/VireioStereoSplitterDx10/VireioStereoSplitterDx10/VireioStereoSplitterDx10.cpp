@@ -145,7 +145,7 @@ m_bClearHUDRenderTarget(false)
 
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	m_sMenu.strSubMenu = "Stereo Splitter";
 	{
 		static float fDummy = 0.0f;
 		VireioMenuEntry sEntry = {};

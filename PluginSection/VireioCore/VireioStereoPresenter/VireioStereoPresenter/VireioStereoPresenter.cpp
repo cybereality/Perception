@@ -820,7 +820,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					pcContext->RSSetViewports(1, &sViewport);
 
 					// clear render target...zero alpha
-					FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					FLOAT afColorRgba[4] = { 0.5f, 0.4f, 0.2f, 0.4f };
 					pcContext->ClearRenderTargetView(*m_ppcTexViewMenu, afColorRgba);
 				}
 			}
