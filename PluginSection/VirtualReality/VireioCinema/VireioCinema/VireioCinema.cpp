@@ -503,7 +503,7 @@ m_unMenuModelIndex(0)
 		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
 		sEntry.fMinimum = 0.5f;
-		sEntry.fMaximum = 1.2f;
+		sEntry.fMaximum = 2.5f;
 		sEntry.fChangeSize = 0.01f;
 		sEntry.pfValue = &m_sImmersiveFullscreenSettings.fVSD;
 		sEntry.fValue = m_sImmersiveFullscreenSettings.fVSD;
@@ -903,7 +903,7 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 #ifdef _DEBUG_CIN
 	{ wchar_t buf[128]; wsprintf(buf, L"[CIN] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
-	
+
 	// only present accepted
 	bool bValid = false;
 	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||
@@ -2256,6 +2256,51 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 		// draw
 		pcContext->DrawIndexed(m_asRenderModels[0].unTriangleCount * 3, 0, 0);
 	}
+
+	// return if menu is not active
+	if (!m_sMenu.bIsActive) return;
+
+	// set menu parameters
+	pcContext->OMSetBlendState(m_pcBlendState, NULL, 0xffffffff);
+	pcContext->PSSetShader(m_pcPSMenuScreen11, NULL, 0);
+	pcContext->PSSetShaderResources(0, 1, &m_pcTexMenuSRV);
+	m_sGeometryConstants.sResolution.x = (float)m_asRenderModels[m_unMenuModelIndex].sResolution.unWidth;
+	m_sGeometryConstants.sResolution.y = (float)m_asRenderModels[m_unMenuModelIndex].sResolution.unHeight;
+
+	// set menu model buffers
+	pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[m_unMenuModelIndex].pcVertexBuffer, &stride, &offset);
+	pcContext->IASetIndexBuffer(m_asRenderModels[m_unMenuModelIndex].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	// draw menu
+	for (int nEye = 0; nEye < 2; nEye++)
+	{
+		// set view matrix based on view backup..translate back from default y 2.0f...scale to 0.5f
+		D3DXMATRIX sTrans;
+		D3DXMatrixTranslation(&sTrans, 0.0f, -2.0f, 0.0f);
+		D3DXMATRIX sScale;
+		D3DXMatrixScaling(&sScale, 0.5f, 0.5f, 0.5f);
+		D3DXMATRIX sView;
+		D3DXMatrixTranslation(&sView, -m_sToEye[nEye](3, 0), 0.0f, m_sImmersiveFullscreenSettings.fVSD * 0.9f);
+		D3DXMATRIX sWorldViewProjection;
+		if (m_psProjection[nEye])
+		{
+			sWorldViewProjection = sTrans * sScale * sView * (*(m_psProjection[nEye]));
+		}
+		else sWorldViewProjection = sTrans * sScale * sView * m_sToEye[nEye] * m_sProj[nEye];
+
+		D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
+		pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
+
+		// set render target
+		pcContext->OMSetRenderTargets(1, &m_pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
+
+		// and draw
+		pcContext->DrawIndexed(m_asRenderModels[m_unMenuModelIndex].unTriangleCount * 3, 0, 0);
+	}
+
+	// set back blend state
+	pcContext->OMSetBlendState(NULL, NULL, 0xffffffff);
+	pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
 }
 
 /**
