@@ -760,6 +760,11 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		return nullptr;
 	}
 
+	// #define _DEBUG_OTR
+#ifdef _DEBUG_OTR
+	{ wchar_t buf[128]; wsprintf(buf, L"[OTR] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 	// save ini file ?
 	if (m_nIniFrameCount)
 	{
@@ -930,7 +935,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			ovrVector3f      asHmdToEyeViewOffset[2] = { asEyeRenderDesc[0].HmdToEyeOffset, asEyeRenderDesc[1].HmdToEyeOffset };
 			ovrPosef         asEyeRenderPose[2];
 			ovr_CalcEyePoses(sTrackingState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
-			
+
 			// create rotation matrix from euler angles
 			D3DXMATRIX sRotation;
 			D3DXMATRIX sPitch, sYaw, sRoll;

@@ -498,6 +498,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		return nullptr;
 	}
 
+	// #define _DEBUG_ODM
+#ifdef _DEBUG_ODM
+	{ wchar_t buf[128]; wsprintf(buf, L"[ODM] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 	// save ini file ?
 	if (m_nIniFrameCount)
 	{
