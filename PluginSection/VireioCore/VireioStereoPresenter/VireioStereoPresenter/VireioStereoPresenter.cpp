@@ -638,6 +638,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 
 		// static hotkeys :  LCTRL+Q - toggle vireio menu
+		//                   F11 - toggle full immersive mode
 		//                   F12 - toggle stereo output
 		if (GetAsyncKeyState(VK_F12))
 		{
@@ -668,6 +669,45 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 		else
 			bReleased = true;
+
+		// handle full immersive switch, first on gamepad
+		static bool bFullImmersiveSwitch = false, bFullImmersiveSwitchKb = false;
+		if (bControllerAttached)
+		{
+			if ((sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) && (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB))
+			{
+				bFullImmersiveSwitch = true;
+			}
+			else
+			if (bFullImmersiveSwitch)
+			{
+				bFullImmersiveSwitch = false;
+				// loop through sub menues
+				for (UINT unIx = 0; unIx < 32; unIx++)
+				{
+					// set bool events
+					if (m_apsSubMenues[unIx]) m_apsSubMenues[unIx]->bOnFullImmersive = true;
+				}
+			}
+		}
+
+		// ...then on keyboard (F11)
+		if (GetAsyncKeyState(VK_F12))
+		{
+			bFullImmersiveSwitchKb = true;
+		}
+		else
+		if (bFullImmersiveSwitchKb)
+		{
+			bFullImmersiveSwitchKb = false;
+			// loop through sub menues
+			for (UINT unIx = 0; unIx < 32; unIx++)
+			{
+				// set bool events
+				if (m_apsSubMenues[unIx]) m_apsSubMenues[unIx]->bOnFullImmersive = true;
+			}
+		}
+
 #pragma endregion
 #pragma region menu events
 		// menu is shown ?
@@ -692,6 +732,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
 				if (sControllerState.Gamepad.sThumbLX < -28000)
 					m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
+
 			}
 
 			// loop through sub menues

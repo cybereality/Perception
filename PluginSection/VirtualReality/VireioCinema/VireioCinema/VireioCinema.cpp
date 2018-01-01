@@ -168,7 +168,7 @@ m_unMenuModelIndex(0)
 	m_sCinemaRoomSetup.fGamma = 1.0f;
 	m_unMouseTickCount = 2000;
 	m_sImmersiveFullscreenSettings.fIPD = 0.064f;
-	m_sImmersiveFullscreenSettings.fVSD = 0.8f; /**< default : the immersive mode screen is 0.8 meters away from eye ***/
+	m_sImmersiveFullscreenSettings.fVSD = 1.25f; /**< default : the immersive mode screen is 1.25 meters away from eye ***/
 
 	// TODO !! FX COLORS
 
@@ -2009,7 +2009,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		pcContext->ClearDepthStencilView(m_pcDSVGeometry11[nEye], D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// clear render target
-		FLOAT afColorRgba[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
+		FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		pcContext->ClearRenderTargetView(m_pcTex11DrawRTV[nEye], afColorRgba);
 	}
 
@@ -2067,6 +2067,13 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		m_sGeometryConstants.sMouse = D3DXVECTOR4(1.1f, 1.1f, 0.0f, 0.0f);
 	else
 		m_sGeometryConstants.sMouse = D3DXVECTOR4((float)sPoint.x / (float)sDesktop.right, (float)sPoint.y / (float)sDesktop.bottom, 0.0f, 0.0f);
+
+	// immersive mode toggle
+	if (m_sMenu.bOnFullImmersive)
+	{
+		m_sMenu.bOnFullImmersive = false;
+		m_sCinemaRoomSetup.bImmersiveMode = !m_sCinemaRoomSetup.bImmersiveMode;
+	}
 
 	// immersive mode ? render fullscreen
 	if (m_sCinemaRoomSetup.bImmersiveMode)

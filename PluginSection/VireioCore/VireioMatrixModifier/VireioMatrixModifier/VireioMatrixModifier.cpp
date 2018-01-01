@@ -214,109 +214,6 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	m_sPageGameShaderRules.m_dwRegCountValue = 4;
 	m_sPageGameShaderRules.m_dwOperationToApply = 1;
 
-	// locate or create the INI file
-	char szFilePathINI[1024];
-	GetCurrentDirectoryA(1024, szFilePathINI);
-	strcat_s(szFilePathINI, "\\VireioPerception.ini");
-	bool bFileExists = false;
-	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
-
-	// get ini file settings
-	m_sGameConfiguration.fWorldScaleFactor = GetIniFileSetting(m_sGameConfiguration.fWorldScaleFactor, "MatrixModifier", "fWorldScaleFactor", szFilePathINI, bFileExists);
-	m_sGameConfiguration.fConvergence = GetIniFileSetting(m_sGameConfiguration.fConvergence, "MatrixModifier", "fConvergence", szFilePathINI, bFileExists);
-	m_sGameConfiguration.fIPD = GetIniFileSetting(m_sGameConfiguration.fIPD, "MatrixModifier", "fIPD", szFilePathINI, bFileExists);
-	m_sGameConfiguration.fPFOV = GetIniFileSetting(m_sGameConfiguration.fPFOV, "MatrixModifier", "fPFOV", szFilePathINI, bFileExists);
-	DWORD uDummy = 0;
-	uDummy = GetIniFileSetting((DWORD)m_sGameConfiguration.bConvergenceEnabled, "MatrixModifier", "bConvergenceEnabled", szFilePathINI, bFileExists);
-	if (uDummy) m_sGameConfiguration.bConvergenceEnabled = true; else m_sGameConfiguration.bConvergenceEnabled = false;
-	uDummy = GetIniFileSetting((DWORD)m_sGameConfiguration.bPFOVToggle, "MatrixModifier", "bPFOVToggle", szFilePathINI, bFileExists);
-	if (uDummy) m_sGameConfiguration.bPFOVToggle = true; else m_sGameConfiguration.bPFOVToggle = false;
-
-	// create the menu
-	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "Matrix Modifier";
-
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "World Scale Factor";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.pfValue = &m_sGameConfiguration.fWorldScaleFactor;
-		sEntry.fValue = m_sGameConfiguration.fWorldScaleFactor;
-		sEntry.fMinimum = -100000.0f;
-		sEntry.fMaximum = 100000.0f;
-		sEntry.fChangeSize = 0.01f;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Convergence";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.pfValue = &m_sGameConfiguration.fConvergence;
-		sEntry.fValue = m_sGameConfiguration.fConvergence;
-		sEntry.fMinimum = 1.0f;
-		sEntry.fMaximum = 10.0f;
-		sEntry.fChangeSize = 0.01f;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Inter-Pupillary Distance";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.pfValue = &m_sGameConfiguration.fIPD;
-		sEntry.fValue = m_sGameConfiguration.fIPD;
-		sEntry.fMinimum = 0.0510f;
-		sEntry.fMaximum = 0.0770f;
-		sEntry.fChangeSize = 0.001f;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Aspect Multiplier";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.pfValue = &m_sGameConfiguration.fAspectMultiplier;
-		sEntry.fValue = m_sGameConfiguration.fAspectMultiplier;
-		sEntry.fMinimum = 0.0f;
-		sEntry.fMaximum = 5.0f;
-		sEntry.fChangeSize = 0.01f;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Convergence Toggle";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
-		sEntry.pbValue = &m_sGameConfiguration.bConvergenceEnabled;
-		sEntry.bValue = m_sGameConfiguration.bConvergenceEnabled;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Projection FOV";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.pfValue = &m_sGameConfiguration.fPFOV;
-		sEntry.fValue = m_sGameConfiguration.fPFOV;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-	{
-		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "Projection FOV Toggle";
-		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
-		sEntry.pbValue = &m_sGameConfiguration.bPFOVToggle;
-		sEntry.bValue = m_sGameConfiguration.bPFOVToggle;
-		m_sMenu.asEntries.push_back(sEntry);
-	}
-
-	// init
-	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
-	m_pcShaderViewAdjustment->ComputeViewTransforms();
-
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )
 	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
@@ -769,6 +666,105 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sGameConfiguration.fPFOV = 110.0f;
 	}
 
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	m_sGameConfiguration.fWorldScaleFactor = GetIniFileSetting(m_sGameConfiguration.fWorldScaleFactor, "MatrixModifier", "fWorldScaleFactor", szFilePathINI, bFileExists);
+	m_sGameConfiguration.fConvergence = GetIniFileSetting(m_sGameConfiguration.fConvergence, "MatrixModifier", "fConvergence", szFilePathINI, bFileExists);
+	m_sGameConfiguration.fIPD = GetIniFileSetting(m_sGameConfiguration.fIPD, "MatrixModifier", "fIPD", szFilePathINI, bFileExists);
+	m_sGameConfiguration.fPFOV = GetIniFileSetting(m_sGameConfiguration.fPFOV, "MatrixModifier", "fPFOV", szFilePathINI, bFileExists);
+	DWORD uDummy = 0;
+	uDummy = GetIniFileSetting((DWORD)m_sGameConfiguration.bConvergenceEnabled, "MatrixModifier", "bConvergenceEnabled", szFilePathINI, bFileExists);
+	if (uDummy) m_sGameConfiguration.bConvergenceEnabled = true; else m_sGameConfiguration.bConvergenceEnabled = false;
+	uDummy = GetIniFileSetting((DWORD)m_sGameConfiguration.bPFOVToggle, "MatrixModifier", "bPFOVToggle", szFilePathINI, bFileExists);
+	if (uDummy) m_sGameConfiguration.bPFOVToggle = true; else m_sGameConfiguration.bPFOVToggle = false;
+
+	// create the menu
+	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
+	m_sMenu.strSubMenu = "Matrix Modifier";
+
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "World Scale Factor";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.pfValue = &m_sGameConfiguration.fWorldScaleFactor;
+		sEntry.fValue = m_sGameConfiguration.fWorldScaleFactor;
+		sEntry.fMinimum = -100000.0f;
+		sEntry.fMaximum = 100000.0f;
+		sEntry.fChangeSize = 0.01f;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Convergence";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.pfValue = &m_sGameConfiguration.fConvergence;
+		sEntry.fValue = m_sGameConfiguration.fConvergence;
+		sEntry.fMinimum = 1.0f;
+		sEntry.fMaximum = 10.0f;
+		sEntry.fChangeSize = 0.01f;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Inter-Pupillary Distance";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.pfValue = &m_sGameConfiguration.fIPD;
+		sEntry.fValue = m_sGameConfiguration.fIPD;
+		sEntry.fMinimum = 0.0510f;
+		sEntry.fMaximum = 0.0770f;
+		sEntry.fChangeSize = 0.001f;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Aspect Multiplier";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.pfValue = &m_sGameConfiguration.fAspectMultiplier;
+		sEntry.fValue = m_sGameConfiguration.fAspectMultiplier;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 5.0f;
+		sEntry.fChangeSize = 0.01f;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Convergence Toggle";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_sGameConfiguration.bConvergenceEnabled;
+		sEntry.bValue = m_sGameConfiguration.bConvergenceEnabled;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Projection FOV";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.pfValue = &m_sGameConfiguration.fPFOV;
+		sEntry.fValue = m_sGameConfiguration.fPFOV;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Projection FOV Toggle";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_sGameConfiguration.bPFOVToggle;
+		sEntry.bValue = m_sGameConfiguration.bPFOVToggle;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+
+	// init
 	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();

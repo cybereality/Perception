@@ -177,6 +177,11 @@ struct VireioSubMenu
 	***/
 	bool bOnUp, bOnDown, bOnLeft, bOnRight, bOnAccept, bOnBack;
 	/**
+	* Full Immersive Mode event.
+	* True if cinema mode is bound to switch either to Full Immersive Mode or back to Cinema Mode.
+	***/
+	bool bOnFullImmersive;
+	/**
 	* True if hand poses are present.
 	***/
 	bool bHandPosesPresent;
