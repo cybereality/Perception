@@ -103,7 +103,7 @@
   <profile game_name="Slender The Eight Pages" game_exe="Slender - The Eight Pages.exe" />
   <profile game_name="Stacking" game_exe="Stack.exe" cpu_architecture="32bit" />
   <profile game_name="The Ball" game_exe="TheBall.exe" cpu_architecture="32bit" />
-  <profile game_name="The Elder Scrolls V : Skyrim" game_exe="TESV.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\Skyrim_Stereo.aqup"/>
+  <profile game_name="The Elder Scrolls V : Skyrim" game_exe="TESV.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\FullImmersive\\TESV_Skyrim.aqup"/>
   <profile game_name="The Old City: Leviathan" game_exe="UDK.exe" cpu_architecture="32bit" />
   <profile game_name="The Stanley Parable" game_exe="stanley.exe" cpu_architecture="32bit" />
   <profile game_name="The Witcher 2: Assassins of Kings" game_exe="witcher2.exe" cpu_architecture="32bit" />
