@@ -932,9 +932,13 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			ovrEyeRenderDesc asEyeRenderDesc[2];
 			asEyeRenderDesc[0] = ovr_GetRenderDesc(m_hSession, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
 			asEyeRenderDesc[1] = ovr_GetRenderDesc(m_hSession, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
-			ovrVector3f      asHmdToEyeViewOffset[2] = { asEyeRenderDesc[0].HmdToEyeOffset, asEyeRenderDesc[1].HmdToEyeOffset };
+			ovrPosef asHmdToEyePose[2] = { asEyeRenderDesc[0].HmdToEyePose,asEyeRenderDesc[1].HmdToEyePose };
+			//ovrVector3f      asHmdToEyeViewOffset[2] = { asEyeRenderDesc[0].HmdToEyePose, asEyeRenderDesc[1].HmdToEyePose };
 			ovrPosef         asEyeRenderPose[2];
-			ovr_CalcEyePoses(sTrackingState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
+			static long long s_frameIndex = 0;
+			static double s_sensorSampleTime = 0.0;    // sensorSampleTime is fed into the layer later
+			ovr_GetEyePoses(m_hSession, s_frameIndex, ovrTrue, asHmdToEyePose, asEyeRenderPose, &s_sensorSampleTime);
+			// ovr_CalcEyePoses(sTrackingState.HeadPose.ThePose, asHmdToEyePose, asEyeRenderPose);
 
 			// create rotation matrix from euler angles
 			D3DXMATRIX sRotation;
@@ -1020,7 +1024,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			ovrEyeRenderDesc asEyeRenderDesc[2];
 			asEyeRenderDesc[0] = ovr_GetRenderDesc(m_hSession, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
 			asEyeRenderDesc[1] = ovr_GetRenderDesc(m_hSession, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
-			ovrVector3f asViewOffset[2] = { asEyeRenderDesc[0].HmdToEyeOffset, asEyeRenderDesc[1].HmdToEyeOffset };
+			ovrVector3f asViewOffset[2] = { asEyeRenderDesc[0].HmdToEyePose.Position, asEyeRenderDesc[1].HmdToEyePose.Position };
 
 			// get projection matrices left/right
 			D3DXMATRIX asToEye[2];

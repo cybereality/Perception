@@ -947,11 +947,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		}
 
 		// get eye render pose and other fields
-		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeOffset, m_psEyeRenderDesc[1].HmdToEyeOffset };
+		ovrPosef asHmdToEyePose[2] = { m_psEyeRenderDesc[0].HmdToEyePose, m_psEyeRenderDesc[1].HmdToEyePose };
 		ovrPosef         asEyeRenderPose[2];
 		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
 		ovrTrackingState sHmdState = ovr_GetTrackingState(*m_phHMD, ovr_GetTimeInSeconds(), false);
-		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
+		static long long s_frameIndex = 0;
+		static double s_sensorSampleTime = 0.0;    // sensorSampleTime is fed into the layer later
+		ovr_GetEyePoses(*m_phHMD, s_frameIndex, ovrTrue, asHmdToEyePose, asEyeRenderPose, &s_sensorSampleTime);
 		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		double sensorSampleTime = ovr_GetTimeInSeconds();
 
