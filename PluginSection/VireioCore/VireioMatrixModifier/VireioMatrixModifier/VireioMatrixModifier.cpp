@@ -194,13 +194,12 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	m_sGameConfiguration.bPFOVToggle = false;
 	m_pcShaderViewAdjustment = std::make_shared<ViewAdjustment>(m_psHmdInfo, &m_sGameConfiguration);
 
-	
-
-	// clear GUI page structures
+	// clear GUI page structures and tracker input array
 	ZeroMemory(&m_sPageDebug, sizeof(PageDebug));
 	ZeroMemory(&m_sPageGameSettings, sizeof(PageGameSettings));
 	ZeroMemory(&m_sPageShader, sizeof(PageShader));
 	ZeroMemory(&m_sPageGameShaderRules, sizeof(PageGameShaderRules));
+	ZeroMemory(&m_apfTrackerInput[0], sizeof(float*)* 10);
 
 	// init shader rule page lists
 	m_aszShaderRuleIndices = std::vector<std::wstring>();
@@ -1006,6 +1005,26 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"pnConstantData";
 		case pbConstantData:
 			return L"pbConstantData";
+		case Pitch:
+			return L"Pitch";
+		case Yaw:
+			return L"Yaw";
+		case Roll:
+			return L"Roll";
+		case OrientationW:
+			return L"OrientationW";
+		case OrientationX:
+			return L"OrientationX";
+		case OrientationY:
+			return L"OrientationY";
+		case OrientationZ:
+			return L"OrientationZ";
+		case PositionX:
+			return L"PositionX";
+		case PositionY:
+			return L"PositionY";
+		case PositionZ:
+			return L"PositionZ";
 	}
 #endif
 	return L"UNTITLED";
@@ -1237,6 +1256,17 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_INT;
 		case pbConstantData:
 			return NOD_Plugtype::AQU_PNT_BOOL;
+		case Pitch:
+		case Yaw:
+		case Roll:
+		case OrientationW:
+		case OrientationX:
+		case OrientationY:
+		case OrientationZ:
+		case PositionX:
+		case PositionY:
+		case PositionZ:
+			return NOD_Plugtype::AQU_FLOAT;
 	}
 #endif
 	return 0;
@@ -1555,6 +1585,36 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case pbConstantData:
 			m_ppbConstantData = (BOOL**)pData;
 			break;
+		case Pitch:
+			m_apfTrackerInput[0] = (float*)pData;
+			break;
+		case Yaw:
+			m_apfTrackerInput[1] = (float*)pData;
+			break;
+		case Roll:
+			m_apfTrackerInput[2] = (float*)pData;
+			break;
+		case OrientationW:
+			m_apfTrackerInput[3] = (float*)pData;
+			break;
+		case OrientationX:
+			m_apfTrackerInput[4] = (float*)pData;
+			break;
+		case OrientationY:
+			m_apfTrackerInput[5] = (float*)pData;
+			break;
+		case OrientationZ:
+			m_apfTrackerInput[6] = (float*)pData;
+			break;
+		case PositionX:
+			m_apfTrackerInput[7] = (float*)pData;
+			break;
+		case PositionY:
+			m_apfTrackerInput[8] = (float*)pData;
+			break;
+		case PositionZ:
+			m_apfTrackerInput[9] = (float*)pData;
+			break;
 	}
 #endif
 }
@@ -1696,6 +1756,15 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		}
 	}
 
+	// head roll ?
+	static float s_fRoll = 0.0f;
+	if (m_apfTrackerInput[2])
+	if ((*m_apfTrackerInput[2]) != s_fRoll)
+	{
+		s_fRoll = *m_apfTrackerInput[2];
+		m_pcShaderViewAdjustment->UpdateRoll(-s_fRoll);
+		m_pcShaderViewAdjustment->ComputeViewTransforms();
+	}
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch (eD3DInterface)

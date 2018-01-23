@@ -102,7 +102,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           4
-#define NUMBER_OF_DECOMMANDERS                        22
+#define NUMBER_OF_DECOMMANDERS                        32
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000     
 #define VECTOR_LENGTH 4                                                      /**< One shader register has 4 float values. ***/
@@ -245,6 +245,16 @@ enum STS_Decommanders
 	pbConstantData,              // Set/GetVertex/PixelShaderConstantB constant data
 	// IDirect3DStateBlock::Apply();
 #endif
+	Pitch,                        /*<- Tracker input, not used now */
+	Yaw,                          /*<- Tracker input, not used now */
+	Roll,                         /*<- Tracker input roll, used for matrix head roll modification */
+	OrientationW,                 /*<- Tracker input, not used now */
+	OrientationX,                 /*<- Tracker input, not used now */
+	OrientationY,                 /*<- Tracker input, not used now */
+	OrientationZ,                 /*<- Tracker input, not used now */
+	PositionX,                    /*<- Tracker input, not used now */
+	PositionY,                    /*<- Tracker input, not used now */
+	PositionZ,                    /*<- Tracker input, not used now */
 };
 
 /**
@@ -1320,6 +1330,10 @@ private:
 	D3DXMATRIX* m_psMatProjCurrent;
 #endif
 
+	/**
+	* Tracker input pointers. (pitch, yaw, roll,...)
+	**/
+	float* m_apfTrackerInput[10];
 	/**
 	* Current chosen shader type.
 	***/
