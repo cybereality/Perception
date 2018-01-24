@@ -957,6 +957,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		double sensorSampleTime = ovr_GetTimeInSeconds();
 
+		
+
 		// render
 		for (int eye = 0; eye < 2; eye++)
 		{
@@ -2099,8 +2101,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				}
 			}
 		}
+
+		// wait for and begin frame
+		ovr_WaitToBeginFrame(*m_phHMD, s_frameIndex);
+		ovr_BeginFrame(*m_phHMD, s_frameIndex);
+		
 		// and submit
-		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, unLayerNumber);
+		ovrResult result = ovr_EndFrame(*m_phHMD, s_frameIndex, nullptr, m_pasLayerList, unLayerNumber);
 
 		// Render mirror.. only available if D3D11
 		if ((m_bShowMirror) && (pcSwapChain))
