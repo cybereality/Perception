@@ -57,7 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 
-#define NUMBER_OF_COMMANDERS                          16
+#define NUMBER_OF_COMMANDERS                          17
 
 #define FLOAT_PI                            (3.1415926f)
 
@@ -335,6 +335,7 @@ private:
 		else
 			keybd_event(m_aaunKeys[unControllerIx][unButtonIx], MapVirtualKey(m_aaunKeys[unControllerIx][unButtonIx], 0), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
 	}
+	void SaveIniSettings();
 
 	/**
 	* OpenVR system.

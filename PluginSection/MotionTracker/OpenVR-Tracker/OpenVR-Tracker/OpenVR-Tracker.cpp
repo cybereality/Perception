@@ -128,6 +128,119 @@ enum ViveControllerButtons
 };
 
 /**
+* Names for the menu of the Vive Controllers.
+***/
+const std::string astrControls[] =
+{
+	"System",
+	"AppMenu",
+	"Grip",
+	"DPad_Left",
+	"DPad_Up",
+	"DPad_Right",
+	"DPad_Down",
+	"Button A",
+	"Axis0",
+	"Axis1",
+	"Axis2",
+	"Axis3",
+	"Axis4",
+	"Axis0_Below_X",
+	"Axis0_Above_X",
+	"Axis0_Below_Y",
+	"Axis0_Above_Y",
+	"Axis1_Below_X",
+	"Axis1_Above_X",
+	"Axis1_Below_Y",
+	"Axis1_Above_Y",
+	"Axis2_Below_X",
+	"Axis2_Above_X",
+	"Axis2_Below_Y",
+	"Axis2_Above_Y",
+	"Axis3_Below_X",
+	"Axis3_Above_X",
+	"Axis3_Below_Y",
+	"Axis3_Above_Y",
+	"Axis4_Below_X",
+	"Axis4_Above_X",
+	"Axis4_Below_Y",
+	"Axis4_Above_Y",
+	"Axis0_Below_PX",
+	"Axis0_Above_PX",
+	"Axis0_Below_PY",
+	"Axis0_Above_PY",
+	"Axis1_Below_PX",
+	"Axis1_Above_PX",
+	"Axis1_Below_PY",
+	"Axis1_Above_PY",
+	"Axis2_Below_PX",
+	"Axis2_Above_PX",
+	"Axis2_Below_PY",
+	"Axis2_Above_PY",
+	"Axis3_Below_PX",
+	"Axis3_Above_PX",
+	"Axis3_Below_PY",
+	"Axis3_Above_PY",
+	"Axis4_Below_PX",
+	"Axis4_Above_PX",
+	"Axis4_Below_PY",
+	"Axis4_Above_PY",
+	"System",
+	"AppMenu",
+	"Grip",
+	"DPad_Left",
+	"DPad_Up",
+	"DPad_Right",
+	"DPad_Down",
+	"Button A",
+	"Axis0",
+	"Axis1",
+	"Axis2",
+	"Axis3",
+	"Axis4",
+	"Axis0_Below_X",
+	"Axis0_Above_X",
+	"Axis0_Below_Y",
+	"Axis0_Above_Y",
+	"Axis1_Below_X",
+	"Axis1_Above_X",
+	"Axis1_Below_Y",
+	"Axis1_Above_Y",
+	"Axis2_Below_X",
+	"Axis2_Above_X",
+	"Axis2_Below_Y",
+	"Axis2_Above_Y",
+	"Axis3_Below_X",
+	"Axis3_Above_X",
+	"Axis3_Below_Y",
+	"Axis3_Above_Y",
+	"Axis4_Below_X",
+	"Axis4_Above_X",
+	"Axis4_Below_Y",
+	"Axis4_Above_Y",
+	"Axis0_Below_PX",
+	"Axis0_Above_PX",
+	"Axis0_Below_PY",
+	"Axis0_Above_PY",
+	"Axis1_Below_PX",
+	"Axis1_Above_PX",
+	"Axis1_Below_PY",
+	"Axis1_Above_PY",
+	"Axis2_Below_PX",
+	"Axis2_Above_PX",
+	"Axis2_Below_PY",
+	"Axis2_Above_PY",
+	"Axis3_Below_PX",
+	"Axis3_Above_PX",
+	"Axis3_Below_PY",
+	"Axis3_Above_PY",
+	"Axis4_Below_PX",
+	"Axis4_Above_PX",
+	"Axis4_Below_PY",
+	"Axis4_Above_PY",
+};
+
+/**
 * Constructor.
 ***/
 OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
@@ -293,49 +406,76 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 	m_aafAxisScopeOrFactor[1][4] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][4], "OpenVR", "aafAxisScopeOrFactor[1][4]", szFilePathINI, bFileExists);
 
 	// erase key bool field
-	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL)* 2 * 13);
+	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL) * 2 * 13);
 
 	// extended keys set ?
 	for (UINT unI = 0; unI < 2; unI++)
-	for (UINT unJ = 0; unJ < 53; unJ++)
-	{
-		if ((m_aaunKeys[unI][unJ] == VK_UP) ||
-			(m_aaunKeys[unI][unJ] == VK_DOWN) ||
-			(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
-			(m_aaunKeys[unI][unJ] == VK_UP) ||
-			(m_aaunKeys[unI][unJ] == VK_SHIFT) ||
-			(m_aaunKeys[unI][unJ] == VK_CONTROL) ||
-			(m_aaunKeys[unI][unJ] == VK_BACK) ||
-			(m_aaunKeys[unI][unJ] == VK_INSERT) ||
-			(m_aaunKeys[unI][unJ] == VK_DELETE) ||
-			(m_aaunKeys[unI][unJ] == VK_HOME) ||
-			(m_aaunKeys[unI][unJ] == VK_END) ||
-			(m_aaunKeys[unI][unJ] == VK_MBUTTON) ||
-			(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
-			(m_aaunKeys[unI][unJ] == VK_RBUTTON) ||
-			(m_aaunKeys[unI][unJ] == VK_LCONTROL) ||
-			(m_aaunKeys[unI][unJ] == VK_RCONTROL) ||
-			(m_aaunKeys[unI][unJ] == VK_RMENU) ||
-			(m_aaunKeys[unI][unJ] == VK_LMENU))
-			m_aabKeyExtended[unI][unJ] = TRUE;
-		else
-			m_aabKeyExtended[unI][unJ] = FALSE;
-	}
+		for (UINT unJ = 0; unJ < 53; unJ++)
+		{
+			if ((m_aaunKeys[unI][unJ] == VK_UP) ||
+				(m_aaunKeys[unI][unJ] == VK_DOWN) ||
+				(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_UP) ||
+				(m_aaunKeys[unI][unJ] == VK_SHIFT) ||
+				(m_aaunKeys[unI][unJ] == VK_CONTROL) ||
+				(m_aaunKeys[unI][unJ] == VK_BACK) ||
+				(m_aaunKeys[unI][unJ] == VK_INSERT) ||
+				(m_aaunKeys[unI][unJ] == VK_DELETE) ||
+				(m_aaunKeys[unI][unJ] == VK_HOME) ||
+				(m_aaunKeys[unI][unJ] == VK_END) ||
+				(m_aaunKeys[unI][unJ] == VK_MBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_RBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_LCONTROL) ||
+				(m_aaunKeys[unI][unJ] == VK_RCONTROL) ||
+				(m_aaunKeys[unI][unJ] == VK_RMENU) ||
+				(m_aaunKeys[unI][unJ] == VK_LMENU))
+				m_aabKeyExtended[unI][unJ] = TRUE;
+			else
+				m_aabKeyExtended[unI][unJ] = FALSE;
+		}
 
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	m_sMenu.strSubMenu = "OpenVR Tracker";
+
+	// add touch menu options
+	static UINT s_unDummy[106];
+	for (UINT unIx = 0; unIx < 106; unIx++)
 	{
-		static float fDummy = 0.0f;
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.strEntry = astrControls[unIx];
 		sEntry.bIsActive = true;
-		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
-		sEntry.fMinimum = 1.0f;
-		sEntry.fMaximum = 30.0f;
-		sEntry.fChangeSize = 0.1f;
-		sEntry.pfValue = &fDummy;
-		sEntry.fValue = fDummy;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_UInt;
+		sEntry.unMinimum = 0;
+		sEntry.unMaximum = 1;
+		sEntry.unChangeSize = 1;
+		sEntry.punValue = &s_unDummy[unIx];
+		sEntry.unValue = s_unDummy[unIx];
+		sEntry.bValueEnumeration = true;
+
+		// add "X"
+		std::string strX = std::string("X");
+		sEntry.astrValueEnumeration.push_back(strX);
+
+		// loop through VK codes, add possible strings
+		for (UINT unVK = 1; unVK < 256; unVK++)
+		{
+			// get string
+			std::string strEnum = GetStringByVKCode(unVK);
+			if (strEnum != "X")
+			{
+				// is current selection ?
+				if (unVK == m_aaunKeys[1][unIx])
+				{
+					s_unDummy[unIx] = sEntry.unValue = (UINT)sEntry.astrValueEnumeration.size();
+				}
+
+				sEntry.astrValueEnumeration.push_back(strEnum);
+				sEntry.unMaximum++;
+			}
+		}
+
 		m_sMenu.asEntries.push_back(sEntry);
 	}
 }
@@ -639,6 +779,39 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// update game timer
 	m_cGameTimer.Tick();
 
+	// save ini file ?
+	if (m_nIniFrameCount)
+	{
+		if (m_nIniFrameCount == 1)
+			SaveIniSettings();
+		m_nIniFrameCount--;
+	}
+
+	// main menu update ?
+	if (m_sMenu.bOnChanged)
+	{
+		// set back event bool, set ini file frame count
+		m_sMenu.bOnChanged = false;
+		m_nIniFrameCount = 300;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMenu.asEntries[nIx].bOnChanged = false;
+
+				// controller entries ?
+				if (nIx < 106)
+				{
+					// set new vk code by string
+					m_aaunKeys[nIx / 53][nIx % 53] = GetVkCodeByString(m_sMenu.asEntries[nIx].astrValueEnumeration[m_sMenu.asEntries[nIx].unValue]);
+				}
+			}
+		}
+	}
+
 	if (!m_pHMD)
 	{
 		// Loading the SteamVR Runtime
@@ -707,7 +880,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
 			{
 				vr::VRControllerState_t state;
-				if (m_pHMD->GetControllerState(unDevice, &state, sizeof(vr::VRControllerState_t)))
+				if (m_pHMD->GetControllerState(unDevice, &state))
 				{
 					// loop through controller buttons
 					for (UINT unButtonIx = 0; unButtonIx < unButtonNo; unButtonIx++)
@@ -719,9 +892,23 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								MapButtonDown(unControllerIndex, unButtonIx);
 						}
 						else
-						if (m_aabKeys[unControllerIndex][unButtonIx])
-							MapButtonUp(unControllerIndex, unButtonIx);
+							if (m_aabKeys[unControllerIndex][unButtonIx])
+								MapButtonUp(unControllerIndex, unButtonIx);
 					}
+
+					// handle all remote buttons except Oculus private ones
+					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Up) & state.ulButtonPressed)
+						m_sMenu.bOnUp = true;
+					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Down) & state.ulButtonPressed)
+						m_sMenu.bOnDown = true;
+					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Left) & state.ulButtonPressed)
+						m_sMenu.bOnLeft = true;
+					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Right) & state.ulButtonPressed)
+						m_sMenu.bOnRight = true;
+					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_ApplicationMenu) & state.ulButtonPressed)
+						m_sMenu.bOnAccept = true;
+					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_A) & state.ulButtonPressed)
+						m_sMenu.bOnBack = true;
 
 					// loop throug axis
 					for (UINT unAxisIx = 0; unAxisIx < 5; unAxisIx++)
@@ -911,7 +1098,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		// call WaitGetPoses() with "1" count, then get all poses with time delta provided for pose prediction
 		vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, 1, NULL, 0);
 		m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, (float)m_cGameTimer.DeltaTime(), m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
-		
+
 		// first, we only handle the HMD = 0 index
 		uint32_t unI = vr::k_unTrackedDeviceIndex_Hmd;
 
@@ -980,6 +1167,180 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	}
 
 	return nullptr;
+}
+
+/**
+* Saves all node related ini file settings.
+***/
+void OpenVR_Tracker::SaveIniSettings()
+{
+	// get file path
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+
+	// get vk code strings
+	std::string astrVKCodes[106];
+	for (unsigned uI = 0; uI < 106; uI++)
+	{
+		astrVKCodes[uI] = GetStringByVKCode(m_aaunKeys[uI / 53][uI % 53]);
+	}
+
+	// set default key codes
+	m_aaunKeys[0][Index_EButton_System] = GetIniFileSettingKeyCode(astrVKCodes[0], "OpenVR", "aaunKeys[0][Index_EButton_System]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_ApplicationMenu] = GetIniFileSettingKeyCode(astrVKCodes[1], "OpenVR", "aaunKeys[0][Index_EButton_ApplicationMenu]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Grip] = GetIniFileSettingKeyCode(astrVKCodes[2], "OpenVR", "aaunKeys[0][Index_EButton_Grip]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Left] = GetIniFileSettingKeyCode(astrVKCodes[3], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Left]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Up] = GetIniFileSettingKeyCode(astrVKCodes[4], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Up]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Right] = GetIniFileSettingKeyCode(astrVKCodes[5], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Right]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_DPad_Down] = GetIniFileSettingKeyCode(astrVKCodes[6], "OpenVR", "aaunKeys[0][Index_EButton_DPad_Down]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_A] = GetIniFileSettingKeyCode(astrVKCodes[7], "OpenVR", "aaunKeys[0][Index_EButton_A]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0] = GetIniFileSettingKeyCode(astrVKCodes[8], "OpenVR", "aaunKeys[0][Index_EButton_Axis0]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1] = GetIniFileSettingKeyCode(astrVKCodes[9], "OpenVR", "aaunKeys[0][Index_EButton_Axis1]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2] = GetIniFileSettingKeyCode(astrVKCodes[10], "OpenVR", "aaunKeys[0][Index_EButton_Axis2]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3] = GetIniFileSettingKeyCode(astrVKCodes[11], "OpenVR", "aaunKeys[0][Index_EButton_Axis3]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4] = GetIniFileSettingKeyCode(astrVKCodes[12], "OpenVR", "aaunKeys[0][Index_EButton_Axis4]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[0][Index_EButton_Axis0_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[13], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[14], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[15], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[16], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[17], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[18], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[19], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[20], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[21], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[22], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[23], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[24], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[25], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[26], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[27], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[28], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[29], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[30], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[31], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[32], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_Y]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[0][Index_EButton_Axis0_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[33], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[34], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[35], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis0_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[36], "OpenVR", "aaunKeys[0][Index_EButton_Axis0_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[37], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[38], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[39], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis1_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[40], "OpenVR", "aaunKeys[0][Index_EButton_Axis1_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[41], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[42], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[43], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis2_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[44], "OpenVR", "aaunKeys[0][Index_EButton_Axis2_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[45], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[46], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[47], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis3_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[48], "OpenVR", "aaunKeys[0][Index_EButton_Axis3_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[49], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[50], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[51], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[0][Index_EButton_Axis4_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[52], "OpenVR", "aaunKeys[0][Index_EButton_Axis4_Above_Pressed_Y]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[1][Index_EButton_System] = GetIniFileSettingKeyCode(astrVKCodes[53], "OpenVR", "aaunKeys[1][Index_EButton_System]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_ApplicationMenu] = GetIniFileSettingKeyCode(astrVKCodes[54], "OpenVR", "aaunKeys[1][Index_EButton_ApplicationMenu]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Grip] = GetIniFileSettingKeyCode(astrVKCodes[55], "OpenVR", "aaunKeys[1][Index_EButton_Grip]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Left] = GetIniFileSettingKeyCode(astrVKCodes[56], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Left]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Up] = GetIniFileSettingKeyCode(astrVKCodes[57], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Up]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Right] = GetIniFileSettingKeyCode(astrVKCodes[58], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Right]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_DPad_Down] = GetIniFileSettingKeyCode(astrVKCodes[59], "OpenVR", "aaunKeys[1][Index_EButton_DPad_Down]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_A] = GetIniFileSettingKeyCode(astrVKCodes[60], "OpenVR", "aaunKeys[1][Index_EButton_A]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0] = GetIniFileSettingKeyCode(astrVKCodes[61], "OpenVR", "aaunKeys[1][Index_EButton_Axis0]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1] = GetIniFileSettingKeyCode(astrVKCodes[62], "OpenVR", "aaunKeys[1][Index_EButton_Axis1]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2] = GetIniFileSettingKeyCode(astrVKCodes[63], "OpenVR", "aaunKeys[1][Index_EButton_Axis2]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3] = GetIniFileSettingKeyCode(astrVKCodes[64], "OpenVR", "aaunKeys[1][Index_EButton_Axis3]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4] = GetIniFileSettingKeyCode(astrVKCodes[65], "OpenVR", "aaunKeys[1][Index_EButton_Axis4]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[1][Index_EButton_Axis0_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[66], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[67], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[68], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[69], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[70], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[71], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[72], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[73], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[74], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[75], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[76], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[77], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[78], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[79], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[80], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[81], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_X] = GetIniFileSettingKeyCode(astrVKCodes[82], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_X] = GetIniFileSettingKeyCode(astrVKCodes[83], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_Y] = GetIniFileSettingKeyCode(astrVKCodes[84], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_Y] = GetIniFileSettingKeyCode(astrVKCodes[85], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Y]", szFilePathINI, bFileExists);
+
+	m_aaunKeys[1][Index_EButton_Axis0_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[86], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[87], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[88], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis0_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[89], "OpenVR", "aaunKeys[1][Index_EButton_Axis0_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[90], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[91], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[92], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis1_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[93], "OpenVR", "aaunKeys[1][Index_EButton_Axis1_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[94], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[95], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[96], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis2_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[97], "OpenVR", "aaunKeys[1][Index_EButton_Axis2_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[98], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[99], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[100], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis3_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[101], "OpenVR", "aaunKeys[1][Index_EButton_Axis3_Above_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[102], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_Pressed_X] = GetIniFileSettingKeyCode(astrVKCodes[103], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Pressed_X]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[104], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Pressed_Y]", szFilePathINI, bFileExists);
+	m_aaunKeys[1][Index_EButton_Axis4_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[105], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Pressed_Y]", szFilePathINI, bFileExists);
+
+	m_aafAxisScopeOrFactor[0][0] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][0], "OpenVR", "aafAxisScopeOrFactor[0][0]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][1] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][1], "OpenVR", "aafAxisScopeOrFactor[0][1]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][2] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][2], "OpenVR", "aafAxisScopeOrFactor[0][2]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][3] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][3], "OpenVR", "aafAxisScopeOrFactor[0][3]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][4] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][4], "OpenVR", "aafAxisScopeOrFactor[0][4]", szFilePathINI, bFileExists);
+
+	m_aafAxisScopeOrFactor[1][0] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][0], "OpenVR", "aafAxisScopeOrFactor[1][0]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][1] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][1], "OpenVR", "aafAxisScopeOrFactor[1][1]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][2] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][2], "OpenVR", "aafAxisScopeOrFactor[1][2]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][3] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][3], "OpenVR", "aafAxisScopeOrFactor[1][3]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][4] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][4], "OpenVR", "aafAxisScopeOrFactor[1][4]", szFilePathINI, bFileExists);
+
+	// erase key bool field
+	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL) * 2 * 13);
+
+	// extended keys set ?
+	for (UINT unI = 0; unI < 2; unI++)
+		for (UINT unJ = 0; unJ < 53; unJ++)
+		{
+			if ((m_aaunKeys[unI][unJ] == VK_UP) ||
+				(m_aaunKeys[unI][unJ] == VK_DOWN) ||
+				(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_UP) ||
+				(m_aaunKeys[unI][unJ] == VK_SHIFT) ||
+				(m_aaunKeys[unI][unJ] == VK_CONTROL) ||
+				(m_aaunKeys[unI][unJ] == VK_BACK) ||
+				(m_aaunKeys[unI][unJ] == VK_INSERT) ||
+				(m_aaunKeys[unI][unJ] == VK_DELETE) ||
+				(m_aaunKeys[unI][unJ] == VK_HOME) ||
+				(m_aaunKeys[unI][unJ] == VK_END) ||
+				(m_aaunKeys[unI][unJ] == VK_MBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_LBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_RBUTTON) ||
+				(m_aaunKeys[unI][unJ] == VK_LCONTROL) ||
+				(m_aaunKeys[unI][unJ] == VK_RCONTROL) ||
+				(m_aaunKeys[unI][unJ] == VK_RMENU) ||
+				(m_aaunKeys[unI][unJ] == VK_LMENU))
+				m_aabKeyExtended[unI][unJ] = TRUE;
+			else
+				m_aabKeyExtended[unI][unJ] = FALSE;
+		}
 }
 
 /**
