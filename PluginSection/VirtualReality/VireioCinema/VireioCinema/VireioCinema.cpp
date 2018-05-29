@@ -888,9 +888,9 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 			return true;
 	}
 	else
-	if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
-		(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
-		return true;
+		if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
+			(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+			return true;
 
 	return false;
 }
@@ -1093,69 +1093,69 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		case D3D_9:
 		{
 
-					  // get device 
-					  LPDIRECT3DDEVICE9 pcDevice = nullptr;
-					  bool bReleaseDevice = false;
-					  if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
-					  {
-						  pcDevice = (LPDIRECT3DDEVICE9)pThis;
-					  }
-					  else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
-					  {
-						  LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
-						  if (!pSwapChain)
-						  {
-							  OutputDebugString(L"[CIN] No swapchain !");
-							  return nullptr;
-						  }
-						  pSwapChain->GetDevice(&pcDevice);
-						  bReleaseDevice = true;
-					  }
-					  if (!pcDevice)
-					  {
-						  OutputDebugString(L"[CIN] No device !");
-						  return nullptr;
-					  }
+			// get device 
+			LPDIRECT3DDEVICE9 pcDevice = nullptr;
+			bool bReleaseDevice = false;
+			if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+			{
+				pcDevice = (LPDIRECT3DDEVICE9)pThis;
+			}
+			else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+			{
+				LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
+				if (!pSwapChain)
+				{
+					OutputDebugString(L"[CIN] No swapchain !");
+					return nullptr;
+				}
+				pSwapChain->GetDevice(&pcDevice);
+				bReleaseDevice = true;
+			}
+			if (!pcDevice)
+			{
+				OutputDebugString(L"[CIN] No device !");
+				return nullptr;
+			}
 
-					  if (m_asRenderModels.size())
-						  // render
-						  RenderD3D9(pcDevice);
-					  else
-						  // ...or init all stuff
-						  InitD3D9(pcDevice);
+			if (m_asRenderModels.size())
+				// render
+				RenderD3D9(pcDevice);
+			else
+				// ...or init all stuff
+				InitD3D9(pcDevice);
 
-					  // release device if provided by swapchain
-					  if (bReleaseDevice) pcDevice->Release();
+			// release device if provided by swapchain
+			if (bReleaseDevice) pcDevice->Release();
 		}
-			break;
+		break;
 		case D3D_10:
 			break;
 		case D3D_11:
 		{
-					   // get device
-					   ID3D11Device* pcDevice = nullptr;
-					   ((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-					   if (pcDevice)
-					   {
-						   // get context
-						   ID3D11DeviceContext* pcContext = nullptr;
-						   pcDevice->GetImmediateContext(&pcContext);
-						   if (pcContext)
-						   {
-							   if (m_asRenderModels.size())
-								   // render
-								   RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
-							   else
-								   // ...or init all stuff
-								   InitD3D11(pcDevice, pcContext);
+			// get device
+			ID3D11Device* pcDevice = nullptr;
+			((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+			if (pcDevice)
+			{
+				// get context
+				ID3D11DeviceContext* pcContext = nullptr;
+				pcDevice->GetImmediateContext(&pcContext);
+				if (pcContext)
+				{
+					if (m_asRenderModels.size())
+						// render
+						RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+					else
+						// ...or init all stuff
+						InitD3D11(pcDevice, pcContext);
 
-							   pcContext->Release();
-						   }
-						   pcDevice->Release();
-						   return nullptr;
-					   }
+					pcContext->Release();
+				}
+				pcDevice->Release();
+				return nullptr;
+			}
 		}
-			break;
+		break;
 		default:
 			break;
 	}
@@ -2214,7 +2214,135 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	// set back device
 	ApplyStateblock(pcContext, &sStateBlock);
 
-	// OutputDebugString(L"~RenderD3D11");
+#ifdef _DUMMY_RENDER_TEST
+
+	// this is just a dummy render test... to show up all necessary render states
+
+	// backup all states
+	ZeroMemory(&sStateBlock, sizeof(D3DX11_STATE_BLOCK));
+	CreateStateblock(pcContext, &sStateBlock);
+
+	// clear all states, set targets
+	ClearContextState(pcContext);
+
+	// set viewport
+	pcContext->RSSetViewports(1, &sViewport);
+
+	{
+		static ID3D11VertexShader* s_pcVS = nullptr;
+		static ID3D11InputLayout* s_pcVL = nullptr;
+		static ID3D11PixelShader* s_pcPS = nullptr;
+
+		// create vertex shader
+		if (!s_pcVS)
+		{
+			static const char* V_Shader =
+				"float4 VS(float4 Pos : POSITION) : SV_POSITION\n"
+				"{\n"
+				"return Pos;\n"
+				"}\n";
+			ID3D10Blob* pcShader = nullptr;
+			if (SUCCEEDED(D3DX10CompileFromMemory(V_Shader, strlen(V_Shader), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL)))
+			{
+				OutputDebugString(L"[TEST!!!!] : Vertex Shader compiled !");
+				if (SUCCEEDED(pcDevice->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &s_pcVS)))
+				{
+					OutputDebugString(L"[TEST!!!!] : Vertex Shader created !");
+					// Define the input layout
+					D3D11_INPUT_ELEMENT_DESC layout[] =
+					{
+						{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					};
+					UINT numElements = ARRAYSIZE(layout);
+
+					// Create the input layout
+					if (SUCCEEDED(pcDevice->CreateInputLayout(layout, numElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), &s_pcVL)))
+					{
+						OutputDebugString(L"[TEST!!!!] : Input Layout created !");
+					}
+				}
+				pcShader->Release();
+			}
+		}
+
+		// create pixel shader
+		if (!s_pcPS)
+		{
+			static const char* P_Shader =
+				"float4 PS(float4 Pos : SV_POSITION) : SV_Target\n"
+				"{\n"
+				"return float4(1.0f, 1.0f, 0.0f, 1.0f);    // Yellow, with Alpha = 1\n"
+				"}\n";
+			ID3D10Blob* pcShader = nullptr;
+			if (SUCCEEDED(D3DX10CompileFromMemory(P_Shader, strlen(P_Shader), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL)))
+			{
+				OutputDebugString(L"[TEST!!!!] : Pixel Shader compiled !");
+				if (SUCCEEDED(pcDevice->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &s_pcPS)))
+					OutputDebugString(L"[TEST!!!!] : Pixel Shader created !");
+				pcShader->Release();
+			}
+		}
+
+		// get private data interface (render target view) for both eyes
+		ID3D11RenderTargetView* pcRTV[2] = {};
+		UINT dwSize = sizeof(ID3D11RenderTargetView*);
+		for (unsigned uEye = 0; uEye < 2; uEye++)
+			m_pcTex11DrawSRV[uEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV[uEye]);
+
+		struct SimpleVertex
+		{
+			XMFLOAT3 Pos;
+		};
+		static ID3D11Buffer* s_pVertexBuffer = NULL;
+		if (!s_pVertexBuffer)
+		{
+			// Create vertex buffer
+			SimpleVertex vertices[] =
+			{
+				XMFLOAT3(0.0f, 0.5f, 0.5f),
+				XMFLOAT3(0.5f, -0.5f, 0.5f),
+				XMFLOAT3(-0.5f, -0.5f, 0.5f),
+			};
+			D3D11_BUFFER_DESC bd;
+			ZeroMemory(&bd, sizeof(bd));
+			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.ByteWidth = sizeof(SimpleVertex) * 3;
+			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			bd.CPUAccessFlags = 0;
+			D3D11_SUBRESOURCE_DATA InitData;
+			ZeroMemory(&InitData, sizeof(InitData));
+			InitData.pSysMem = vertices;
+
+			if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &s_pVertexBuffer)))
+				OutputDebugString(L"Failed to create vertex buffer !!!!!!");
+
+		}
+
+		pcContext->OMSetRenderTargets(1, &pcRTV[0], NULL);
+		UINT stride = sizeof(SimpleVertex);
+		UINT offset = 0;
+		pcContext->IASetVertexBuffers(0, 1, &s_pVertexBuffer, &stride, &offset);
+		pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		pcContext->IASetInputLayout(s_pcVL);
+
+		float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
+		pcContext->ClearRenderTargetView(pcRTV[0], ClearColor);
+		pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+		// Render a triangle
+		pcContext->VSSetShader(s_pcVS, NULL, 0);
+		pcContext->PSSetShader(s_pcPS, NULL, 0);
+		pcContext->Draw(3, 0);
+
+		SAFE_RELEASE(pcRTV[1]);
+		SAFE_RELEASE(pcRTV[0]);
+	}
+
+	// set back device
+	ApplyStateblock(pcContext, &sStateBlock);
+
+#endif
 }
 
 /**
@@ -2422,9 +2550,9 @@ HRESULT VireioCinema::CreateD3D11Device(bool bCreateSwapChain)
 			UINT unWidth = 1024;
 			UINT unHeight = 1024;
 			if (m_punTexResolutionWidth)
-			if (*m_punTexResolutionWidth) unWidth = *m_punTexResolutionWidth;
+				if (*m_punTexResolutionWidth) unWidth = *m_punTexResolutionWidth;
 			if (m_punTexResolutionHeight)
-			if (*m_punTexResolutionHeight) unHeight = *m_punTexResolutionHeight;
+				if (*m_punTexResolutionHeight) unHeight = *m_punTexResolutionHeight;
 
 			// fill swap chain description
 			DXGI_SWAP_CHAIN_DESC sDesc = {};

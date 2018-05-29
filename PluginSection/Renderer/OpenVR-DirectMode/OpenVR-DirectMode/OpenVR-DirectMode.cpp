@@ -756,11 +756,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// textures connected ?
 					if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
 					{
-						// get the viewport
-						UINT dwNumViewports = 1;
-						D3D11_VIEWPORT psViewport[16];
-						pcContext->RSGetViewports(&dwNumViewports, psViewport);
-
 						// backup all states
 						D3DX11_STATE_BLOCK sStateBlock;
 						CreateStateblock(pcContext, &sStateBlock);
@@ -794,7 +789,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						sViewport.Width = (FLOAT)unWidth;
 						sViewport.Height = (FLOAT)unHeight;
 						sViewport.MaxDepth = 1.0f;
-						pcContext->RSSetViewports(dwNumViewports, &sViewport);
+						pcContext->RSSetViewports(1, &sViewport);
 
 						// create vertex shader
 						if (!m_pcVSGeometry11)
@@ -1170,11 +1165,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 #pragma region Dashboard overlay
 				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 				{
-					// get the viewport
-					UINT dwNumViewports = 1;
-					D3D11_VIEWPORT psViewport[16];
-					pcContext->RSGetViewports(&dwNumViewports, psViewport);
-
 					// backup all states
 					D3DX11_STATE_BLOCK sStateBlock;
 					CreateStateblock(pcContext, &sStateBlock);
@@ -1182,8 +1172,14 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// clear all states, set targets
 					ClearContextState(pcContext);
 
-					// set back viewport
-					pcContext->RSSetViewports(dwNumViewports, psViewport);
+					// set viewport by render target size
+					uint32_t unWidth, unHeight;
+					(*m_ppHMD)->GetRecommendedRenderTargetSize(&unWidth, &unHeight);
+					D3D11_VIEWPORT sViewport = {};
+					sViewport.Width = (FLOAT)unWidth;
+					sViewport.Height = (FLOAT)unHeight;
+					sViewport.MaxDepth = 1.0f;
+					pcContext->RSSetViewports(1, &sViewport);
 
 					// create all bool
 					bool bAllCreated = true;
@@ -1295,7 +1291,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							if (pcResourceShared)
 							{
 								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)pcResourceShared, vr::TextureType_DirectX, vr::ColorSpace_Gamma };
+								vr::Texture_t sTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
 								vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sTexture);
 								pcResourceShared->Release();
 							}
@@ -1332,7 +1328,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								pcContext->CopyResource(m_pcTex11CopyHUD, pcResource);
 
 								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)m_pcTex11SharedHUD, vr::TextureType_DirectX, vr::ColorSpace_Gamma };
+								vr::Texture_t sTexture = { (void*)m_pcTex11SharedHUD, vr::API_DirectX, vr::ColorSpace_Gamma };
 								vr::VROverlay()->SetOverlayTexture(m_ulHUDOverlayHandle, &sTexture);
 								pcResource->Release();
 							}
@@ -1384,7 +1380,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			for (int nEye = 0; nEye < 2; nEye++)
 			{
 				// fill openvr texture struct
-				vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::TextureType_DirectX, vr::ColorSpace_Gamma };
+				vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
 
 				// submit left texture
 				vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture);
