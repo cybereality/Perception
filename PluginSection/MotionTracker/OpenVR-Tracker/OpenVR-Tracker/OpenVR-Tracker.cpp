@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 
+#pragma region constants
 /**
 * Number of HTC Vive controller buttons.
 ***/
@@ -239,7 +240,8 @@ const std::string astrControls[] =
 	"Axis4_Below_PY",
 	"Axis4_Above_PY",
 };
-
+#pragma endregion
+#pragma region constructor destructor
 /**
 * Constructor.
 ***/
@@ -488,7 +490,8 @@ OpenVR_Tracker::~OpenVR_Tracker()
 	if (m_pHMD) m_pHMD->ReleaseInputFocus();
 	vr::VR_Shutdown();
 }
-
+#pragma endregion
+#pragma region methods
 /**
 * Return the name of the  OpenVR Tracker node.
 ***/
@@ -890,25 +893,35 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						{
 							if (!m_aabKeys[unControllerIndex][unButtonIx])
 								MapButtonDown(unControllerIndex, unButtonIx);
+
+							// handle menu button events
+							switch (unButtonIx)
+							{
+								case vr::EVRButtonId::k_EButton_DPad_Up:
+									m_sMenu.bOnUp = true;
+									break;
+								case vr::EVRButtonId::k_EButton_DPad_Down:
+									m_sMenu.bOnDown = true;
+									break;
+								case vr::EVRButtonId::k_EButton_DPad_Left:
+									m_sMenu.bOnLeft = true;
+									break;
+								case vr::EVRButtonId::k_EButton_DPad_Right:
+									m_sMenu.bOnRight = true;
+									break;
+								case vr::EVRButtonId::k_EButton_ApplicationMenu:
+									m_sMenu.bOnAccept = true;
+									break;
+								case vr::EVRButtonId::k_EButton_A:
+									m_sMenu.bOnBack = true;
+									break;
+
+							}
 						}
 						else
 							if (m_aabKeys[unControllerIndex][unButtonIx])
 								MapButtonUp(unControllerIndex, unButtonIx);
 					}
-
-					// handle all remote buttons except Oculus private ones
-					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Up) & state.ulButtonPressed)
-						m_sMenu.bOnUp = true;
-					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Down) & state.ulButtonPressed)
-						m_sMenu.bOnDown = true;
-					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Left) & state.ulButtonPressed)
-						m_sMenu.bOnLeft = true;
-					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_DPad_Right) & state.ulButtonPressed)
-						m_sMenu.bOnRight = true;
-					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_ApplicationMenu) & state.ulButtonPressed)
-						m_sMenu.bOnAccept = true;
-					if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_A) & state.ulButtonPressed)
-						m_sMenu.bOnBack = true;
 
 					// loop throug axis
 					for (UINT unAxisIx = 0; unAxisIx < 5; unAxisIx++)
@@ -1528,3 +1541,4 @@ void OpenVR_Tracker::ProcessVREvent(const vr::VREvent_t & event)
 			break;
 	}
 }
+#pragma endregion

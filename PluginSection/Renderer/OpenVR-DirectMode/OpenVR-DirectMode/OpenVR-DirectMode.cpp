@@ -763,6 +763,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						// clear all states, set targets
 						ClearContextState(pcContext);
 
+#pragma region set or create
 						// set or create a default rasterizer state here
 						if (!m_pcRS)
 						{
@@ -886,7 +887,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
 								OutputDebugString(L"[OPENVR] Failed to create constant buffer.");
 						}
-
+#pragma endregion
+#pragma region create render models
 						// create all models
 						if (!m_bRenderModelsCreated)
 						{
@@ -1022,6 +1024,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							}
 							m_bRenderModelsCreated = true;
 						}
+#pragma endregion
+#pragma region init and render
 
 						// get tracking pose... 
 						(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
@@ -1063,7 +1067,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						}
 
 						// loop through available render models, render
-						bool bMouseCursorSet = false;
+						unsigned uHand = 0;
 						for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
 						{
 							// set texture and buffers
@@ -1077,11 +1081,14 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 							// set mouse cursor for first controller device
 							vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass((vr::TrackedDeviceIndex_t)unI + 1);
-							if ((eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller) && (!bMouseCursorSet))
+							if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
 							{
+								// pose available
+								m_sMenu.bHandPosesPresent = true;
+
 								// get pose matrix
 								UINT unIndex = (UINT)m_asRenderModels[unI].unTrackedDeviceIndex;
-								D3DXMATRIX sPoseMatrix(
+								m_sMenu.sPoseMatrix[uHand] = D3DXMATRIX(
 									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][0], 0.0,
 									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][1], 0.0,
 									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][2], 0.0,
@@ -1089,51 +1096,15 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 									);
 
 								// get position and set matrix translation to zero
-								D3DXVECTOR3 sPosition = D3DXVECTOR3(sPoseMatrix(3, 0), sPoseMatrix(3, 1), sPoseMatrix(3, 2));
-								sPoseMatrix(3, 0) = 0.0f;
-								sPoseMatrix(3, 1) = 0.0f;
-								sPoseMatrix(3, 2) = 0.0f;
+								D3DXVECTOR3 sPosition = D3DXVECTOR3(m_sMenu.sPoseMatrix[uHand](3, 0), m_sMenu.sPoseMatrix[uHand](3, 1), m_sMenu.sPoseMatrix[uHand](3, 2));
+								m_sMenu.sPosition[uHand].x = sPosition.x;
+								m_sMenu.sPosition[uHand].y = sPosition.y;
+								m_sMenu.sPosition[uHand].z = sPosition.z;
+								m_sMenu.sPoseMatrix[uHand](3, 0) = 0.0f;
+								m_sMenu.sPoseMatrix[uHand](3, 1) = 0.0f;
+								m_sMenu.sPoseMatrix[uHand](3, 2) = 0.0f;
 
-								// transform direction vector using this matrix and normalize it, negate
-								D3DXVECTOR3 sDirectionZ = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
-								D3DXVECTOR4 sDirection;
-								D3DXVec3Transform(&sDirection, &sDirectionZ, &sPoseMatrix);
-								sDirection.x *= -1.0f;
-								sDirection.y *= -1.0f;
-								D3DXVec4Normalize(&sDirection, &sDirection);
-								float fPlaneDistanceZ = sPosition.z + m_sCinemaRoomSetup.fScreenDepth;
-
-								// get intersection point to screen...
-								D3DXVECTOR3 sIntersect = D3DXVECTOR3(sDirection.x * (1.0f / sDirection.z), sDirection.y * (1.0f / sDirection.z), 0.0f);
-								sIntersect *= fPlaneDistanceZ;
-
-								// add position to intersection point
-								sIntersect.x += sPosition.x;
-								sIntersect.y += sPosition.y;
-
-								// substract the height of the screen center and negate
-								sIntersect.y -= m_sCinemaRoomSetup.fScreenLevel;
-								sIntersect.y *= -1.0f;
-
-								// set new mouse cursor position
-								float fXClip = m_sCinemaRoomSetup.fScreenWidth / 2.0f;
-								float fYClip = fXClip / 1.777777777777778f;
-								if ((sIntersect.x >= -fXClip) && (sIntersect.y >= -fYClip) && (sIntersect.x <= fXClip) && (sIntersect.y <= fYClip))
-								{
-									RECT sDesktop;
-									HWND pDesktop = GetDesktopWindow();
-									GetWindowRect(pDesktop, &sDesktop);
-									float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
-									float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
-
-									SetCursorPos((int)fXPos, (int)fYPos);
-									bMouseCursorSet = true;
-
-									// hardware emulation... if ever needed
-									// POINT sPoint;
-									// GetCursorPos(&sPoint);
-									// mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXPos - (DWORD)sPoint.x, (DWORD)fYPos - (DWORD)sPoint.y, 0, 0);
-								}
+								uHand++; if (uHand > 1) uHand = 1;
 							}
 
 							// left + right
@@ -1155,6 +1126,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						// release RTVs
 						SAFE_RELEASE(pcRTV[0]);
 						SAFE_RELEASE(pcRTV[1]);
+#pragma endregion
 
 						// set back device
 						ApplyStateblock(pcContext, &sStateBlock);
