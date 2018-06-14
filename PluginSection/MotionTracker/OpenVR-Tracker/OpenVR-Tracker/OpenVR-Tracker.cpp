@@ -895,24 +895,30 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								MapButtonDown(unControllerIndex, unButtonIx);
 
 							// handle menu button events
-							switch (unButtonIx)
+							switch (aunButtonIds[unButtonIx])
 							{
-								case vr::EVRButtonId::k_EButton_DPad_Up:
-									m_sMenu.bOnUp = true;
+								case vr::EVRButtonId::k_EButton_SteamVR_Touchpad:
+									if (state.rAxis[0].y > 0.5f)
+									{
+										m_sMenu.bOnUp = true;
+									}
+									else if (state.rAxis[0].y < -0.5f)
+									{
+										m_sMenu.bOnDown = true;
+									}
+									if (state.rAxis[0].x < -0.5f)
+									{
+										m_sMenu.bOnLeft = true;
+									}
+									else if (state.rAxis[0].x > 0.5f)
+									{
+										m_sMenu.bOnRight = true;
+									}
 									break;
-								case vr::EVRButtonId::k_EButton_DPad_Down:
-									m_sMenu.bOnDown = true;
-									break;
-								case vr::EVRButtonId::k_EButton_DPad_Left:
-									m_sMenu.bOnLeft = true;
-									break;
-								case vr::EVRButtonId::k_EButton_DPad_Right:
-									m_sMenu.bOnRight = true;
-									break;
-								case vr::EVRButtonId::k_EButton_ApplicationMenu:
+								case vr::EVRButtonId::k_EButton_SteamVR_Trigger:
 									m_sMenu.bOnAccept = true;
 									break;
-								case vr::EVRButtonId::k_EButton_A:
+								case vr::EVRButtonId::k_EButton_ApplicationMenu:
 									m_sMenu.bOnBack = true;
 									break;
 
