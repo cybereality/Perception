@@ -259,10 +259,6 @@ private:
 	***/
 	vr::VROverlayHandle_t m_ulOverlayThumbnailHandle;
 	/**
-	* The HUD overlay handle.
-	***/
-	vr::VROverlayHandle_t m_ulHUDOverlayHandle;
-	/**
 	* Left eye aspect ratio correction.
 	***/
 	float m_fHorizontalRatioCorrectionLeft;
@@ -341,22 +337,6 @@ private:
 		TrackedDeviceComponent,  /**< Sets the transform to draw the overlay on a rendermodel component mesh instead of a quad. */
 	};
 	/**
-	* HUD Overlay Properties
-	* To be read from the ini file.
-	***/
-	struct Overlay_Properties_HUD
-	{
-		OverlayTransformType eTransform;     /**< The type of transform for the HUD overlay **/
-		vr::HmdVector3_t sVectorTranslation; /**< The translation vector for the HUD (in meters) **/
-		vr::HmdColor_t sColor;               /**< The color for the HUD (including alpha) **/
-		float fWidth;                        /**< The width of the HUD (in meters) **/
-		union
-		{
-			vr::ETrackingUniverseOrigin eOrigin;   /**< The universe origin (for absolute transform) ***/
-			vr::TrackedDeviceIndex_t nDeviceIndex; /**< The device index (for device relative transform) ***/
-		};
-	} m_sOverlayPropertiesHud;
-	/**
 	* Dashboard Overlay Properties
 	* To be read from the ini file.
 	***/
@@ -373,14 +353,6 @@ private:
 	* True if interleaved reprojection is forced on.
 	***/
 	bool m_bForceInterleavedReprojection;
-	/**
-	* Time to sleep for each submission frame. (in ms)
-	***/
-	DWORD m_unSleepTime;
-	/**
-	* Default aspect ratio.
-	***/
-	float m_fAspectRatio;
 	/**
 	* The 3D vertex shader for the openVR models.
 	***/
@@ -450,16 +422,6 @@ private:
 	* Vector of all models to render.
 	***/
 	std::vector<RenderModel_D3D> m_asRenderModels;
-	/**
-	* Cinema room setup structure.
-	* Fields from Vireio Cinema necessary for OpenVR.
-	***/
-	struct CinemaRoomSetup
-	{
-		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
-		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
-		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
-	} m_sCinemaRoomSetup;
 	/**
 	* Vireio menu.
 	***/

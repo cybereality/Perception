@@ -192,9 +192,7 @@ m_bRenderModelsCreated(false)
 	//----------------------
 
 	// set default ini settings
-	m_fAspectRatio = 1920.0f / 1080.0f;
 	m_bForceInterleavedReprojection = false;
-	m_unSleepTime = 0;
 
 	// set first matrices.. 
 	D3DXMatrixIdentity(&m_sView);
@@ -202,27 +200,6 @@ m_bRenderModelsCreated(false)
 	D3DXMatrixIdentity(&m_sProj[1]);
 
 	// set default overlay properties
-	m_sOverlayPropertiesHud.eTransform = OverlayTransformType::Absolute;
-	switch (m_sOverlayPropertiesHud.eTransform)
-	{
-		case OpenVR_DirectMode::Absolute:
-			m_sOverlayPropertiesHud.eOrigin = vr::ETrackingUniverseOrigin::TrackingUniverseStanding;
-			break;
-		case OpenVR_DirectMode::TrackedDeviceRelative:
-			m_sOverlayPropertiesHud.nDeviceIndex = 0;
-			break;
-		case OpenVR_DirectMode::TrackedDeviceComponent:
-			break;
-	}
-	m_sOverlayPropertiesHud.sVectorTranslation.v[0] = 0.0f;
-	m_sOverlayPropertiesHud.sVectorTranslation.v[1] = 2.0f;
-	m_sOverlayPropertiesHud.sVectorTranslation.v[2] = -2.0f;
-	m_sOverlayPropertiesHud.sColor.a = 1.0f;
-	m_sOverlayPropertiesHud.sColor.r = 1.0f;
-	m_sOverlayPropertiesHud.sColor.g = 1.0f;
-	m_sOverlayPropertiesHud.sColor.b = 1.0f;
-	m_sOverlayPropertiesHud.fWidth = 3.0f;
-
 	m_sOverlayPropertiesDashboard.sColor.a = 1.0f;
 	m_sOverlayPropertiesDashboard.sColor.r = 1.0f;
 	m_sOverlayPropertiesDashboard.sColor.g = 1.0f;
@@ -235,10 +212,6 @@ m_bRenderModelsCreated(false)
 	m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
 	m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 
-	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
-	m_sCinemaRoomSetup.fScreenLevel = 0.0f; /**< default : 0 meters height level */
-	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
-
 	// locate or create the INI file
 	char szFilePathINI[1024];
 	GetCurrentDirectoryA(1024, szFilePathINI);
@@ -247,31 +220,7 @@ m_bRenderModelsCreated(false)
 	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
 
 	// get all ini settings
-	m_fAspectRatio = GetIniFileSetting(m_fAspectRatio, "OpenVR", "fAspectRatio", szFilePathINI, bFileExists);
 	if (GetIniFileSetting((DWORD)m_bForceInterleavedReprojection, "OpenVR", "bForceInterleavedReprojection", szFilePathINI, bFileExists)) m_bForceInterleavedReprojection = true; else m_bForceInterleavedReprojection = false;
-	m_unSleepTime = GetIniFileSetting(m_unSleepTime, "OpenVR", "unSleepTime", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.eTransform = (OverlayTransformType)GetIniFileSetting((DWORD)m_sOverlayPropertiesHud.eTransform, "OpenVR", "sOverlayPropertiesHud.eTransform", szFilePathINI, bFileExists);
-	switch (m_sOverlayPropertiesHud.eTransform)
-	{
-		case OpenVR_DirectMode::Absolute:
-			m_sOverlayPropertiesHud.eOrigin = (vr::ETrackingUniverseOrigin)GetIniFileSetting((DWORD)m_sOverlayPropertiesHud.eOrigin, "OpenVR", "sOverlayPropertiesHud.eOrigin", szFilePathINI, bFileExists);
-			GetIniFileSetting((DWORD)0, "OpenVR", "sOverlayPropertiesHud.nDeviceIndex", szFilePathINI, bFileExists);
-			break;
-		case OpenVR_DirectMode::TrackedDeviceRelative:
-			GetIniFileSetting((DWORD)0, "OpenVR", "sOverlayPropertiesHud.eOrigin", szFilePathINI, bFileExists);
-			m_sOverlayPropertiesHud.nDeviceIndex = (vr::TrackedDeviceIndex_t)GetIniFileSetting((DWORD)m_sOverlayPropertiesHud.nDeviceIndex, "OpenVR", "sOverlayPropertiesHud.nDeviceIndex", szFilePathINI, bFileExists);
-			break;
-		case OpenVR_DirectMode::TrackedDeviceComponent:
-			break;
-	}
-	m_sOverlayPropertiesHud.sVectorTranslation.v[0] = GetIniFileSetting(m_sOverlayPropertiesHud.sVectorTranslation.v[0], "OpenVR", "sOverlayPropertiesHud.sVectorTranslation.v[0]", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.sVectorTranslation.v[1] = GetIniFileSetting(m_sOverlayPropertiesHud.sVectorTranslation.v[1], "OpenVR", "sOverlayPropertiesHud.sVectorTranslation.v[1]", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.sVectorTranslation.v[2] = GetIniFileSetting(m_sOverlayPropertiesHud.sVectorTranslation.v[2], "OpenVR", "sOverlayPropertiesHud.sVectorTranslation.v[2]", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.sColor.a = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.a, "OpenVR", "sOverlayPropertiesHud.sColor.a", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.sColor.r = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.r, "OpenVR", "sOverlayPropertiesHud.sColor.r", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.sColor.g = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.g, "OpenVR", "sOverlayPropertiesHud.sColor.g", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.sColor.b = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.b, "OpenVR", "sOverlayPropertiesHud.sColor.b", szFilePathINI, bFileExists);
-	m_sOverlayPropertiesHud.fWidth = GetIniFileSetting(m_sOverlayPropertiesHud.fWidth, "OpenVR", "sOverlayPropertiesHud.fWidth", szFilePathINI, bFileExists);
 
 	m_sOverlayPropertiesDashboard.sColor.a = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.a, "OpenVR", "sOverlayPropertiesDashboard.sColor.a", szFilePathINI, bFileExists);
 	m_sOverlayPropertiesDashboard.sColor.r = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.r, "OpenVR", "sOverlayPropertiesDashboard.sColor.r", szFilePathINI, bFileExists);
@@ -279,41 +228,230 @@ m_bRenderModelsCreated(false)
 	m_sOverlayPropertiesDashboard.sColor.b = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.b, "OpenVR", "sOverlayPropertiesDashboard.sColor.b", szFilePathINI, bFileExists);
 	m_sOverlayPropertiesDashboard.fWidth = GetIniFileSetting(m_sOverlayPropertiesDashboard.fWidth, "OpenVR", "sOverlayPropertiesDashboard.fWidth", szFilePathINI, bFileExists);
 
-	m_sGeometryConstants.sLightDir.x = GetIniFileSetting(m_sGeometryConstants.sLightDir.x, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.x", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDir.y = GetIniFileSetting(m_sGeometryConstants.sLightDir.y, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.y", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDir.z = GetIniFileSetting(m_sGeometryConstants.sLightDir.z, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.z", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.a, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.a", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.r, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.r", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.g, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.g", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.b, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.b", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.a, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.a", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.r, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.r", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.g, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.g", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.b, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.b", szFilePathINI, bFileExists);
-
-	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
-	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.x = GetIniFileSetting(m_sGeometryConstants.sLightDir.x, "OpenVR", "sGeometryConstants.sLightDirection.x", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.y = GetIniFileSetting(m_sGeometryConstants.sLightDir.y, "OpenVR", "sGeometryConstants.sLightDirection.y", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.z = GetIniFileSetting(m_sGeometryConstants.sLightDir.z, "OpenVR", "sGeometryConstants.sLightDirection.z", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.a, "OpenVR", "sGeometryConstants.sColorAmbient.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.r, "OpenVR", "sGeometryConstants.sColorAmbient.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.g, "OpenVR", "sGeometryConstants.sColorAmbient.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.b, "OpenVR", "sGeometryConstants.sColorAmbient.b", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.a, "OpenVR", "sGeometryConstants.sColorDiffuse.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.r, "OpenVR", "sGeometryConstants.sColorDiffuse.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.g, "OpenVR", "sGeometryConstants.sColorDiffuse.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.b, "OpenVR", "sGeometryConstants.sColorDiffuse.b", szFilePathINI, bFileExists);
 
 	// normalize light direction
 	D3DXVec4Normalize(&m_sGeometryConstants.sLightDir, &m_sGeometryConstants.sLightDir);
 
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
-	m_sMenu.strSubMenu = "NOT IMPLEMENTED NOW !!";
+	m_sMenu.strSubMenu = "OpenVR DirectMode";
 	{
-		static float fDummy = 0.0f;
 		VireioMenuEntry sEntry = {};
-		sEntry.strEntry = "NOT IMPLEMENTED NOW !!";
+		sEntry.strEntry = "Force Interleaved Reprojection";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Bool;
+		sEntry.pbValue = &m_bForceInterleavedReprojection;
+		sEntry.bValue = m_bForceInterleavedReprojection;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+
+#pragma region dashboard menu
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Dashboard Color A";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sOverlayPropertiesDashboard.sColor.a;
+		sEntry.fValue = m_sOverlayPropertiesDashboard.sColor.a;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Dashboard Color R";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sOverlayPropertiesDashboard.sColor.r;
+		sEntry.fValue = m_sOverlayPropertiesDashboard.sColor.r;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Dashboard Color G";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sOverlayPropertiesDashboard.sColor.g;
+		sEntry.fValue = m_sOverlayPropertiesDashboard.sColor.g;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Dashboard Color B";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sOverlayPropertiesDashboard.sColor.b;
+		sEntry.fValue = m_sOverlayPropertiesDashboard.sColor.b;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Dashboard Width";
 		sEntry.bIsActive = true;
 		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
 		sEntry.fMinimum = 1.0f;
-		sEntry.fMaximum = 30.0f;
-		sEntry.fChangeSize = 0.1f;
-		sEntry.pfValue = &fDummy;
-		sEntry.fValue = fDummy;
+		sEntry.fMaximum = 10.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sOverlayPropertiesDashboard.fWidth;
+		sEntry.fValue = m_sOverlayPropertiesDashboard.fWidth;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
+#pragma endregion
+#pragma region light menu
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Dir X";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -1.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDir.x;
+		sEntry.fValue = m_sGeometryConstants.sLightDir.x;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Dir Y";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -1.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDir.y;
+		sEntry.fValue = m_sGeometryConstants.sLightDir.y;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Dir Z";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = -1.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDir.z;
+		sEntry.fValue = m_sGeometryConstants.sLightDir.z;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Ambient A";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightAmbient.a;
+		sEntry.fValue = m_sGeometryConstants.sLightAmbient.a;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Ambient R";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightAmbient.r;
+		sEntry.fValue = m_sGeometryConstants.sLightAmbient.r;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Ambient G";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightAmbient.g;
+		sEntry.fValue = m_sGeometryConstants.sLightAmbient.g;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Ambient B";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightAmbient.b;
+		sEntry.fValue = m_sGeometryConstants.sLightAmbient.b;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Diffuse A";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDiffuse.a;
+		sEntry.fValue = m_sGeometryConstants.sLightDiffuse.a;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Diffuse R";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDiffuse.r;
+		sEntry.fValue = m_sGeometryConstants.sLightDiffuse.r;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Diffuse G";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDiffuse.g;
+		sEntry.fValue = m_sGeometryConstants.sLightDiffuse.g;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+	{
+		VireioMenuEntry sEntry = {};
+		sEntry.strEntry = "Light Diffuse B";
+		sEntry.bIsActive = true;
+		sEntry.eType = VireioMenuEntry::EntryType::Entry_Float;
+		sEntry.fMinimum = 0.0f;
+		sEntry.fMaximum = 1.0f;
+		sEntry.fChangeSize = 0.01f;
+		sEntry.pfValue = &m_sGeometryConstants.sLightDiffuse.b;
+		sEntry.fValue = m_sGeometryConstants.sLightDiffuse.b;
+		m_sMenu.asEntries.push_back(sEntry);
+	}
+#pragma endregion
 }
 
 /**
@@ -544,10 +682,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	// submit thread id
 	static DWORD unThreadId = 0;
 
-	// aspect ratio static fields... optimized now for 1920x1080
-	static float fAspectRatio = m_fAspectRatio;
-	static float bAspectRatio = false;
-
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT)) return nullptr;
 	if ((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod != METHOD_IDIRECT3DDEVICE9_PRESENT)) return nullptr;
 	if ((eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) && (eD3DMethod != METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)) return nullptr;
@@ -561,59 +695,59 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	return nullptr;
 	}*/
 
-#pragma region aspect ratio / separation offset
-	// FOV (HTC Vive):
-	// LENS-CAMERA DISTANCE  0MM  5MM 10MM 15MM 20MM 25MM
-	// LEFT HORIZONTAL  FOV  44°  46°  46°  46°  44°  39°
-	// RIGHT HORIZONTAL FOV  48°  53°  54°  47°  41°  37°
-	// TOTAL HORIZONTAL FOV  92°  99° 100°  93°  85°  76°
-	// VERTICAL         FOV 102° 112° 113°  99°  88°  77°
-	// Unlike the Oculus Rift DK2, HTC Vive DK1 / Pre reach their maximal fields 
-	// of view at some distance from the lens, specifically at 8mm eye relief, 
-	// which is practically achievable.Also unlike Rift DK2, the Vive DK1 / Pre’s 
-	// view frusta are skewed outwards, sacrificing stereo overlap for increased 
-	// binocular FoV.At the ideal eye relief of 8mm, and again assuming that the 
-	// frusta are mirror images, total binocular FoV is 110° x 113°(not included 
-	// in above table).To reiterate, measuring FoV offset accurately is rather hard, 
-	// and the resulting binocular FoV estimates, unlike monocular FoV measurements, are to be taken with a grain of salt.
-	// ( Oliver Kreylos FOV measurements )
-
-	// Vireio Perception FOV recommandation: (based on Kreylos data)
-	// Resolution (1920x1080)
-	// HTC Vive : V 112° H 139°
-
-	// calculate aspect ratio + offset correction..for OpenVR we need to set UV coords as aspect ratio
-	if (!bAspectRatio)
+	// save ini file ?
+	if (m_nIniFrameCount)
 	{
-		if (!m_ppHMD) return nullptr;
-		if (!(*m_ppHMD)) return nullptr;
+		if (m_nIniFrameCount == 1)
+		{
+			// get file path
+			char szFilePathINI[1024];
+			GetCurrentDirectoryA(1024, szFilePathINI);
+			strcat_s(szFilePathINI, "\\VireioPerception.ini");
+			bool bFileExists = false;
 
-		// compute left eye 
-		float fLeft, fRight, fTop, fBottom;
-		(*m_ppHMD)->GetProjectionRaw(vr::Eye_Left, &fLeft, &fRight, &fTop, &fBottom);
-		float fHorizontal = fRight - fLeft;
-		float fVertical = fBottom - fTop;
-		float fAspectHMD = fHorizontal / fVertical;
-		m_fHorizontalRatioCorrectionLeft = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
-		m_fHorizontalOffsetCorrectionLeft = abs(fRight) - abs(fLeft);
-		m_fHorizontalOffsetCorrectionLeft /= fHorizontal;
-		m_fHorizontalOffsetCorrectionLeft *= fAspectHMD / fAspectRatio;
-		m_fHorizontalOffsetCorrectionLeft *= 0.5f;
+			if (GetIniFileSetting((DWORD)m_bForceInterleavedReprojection, "OpenVR", "bForceInterleavedReprojection", szFilePathINI, bFileExists)) m_bForceInterleavedReprojection = true; else m_bForceInterleavedReprojection = false;
 
-		// compute right eye 
-		(*m_ppHMD)->GetProjectionRaw(vr::Eye_Right, &fLeft, &fRight, &fTop, &fBottom);
-		fHorizontal = fRight - fLeft;
-		fVertical = fBottom - fTop;
-		fAspectHMD = fHorizontal / fVertical;
-		m_fHorizontalRatioCorrectionRight = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
-		m_fHorizontalOffsetCorrectionRight = abs(fRight) - abs(fLeft);
-		m_fHorizontalOffsetCorrectionRight /= fHorizontal;
-		m_fHorizontalOffsetCorrectionRight *= fAspectHMD / fAspectRatio;
-		m_fHorizontalOffsetCorrectionRight *= 0.5f;
+			m_sOverlayPropertiesDashboard.sColor.a = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.a, "OpenVR", "sOverlayPropertiesDashboard.sColor.a", szFilePathINI, bFileExists);
+			m_sOverlayPropertiesDashboard.sColor.r = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.r, "OpenVR", "sOverlayPropertiesDashboard.sColor.r", szFilePathINI, bFileExists);
+			m_sOverlayPropertiesDashboard.sColor.g = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.g, "OpenVR", "sOverlayPropertiesDashboard.sColor.g", szFilePathINI, bFileExists);
+			m_sOverlayPropertiesDashboard.sColor.b = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.b, "OpenVR", "sOverlayPropertiesDashboard.sColor.b", szFilePathINI, bFileExists);
+			m_sOverlayPropertiesDashboard.fWidth = GetIniFileSetting(m_sOverlayPropertiesDashboard.fWidth, "OpenVR", "sOverlayPropertiesDashboard.fWidth", szFilePathINI, bFileExists);
 
-		bAspectRatio = true;
+			m_sGeometryConstants.sLightDir.x = GetIniFileSetting(m_sGeometryConstants.sLightDir.x, "OpenVR", "sGeometryConstants.sLightDirection.x", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightDir.y = GetIniFileSetting(m_sGeometryConstants.sLightDir.y, "OpenVR", "sGeometryConstants.sLightDirection.y", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightDir.z = GetIniFileSetting(m_sGeometryConstants.sLightDir.z, "OpenVR", "sGeometryConstants.sLightDirection.z", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.a, "OpenVR", "sGeometryConstants.sColorAmbient.a", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.r, "OpenVR", "sGeometryConstants.sColorAmbient.r", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.g, "OpenVR", "sGeometryConstants.sColorAmbient.g", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.b, "OpenVR", "sGeometryConstants.sColorAmbient.b", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.a, "OpenVR", "sGeometryConstants.sColorDiffuse.a", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.r, "OpenVR", "sGeometryConstants.sColorDiffuse.r", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.g, "OpenVR", "sGeometryConstants.sColorDiffuse.g", szFilePathINI, bFileExists);
+			m_sGeometryConstants.sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.b, "OpenVR", "sGeometryConstants.sColorDiffuse.b", szFilePathINI, bFileExists);
+
+		}
+		m_nIniFrameCount--;
 	}
-#pragma endregion
+
+	// main menu update ?
+	if (m_sMenu.bOnChanged)
+	{
+		// set back event bool, set ini file frame count
+		m_sMenu.bOnChanged = false;
+		m_nIniFrameCount = 300;
+
+		// loop through entries
+		for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
+		{
+			// entry index changed ?
+			if (m_sMenu.asEntries[nIx].bOnChanged)
+			{
+				m_sMenu.asEntries[nIx].bOnChanged = false;
+
+			}
+		}
+	}
 
 	// get device
 	ID3D11Device* pcDevice = nullptr;
@@ -718,43 +852,400 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, m_sOverlayPropertiesDashboard.sColor.a);
 				vr::VROverlay()->SetOverlayColor(m_ulOverlayHandle, m_sOverlayPropertiesDashboard.sColor.r, m_sOverlayPropertiesDashboard.sColor.g, m_sOverlayPropertiesDashboard.sColor.b);
 
-				// create the HUD overlay
-				overlayError = vr::VROverlay()->CreateOverlay(OPENVR_HUD_OVERLAY_NAME, OPENVR_HUD_OVERLAY_FRIENDLY_NAME, &m_ulHUDOverlayHandle);
-
-				// set overlay options
-				vr::HmdMatrix34_t sMatTransformHUD_OpenVR;
-				sMatTransformHUD_OpenVR = Translate_3x4(m_sOverlayPropertiesHud.sVectorTranslation);
-				switch (m_sOverlayPropertiesHud.eTransform)
-				{
-					case OpenVR_DirectMode::Absolute:
-						vr::VROverlay()->SetOverlayTransformAbsolute(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.eOrigin, &sMatTransformHUD_OpenVR);
-						break;
-					case OpenVR_DirectMode::TrackedDeviceRelative:
-						vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.nDeviceIndex, &sMatTransformHUD_OpenVR);
-						break;
-					case OpenVR_DirectMode::TrackedDeviceComponent:
-						break;
-				}
-				vr::VROverlay()->SetOverlayWidthInMeters(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.fWidth);
-				vr::VROverlay()->SetOverlayInputMethod(m_ulHUDOverlayHandle, vr::VROverlayInputMethod_Mouse);
-				vr::VROverlay()->SetOverlayAlpha(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.sColor.a);
-				vr::VROverlay()->SetOverlayColor(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.sColor.r, m_sOverlayPropertiesHud.sColor.g, m_sOverlayPropertiesHud.sColor.b);
-
-				vr::VROverlay()->ShowOverlay(m_ulHUDOverlayHandle);
-
 				m_bInit = true;
 #pragma endregion
 			}
 			else
-			if (vr::VRCompositor()->CanRenderScene())
-			{
-#pragma region render models
-				if (!vr::VROverlay()->IsDashboardVisible())
+				if (vr::VRCompositor()->CanRenderScene())
 				{
-					static UINT unWidthRT = 0, unHeightRT = 0;
+#pragma region render models
+					if (!vr::VROverlay()->IsDashboardVisible())
+					{
+						static UINT unWidthRT = 0, unHeightRT = 0;
 
-					// textures connected ?
-					if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+						// textures connected ?
+						if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+						{
+							// backup all states
+							D3DX11_STATE_BLOCK sStateBlock;
+							CreateStateblock(pcContext, &sStateBlock);
+
+							// clear all states, set targets
+							ClearContextState(pcContext);
+
+#pragma region set or create
+							// set or create a default rasterizer state here
+							if (!m_pcRS)
+							{
+								D3D11_RASTERIZER_DESC sDesc;
+								sDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+								sDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+								sDesc.FrontCounterClockwise = FALSE;
+								sDesc.DepthBias = 0;
+								sDesc.SlopeScaledDepthBias = 0.0f;
+								sDesc.DepthBiasClamp = 0.0f;
+								sDesc.DepthClipEnable = TRUE;
+								sDesc.ScissorEnable = FALSE;
+								sDesc.MultisampleEnable = FALSE;
+								sDesc.AntialiasedLineEnable = FALSE;
+
+								pcDevice->CreateRasterizerState(&sDesc, &m_pcRS);
+							}
+							pcContext->RSSetState(m_pcRS);
+
+							// set viewport by render target size
+							uint32_t unWidth, unHeight;
+							(*m_ppHMD)->GetRecommendedRenderTargetSize(&unWidth, &unHeight);
+							D3D11_VIEWPORT sViewport = {};
+							sViewport.Width = (FLOAT)unWidth;
+							sViewport.Height = (FLOAT)unHeight;
+							sViewport.MaxDepth = 1.0f;
+							pcContext->RSSetViewports(1, &sViewport);
+
+							// create vertex shader
+							if (!m_pcVSGeometry11)
+							{
+								if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11, VertexShaderTechnique::PosNormUV)))
+									OutputDebugString(L"[OPENVR] Failed to create vertex shader. !");
+							}
+
+							// create pixel shader
+							if (!m_pcPSGeometry11)
+							{
+								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+									OutputDebugString(L"[OPENVR] Failed to create pixel shader. !");
+							}
+
+							// create the depth stencil
+							if (!m_pcDSGeometry11[0])
+							{
+								ID3D11Texture2D* pcResource = nullptr;
+								if (m_ppcTexView11[0])
+									(*m_ppcTexView11)[0]->GetResource((ID3D11Resource**)&pcResource);
+
+								if (pcResource)
+								{
+									D3D11_TEXTURE2D_DESC sDesc;
+									pcResource->GetDesc(&sDesc);
+									pcResource->Release();
+
+									// set static height, width
+									unWidthRT = sDesc.Width;
+									unHeightRT = sDesc.Height;
+
+									// Create depth stencil textures
+									D3D11_TEXTURE2D_DESC descDepth;
+									ZeroMemory(&descDepth, sizeof(descDepth));
+									descDepth.Width = sDesc.Width;
+									descDepth.Height = sDesc.Height;
+									descDepth.MipLevels = 1;
+									descDepth.ArraySize = 1;
+									descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+									descDepth.SampleDesc.Count = 1;
+									descDepth.SampleDesc.Quality = 0;
+									descDepth.Usage = D3D11_USAGE_DEFAULT;
+									descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+									descDepth.CPUAccessFlags = 0;
+									descDepth.MiscFlags = 0;
+									if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[0])))
+										OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
+									if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[1])))
+										OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
+
+									// Create the depth stencil views
+									D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+									ZeroMemory(&descDSV, sizeof(descDSV));
+									descDSV.Format = descDepth.Format;
+									descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+									descDSV.Texture2D.MipSlice = 0;
+									if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[0], &descDSV, &m_pcDSVGeometry11[0])))
+										OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
+									if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[1], &descDSV, &m_pcDSVGeometry11[1])))
+										OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
+
+									// create left/right matrices
+									for (INT nEye = 0; nEye < 2; nEye++)
+									{
+										// get the projection matrix for each eye
+										m_sProj[nEye] = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, 0.1f, 30.0f);
+
+										// create eye pose matrix
+										m_sToEye[nEye] = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
+									}
+								}
+							}
+
+							if (!m_pcSampler11)
+							{
+								// Create the sample state
+								D3D11_SAMPLER_DESC sampDesc;
+								ZeroMemory(&sampDesc, sizeof(sampDesc));
+								sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+								sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+								sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+								sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+								sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+								sampDesc.MinLOD = 0;
+								sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+								if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
+									OutputDebugString(L"[OPENVR] Failed to create sampler.");
+							}
+
+							// create constant buffer
+							if (!m_pcConstantBufferGeometry)
+							{
+								if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
+									OutputDebugString(L"[OPENVR] Failed to create constant buffer.");
+							}
+#pragma endregion
+#pragma region create render models
+							// create all models
+							if (!m_bRenderModelsCreated)
+							{
+								for (uint32_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
+								{
+									// continue if not connected
+									if (!(*m_ppHMD)->IsTrackedDeviceConnected(unTrackedDevice))
+										continue;
+
+									// get model name
+									uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unTrackedDevice, vr::Prop_RenderModelName_String, NULL, 0, NULL);
+									char *pchBuffer = new char[unRequiredBufferLen];
+									if (unRequiredBufferLen > 0)
+										unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unTrackedDevice, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
+									std::string szModelName = pchBuffer;
+									delete[] pchBuffer;
+
+									// output model name
+									OutputDebugString(L"[OPENVR] Connected model name : ");
+									OutputDebugStringA(szModelName.c_str());
+
+									// load model and texture
+									vr::RenderModel_t *pModel = NULL;
+									vr::RenderModel_TextureMap_t *pTexture = NULL;
+
+									// model
+									while (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) == vr::VRRenderModelError_Loading)
+										Sleep(50);
+									if (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) || pModel == NULL)
+										OutputDebugString(L"[OPENVR] Unable to load render model");
+
+									// texture
+									while (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) == vr::VRRenderModelError_Loading)
+										Sleep(50);
+									if (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) || pTexture == NULL)
+										OutputDebugString(L"[OPENVR] Unable to load render texture");
+
+									// create a D3D render model structure
+									RenderModel_D3D sRenderModel = {};
+
+									// translate the model from Right-Handed to Left-Handed (negate z-axis for each vertex)
+									vr::RenderModel_Vertex_t* asVertices = new vr::RenderModel_Vertex_t[pModel->unVertexCount];
+									memcpy(asVertices, pModel->rVertexData, sizeof(vr::RenderModel_Vertex_t) * pModel->unVertexCount);
+									for (UINT unI = 0; unI < pModel->unVertexCount; unI++)
+									{
+										// negate z axis
+										asVertices[unI].vPosition.v[2] *= -1.0f;
+										asVertices[unI].vNormal.v[2] *= -1.0f;
+									}
+
+									// arrange the indices accordingly to match the new vertex translations
+									uint16_t* aunIndices = new uint16_t[pModel->unTriangleCount * 3];
+									memcpy(aunIndices, pModel->rIndexData, sizeof(uint16_t)* pModel->unTriangleCount * 3);
+									for (UINT unI = 0; unI < pModel->unTriangleCount; unI++)
+									{
+										// exchange 2nd and 3rd index of the triangle
+										uint16_t unIndex3 = aunIndices[unI * 3 + 2];
+										aunIndices[unI * 3 + 2] = aunIndices[unI * 3 + 1];
+										aunIndices[unI * 3 + 1] = unIndex3;
+									}
+
+									// Create vertex buffer
+									D3D11_BUFFER_DESC sVertexBufferDesc;
+									ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
+									sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+									sVertexBufferDesc.ByteWidth = sizeof(TexturedNormalVertex)* pModel->unVertexCount;
+									sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+									sVertexBufferDesc.CPUAccessFlags = 0;
+									D3D11_SUBRESOURCE_DATA sInitData;
+									ZeroMemory(&sInitData, sizeof(sInitData));
+									sInitData.pSysMem = asVertices;
+									if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &sRenderModel.pcVertexBuffer)))
+										OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
+
+
+									// create index buffer
+									D3D11_BUFFER_DESC sIndexBufferDesc;
+									ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
+									sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+									sIndexBufferDesc.ByteWidth = sizeof(WORD)* pModel->unTriangleCount * 3;
+									sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+									sIndexBufferDesc.CPUAccessFlags = 0;
+									ZeroMemory(&sInitData, sizeof(sInitData));
+									sInitData.pSysMem = aunIndices;
+									if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &sRenderModel.pcIndexBuffer)))
+										OutputDebugString(L"[OPENVR] Failed to create index buffer.");
+
+									// delete vertex/index translation buffers
+									delete[] asVertices;
+									delete[] aunIndices;
+
+									// set vertices/triangle count and tracked device index
+									sRenderModel.unTriangleCount = pModel->unTriangleCount;
+									sRenderModel.unVertexCount = pModel->unVertexCount;
+									sRenderModel.unTrackedDeviceIndex = unTrackedDevice;
+
+									// create geometry texture
+									D3D11_TEXTURE2D_DESC sDesc;
+									ZeroMemory(&sDesc, sizeof(sDesc));
+									sDesc.Width = pTexture->unWidth;
+									sDesc.Height = pTexture->unHeight;
+									sDesc.MipLevels = sDesc.ArraySize = 1;
+									sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+									sDesc.SampleDesc.Count = 1;
+									sDesc.Usage = D3D11_USAGE_DEFAULT;
+									sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+									D3D11_SUBRESOURCE_DATA sData;
+									ZeroMemory(&sData, sizeof(sData));
+									sData.pSysMem = pTexture->rubTextureMapData;
+									sData.SysMemPitch = pTexture->unWidth * 4;
+									if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &sRenderModel.pcTexture)))
+										OutputDebugString(L"[OPENVR] Failed to create model texture.");
+
+									if (sRenderModel.pcTexture)
+									{
+										// create texture shader resource view
+										D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+										ZeroMemory(&sDesc, sizeof(sDesc));
+										sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+										sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+										sDesc.Texture2D.MostDetailedMip = 0;
+										sDesc.Texture2D.MipLevels = 1;
+
+										if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
+											OutputDebugString(L"[OPENVR] Failed to create model texture shader resource view!");
+									}
+
+									// and add to vector
+									m_asRenderModels.push_back(sRenderModel);
+
+									vr::VRRenderModels()->FreeRenderModel(pModel);
+									vr::VRRenderModels()->FreeTexture(pTexture);
+								}
+								m_bRenderModelsCreated = true;
+							}
+#pragma endregion
+#pragma region init and render
+
+							// get tracking pose... 
+							(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+
+							// convert HMD matrix to left handed matrix
+							m_rmat4DevicePose[0] = GetLH(m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking);
+
+							// create view matrix by hmd matrix
+							D3DXMatrixInverse(&m_sView, 0, &m_rmat4DevicePose[0]);
+
+							// Set the input layout, buffers, sampler
+							pcContext->IASetInputLayout(m_pcVLGeometry11);
+							UINT stride = sizeof(TexturedNormalVertex);
+							UINT offset = 0;
+
+							pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+							pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+							pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+							// Set primitive topology
+							pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+							// set shaders
+							pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
+							pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+
+							// get render target views for both eyes and clear the depth stencil
+							ID3D11RenderTargetView* pcRTV[2];
+							pcRTV[0] = nullptr;
+							pcRTV[1] = nullptr;
+							for (int nEye = 0; nEye < 2; nEye++)
+							{
+								// get private data interface
+								UINT dwSize = sizeof(ID3D11RenderTargetView*);
+								(*m_ppcTexView11)[nEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV[nEye]);
+
+								// clear the depth stencil
+								pcContext->ClearDepthStencilView(m_pcDSVGeometry11[nEye], D3D11_CLEAR_DEPTH, 1.0f, 0);
+							}
+
+							// loop through available render models, render
+							unsigned uHand = 0;
+							for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
+							{
+								// set texture and buffers
+								pcContext->PSSetShaderResources(0, 1, &m_asRenderModels[unI].pcTextureSRV);
+								pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
+								pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+								// set world matrix, first get left-handed
+								m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] = GetLH(m_rTrackedDevicePose[m_asRenderModels[unI].unTrackedDeviceIndex].mDeviceToAbsoluteTracking);
+								D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
+
+								// set mouse cursor for first controller device
+								vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass((vr::TrackedDeviceIndex_t)unI + 1);
+								if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
+								{
+									// pose available
+									m_sMenu.bHandPosesPresent = true;
+
+									// get pose matrix
+									UINT unIndex = (UINT)m_asRenderModels[unI].unTrackedDeviceIndex;
+									m_sMenu.sPoseMatrix[uHand] = D3DXMATRIX(
+										m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+										m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+										m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+										m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+										);
+
+									// get position and set matrix translation to zero
+									D3DXVECTOR3 sPosition = D3DXVECTOR3(m_sMenu.sPoseMatrix[uHand](3, 0), m_sMenu.sPoseMatrix[uHand](3, 1), m_sMenu.sPoseMatrix[uHand](3, 2));
+									m_sMenu.sPosition[uHand].x = sPosition.x;
+									m_sMenu.sPosition[uHand].y = sPosition.y;
+									m_sMenu.sPosition[uHand].z = sPosition.z;
+									m_sMenu.sPoseMatrix[uHand](3, 0) = 0.0f;
+									m_sMenu.sPoseMatrix[uHand](3, 1) = 0.0f;
+									m_sMenu.sPoseMatrix[uHand](3, 2) = 0.0f;
+
+									uHand++; if (uHand > 1) uHand = 1;
+								}
+
+								// left + right
+								for (int nEye = 0; nEye < 2; nEye++)
+								{
+									// set WVP matrix, update constant buffer							
+									D3DXMATRIX sWorldViewProjection = m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] * m_sView * m_sToEye[nEye] * m_sProj[nEye];
+									D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
+									pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
+
+									// set render target
+									pcContext->OMSetRenderTargets(1, &pcRTV[nEye], m_pcDSVGeometry11[nEye]);
+
+									// draw
+									pcContext->DrawIndexed(m_asRenderModels[unI].unTriangleCount * 3, 0, 0);
+								}
+							}
+
+							// release RTVs
+							SAFE_RELEASE(pcRTV[0]);
+							SAFE_RELEASE(pcRTV[1]);
+#pragma endregion
+
+							// set back device
+							ApplyStateblock(pcContext, &sStateBlock);
+						}
+					}
+#pragma endregion
+#pragma region Render overlay
+#pragma region Dashboard overlay
+					if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 					{
 						// backup all states
 						D3DX11_STATE_BLOCK sStateBlock;
@@ -762,26 +1253,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						// clear all states, set targets
 						ClearContextState(pcContext);
-
-#pragma region set or create
-						// set or create a default rasterizer state here
-						if (!m_pcRS)
-						{
-							D3D11_RASTERIZER_DESC sDesc;
-							sDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-							sDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
-							sDesc.FrontCounterClockwise = FALSE;
-							sDesc.DepthBias = 0;
-							sDesc.SlopeScaledDepthBias = 0.0f;
-							sDesc.DepthBiasClamp = 0.0f;
-							sDesc.DepthClipEnable = TRUE;
-							sDesc.ScissorEnable = FALSE;
-							sDesc.MultisampleEnable = FALSE;
-							sDesc.AntialiasedLineEnable = FALSE;
-
-							pcDevice->CreateRasterizerState(&sDesc, &m_pcRS);
-						}
-						pcContext->RSSetState(m_pcRS);
 
 						// set viewport by render target size
 						uint32_t unWidth, unHeight;
@@ -792,555 +1263,162 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						sViewport.MaxDepth = 1.0f;
 						pcContext->RSSetViewports(1, &sViewport);
 
+						// create all bool
+						bool bAllCreated = true;
+
 						// create vertex shader
-						if (!m_pcVSGeometry11)
+						if (!m_pcVertexShader11)
 						{
-							if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11, VertexShaderTechnique::PosNormUV)))
-								OutputDebugString(L"[OPENVR] Failed to create vertex shader. !");
-						}
-
-						// create pixel shader
-						if (!m_pcPSGeometry11)
-						{
-							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
-								OutputDebugString(L"[OPENVR] Failed to create pixel shader. !");
-						}
-
-						// create the depth stencil
-						if (!m_pcDSGeometry11[0])
-						{
-							ID3D11Texture2D* pcResource = nullptr;
-							if (m_ppcTexView11[0])
-								(*m_ppcTexView11)[0]->GetResource((ID3D11Resource**)&pcResource);
-
-							if (pcResource)
+							if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
 							{
-								D3D11_TEXTURE2D_DESC sDesc;
-								pcResource->GetDesc(&sDesc);
-								pcResource->Release();
-
-								// set static height, width
-								unWidthRT = sDesc.Width;
-								unHeightRT = sDesc.Height;
-
-								// Create depth stencil textures
-								D3D11_TEXTURE2D_DESC descDepth;
-								ZeroMemory(&descDepth, sizeof(descDepth));
-								descDepth.Width = sDesc.Width;
-								descDepth.Height = sDesc.Height;
-								descDepth.MipLevels = 1;
-								descDepth.ArraySize = 1;
-								descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-								descDepth.SampleDesc.Count = 1;
-								descDepth.SampleDesc.Quality = 0;
-								descDepth.Usage = D3D11_USAGE_DEFAULT;
-								descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-								descDepth.CPUAccessFlags = 0;
-								descDepth.MiscFlags = 0;
-								if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[0])))
-									OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
-								if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[1])))
-									OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
-
-								// Create the depth stencil views
-								D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-								ZeroMemory(&descDSV, sizeof(descDSV));
-								descDSV.Format = descDepth.Format;
-								descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-								descDSV.Texture2D.MipSlice = 0;
-								if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[0], &descDSV, &m_pcDSVGeometry11[0])))
-									OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
-								if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[1], &descDSV, &m_pcDSVGeometry11[1])))
-									OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
-
-								// create left/right matrices
-								for (INT nEye = 0; nEye < 2; nEye++)
-								{
-									// get the projection matrix for each eye
-									m_sProj[nEye] = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, 0.1f, 30.0f);
-
-									// create eye pose matrix
-									m_sToEye[nEye] = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
-								}
+								bAllCreated = false;
 							}
 						}
-
-						if (!m_pcSampler11)
+						// create pixel shader... 
+						if (!m_pcPixelShader11)
 						{
-							// Create the sample state
-							D3D11_SAMPLER_DESC sampDesc;
-							ZeroMemory(&sampDesc, sizeof(sampDesc));
-							sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-							sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-							sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-							sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-							sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-							sampDesc.MinLOD = 0;
-							sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-							if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
-								OutputDebugString(L"[OPENVR] Failed to create sampler.");
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+								bAllCreated = false;
 						}
-
+						// Create vertex buffer
+						if (!m_pcVertexBuffer11)
+						{
+							if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
+								bAllCreated = false;
+						}
 						// create constant buffer
-						if (!m_pcConstantBufferGeometry)
+						if (!m_pcConstantBufferDirect11)
 						{
-							if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
-								OutputDebugString(L"[OPENVR] Failed to create constant buffer.");
+							if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
+								bAllCreated = false;
 						}
-#pragma endregion
-#pragma region create render models
-						// create all models
-						if (!m_bRenderModelsCreated)
+						// sampler ?
+						if (!m_pcSamplerState)
 						{
-							for (uint32_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
+							// Create the sampler state
+							D3D11_SAMPLER_DESC sSampDesc;
+							ZeroMemory(&sSampDesc, sizeof(sSampDesc));
+							sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+							sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+							sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+							sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+							sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+							sSampDesc.MinLOD = 0;
+							sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+							if (FAILED(pcDevice->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
+								bAllCreated = false;
+						}
+
+						// texture connected ?
+						int nEye = 0;
+						if ((m_ppcTexView11[nEye]) && (*m_ppcTexView11[nEye]))
+						{
+							// Set the input layout
+							pcContext->IASetInputLayout(m_pcVertexLayout11);
+
+							// Set vertex buffer
+							UINT stride = sizeof(TexturedVertex);
+							UINT offset = 0;
+							pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+
+							// Set constant buffer, first update it... scale and translate the left and right image
+							D3DXMATRIX sProj;
+							D3DXMatrixIdentity(&sProj);
+							pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+							pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+
+							// Set primitive topology
+							pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+							if (bAllCreated)
 							{
-								// continue if not connected
-								if (!(*m_ppHMD)->IsTrackedDeviceConnected(unTrackedDevice))
-									continue;
-
-								// get model name
-								uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unTrackedDevice, vr::Prop_RenderModelName_String, NULL, 0, NULL);
-								char *pchBuffer = new char[unRequiredBufferLen];
-								if (unRequiredBufferLen > 0)
-									unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unTrackedDevice, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
-								std::string szModelName = pchBuffer;
-								delete[] pchBuffer;
-
-								// output model name
-								OutputDebugString(L"[OPENVR] Connected model name : ");
-								OutputDebugStringA(szModelName.c_str());
-
-								// load model and texture
-								vr::RenderModel_t *pModel = NULL;
-								vr::RenderModel_TextureMap_t *pTexture = NULL;
-
-								// model
-								while (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) == vr::VRRenderModelError_Loading)
-									Sleep(50);
-								if (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) || pModel == NULL)
-									OutputDebugString(L"[OPENVR] Unable to load render model");
-
-								// texture
-								while (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) == vr::VRRenderModelError_Loading)
-									Sleep(50);
-								if (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) || pTexture == NULL)
-									OutputDebugString(L"[OPENVR] Unable to load render texture");
-
-								// create a D3D render model structure
-								RenderModel_D3D sRenderModel = {};
-
-								// translate the model from Right-Handed to Left-Handed (negate z-axis for each vertex)
-								vr::RenderModel_Vertex_t* asVertices = new vr::RenderModel_Vertex_t[pModel->unVertexCount];
-								memcpy(asVertices, pModel->rVertexData, sizeof(vr::RenderModel_Vertex_t) * pModel->unVertexCount);
-								for (UINT unI = 0; unI < pModel->unVertexCount; unI++)
+								if (!m_pcTex11Copy[nEye])
 								{
-									// negate z axis
-									asVertices[unI].vPosition.v[2] *= -1.0f;
-									asVertices[unI].vNormal.v[2] *= -1.0f;
+									if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))
+										return nullptr;
 								}
 
-								// arrange the indices accordingly to match the new vertex translations
-								uint16_t* aunIndices = new uint16_t[pModel->unTriangleCount * 3];
-								memcpy(aunIndices, pModel->rIndexData, sizeof(uint16_t)* pModel->unTriangleCount * 3);
-								for (UINT unI = 0; unI < pModel->unTriangleCount; unI++)
+								// set and clear render target
+								FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+								pcContext->ClearRenderTargetView(m_pcTex11DrawRTV[nEye], afColorRgba);
+								pcContext->OMSetRenderTargets(1, &m_pcTex11DrawRTV[nEye], nullptr);
+
+								// set texture, sampler state
+								pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[nEye]);
+								pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
+
+								// set shaders
+								pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
+								pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
+
+								// Render a triangle
+								pcContext->Draw(6, 0);
+
+								// copy to copy texture
+								pcContext->CopyResource(m_pcTex11Copy[nEye], m_pcTex11Draw[nEye]);
+
+								// get shared handle.. for the Dashboard Overlay we CANNOT use m_pcTex11Shared for some reason !!
+								IDXGIResource* pcDXGIResource(NULL);
+								m_pcTex11Copy[nEye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+								HANDLE sharedHandle;
+								if (pcDXGIResource)
 								{
-									// exchange 2nd and 3rd index of the triangle
-									uint16_t unIndex3 = aunIndices[unI * 3 + 2];
-									aunIndices[unI * 3 + 2] = aunIndices[unI * 3 + 1];
-									aunIndices[unI * 3 + 1] = unIndex3;
+									pcDXGIResource->GetSharedHandle(&sharedHandle);
+									pcDXGIResource->Release();
+								}
+								else OutputDebugString(L"Failed to query IDXGIResource.");
+
+								ID3D11Resource* pcResourceShared;
+								m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+								if (pcResourceShared)
+								{
+									// fill openvr texture struct
+									vr::Texture_t sTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
+									vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sTexture);
+									pcResourceShared->Release();
 								}
 
-								// Create vertex buffer
-								D3D11_BUFFER_DESC sVertexBufferDesc;
-								ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
-								sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-								sVertexBufferDesc.ByteWidth = sizeof(TexturedNormalVertex)* pModel->unVertexCount;
-								sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-								sVertexBufferDesc.CPUAccessFlags = 0;
-								D3D11_SUBRESOURCE_DATA sInitData;
-								ZeroMemory(&sInitData, sizeof(sInitData));
-								sInitData.pSysMem = asVertices;
-								if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &sRenderModel.pcVertexBuffer)))
-									OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
-
-
-								// create index buffer
-								D3D11_BUFFER_DESC sIndexBufferDesc;
-								ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
-								sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-								sIndexBufferDesc.ByteWidth = sizeof(WORD)* pModel->unTriangleCount * 3;
-								sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-								sIndexBufferDesc.CPUAccessFlags = 0;
-								ZeroMemory(&sInitData, sizeof(sInitData));
-								sInitData.pSysMem = aunIndices;
-								if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &sRenderModel.pcIndexBuffer)))
-									OutputDebugString(L"[OPENVR] Failed to create index buffer.");
-
-								// delete vertex/index translation buffers
-								delete[] asVertices;
-								delete[] aunIndices;
-
-								// set vertices/triangle count and tracked device index
-								sRenderModel.unTriangleCount = pModel->unTriangleCount;
-								sRenderModel.unVertexCount = pModel->unVertexCount;
-								sRenderModel.unTrackedDeviceIndex = unTrackedDevice;
-
-								// create geometry texture
-								D3D11_TEXTURE2D_DESC sDesc;
-								ZeroMemory(&sDesc, sizeof(sDesc));
-								sDesc.Width = pTexture->unWidth;
-								sDesc.Height = pTexture->unHeight;
-								sDesc.MipLevels = sDesc.ArraySize = 1;
-								sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-								sDesc.SampleDesc.Count = 1;
-								sDesc.Usage = D3D11_USAGE_DEFAULT;
-								sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-								D3D11_SUBRESOURCE_DATA sData;
-								ZeroMemory(&sData, sizeof(sData));
-								sData.pSysMem = pTexture->rubTextureMapData;
-								sData.SysMemPitch = pTexture->unWidth * 4;
-								if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &sRenderModel.pcTexture)))
-									OutputDebugString(L"[OPENVR] Failed to create model texture.");
-
-								if (sRenderModel.pcTexture)
-								{
-									// create texture shader resource view
-									D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
-									ZeroMemory(&sDesc, sizeof(sDesc));
-									sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-									sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-									sDesc.Texture2D.MostDetailedMip = 0;
-									sDesc.Texture2D.MipLevels = 1;
-
-									if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
-										OutputDebugString(L"[OPENVR] Failed to create model texture shader resource view!");
-								}
-
-								// and add to vector
-								m_asRenderModels.push_back(sRenderModel);
-
-								vr::VRRenderModels()->FreeRenderModel(pModel);
-								vr::VRRenderModels()->FreeTexture(pTexture);
-							}
-							m_bRenderModelsCreated = true;
-						}
-#pragma endregion
-#pragma region init and render
-
-						// get tracking pose... 
-						(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
-
-						// convert HMD matrix to left handed matrix
-						m_rmat4DevicePose[0] = GetLH(m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking);
-
-						// create view matrix by hmd matrix
-						D3DXMatrixInverse(&m_sView, 0, &m_rmat4DevicePose[0]);
-
-						// Set the input layout, buffers, sampler
-						pcContext->IASetInputLayout(m_pcVLGeometry11);
-						UINT stride = sizeof(TexturedNormalVertex);
-						UINT offset = 0;
-
-						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
-						pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
-						pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
-
-						// Set primitive topology
-						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-						// set shaders
-						pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
-						pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
-
-						// get render target views for both eyes and clear the depth stencil
-						ID3D11RenderTargetView* pcRTV[2];
-						pcRTV[0] = nullptr;
-						pcRTV[1] = nullptr;
-						for (int nEye = 0; nEye < 2; nEye++)
-						{
-							// get private data interface
-							UINT dwSize = sizeof(ID3D11RenderTargetView*);
-							(*m_ppcTexView11)[nEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV[nEye]);
-
-							// clear the depth stencil
-							pcContext->ClearDepthStencilView(m_pcDSVGeometry11[nEye], D3D11_CLEAR_DEPTH, 1.0f, 0);
-						}
-
-						// loop through available render models, render
-						unsigned uHand = 0;
-						for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
-						{
-							// set texture and buffers
-							pcContext->PSSetShaderResources(0, 1, &m_asRenderModels[unI].pcTextureSRV);
-							pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
-							pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-							// set world matrix, first get left-handed
-							m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] = GetLH(m_rTrackedDevicePose[m_asRenderModels[unI].unTrackedDeviceIndex].mDeviceToAbsoluteTracking);
-							D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
-
-							// set mouse cursor for first controller device
-							vr::TrackedDeviceClass eClass = vr::VRSystem()->GetTrackedDeviceClass((vr::TrackedDeviceIndex_t)unI + 1);
-							if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
-							{
-								// pose available
-								m_sMenu.bHandPosesPresent = true;
-
-								// get pose matrix
-								UINT unIndex = (UINT)m_asRenderModels[unI].unTrackedDeviceIndex;
-								m_sMenu.sPoseMatrix[uHand] = D3DXMATRIX(
-									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][0], 0.0,
-									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][1], 0.0,
-									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][2], 0.0,
-									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][3], 1.0f
-									);
-
-								// get position and set matrix translation to zero
-								D3DXVECTOR3 sPosition = D3DXVECTOR3(m_sMenu.sPoseMatrix[uHand](3, 0), m_sMenu.sPoseMatrix[uHand](3, 1), m_sMenu.sPoseMatrix[uHand](3, 2));
-								m_sMenu.sPosition[uHand].x = sPosition.x;
-								m_sMenu.sPosition[uHand].y = sPosition.y;
-								m_sMenu.sPosition[uHand].z = sPosition.z;
-								m_sMenu.sPoseMatrix[uHand](3, 0) = 0.0f;
-								m_sMenu.sPoseMatrix[uHand](3, 1) = 0.0f;
-								m_sMenu.sPoseMatrix[uHand](3, 2) = 0.0f;
-
-								uHand++; if (uHand > 1) uHand = 1;
-							}
-
-							// left + right
-							for (int nEye = 0; nEye < 2; nEye++)
-							{
-								// set WVP matrix, update constant buffer							
-								D3DXMATRIX sWorldViewProjection = m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] * m_sView * m_sToEye[nEye] * m_sProj[nEye];
-								D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
-								pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
-
-								// set render target
-								pcContext->OMSetRenderTargets(1, &pcRTV[nEye], m_pcDSVGeometry11[nEye]);
-
-								// draw
-								pcContext->DrawIndexed(m_asRenderModels[unI].unTriangleCount * 3, 0, 0);
 							}
 						}
-
-						// release RTVs
-						SAFE_RELEASE(pcRTV[0]);
-						SAFE_RELEASE(pcRTV[1]);
-#pragma endregion
 
 						// set back device
 						ApplyStateblock(pcContext, &sStateBlock);
 					}
-				}
-#pragma endregion
-#pragma region Render overlay
-#pragma region Dashboard overlay
-				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
-				{
-					// backup all states
-					D3DX11_STATE_BLOCK sStateBlock;
-					CreateStateblock(pcContext, &sStateBlock);
-
-					// clear all states, set targets
-					ClearContextState(pcContext);
-
-					// set viewport by render target size
-					uint32_t unWidth, unHeight;
-					(*m_ppHMD)->GetRecommendedRenderTargetSize(&unWidth, &unHeight);
-					D3D11_VIEWPORT sViewport = {};
-					sViewport.Width = (FLOAT)unWidth;
-					sViewport.Height = (FLOAT)unHeight;
-					sViewport.MaxDepth = 1.0f;
-					pcContext->RSSetViewports(1, &sViewport);
-
-					// create all bool
-					bool bAllCreated = true;
-
-					// create vertex shader
-					if (!m_pcVertexShader11)
-					{
-						if (FAILED(CreateVertexShaderTechnique(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
-						{
-							bAllCreated = false;
-						}
-					}
-					// create pixel shader... 
-					if (!m_pcPixelShader11)
-					{
-						if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
-							bAllCreated = false;
-					}
-					// Create vertex buffer
-					if (!m_pcVertexBuffer11)
-					{
-						if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
-							bAllCreated = false;
-					}
-					// create constant buffer
-					if (!m_pcConstantBufferDirect11)
-					{
-						if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
-							bAllCreated = false;
-					}
-					// sampler ?
-					if (!m_pcSamplerState)
-					{
-						// Create the sampler state
-						D3D11_SAMPLER_DESC sSampDesc;
-						ZeroMemory(&sSampDesc, sizeof(sSampDesc));
-						sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-						sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-						sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-						sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-						sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-						sSampDesc.MinLOD = 0;
-						sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-						if (FAILED(pcDevice->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
-							bAllCreated = false;
-					}
-
-					// texture connected ?
-					int nEye = 0;
-					if ((m_ppcTexView11[nEye]) && (*m_ppcTexView11[nEye]))
-					{
-						// Set the input layout
-						pcContext->IASetInputLayout(m_pcVertexLayout11);
-
-						// Set vertex buffer
-						UINT stride = sizeof(TexturedVertex);
-						UINT offset = 0;
-						pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
-
-						// Set constant buffer, first update it... scale and translate the left and right image
-						D3DXMATRIX sProj;
-						D3DXMatrixIdentity(&sProj);
-						pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
-						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
-
-						// Set primitive topology
-						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-						if (bAllCreated)
-						{
-							if (!m_pcTex11Copy[nEye])
-							{
-								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))
-									return nullptr;
-							}
-
-							// set and clear render target
-							FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-							pcContext->ClearRenderTargetView(m_pcTex11DrawRTV[nEye], afColorRgba);
-							pcContext->OMSetRenderTargets(1, &m_pcTex11DrawRTV[nEye], nullptr);
-
-							// set texture, sampler state
-							pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[nEye]);
-							pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
-
-							// set shaders
-							pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
-							pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
-
-							// Render a triangle
-							pcContext->Draw(6, 0);
-
-							// copy to copy texture
-							pcContext->CopyResource(m_pcTex11Copy[nEye], m_pcTex11Draw[nEye]);
-
-							// get shared handle.. for the Dashboard Overlay we CANNOT use m_pcTex11Shared for some reason !!
-							IDXGIResource* pcDXGIResource(NULL);
-							m_pcTex11Copy[nEye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
-							HANDLE sharedHandle;
-							if (pcDXGIResource)
-							{
-								pcDXGIResource->GetSharedHandle(&sharedHandle);
-								pcDXGIResource->Release();
-							}
-							else OutputDebugString(L"Failed to query IDXGIResource.");
-
-							ID3D11Resource* pcResourceShared;
-							m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
-							if (pcResourceShared)
-							{
-								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
-								vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sTexture);
-								pcResourceShared->Release();
-							}
-
-						}
-					}
-
-					// set back device
-					ApplyStateblock(pcContext, &sStateBlock);
-				}
-				else
-#pragma endregion
-#pragma region HUD overlay
-				if ((!vr::VROverlay()->IsDashboardVisible()) && (vr::VROverlay()->IsOverlayVisible(m_ulHUDOverlayHandle)))
-				{
-					if (m_ppcTexViewHud11)
-					{
-						if (*m_ppcTexViewHud11)
-						{
-							// hud overlay shared textures present ?
-							if (!m_pcTex11CopyHUD)
-							{
-								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexViewHud11, &m_pcTex11CopyHUD, nullptr, nullptr, &m_pcTex11SharedHUD)))
-									return nullptr;
-							}
-
-							// get the resource texture from the HUD tex view
-							ID3D11Texture2D* pcResource = nullptr;
-							(*m_ppcTexViewHud11)->GetResource((ID3D11Resource**)&pcResource);
-
-							if (pcResource)
-							{
-								// copy to copy texture
-								pcContext->CopyResource(m_pcTex11CopyHUD, pcResource);
-
-								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)m_pcTex11SharedHUD, vr::API_DirectX, vr::ColorSpace_Gamma };
-								vr::VROverlay()->SetOverlayTexture(m_ulHUDOverlayHandle, &sTexture);
-								pcResource->Release();
-							}
-						}
-					}
-				}
+					else
 #pragma endregion
 #pragma endregion
 #pragma region Render
-				if (!vr::VROverlay()->IsDashboardVisible())
-				{
-					// left + right
-					for (int nEye = 0; nEye < 2; nEye++)
-					{
-						// texture connected ?
-						if ((m_ppcTexView11[nEye]) && (*m_ppcTexView11[nEye]))
+						if (!vr::VROverlay()->IsDashboardVisible())
 						{
-							// are all textures created ?
-							if (!m_pcTex11Copy[nEye])
+							// left + right
+							for (int nEye = 0; nEye < 2; nEye++)
 							{
-								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))
-									return nullptr;
-							}
+								// texture connected ?
+								if ((m_ppcTexView11[nEye]) && (*m_ppcTexView11[nEye]))
+								{
+									// are all textures created ?
+									if (!m_pcTex11Copy[nEye])
+									{
+										if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))
+											return nullptr;
+									}
 
-							// get the left game image texture resource
-							ID3D11Resource* pcResource = nullptr;
-							(*m_ppcTexView11[nEye])->GetResource(&pcResource);
-							if (pcResource)
-							{
-								// copy resource
-								pcContext->CopyResource(m_pcTex11Copy[nEye], pcResource);
-								pcResource->Release();
+									// get the left game image texture resource
+									ID3D11Resource* pcResource = nullptr;
+									(*m_ppcTexView11[nEye])->GetResource(&pcResource);
+									if (pcResource)
+									{
+										// copy resource
+										pcContext->CopyResource(m_pcTex11Copy[nEye], pcResource);
+										pcResource->Release();
+									}
+								}
 							}
 						}
-					}
-				}
 #pragma endregion
-			}
-			else
-				OutputDebugString(L"OpenVR: Current process has NOT the scene focus.");
+				}
+				else
+					OutputDebugString(L"OpenVR: Current process has NOT the scene focus.");
 		}
 
 		// submit
