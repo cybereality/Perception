@@ -1373,7 +1373,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								if (pcResourceShared)
 								{
 									// fill openvr texture struct
-									vr::Texture_t sTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
+									vr::Texture_t sTexture = { (void*)pcResourceShared, vr::TextureType_DirectX, vr::ColorSpace_Gamma };
 									vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sTexture);
 									pcResourceShared->Release();
 								}
@@ -1430,7 +1430,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			for (int nEye = 0; nEye < 2; nEye++)
 			{
 				// fill openvr texture struct
-				vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
+				vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::TextureType_DirectX, vr::ColorSpace_Gamma };
 
 				// submit left texture
 				vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture);

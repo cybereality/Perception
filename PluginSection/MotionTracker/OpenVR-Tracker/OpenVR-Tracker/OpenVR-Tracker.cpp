@@ -487,7 +487,6 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 ***/
 OpenVR_Tracker::~OpenVR_Tracker()
 {
-	if (m_pHMD) m_pHMD->ReleaseInputFocus();
 	vr::VR_Shutdown();
 }
 #pragma endregion
@@ -883,7 +882,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			if (eClass == vr::TrackedDeviceClass::TrackedDeviceClass_Controller)
 			{
 				vr::VRControllerState_t state;
-				if (m_pHMD->GetControllerState(unDevice, &state))
+				if (m_pHMD->GetControllerState(unDevice, &state, sizeof(state)))
 				{
 					// loop through controller buttons
 					for (UINT unButtonIx = 0; unButtonIx < unButtonNo; unButtonIx++)
@@ -1456,10 +1455,6 @@ void OpenVR_Tracker::ProcessVREvent(const vr::VREvent_t & event)
 		case vr::VREvent_OverlayGamepadFocusLost:
 			break;
 		case vr::VREvent_OverlaySharedTextureChanged:
-			break;
-		case vr::VREvent_DashboardGuideButtonDown:
-			break;
-		case vr::VREvent_DashboardGuideButtonUp:
 			break;
 		case vr::VREvent_Notification_Shown:
 			break;
