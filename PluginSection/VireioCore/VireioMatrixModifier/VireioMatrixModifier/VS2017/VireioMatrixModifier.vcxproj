@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BABF4D36-8963-4B98-B457-1C8D64250CA9}</ProjectGuid>
-    <RootNamespace>OculusDirectMode</RootNamespace>
-    <ProjectName>OculusDirectMode</ProjectName>
+    <ProjectGuid>{08DE0036-DCA5-430C-9999-327D9D8DE387}</ProjectGuid>
+    <RootNamespace>VireioMatrixModifier</RootNamespace>
+    <ProjectName>VireioMatrixModifier</ProjectName>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,37 +70,36 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryWPath>$(WindowsSDK_MetadataPath)</LibraryWPath>
-    <LibraryPath>$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryWPath>$(WindowsSDK_MetadataPath)</LibraryWPath>
-    <LibraryPath>$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);;$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryWPath>$(WindowsSDK_MetadataPath)</LibraryWPath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryWPath>$(WindowsSDK_MetadataPath)</LibraryWPath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);;$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(OVRSDKROOT)LibOVR/Include/;$(OVRSDKROOT)LibOVRKernel/Src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D9;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVRKernel\Lib\Windows\Win32\Debug\VS2017</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
@@ -113,19 +112,22 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(OVRSDKROOT)LibOVR/Include/;$(OVRSDKROOT)LibOVRKernel/Src/;$(OVRAVATARSDKROOT)\Samples\Dependencies\OVRPlatform\Include/;$(OVRAVATARSDKROOT)Include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D9;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVR\Lib\Windows\x64\Release\VS2017</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVR.lib;$(OVRAVATARSDKROOT)/Windows/libovravatar.lib;$(OVRAVATARSDKROOT)\Samples\Dependencies\OVRPlatform\Windows\LibOVRPlatform64_1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
-    </PostBuildEvent>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -133,15 +135,17 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(OVRSDKROOT)LibOVR/Include/;$(OVRSDKROOT)LibOVRKernel/Src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D9;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVRKernel\Lib\Windows\Win32\Release\VS2017</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
@@ -156,40 +160,52 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(OVRSDKROOT)LibOVR/Include/;$(OVRSDKROOT)LibOVRKernel/Src/;$(OVRAVATARSDKROOT)\Samples\Dependencies\OVRPlatform\Include/;$(OVRAVATARSDKROOT)Include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D9;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OVRSDKROOT)LibOVR\Lib\Windows\x64\Release\VS2017</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(OVRSDKROOT)LibOVRKernel/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVRKernel.lib;$(OVRSDKROOT)LibOVR/Lib/Windows/$(Platform)/$(Configuration)/VS2017/LibOVR.lib;$(OVRAVATARSDKROOT)/Windows/libovravatar.lib;$(OVRAVATARSDKROOT)\Samples\Dependencies\OVRPlatform\Windows\LibOVRPlatform64_1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
-    </PostBuildEvent>
     <PreLinkEvent>
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
+    <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\..\..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\..\..\..\Shared\pugixml.hpp" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
-    <ClInclude Include="..\OculusDirectMode.h" />
+    <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\OculusDirectMode.cpp" />
-    <ClCompile Include="..\OVR_PlatformLoader.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.cpp" />
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
+    <ClCompile Include="..\..\..\..\..\Shared\pugixml.cpp" />
+    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
+    <ClCompile Include="..\VireioMatrixModifier.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\OculusDirectMode_Resources.rc" />
+    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

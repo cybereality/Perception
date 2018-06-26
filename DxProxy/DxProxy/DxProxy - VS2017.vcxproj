@@ -1,0 +1,591 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{16A8AA38-36D3-437F-922A-B808F654AAAA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>DxProxy</RootNamespace>
+    <ProjectName>DxProxy</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>d3d9</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <IncludePath>$(WIN_DDK_DIR)inc\atl71;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(WIN_DDK_DIR)\lib\ATL\i386;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>d3d9</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <IncludePath>$(WIN_DDK_DIR)inc\atl71;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(WIN_DDK_DIR)\lib\ATL\i386;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>d3d9</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <OutDir>$(IntDir)</OutDir>
+    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>d3d9_64</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee;$(SolutionDir)\Shared;$(SolutionDir)\LibOVR\Include;$(SolutionDir)\LibOVRKernel\Src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Windows\Win32\Release\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Shlwapi.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;LibOVR.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin" md "$(USERPROFILE)\Documents\Vireio\Perception\bin"</Command>
+    </PreLinkEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\Shared;$(SolutionDir)\LibOVR\Include;$(SolutionDir)\LibOVRKernel\Src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Windows\Win32\Release\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
+      <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin" md "$(USERPROFILE)\Documents\Vireio\Perception\bin"</Command>
+    </PreLinkEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>x64;WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\Shared;$(SolutionDir)\LibOVR\Include;$(SolutionDir)\LibOVRKernel\Src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x64;$(DX)\Lib\x64;..\..\LibOVR\Lib\Windows\x64\Release\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin" md "$(USERPROFILE)\Documents\Vireio\Perception\bin"</Command>
+    </PreLinkEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
+    <ClCompile Include="D3D9ProxyPixelShader.cpp" />
+    <ClCompile Include="D3D9ProxySwapChain.cpp" />
+    <ClCompile Include="D3D9ProxyTexture.cpp" />
+    <ClCompile Include="D3D9ProxyVertexShader.cpp" />
+    <ClCompile Include="D3D9ProxyVolume.cpp" />
+    <ClCompile Include="D3D9ProxyVolumeTexture.cpp" />
+    <ClCompile Include="D3D9ProxyStateBlock.cpp" />
+    <ClCompile Include="D3DProxyDevice.cpp" />
+    <ClCompile Include="D3DProxyDeviceAdv.cpp" />
+    <ClCompile Include="D3DProxyDeviceDebug.cpp" />
+    <ClCompile Include="D3DProxyDeviceEgo.cpp" />
+    <ClCompile Include="D3DProxyDeviceFactory.cpp" />
+    <ClCompile Include="D3D9ProxySurface.cpp" />
+    <ClCompile Include="Direct3D9.cpp" />
+    <ClCompile Include="Direct3D9Ex.cpp" />
+    <ClCompile Include="Direct3DCubeTexture9.cpp" />
+    <ClCompile Include="Direct3DDevice9Ex.cpp" />
+    <ClCompile Include="Direct3DIndexBuffer9.cpp" />
+    <ClCompile Include="Direct3DPixelShader9.cpp" />
+    <ClCompile Include="Direct3DQuery9.cpp" />
+    <ClCompile Include="Direct3DStateBlock9.cpp" />
+    <ClCompile Include="Direct3DSurface9.cpp" />
+    <ClCompile Include="Direct3DDevice9.cpp" />
+    <ClCompile Include="Direct3DSwapChain9.cpp" />
+    <ClCompile Include="Direct3DTexture9.cpp" />
+    <ClCompile Include="Direct3DVertexBuffer9.cpp" />
+    <ClCompile Include="Direct3DVertexDeclaration9.cpp" />
+    <ClCompile Include="Direct3DVertexShader9.cpp" />
+    <ClCompile Include="Direct3DVolume9.cpp" />
+    <ClCompile Include="Direct3DVolumeTexture9.cpp" />
+    <ClCompile Include="DirectInput.cpp" />
+    <ClCompile Include="DirectXInputControls.cpp" />
+    <ClCompile Include="FreeSpaceTracker.cpp" />
+    <ClCompile Include="FreeTrackTracker.cpp" />
+    <ClCompile Include="GameHandler.cpp" />
+    <ClCompile Include="HMDisplayInfoFactory.cpp" />
+    <ClCompile Include="Hotkeys.cpp" />
+    <ClCompile Include="InGameMenus.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MotionTracker.cpp" />
+    <ClCompile Include="MotionTrackerFactory.cpp" />
+    <ClCompile Include="MurmurHash3.cpp" />
+    <ClCompile Include="OculusDirectToRiftView.cpp" />
+    <ClCompile Include="OculusTracker.cpp" />
+    <ClCompile Include="Popup.cpp" />
+    <ClCompile Include="DataGatherer.cpp" />
+    <ClCompile Include="ShaderModificationRepository.cpp" />
+    <ClCompile Include="ShaderObjectType.cpp" />
+    <ClCompile Include="ShaderRegisters.cpp" />
+    <ClCompile Include="SharedMemoryTracker.cpp" />
+    <ClCompile Include="StereoBackbuffer.cpp" />
+    <ClCompile Include="StereoView.cpp" />
+    <ClCompile Include="StereoViewFactory.cpp" />
+    <ClCompile Include="StereoViewInterleave.cpp" />
+    <ClCompile Include="ViewAdjustment.cpp" />
+    <ClCompile Include="Vireio.cpp" />
+    <ClCompile Include="..\..\Shared\pugixml.cpp" />
+    <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
+    <ClCompile Include="..\..\Shared\InputControls.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_reader.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_value.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_writer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D3D9ProxyCubeTexture.h" />
+    <ClInclude Include="D3D9ProxyPixelShader.h" />
+    <ClInclude Include="D3D9ProxySwapChain.h" />
+    <ClInclude Include="D3D9ProxyTexture.h" />
+    <ClInclude Include="D3D9ProxyVertexShader.h" />
+    <ClInclude Include="D3D9ProxyVolume.h" />
+    <ClInclude Include="D3D9ProxyVolumeTexture.h" />
+    <ClInclude Include="D3D9ProxyStateBlock.h" />
+    <ClInclude Include="D3DProxyDeviceDebug.h" />
+    <ClInclude Include="DataGatherer.h" />
+    <ClInclude Include="Direct3D9Ex.h" />
+    <ClInclude Include="Direct3DDevice9Ex.h" />
+    <ClInclude Include="DirectInput.h" />
+    <ClInclude Include="DirectXInputControls.h" />
+    <ClInclude Include="GameHandler.h" />
+    <ClInclude Include="HMDisplayInfo.h" />
+    <ClInclude Include="HMDisplayInfoFactory.h" />
+    <ClInclude Include="HMDisplayInfo_Default.h" />
+    <ClInclude Include="HMDisplayInfo_OculusRift.h" />
+    <ClInclude Include="MatrixDoNothing.h" />
+    <ClInclude Include="MatrixGatheredOrhoSquash.h" />
+    <ClInclude Include="MatrixGuiSquash.h" />
+    <ClInclude Include="MatrixHudSlide.h" />
+    <ClInclude Include="MatrixNoPositional.h" />
+    <ClInclude Include="MatrixNoRoll.h" />
+    <ClInclude Include="MatrixNoStereoSeparate.h" />
+    <ClInclude Include="MatrixOrthoSquash.h" />
+    <ClInclude Include="MatrixOrthoSquashHud.h" />
+    <ClInclude Include="MatrixOrthoSquashShifted.h" />
+    <ClInclude Include="MatrixConvOffsetAdjustment.h" />
+    <ClInclude Include="MatrixRollOnly.h" />
+    <ClInclude Include="MatrixRollOnlyHalf.h" />
+    <ClInclude Include="MatrixRollOnlyNegative.h" />
+    <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="OculusDirectToRiftView.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ShaderMatrixModification.h" />
+    <ClInclude Include="MatrixIgnoreOrtho.h" />
+    <ClInclude Include="ShaderObjectType.h" />
+    <ClInclude Include="Vector4DeadIslandScaled.h" />
+    <ClInclude Include="Vector4EyeShiftUnity.h" />
+    <ClInclude Include="ViewAdjustment.h" />
+    <ClInclude Include="Vireio.h" />
+    <ClInclude Include="MurmurHash3.h" />
+    <ClInclude Include="ShaderConstantModification.h" />
+    <ClInclude Include="ShaderConstantModificationFactory.h" />
+    <ClInclude Include="ShaderModificationRepository.h" />
+    <ClInclude Include="ShaderRegisters.h" />
+    <ClInclude Include="StereoBackbuffer.h" />
+    <ClInclude Include="D3DProxyDevice.h" />
+    <ClInclude Include="D3DProxyDeviceAdv.h" />
+    <ClInclude Include="D3DProxyDeviceEgo.h" />
+    <ClInclude Include="D3DProxyDeviceFactory.h" />
+    <ClInclude Include="D3D9ProxySurface.h" />
+    <ClInclude Include="Direct3D9.h" />
+    <ClInclude Include="Direct3DCubeTexture9.h" />
+    <ClInclude Include="Direct3DIndexBuffer9.h" />
+    <ClInclude Include="Direct3DPixelShader9.h" />
+    <ClInclude Include="Direct3DQuery9.h" />
+    <ClInclude Include="Direct3DStateBlock9.h" />
+    <ClInclude Include="Direct3DSurface9.h" />
+    <ClInclude Include="Direct3DDevice9.h" />
+    <ClInclude Include="Direct3DSwapChain9.h" />
+    <ClInclude Include="Direct3DTexture9.h" />
+    <ClInclude Include="Direct3DVertexBuffer9.h" />
+    <ClInclude Include="Direct3DVertexDeclaration9.h" />
+    <ClInclude Include="Direct3DVertexShader9.h" />
+    <ClInclude Include="Direct3DVolume9.h" />
+    <ClInclude Include="Direct3DVolumeTexture9.h" />
+    <ClInclude Include="FreeSpaceTracker.h" />
+    <ClInclude Include="FreeTrackTracker.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="MotionTrackerFactory.h" />
+    <ClInclude Include="OculusTracker.h" />
+    <ClInclude Include="SharedMemoryTracker.h" />
+    <ClInclude Include="IStereoCapableWrapper.h" />
+    <ClInclude Include="StereoShaderConstant.h" />
+    <ClInclude Include="StereoView.h" />
+    <ClInclude Include="StereoViewFactory.h" />
+    <ClInclude Include="StereoViewInterleave.h" />
+    <ClInclude Include="MotionTracker.h" />
+    <ClInclude Include="Vector4SimpleTranslate.h" />
+    <ClInclude Include="..\..\Shared\pugixml.hpp" />
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\Shared\Version.h" />
+    <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\ProxyHelper.h" />
+    <ClInclude Include="..\..\Shared\InputControls.h" />
+    <ClInclude Include="..\..\Shared\json\assertions.h" />
+    <ClInclude Include="..\..\Shared\json\autolink.h" />
+    <ClInclude Include="..\..\Shared\json\config.h" />
+    <ClInclude Include="..\..\Shared\json\features.h" />
+    <ClInclude Include="..\..\Shared\json\forwards.h" />
+    <ClInclude Include="..\..\Shared\json\json.h" />
+    <ClInclude Include="..\..\Shared\json\json_tool.h" />
+    <ClInclude Include="..\..\Shared\json\reader.h" />
+    <ClInclude Include="..\..\Shared\json\value.h" />
+    <ClInclude Include="..\..\Shared\json\version.h" />
+    <ClInclude Include="..\..\Shared\json\writer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <SubType>Designer</SubType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <SubType>Designer</SubType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagentaGray.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyan.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyanGray.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlue.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlueGray.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\Checkerboard.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\InterleaveHorz.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\InterleaveVert.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OverUnder.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\SideBySide.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\SideBySideRift.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
+      <SubType>Designer</SubType>
+    </CustomBuild>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\brassa.cfg" />
+    <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\rfactor.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Exports.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\Bioshock2.xml" />
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\dearesther.xml" />
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\portal2.xml" />
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\stanley.xml" />
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Release\Perception\img\logo.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DXProxy.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

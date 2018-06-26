@@ -2,17 +2,16 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="..\AQU_Nodus.h" />
-    <ClInclude Include="..\OculusDirectMode.h" />
     <ClInclude Include="..\Resources.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\OculusDirectMode.cpp" />
-    <ClCompile Include="..\OVR_PlatformLoader.cpp" />
+    <ClInclude Include="..\OpenVR-Tracker.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\OculusDirectMode_Resources.rc" />
+    <ClCompile Include="..\OpenVR-Tracker.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\OpenVR-Tracker_Resources.rc" />
   </ItemGroup>
 </Project>

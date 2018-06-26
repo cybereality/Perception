@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\AQU_Nodus.h" />
+    <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\VireioMatrixModifier.h" />
+    <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
+    <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.h">
+      <Filter>MurmurHash3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h">
+      <Filter>ModificationClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\StereoShaderConstant.h">
+      <Filter>ModificationClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Shared\pugiconfig.hpp">
+      <Filter>pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Shared\pugixml.hpp">
+      <Filter>pugixml</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\AQU_Nodus.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\VireioMatrixModifier.cpp" />
+    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.cpp">
+      <Filter>MurmurHash3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp">
+      <Filter>ModificationClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Shared\pugixml.cpp">
+      <Filter>pugixml</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="MurmurHash3">
+      <UniqueIdentifier>{38c4540a-abb3-4357-a83f-1672e6bdbc89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ModificationClasses">
+      <UniqueIdentifier>{0dd8cdae-dd88-41c1-a796-d2e679aad4ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pugixml">
+      <UniqueIdentifier>{ebaf9e75-ad78-4823-98d6-27cf65ece147}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

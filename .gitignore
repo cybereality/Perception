@@ -188,3 +188,7 @@ pip-log.txt
 LibOVR
 LibOVRKernel
 *.db
+*.db-shm
+*.db-wal
+*.iobj
+*.ipdb
