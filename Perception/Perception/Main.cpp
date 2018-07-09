@@ -432,37 +432,37 @@ public:
 					switch (unDX)
 					{
 #ifdef _WIN64
-						case 9:
-							sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\x64\\Mono\\Mono_Cinema_DX9.aqup");
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
-							break;
-						case 10:
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_10;
-							break;
-						case 11:
-							// get v4 profile path
-							sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\x64\\Mono\\Mono_Cinema_DX11.aqup");
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_11;
-							break;
-						default:
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
-							break;
+					case 9:
+						sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\x64\\Mono\\Mono_Cinema_DX9.aqup");
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
+						break;
+					case 10:
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_10;
+						break;
+					case 11:
+						// get v4 profile path
+						sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\x64\\Mono\\Mono_Cinema_DX11.aqup");
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_11;
+						break;
+					default:
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
+						break;
 #else
-						case 9:
-							sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\x64\\Mono\\Mono_Cinema_DX9.aqup");
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
-							break;
-						case 10:
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_10;
-							break;
-						case 11:
-							// get v4 profile path
-							sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\Win32\\Mono\\Mono_Cinema_DX11.aqup");
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_11;
-							break;
-						default:
-							sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
-							break;
+					case 9:
+						sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\x64\\Mono\\Mono_Cinema_DX9.aqup");
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
+						break;
+					case 10:
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_10;
+						break;
+					case 11:
+						// get v4 profile path
+						sProfile.szProfileFilePath = profile.attribute("profile_path").as_string("..\\game_profiles\\HMD\\Win32\\Mono\\Mono_Cinema_DX11.aqup");
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_11;
+						break;
+					default:
+						sProfile.eDX_Version = VireioGameProfile::DX_Version_9;
+						break;
 #endif
 					};
 
@@ -498,7 +498,7 @@ public:
 		m_aszHMD_Options.push_back(L"No HMD");
 		m_aszHMD_Options.push_back(L"LibOVR");
 		m_aszHMD_Options.push_back(L"OpenVR");
-		m_aszHMD_Options.push_back(L"OSVR");
+		// OSVR deprecated -> m_aszHMD_Options.push_back(L"OSVR");
 		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
 		sControl.m_sPosition.x = 16;
 		sControl.m_sPosition.y = 128;
@@ -642,82 +642,82 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 
 		switch (sEvent.eType)
 		{
-			case ChangedToNext:
-			case ChangedToPrevious:
-			case ChangedToValue:
+		case ChangedToNext:
+		case ChangedToPrevious:
+		case ChangedToValue:
 #ifdef _VIREIO_3
-				if (sEvent.dwIndexOfControl == m_dwSpinStereoView)
-				{
-					ProxyHelper helper = ProxyHelper();
-					helper.SaveUserConfig(anStereoModes[sEvent.dwNewValue]);
-				}
-				else if (sEvent.dwIndexOfControl == m_dwSpinTracker)
-				{
-					ProxyHelper helper = ProxyHelper();
-					helper.SaveTrackerMode(anTrackerModes[sEvent.dwNewValue]);
-				}
-				else if (sEvent.dwIndexOfControl == m_dwSpinMonitor)
-				{
-					ProxyHelper helper = ProxyHelper();
-					helper.SaveDisplayAdapter(anMonitors[sEvent.dwNewValue]);
-				}
+			if (sEvent.dwIndexOfControl == m_dwSpinStereoView)
+			{
+				ProxyHelper helper = ProxyHelper();
+				helper.SaveUserConfig(anStereoModes[sEvent.dwNewValue]);
+			}
+			else if (sEvent.dwIndexOfControl == m_dwSpinTracker)
+			{
+				ProxyHelper helper = ProxyHelper();
+				helper.SaveTrackerMode(anTrackerModes[sEvent.dwNewValue]);
+			}
+			else if (sEvent.dwIndexOfControl == m_dwSpinMonitor)
+			{
+				ProxyHelper helper = ProxyHelper();
+				helper.SaveDisplayAdapter(anMonitors[sEvent.dwNewValue]);
+			}
 #else
-				if (sEvent.dwIndexOfControl == m_dwListGameProfiles)
-				{
-					// get global config
+			if (sEvent.dwIndexOfControl == m_dwListGameProfiles)
+			{
+				// get global config
 #ifdef _WIN64
-					string configPath = string("..\\cfg_v4\\config_64bit.xml");
+				string configPath = string("..\\cfg_v4\\config_64bit.xml");
 #else
-					string configPath = string("..\\cfg_v4\\config_32bit.xml");
+				string configPath = string("..\\cfg_v4\\config_32bit.xml");
 #endif
-					xml_document docConfig;
-					xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
+				xml_document docConfig;
+				xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
 
-					if (resultConfig.status == status_ok)
-					{
-						xml_node xml_config = docConfig.child("config");
-
-						if (sEvent.dwNewValue < (UINT)m_asVireioGameProfiles.size())
-							xml_config.attribute("profile_index") = sEvent.dwNewValue;
-
-						docConfig.save_file(configPath.c_str());
-					}
-				}
-				if (sEvent.dwIndexOfControl == m_dwSpinHMD)
+				if (resultConfig.status == status_ok)
 				{
-					// get global config
-#ifdef _WIN64
-					string configPath = string("..\\cfg_v4\\config_64bit.xml");
-#else
-					string configPath = string("..\\cfg_v4\\config_32bit.xml");
-#endif
-					xml_document docConfig;
-					xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
+					xml_node xml_config = docConfig.child("config");
 
-					if (resultConfig.status == status_ok)
-					{
-						xml_node xml_config = docConfig.child("config");
+					if (sEvent.dwNewValue < (UINT)m_asVireioGameProfiles.size())
+						xml_config.attribute("profile_index") = sEvent.dwNewValue;
 
-						if (sEvent.dwNewValue < 4)
-							xml_config.attribute("hmd_index") = sEvent.dwNewValue;
-
-						docConfig.save_file(configPath.c_str());
-					}
+					docConfig.save_file(configPath.c_str());
 				}
+			}
+			if (sEvent.dwIndexOfControl == m_dwSpinHMD)
+			{
+				// get global config
+#ifdef _WIN64
+				string configPath = string("..\\cfg_v4\\config_64bit.xml");
+#else
+				string configPath = string("..\\cfg_v4\\config_32bit.xml");
 #endif
-				break;
-			case Pressed:
-				if (sEvent.dwIndexOfControl == m_dwExit)
-					SendMessage(window_handle, WM_CLOSE, 0, 0);
+				xml_document docConfig;
+				xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
+
+				if (resultConfig.status == status_ok)
+				{
+					xml_node xml_config = docConfig.child("config");
+
+					if (sEvent.dwNewValue < 4)
+						xml_config.attribute("hmd_index") = sEvent.dwNewValue;
+
+					docConfig.save_file(configPath.c_str());
+				}
+			}
+#endif
+			break;
+		case Pressed:
+			if (sEvent.dwIndexOfControl == m_dwExit)
+				SendMessage(window_handle, WM_CLOSE, 0, 0);
 #ifndef _VIREIO_3
-				else if (sEvent.dwIndexOfControl == m_dwLoadAquilinusProfile)
-				{
-					g_bLoadAquilinusProfile = true;
-				}
+			else if (sEvent.dwIndexOfControl == m_dwLoadAquilinusProfile)
+			{
+				g_bLoadAquilinusProfile = true;
+			}
 #endif
-				break;
-			default:
-				break;
+			break;
+		default:
+			break;
 		}
 
 		// send WM_PAINT
@@ -727,231 +727,231 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 
 	switch (message)
 	{
-		case WM_MOUSEMOVE:
-			// move the window ?
-			if (wparam & MK_LBUTTON)
+	case WM_MOUSEMOVE:
+		// move the window ?
+		if (wparam & MK_LBUTTON)
+		{
+			// get new mouse cursor point
+			LONG nX = (LONG)GET_X_LPARAM(lparam);
+			LONG nY = (LONG)GET_Y_LPARAM(lparam);
+
+			if (m_ptMouseCursor.y < 94)
 			{
-				// get new mouse cursor point
-				LONG nX = (LONG)GET_X_LPARAM(lparam);
-				LONG nY = (LONG)GET_Y_LPARAM(lparam);
+				// get the difference to the old position set only in WM_LBUTTONDOWN
+				nX -= m_ptMouseCursor.x;
+				nY -= m_ptMouseCursor.y;
 
-				if (m_ptMouseCursor.y < 94)
-				{
-					// get the difference to the old position set only in WM_LBUTTONDOWN
-					nX -= m_ptMouseCursor.x;
-					nY -= m_ptMouseCursor.y;
+				// get the old window position
+				RECT rcWnd;
+				GetWindowRect(window_handle, &rcWnd);
 
-					// get the old window position
-					RECT rcWnd;
-					GetWindowRect(window_handle, &rcWnd);
-
-					// set the new window position
-					SetWindowPos(window_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
-				}
+				// set the new window position
+				SetWindowPos(window_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
 			}
-			UpdateWindow(window_handle);
-			return 0;
-		case WM_CREATE:
-		{
-						  OutputDebugString("Create Window\n");
-						  break;
 		}
-		case WM_TIMER:
-		{
-						 RECT client_rect;
-						 GetClientRect(window_handle, &client_rect);
-						 InvalidateRect(window_handle, &client_rect, FALSE);
-						 return 0;
-		}
-		case WM_LBUTTONDOWN:
-		{
-							   // get the mouse cursor position
-							   m_ptMouseCursor.x = (LONG)GET_X_LPARAM(lparam);
-							   m_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lparam);
-							   break;
-		}
-		case WM_LBUTTONUP:
-		{
+		UpdateWindow(window_handle);
+		return 0;
+	case WM_CREATE:
+	{
+		OutputDebugString("Create Window\n");
+		break;
+	}
+	case WM_TIMER:
+	{
+		RECT client_rect;
+		GetClientRect(window_handle, &client_rect);
+		InvalidateRect(window_handle, &client_rect, FALSE);
+		return 0;
+	}
+	case WM_LBUTTONDOWN:
+	{
+		// get the mouse cursor position
+		m_ptMouseCursor.x = (LONG)GET_X_LPARAM(lparam);
+		m_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lparam);
+		break;
+	}
+	case WM_LBUTTONUP:
+	{
 #ifndef _VIREIO_3
-							 if (g_hmAquilinusRTE)
-							 {
-								 InjectionState eIS = (InjectionState)g_pAquilinus_GetInjectionState();
-								 if ((g_bLoadAquilinusProfile) && (eIS))
-								 {
-									 if ((eIS == InjectionState::Idle) || (eIS == InjectionState::Injecting))
-									 {
-										 OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
-
-										 // get current selections
-										 UINT unSelectionGame = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwListGameProfiles);
-										 if (unSelectionGame >= (UINT)m_asVireioGameProfiles.size()) unSelectionGame = 0;
-										 UINT unSelectionHMD = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwSpinHMD);
-										 if (unSelectionHMD >= 4) unSelectionHMD = 0;
-										 OutputDebugString(m_asVireioGameProfiles[unSelectionGame].szGameName.c_str());
-
-										 // get profile path and set HMD string
-										 std::wstring szProfilePath = std::wstring(m_asVireioGameProfiles[unSelectionGame].szProfileFilePath.begin(), m_asVireioGameProfiles[unSelectionGame].szProfileFilePath.end());
-										 std::string szBasePath = getCurrentPath();
-										 szProfilePath = std::wstring(szBasePath.begin(), szBasePath.end()) + szProfilePath.substr(3);
-										 switch (unSelectionHMD)
-										 {
-											 case 0:
-												 szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"Monitor" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
-												 break;
-											 case 1:
-												 szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"LibOVR" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
-												 break;
-											 case 2:
-												 szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"OpenVR" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
-												 break;
-											 case 3:
-												 szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"OSVR" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
-												 break;
-										 }
-										 OutputDebugStringW(szProfilePath.c_str());
-
-										 // get process
-										 std::wstring szProcess = std::wstring(m_asVireioGameProfiles[unSelectionGame].szGameProcess.begin(), m_asVireioGameProfiles[unSelectionGame].szGameProcess.end());
-
-										 // load aquilinus profile
-										 LPCWSTR szP;
-										 g_pAquilinus_LoadProfile(szProfilePath.c_str(), szProcess.c_str(), &szP, m_asVireioGameProfiles[unSelectionGame].unRepetition, m_asVireioGameProfiles[unSelectionGame].unTimedelay);
-										 std::wstring szPath = std::wstring(szP);
-
-										 // load game logo... TODO !! LOAD BY PROFILE !!
-										 std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
-										 if (szFilename.find(L"Fallout4") == 0)
-										 {
-											 ConvertJpgFile("..//img//Fallout4.jpg", "..//img//game_logo.bmp");
-											 game_bitmap = (HBITMAP)LoadImage(NULL, "..//img//game_logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-										 }
-									 }
-									 else
-										 g_pAquilinus_Reinject();
-
-									 g_bLoadAquilinusProfile = false;
-								 }
-							 }
-#endif
-							 break;
-		}
-		case WM_PAINT:
+		if (g_hmAquilinusRTE)
 		{
-						 PAINTSTRUCT 	ps;
-						 HDC 			hdc;
-						 BITMAP 		bitmap;
-						 HDC 			hdcMem;
+			InjectionState eIS = (InjectionState)g_pAquilinus_GetInjectionState();
+			if ((g_bLoadAquilinusProfile) && (eIS))
+			{
+				if ((eIS == InjectionState::Idle) || (eIS == InjectionState::Injecting))
+				{
+					OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
 
-						 hdc = BeginPaint(window_handle, &ps);
+					// get current selections
+					UINT unSelectionGame = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwListGameProfiles);
+					if (unSelectionGame >= (UINT)m_asVireioGameProfiles.size()) unSelectionGame = 0;
+					UINT unSelectionHMD = (UINT)m_pcVireioGUI->GetCurrentSelection(m_dwSpinHMD);
+					if (unSelectionHMD >= 4) unSelectionHMD = 0;
+					OutputDebugString(m_asVireioGameProfiles[unSelectionGame].szGameName.c_str());
 
-						 // draw GUI
-						 hdcMem = CreateCompatibleDC(hdc);
-						 HBITMAP hGUI = m_pcVireioGUI->GetGUI(true, false, true, true);
-						 SelectObject(hdcMem, hGUI);
-						 GetObject(hGUI, sizeof(bitmap), &bitmap);
-						 BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-
-						 // draw logo
-						 SelectObject(hdcMem, logo_bitmap);
-						 GetObject(logo_bitmap, sizeof(bitmap), &bitmap);
-						 BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-						 DeleteDC(hdcMem);
-
-#ifndef _VIREIO_3
-						 // draw profile button + close icon
-						 SelectObject(hdc, GetStockObject(DC_PEN));
-						 SelectObject(hdc, GetStockObject(DC_BRUSH));
-						 g_eInjectionState = (InjectionState)g_pAquilinus_GetInjectionState();
-						 switch (g_eInjectionState)
-						 {
-							 case Initial:
-								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INIT);
-								 break;
-							 case Idle:
-								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_IDLE);
-								 break;
-							 case Injecting:
-								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTING);
-								 break;
-							 case ToInject:
-								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_TOINJECT);
-								 break;
-							 case Injected:
-								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTED);
-								 break;
-							 case Closed:
-								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_CLOSED);
-								 break;
-							 default:
-								 break;
-						 }
-						 SetDCBrushColor(hdc, APP_BUTTON_BRUSHCOLOR);
-						 Rectangle(hdc, 456, 132, 456 + 188, 132 + 73);
-						 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
-						 Rectangle(hdc, APP_SIZE_WIDTH - 18, bitmap.bmHeight, APP_SIZE_WIDTH - 1, bitmap.bmHeight + 19);
-						 SetDCBrushColor(hdc, APP_BUTTON_PENCOLOR);
-						 Rectangle(hdc, APP_SIZE_WIDTH - 12, bitmap.bmHeight + 7, APP_SIZE_WIDTH - 7, bitmap.bmHeight + 12);
-
-						 // draw game logo
-						 if (game_bitmap)
-						 {
-							 hdcMem = CreateCompatibleDC(hdc);
-							 SelectObject(hdcMem, game_bitmap);
-							 GetObject(game_bitmap, sizeof(bitmap), &bitmap);
-							 BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
-							 DeleteDC(hdcMem);
-						 }
-#endif
-
-						 EndPaint(window_handle, &ps);
-
-						 /*
-						 // Now get FPS from the registry
-						 HKEY hKey;
-						 LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
-						 if (openRes == ERROR_SUCCESS)
-						 {
-						 char fpsBuffer[10];
-						 memset(fpsBuffer, 0, 10);
-						 DWORD dwDataSize = 10;
-						 LONG lResult = RegGetValue(hKey, NULL, "FPS", RRF_RT_REG_SZ, NULL, (LPVOID)&fpsBuffer, &dwDataSize);
-						 if (lResult == ERROR_SUCCESS)
-						 {
-						 TextOut(paint_device_context, 420, 183, fpsBuffer, (int)strlen(fpsBuffer));
-						 //Now delete, if this isn't refreshed, then we'll report blank next time round
-						 RegDeleteValue(hKey, "FPS");
-						 RegCloseKey(hKey);
-						 }
-						 else
-						 TextOut(paint_device_context, 420, 183, "--", 2);
-						 }
-
-						 // output extended profile data if aquilinus runtime environment present
-						 if (g_hmAquilinusRTE)
-						 {
-						 SetRect(&This->extended_profile_rectangle, 16, 190, 272, 254);
-						 }
-
-						 */
-						 return 0;
-		}
-		case WM_SIZE:
-		{
-						InvalidateRect(window_handle, NULL, TRUE);
+					// get profile path and set HMD string
+					std::wstring szProfilePath = std::wstring(m_asVireioGameProfiles[unSelectionGame].szProfileFilePath.begin(), m_asVireioGameProfiles[unSelectionGame].szProfileFilePath.end());
+					std::string szBasePath = getCurrentPath();
+					szProfilePath = std::wstring(szBasePath.begin(), szBasePath.end()) + szProfilePath.substr(3);
+					switch (unSelectionHMD)
+					{
+					case 0:
+						szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"Monitor" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
 						break;
+					case 1:
+						szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"LibOVR" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
+						break;
+					case 2:
+						szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"OpenVR" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
+						break;
+						/* OSVR deprecated -> case 3:
+							szProfilePath = szProfilePath.substr(0, szProfilePath.find(L"HMD")) + L"OSVR" + szProfilePath.substr(szProfilePath.find(L"HMD") + 3);
+							break;*/
+					}
+					OutputDebugStringW(szProfilePath.c_str());
+
+					// get process
+					std::wstring szProcess = std::wstring(m_asVireioGameProfiles[unSelectionGame].szGameProcess.begin(), m_asVireioGameProfiles[unSelectionGame].szGameProcess.end());
+
+					// load aquilinus profile
+					LPCWSTR szP;
+					g_pAquilinus_LoadProfile(szProfilePath.c_str(), szProcess.c_str(), &szP, m_asVireioGameProfiles[unSelectionGame].unRepetition, m_asVireioGameProfiles[unSelectionGame].unTimedelay);
+					std::wstring szPath = std::wstring(szP);
+
+					// load game logo... TODO !! LOAD BY PROFILE !!
+					std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
+					if (szFilename.find(L"Fallout4") == 0)
+					{
+						ConvertJpgFile("..//img//Fallout4.jpg", "..//img//game_logo.bmp");
+						game_bitmap = (HBITMAP)LoadImage(NULL, "..//img//game_logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+					}
+				}
+				else
+					g_pAquilinus_Reinject();
+
+				g_bLoadAquilinusProfile = false;
+			}
 		}
-		case WM_CLOSE:
-		{
-						 PostQuitMessage(0);
-#ifndef _VIREIO_3
-						 if (g_hmAquilinusRTE)
-						 {
-							 g_pAquilinus_Close();
-							 FreeLibrary(g_hmAquilinusRTE);
-						 }
 #endif
-						 break;
+		break;
+	}
+	case WM_PAINT:
+	{
+		PAINTSTRUCT 	ps;
+		HDC 			hdc;
+		BITMAP 		bitmap;
+		HDC 			hdcMem;
+
+		hdc = BeginPaint(window_handle, &ps);
+
+		// draw GUI
+		hdcMem = CreateCompatibleDC(hdc);
+		HBITMAP hGUI = m_pcVireioGUI->GetGUI(true, false, true, true);
+		SelectObject(hdcMem, hGUI);
+		GetObject(hGUI, sizeof(bitmap), &bitmap);
+		BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+
+		// draw logo
+		SelectObject(hdcMem, logo_bitmap);
+		GetObject(logo_bitmap, sizeof(bitmap), &bitmap);
+		BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+		DeleteDC(hdcMem);
+
+#ifndef _VIREIO_3
+		// draw profile button + close icon
+		SelectObject(hdc, GetStockObject(DC_PEN));
+		SelectObject(hdc, GetStockObject(DC_BRUSH));
+		g_eInjectionState = (InjectionState)g_pAquilinus_GetInjectionState();
+		switch (g_eInjectionState)
+		{
+		case Initial:
+			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INIT);
+			break;
+		case Idle:
+			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_IDLE);
+			break;
+		case Injecting:
+			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTING);
+			break;
+		case ToInject:
+			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_TOINJECT);
+			break;
+		case Injected:
+			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTED);
+			break;
+		case Closed:
+			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_CLOSED);
+			break;
+		default:
+			break;
 		}
+		SetDCBrushColor(hdc, APP_BUTTON_BRUSHCOLOR);
+		Rectangle(hdc, 456, 132, 456 + 188, 132 + 73);
+		SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
+		Rectangle(hdc, APP_SIZE_WIDTH - 18, bitmap.bmHeight, APP_SIZE_WIDTH - 1, bitmap.bmHeight + 19);
+		SetDCBrushColor(hdc, APP_BUTTON_PENCOLOR);
+		Rectangle(hdc, APP_SIZE_WIDTH - 12, bitmap.bmHeight + 7, APP_SIZE_WIDTH - 7, bitmap.bmHeight + 12);
+
+		// draw game logo
+		if (game_bitmap)
+		{
+			hdcMem = CreateCompatibleDC(hdc);
+			SelectObject(hdcMem, game_bitmap);
+			GetObject(game_bitmap, sizeof(bitmap), &bitmap);
+			BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
+			DeleteDC(hdcMem);
+		}
+#endif
+
+		EndPaint(window_handle, &ps);
+
+		/*
+		// Now get FPS from the registry
+		HKEY hKey;
+		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
+		if (openRes == ERROR_SUCCESS)
+		{
+		char fpsBuffer[10];
+		memset(fpsBuffer, 0, 10);
+		DWORD dwDataSize = 10;
+		LONG lResult = RegGetValue(hKey, NULL, "FPS", RRF_RT_REG_SZ, NULL, (LPVOID)&fpsBuffer, &dwDataSize);
+		if (lResult == ERROR_SUCCESS)
+		{
+		TextOut(paint_device_context, 420, 183, fpsBuffer, (int)strlen(fpsBuffer));
+		//Now delete, if this isn't refreshed, then we'll report blank next time round
+		RegDeleteValue(hKey, "FPS");
+		RegCloseKey(hKey);
+		}
+		else
+		TextOut(paint_device_context, 420, 183, "--", 2);
+		}
+
+		// output extended profile data if aquilinus runtime environment present
+		if (g_hmAquilinusRTE)
+		{
+		SetRect(&This->extended_profile_rectangle, 16, 190, 272, 254);
+		}
+
+		*/
+		return 0;
+	}
+	case WM_SIZE:
+	{
+		InvalidateRect(window_handle, NULL, TRUE);
+		break;
+	}
+	case WM_CLOSE:
+	{
+		PostQuitMessage(0);
+#ifndef _VIREIO_3
+		if (g_hmAquilinusRTE)
+		{
+			g_pAquilinus_Close();
+			FreeLibrary(g_hmAquilinusRTE);
+		}
+#endif
+		break;
+	}
 	}
 	return DefWindowProc(window_handle, message, wparam, lparam);
 };

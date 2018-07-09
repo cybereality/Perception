@@ -22,7 +22,7 @@
     <ProjectGuid>{3015FB47-8420-4FC3-AE37-3E688E3FB350}</ProjectGuid>
     <RootNamespace>OpenVR-Tracker</RootNamespace>
     <ProjectName>OpenVR-Tracker</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

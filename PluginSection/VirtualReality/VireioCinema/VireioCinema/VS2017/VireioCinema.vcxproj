@@ -22,7 +22,7 @@
     <ProjectGuid>{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}</ProjectGuid>
     <RootNamespace>VireioCinema</RootNamespace>
     <ProjectName>VireioCinema</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
