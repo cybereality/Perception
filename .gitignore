@@ -192,3 +192,4 @@ LibOVRKernel
 *.db-wal
 *.iobj
 *.ipdb
+*.opendb

@@ -19,7 +19,7 @@
   <profile game_name="Bioshock2" game_exe="Bioshock2.exe" cpu_architecture="32bit" />
   <profile game_name="BioShockInfinite" game_exe="BioShockInfinite.exe" cpu_architecture="32bit" dx_version="11" image_url="" />
   <profile game_name="Blood Dragon" game_exe="fc3_blooddragon.exe" cpu_architecture="32bit" />
-  <profile game_name="Borderlands" game_exe="Borderlands.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\Borderlands_Stereo.aqup"/>
+  <profile game_name="Borderlands" game_exe="Borderlands.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\FullImmersive\\Borderlands.aqup"/>
   <profile game_name="Borderlands 2" game_exe="Borderlands2.exe" cpu_architecture="32bit" />
   <profile game_name="Bulletstorm" game_exe="ShippingPC-StormGame.exe" cpu_architecture="32bit" />
   <profile game_name="Call of Cthulhu®: Dark Corners of the Earth" game_exe="CoCMainWin32.exe" cpu_architecture="32bit" />
@@ -42,13 +42,13 @@
   <profile game_name="DCS World" game_exe="DCS.exe" cpu_architecture="64bit" />
   <profile game_name="DCS World" game_exe="DCS.exe" cpu_architecture="32bit" />
   <profile game_name="Dead Island" game_exe="DeadIslandGame.exe" cpu_architecture="32bit" />
-  <profile game_name="Dear Esther" game_exe="dearesther.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\DearEsther_Stereo.aqup"/>
+  <profile game_name="Dear Esther" game_exe="dearesther.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\FullImmersive\\DearEsther.aqup"/>
   <profile game_name="Demonicon" game_exe="demoniconR.exe" cpu_architecture="32bit" />
   <profile game_name="Deus Ex: Human Revolution" game_exe="dxhr.exe" cpu_architecture="32bit" dx_version="11" />
   <profile game_name="Deus Ex: Human Revolution Directors Cut" game_exe="DXHRDC.exe" cpu_architecture="32bit" dx_version="11" />
   <profile game_name="DiRT 2" game_exe="dirt2_game.exe" cpu_architecture="32bit" />
   <profile game_name="DiRT 3" game_exe="dirt3_game.exe" cpu_architecture="32bit" />
-  <profile game_name="Dishonored" game_exe="Dishonored.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\Dishonored_Stereo.aqup"/>
+  <profile game_name="Dishonored" game_exe="Dishonored.exe" cpu_architecture="32bit" profile_path="..\\game_profiles\\HMD\\Win32\\FullImmersive\\Dishonored.aqup"/>
   <profile game_name="Divinity" game_exe="EoCApp.exe" cpu_architecture="32bit" />
   <profile game_name="Dungeon Siege III" game_exe="Dungeon Siege III.exe" cpu_architecture="32bit" />
   <profile game_name="Empire: Total War" game_exe="Empire.exe" cpu_architecture="32bit" />
