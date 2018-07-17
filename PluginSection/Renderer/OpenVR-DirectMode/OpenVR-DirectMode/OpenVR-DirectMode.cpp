@@ -671,7 +671,7 @@ bool OpenVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, in
 		(nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9))
 		return true;
 
-	return false;
+	return true;
 }
 
 /**
