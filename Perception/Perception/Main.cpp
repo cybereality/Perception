@@ -200,7 +200,8 @@ private:
 	RECT      client_rectangle;
 	RECT      extended_profile_rectangle;
 	static HBITMAP     logo_bitmap;
-	static HBITMAP     game_bitmap;
+	// static HBITMAP     game_bitmap;
+	static HBITMAP     button_bitmap[6];
 	static POINT       m_ptMouseCursor;            /**< The current mouse cursor. **/
 	static Vireio_GUI* m_pcVireioGUI;              /**< Vireio Graphical User Interface class. **/
 	static UINT        m_dwListGameProfiles;       /**< Game profiles selection. ***/
@@ -209,6 +210,7 @@ private:
 	static UINT        m_dwSpinTracker;            /**< Main driver tracker selection. ***/
 	static UINT        m_dwSpinMonitor;            /**< Main driver monitor selection. ***/
 	static UINT        m_dwLoadAquilinusProfile;   /**< The Load Profile Button. (184x69 - same as 'Steam' thumbnails)  ***/
+	static UINT        m_dwMinimize;               /**< Minimize button. ***/
 	static UINT        m_dwExit;                   /**< Exit button. ***/
 public:
 	/**
@@ -564,17 +566,27 @@ public:
 		sControl.m_sButton.m_pszText = &szLoadProfile;
 		m_dwLoadAquilinusProfile = m_pcVireioGUI->AddControl(dwPage, sControl);
 #endif
-
 		// create the 'x'(=exit) button
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
 		static std::wstring szX = std::wstring(L"x");
 		sControl.m_eControlType = Vireio_Control_Type::Button;
 		sControl.m_sPosition.x = APP_SIZE_WIDTH - 18;
-		sControl.m_sPosition.y = 85;
-		sControl.m_sSize.cx = 30;
-		sControl.m_sSize.cy = 30;
+		sControl.m_sPosition.y = 97;
+		sControl.m_sSize.cx = 17;
+		sControl.m_sSize.cy = 17;
 		sControl.m_sButton.m_pszText = &szX;
 		m_dwExit = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		// create the '_'(=minimize) button
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		static std::wstring szMin = std::wstring(L"~");
+		sControl.m_eControlType = Vireio_Control_Type::Button;
+		sControl.m_sPosition.x = APP_SIZE_WIDTH - 36;
+		sControl.m_sPosition.y = 97;
+		sControl.m_sSize.cx = 17;
+		sControl.m_sSize.cy = 17;
+		sControl.m_sButton.m_pszText = &szMin;
+		m_dwMinimize = m_pcVireioGUI->AddControl(dwPage, sControl);
 
 		// load the logo
 		logo_bitmap = (HBITMAP)LoadImage(NULL, "..//img//logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -585,7 +597,7 @@ public:
 		UpdateWindow(window_handle);
 
 #ifndef _VIREIO_3
-		// download game jpg files from steam if not present.. only for v4
+		/*// download game jpg files from steam if not present.. only for v4
 		std::vector<std::string> aszImageURLs;
 		std::vector<std::string> aszImageFilePaths;
 		aszImageURLs.push_back("https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/377160/8977a8e98acbbdd3c0ff905afb7e0a6e2eb555ea.jpg");
@@ -602,6 +614,19 @@ public:
 					OutputDebugString("Failed to download STEAM game image file !");
 				}
 			}
+		}*/
+
+		// load (injection state) button images
+		std::vector<std::string> aszImageFilePaths;
+		aszImageFilePaths.push_back("..//img//button_ix0.bmp");
+		aszImageFilePaths.push_back("..//img//button_ix1.bmp");
+		aszImageFilePaths.push_back("..//img//button_ix2.bmp");
+		aszImageFilePaths.push_back("..//img//button_ix3.bmp");
+		aszImageFilePaths.push_back("..//img//button_ix4.bmp");
+		aszImageFilePaths.push_back("..//img//button_ix5.bmp");
+		for (unsigned uI = 0; uI < 6; uI++)
+		{
+			button_bitmap[uI] = (HBITMAP)LoadImage(NULL, aszImageFilePaths[uI].c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		}
 #endif
 
@@ -620,7 +645,8 @@ public:
 /*** Vireio_Perception_Main_Window static fields ***/
 POINT       Vireio_Perception_Main_Window::m_ptMouseCursor;
 HBITMAP     Vireio_Perception_Main_Window::logo_bitmap;
-HBITMAP     Vireio_Perception_Main_Window::game_bitmap;
+//HBITMAP     Vireio_Perception_Main_Window::game_bitmap;
+HBITMAP     Vireio_Perception_Main_Window::button_bitmap[6];
 Vireio_GUI* Vireio_Perception_Main_Window::m_pcVireioGUI;
 UINT        Vireio_Perception_Main_Window::m_dwListGameProfiles;
 UINT        Vireio_Perception_Main_Window::m_dwSpinHMD;
@@ -629,6 +655,7 @@ UINT        Vireio_Perception_Main_Window::m_dwSpinTracker;
 UINT        Vireio_Perception_Main_Window::m_dwSpinMonitor;
 UINT        Vireio_Perception_Main_Window::m_dwLoadAquilinusProfile;
 UINT        Vireio_Perception_Main_Window::m_dwExit;
+UINT        Vireio_Perception_Main_Window::m_dwMinimize;
 
 /**
 * Main window procedure.
@@ -709,6 +736,8 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 		case Pressed:
 			if (sEvent.dwIndexOfControl == m_dwExit)
 				SendMessage(window_handle, WM_CLOSE, 0, 0);
+			if (sEvent.dwIndexOfControl == m_dwMinimize)
+				ShowWindow(window_handle, SW_MINIMIZE);
 #ifndef _VIREIO_3
 			else if (sEvent.dwIndexOfControl == m_dwLoadAquilinusProfile)
 			{
@@ -818,19 +847,30 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 					g_pAquilinus_LoadProfile(szProfilePath.c_str(), szProcess.c_str(), &szP, m_asVireioGameProfiles[unSelectionGame].unRepetition, m_asVireioGameProfiles[unSelectionGame].unTimedelay);
 					std::wstring szPath = std::wstring(szP);
 
-					// load game logo... TODO !! LOAD BY PROFILE !!
-					std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
-					if (szFilename.find(L"Fallout4") == 0)
-					{
-						ConvertJpgFile("..//img//Fallout4.jpg", "..//img//game_logo.bmp");
-						game_bitmap = (HBITMAP)LoadImage(NULL, "..//img//game_logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-					}
+					//// load game logo... TODO !! LOAD BY PROFILE !!
+					//std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
+					//if (szFilename.find(L"Fallout4") == 0)
+					//{
+					//	ConvertJpgFile("..//img//Fallout4.jpg", "..//img//game_logo.bmp");
+					//	game_bitmap = (HBITMAP)LoadImage(NULL, "..//img//game_logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+					//}
 				}
 				else
 					g_pAquilinus_Reinject();
 
 				g_bLoadAquilinusProfile = false;
 			}
+		}
+#endif
+		break;
+	}
+	case WM_RBUTTONUP:
+	{
+#ifndef _VIREIO_3
+		if (g_hmAquilinusRTE)
+		{
+			g_pAquilinus_ForceIdle();
+			g_bLoadAquilinusProfile = false;
 		}
 #endif
 		break;
@@ -858,7 +898,7 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 		DeleteDC(hdcMem);
 
 #ifndef _VIREIO_3
-		// draw profile button + close icon
+		// draw profile button + close icon + minimize icon
 		SelectObject(hdc, GetStockObject(DC_PEN));
 		SelectObject(hdc, GetStockObject(DC_BRUSH));
 		g_eInjectionState = (InjectionState)g_pAquilinus_GetInjectionState();
@@ -889,15 +929,26 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 		Rectangle(hdc, 456, 132, 456 + 188, 132 + 73);
 		SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
 		Rectangle(hdc, APP_SIZE_WIDTH - 18, bitmap.bmHeight, APP_SIZE_WIDTH - 1, bitmap.bmHeight + 19);
+		Rectangle(hdc, APP_SIZE_WIDTH - 36, bitmap.bmHeight, APP_SIZE_WIDTH - 19, bitmap.bmHeight + 19);
 		SetDCBrushColor(hdc, APP_BUTTON_PENCOLOR);
 		Rectangle(hdc, APP_SIZE_WIDTH - 12, bitmap.bmHeight + 7, APP_SIZE_WIDTH - 7, bitmap.bmHeight + 12);
+		Rectangle(hdc, APP_SIZE_WIDTH - 32, bitmap.bmHeight + 14, APP_SIZE_WIDTH - 23, bitmap.bmHeight + 16);
 
+		//// draw game logo
+		//if (game_bitmap)
+		//{
+		//	hdcMem = CreateCompatibleDC(hdc);
+		//	SelectObject(hdcMem, game_bitmap);
+		//	GetObject(game_bitmap, sizeof(bitmap), &bitmap);
+		//	BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
+		//	DeleteDC(hdcMem);
+		//}
 		// draw game logo
-		if (game_bitmap)
+		if (button_bitmap[(int)g_eInjectionState])
 		{
 			hdcMem = CreateCompatibleDC(hdc);
-			SelectObject(hdcMem, game_bitmap);
-			GetObject(game_bitmap, sizeof(bitmap), &bitmap);
+			SelectObject(hdcMem, button_bitmap[(int)g_eInjectionState]);
+			GetObject(button_bitmap[(int)g_eInjectionState], sizeof(bitmap), &bitmap);
 			BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
 			DeleteDC(hdcMem);
 		}
@@ -1168,4 +1219,4 @@ std::string getCurrentPath(void)
 	}
 
 	return basePath;
-}
+	}
