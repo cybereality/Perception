@@ -1,41 +1,36 @@
-#VIREIO PERCEPTION
+# Vireio Perception
 
-####BUILD INSTRUCTIONS
+## Building
+  * [Visual C++ 2012 Express for Windows Desktop](https://web.archive.org/web/20170227110514/https://download.microsoft.com/download/1/F/5/1F519CC5-0B90-4EA3-8159-33BFB97EF4D9/wdexpress_full.exe) on Windows 8 64-bit.
+    * *Windows 8.1 users can't use the online installer, use the [ISO file](https://web.archive.org/web/20170227110514/https://download.microsoft.com/download/1/F/5/1F519CC5-0B90-4EA3-8159-33BFB97EF4D9/VS2012_WDX_ENU.iso) instead.*
+  * [Microsoft DirectX SDK (June 2010)](https://www.microsoft.com/en-au/download/details.aspx?id=6812)
+    * *May* work with newer versions.
+  * [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/0.6/0.6rc0/+download/libfreespace-0.6rc0-win32-vs2010.zip)
+    * Must be extracted to a folder.
+  * [Oculus SDK v0.6.0.1](https://web.archive.org/web/20150903153759/http://static.oculus.com/sdk-downloads/0.6.0.1/Public/1435190862/ovr_sdk_win_0.6.0.1.zip)
 
-Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 8 64-bit.  
-(Windows 8.1 users cant use the online installer, please use the ISO file instead)
+  1. Extract LibOVR and LibOVRKernel to project directory.
+  2. Click *Start > Control Panel > System and Security > System > Advanced System Settings > Environment Variables*
+      * Create environment variables:
+        * `FREESPACE` - The folder for libfreespace (Hillcrest Labs SDK).
+        * `DXSDK_DIR` - Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK)
+  3. Open `VireioPerception.sln`. It contains all the projects with their dependencies set correctly.
+  4. Choose either Debug or Release.
+  5. Either Run or Build the solution.
+      * *There should be only two compiler warnings about the output directories not being the same as the target directory. That's deliberate.*
 
-Built using the [Microsoft DirectX SDK (June 2010)](http://www.microsoft.com/en-au/download/details.aspx?id=6812 "Microsoft") (may work with newer versions)
+When you want to publish it, just build in Release mode and zip the contents of the Release folder.
+But be careful because when running in Release mode, changing the separation, convergence or other settings in game will affect the files you release.
+The Debug folder is automatically created from the files in the Release folder whenever you compile in Debug mode.
 
-Download libfreespace [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/+download)  
-Extract it to a folder
-
-Download [Oculus SDK v0.6.0.1](https://developer.oculus.com/ "Oculus VR")
-
-Extract and copy LibOVR and LibOVRKernel to project directory.
-
-1. Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables
-Create environment variables:   
-    * FREESPACE : The folder for libfreespace (Hillcrest Labs SDK).
-    * DXSDK_DIR : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK)
-2. Open the VireioPerception.sln solution file. It contains all the projects with their dependencies set correctly. 
-3. Choose either Debug or Release. 
-4. Either Run or Build the solution. It should just work.  
-(There should be only two compiler warnings about the output directories not being the same as the target directory. That's deliberate.)
-
-When you want to publish it, just build in Release mode and zip the contents of the Release folder. 
-But be careful because when running in Release mode, changing the separation, convergence or other settings in game will affect the files you will release.
-The Debug folder is automatically created from the files in the Release folder whenever you compile in Debug mode. 
-
-####Support
-
-If you want to view the debug prints from hooking the game, download and run [DebugView](http://technet.microsoft.com/en-au/sysinternals/bb896647.aspx "Microsoft") or [TraceSpy](http://tracespy.codeplex.com/). 
+## Support
+If you want to view the debug prints from hooking the game, download and run [DebugView](https://technet.microsoft.com/en-au/sysinternals/bb896647.aspx) or [TraceSpy](https://github.com/smourier/TraceSpy).
 Sometimes DebugView becomes unresponsive, in which case just continue what you were doing and look at it later.
 
-It makes sense to work with the DxProxy project mainly. The DxProxy project is the main meat of the application. Basically what it does is it proxies DirectX so the game loads this modified "d3d9.dll" file instead of the real "d3d9.dll". Mostly all the functions are just dumb pass-throughs, but a few key functions are modified. This allows us to alter a few things, like the view-projection matrix (which is modified to fake a 3D camera), or the present call (where we display a new 3D image). 
+It makes sense to work with the DxProxy project mainly. The DxProxy project is the main meat of the application. Basically what it does is it proxies DirectX so the game loads this modified `d3d9.dll` file instead of the real `d3d9.dll`. The functions are mostly dumb pass-throughs, but a few key functions are modified. This allows us to alter a few things, like the view-projection matrix (which is modified to fake a 3D camera), or the present call (where we display a new 3D image).
 
-The DxHijack project helps us to inject our modified dll into games, without having to place the proxy "d3d9.dll" file in the game folder (though some games don't work with this method, so we still have to copy the dll over as a last resort). 
+The DxHijack project helps us to inject our modified dll into games, without having to place the proxy `d3d9.dll` file in the game folder (though some games don't work with this method, so we still have to copy the dll over as a last resort).
 
 The Perception project is the GUI interface for the app. You probably will not need to touch this unless you are adding new options to the menu (ie a new tracking device).
 
-If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](http://www.mtbs3d.com/phpBB/viewforum.php?f=141).
+If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](https://www.mtbs3d.com/phpBB/viewforum.php?f=141).
