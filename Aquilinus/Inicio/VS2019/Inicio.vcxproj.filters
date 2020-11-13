@@ -8,6 +8,21 @@
       <Filter>AQU_Nodes\Basic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Aquilinus\AQU_OpenGL.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_glfw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
@@ -20,12 +35,30 @@
       <Filter>AQU_Nodes\Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Aquilinus\AQU_OpenGL.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Inicio_Resources.rc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\Info.txt" />
+    <Text Include="..\..\dependecies\imgui\LICENSE.txt">
+      <Filter>imgui</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="AQU_Nodes">
@@ -34,5 +67,13 @@
     <Filter Include="AQU_Nodes\Basic">
       <UniqueIdentifier>{be8135ca-5b93-457e-90a2-0a6a59f46e3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{2e629732-7e75-475d-8bee-4266b8d08863}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\dependecies\imgui\imgui.natvis">
+      <Filter>imgui</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

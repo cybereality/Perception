@@ -56,7 +56,7 @@ public:
 		switch (eDrawingAPI)
 		{
 			case AQU_DrawingAPIs::API_DirectDraw: m_pcDrawingAPI = new AQU_DirectDraw(); break;
-			case AQU_DrawingAPIs::API_OpenGL: m_pcDrawingAPI = new AQU_OpenGL(); break;
+			//case AQU_DrawingAPIs::API_OpenGL: m_pcDrawingAPI = new AQU_OpenGL(); break;
 		}
 	}
 	~AQU_Drawer(){ delete m_pcDrawingAPI; }

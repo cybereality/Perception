@@ -227,6 +227,11 @@
     <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
     <ClCompile Include="..\..\Aquilinus\AQU_OpenGL.cpp" />
     <ClCompile Include="..\..\Aquilinus\NOD_Basic.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\Inicio.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -236,6 +241,11 @@
     <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
     <ClInclude Include="..\..\Aquilinus\AQU_OpenGL.h" />
     <ClInclude Include="..\..\Aquilinus\NOD_Basic.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imconfig.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h" />
     <ClInclude Include="..\Inicio.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
@@ -243,7 +253,11 @@
     <ResourceCompile Include="..\Inicio_Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\..\dependecies\imgui\LICENSE.txt" />
     <Text Include="..\Info.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\dependecies\imgui\imgui.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

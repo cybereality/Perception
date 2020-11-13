@@ -30,9 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef INICIO_MAIN_APP
 #define INICIO_MAIN_APP
 
-#define AQUILINUS_VERSION_PRIMA 0
+#define AQUILINUS_VERSION_PRIMA 1
 #define AQUILINUS_VERSION_SECONDO 0
-#define AQUILINUS_VERSION_TERZO 1
+#define AQUILINUS_VERSION_TERZO 0
 
 #define MAIN_WINDOW_WIDTH 680
 #define MAIN_WINDOW_HEIGHT 200
@@ -47,6 +47,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define ADD_PROCESS_WINDOW_HEIGHT 568
 #endif
 
+#define GLFW_INCLUDE_NONE
+
 #include <windows.h>
 #include <windowsx.h>
 #include <tlhelp32.h>
@@ -57,6 +59,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resources.h"
 #include "..//Aquilinus/AquilinusCfg.h"
 #include "..//Aquilinus/AQU_FileManager.h"
+#include "..\dependecies\imgui\imgui.h"
+#include "..\dependecies\imgui\imgui_impl_glfw.h"
+#include "..\dependecies\imgui\imgui_impl_opengl3.h"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #pragma comment(lib, "advapi32.lib")
 
 /*** Inicio Types ***/

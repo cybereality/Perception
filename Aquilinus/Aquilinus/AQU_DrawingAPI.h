@@ -29,4 +29,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include"AQU_DirectDraw.h"
-#include"AQU_OpenGL.h"
+//#include"AQU_OpenGL.h"
