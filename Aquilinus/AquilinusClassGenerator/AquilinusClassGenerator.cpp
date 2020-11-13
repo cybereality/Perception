@@ -337,7 +337,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		// header
 		szStream1 << "/***************************************************************\n"
-			"Aquilinus - 3D Modification Studio\n"
+			"Aquilinus - Vireio Perception 3D Modification Studio\n"
 			"Copyright © 2014 Denis Reischl\n\n"
 			"File <DCL_";
 		szStream1 << szClassName;
@@ -346,20 +346,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		szStream1 << szClassName;
 		szStream1 << "> :\n"
 			"Copyright © 2014 Denis Reischl\n\n"
-			"This code is private and MUST NOT be set public for any\n"
-			"reason. This code is intended to be used, changed, compiled\n"
-			"and its build published only by Denis Reischl.\n\n"
-			"This code is intended to be used by its author,\n"
-			"Denis Reischl,\n"
-			"for any commercial and non-commercial purpose.\n\n"
-			"Following persons are granted to read the full Aquilinus\n"
-			"source code for life time :\n"
-			"Neil Schneider, Grant Bagwell and Simon Brown.\n"
-			"If the original author of Aquilinus, Denis Reischl,\n"
-			"discontinues the work on this software, the named persons\n"
-			"automatically inherit all rights to continue this work.\n\n"
-			"Except where otherwise noted, this work is licensed under :\n"
-			"<http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US>.\n"
 			"****************************************************************/\n\n";
 
 		// defines + includes + class header
@@ -460,7 +446,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		// header
 		szStream2 << "/***************************************************************\n"
-			"Aquilinus - 3D Modification Studio\n"
+			"Aquilinus - Vireio Perception 3D Modification Studio\n"
 			"Copyright © 2014 Denis Reischl\n\n"
 			"File <DCL_";
 		szStream2 << szClassName;
@@ -469,20 +455,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		szStream2 << szClassName;
 		szStream2 << "> :\n"
 			"Copyright © 2014 Denis Reischl\n\n"
-			"This code is private and MUST NOT be set public for any\n"
-			"reason. This code is intended to be used, changed, compiled\n"
-			"and its build published only by Denis Reischl.\n\n"
-			"This code is intended to be used by its author,\n"
-			"Denis Reischl,\n"
-			"for any commercial and non-commercial purpose.\n\n"
-			"Following persons are granted to read the full Aquilinus\n"
-			"source code for life time :\n"
-			"Neil Schneider, Grant Bagwell and Simon Brown.\n"
-			"If the original author of Aquilinus, Denis Reischl,\n"
-			"discontinues the work on this software, the named persons\n"
-			"automatically inherit all rights to continue this work.\n\n"
-			"Except where otherwise noted, this work is licensed under :\n"
-			"<http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US>.\n"
 			"****************************************************************/\n\n";
 
 		// defines, includes
@@ -676,26 +648,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		// header
 		szStream3 << "/***************************************************************\n"
-			"Aquilinus - 3D Modification Studio\n"
+			"Aquilinus - Vireio Perception 3D Modification Studio\n"
 			"Copyright © 2014 Denis Reischl\n\n"
 			"File <DCL_";
 		szStream3 << szClassName;
 		szStream3 << "_Super.h> :\n"
 			"Copyright © 2014 Denis Reischl\n\n"
-			"This code is private and MUST NOT be set public for any\n"
-			"reason. This code is intended to be used, changed, compiled\n"
-			"and its build published only by Denis Reischl.\n\n"
-			"This code is intended to be used by its author,\n"
-			"Denis Reischl,\n"
-			"for any commercial and non-commercial purpose.\n\n"
-			"Following persons are granted to read the full Aquilinus\n"
-			"source code for life time :\n"
-			"Neil Schneider, Grant Bagwell and Simon Brown.\n"
-			"If the original author of Aquilinus, Denis Reischl,\n"
-			"discontinues the work on this software, the named persons\n"
-			"automatically inherit all rights to continue this work.\n\n"
-			"Except where otherwise noted, this work is licensed under :\n"
-			"<http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US>.\n"
 			"****************************************************************/\n\n";
 
 		szStream3 << "#ifndef DCL_" << szClassNameUpper << "_SUPER\n";
@@ -792,7 +750,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		// header
 		szStream4 << "/***************************************************************\n"
-			"Aquilinus - 3D Modification Studio\n"
+			"Aquilinus - Vireio Perception 3D Modification Studio\n"
 			"Copyright © 2014 Denis Reischl\n\n"
 			"File <DCL_";
 		szStream4 << szClassName;
@@ -801,20 +759,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		szStream4 << szClassName;
 		szStream4 << "> :\n"
 			"Copyright © 2014 Denis Reischl\n\n"
-			"This code is private and MUST NOT be set public for any\n"
-			"reason. This code is intended to be used, changed, compiled\n"
-			"and its build published only by Denis Reischl.\n\n"
-			"This code is intended to be used by its author,\n"
-			"Denis Reischl,\n"
-			"for any commercial and non-commercial purpose.\n\n"
-			"Following persons are granted to read the full Aquilinus\n"
-			"source code for life time :\n"
-			"Neil Schneider, Grant Bagwell and Simon Brown.\n"
-			"If the original author of Aquilinus, Denis Reischl,\n"
-			"discontinues the work on this software, the named persons\n"
-			"automatically inherit all rights to continue this work.\n\n"
-			"Except where otherwise noted, this work is licensed under :\n"
-			"<http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US>.\n"
 			"****************************************************************/\n\n";
 
 		szStream4 << "#include" << '"' << "AQU_Detour.h" << '"' << "\n";
@@ -996,26 +940,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		// header
 		szStream5 << "/***************************************************************\n"
-			"Aquilinus - 3D Modification Studio\n"
+			"Aquilinus - Vireio Perception 3D Modification Studio\n"
 			"Copyright © 2014 Denis Reischl\n\n"
 			"File <NOD_";
 		szStream5 << szClassName;
 		szStream5 << ".h> :\n"
 			"Copyright © 2014 Denis Reischl\n\n"
-			"This code is private and MUST NOT be set public for any\n"
-			"reason. This code is intended to be used, changed, compiled\n"
-			"and its build published only by Denis Reischl.\n\n"
-			"This code is intended to be used by its author,\n"
-			"Denis Reischl,\n"
-			"for any commercial and non-commercial purpose.\n\n"
-			"Following persons are granted to read the full Aquilinus\n"
-			"source code for life time :\n"
-			"Neil Schneider, Grant Bagwell and Simon Brown.\n"
-			"If the original author of Aquilinus, Denis Reischl,\n"
-			"discontinues the work on this software, the named persons\n"
-			"automatically inherit all rights to continue this work.\n\n"
-			"Except where otherwise noted, this work is licensed under :\n"
-			"<http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US>.\n"
 			"****************************************************************/\n\n";
 
 		// defines, includes
@@ -1158,26 +1088,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		// header
 		szStream6 << "/***************************************************************\n"
-			"Aquilinus - 3D Modification Studio\n"
+			"Aquilinus - Vireio Perception 3D Modification Studio\n"
 			"Copyright © 2014 Denis Reischl\n\n"
 			"File <VMT_";
 		szStream6 << szClassName;
 		szStream6 << ".h> :\n"
 			"Copyright © 2014 Denis Reischl\n\n"
-			"This code is private and MUST NOT be set public for any\n"
-			"reason. This code is intended to be used, changed, compiled\n"
-			"and its build published only by Denis Reischl.\n\n"
-			"This code is intended to be used by its author,\n"
-			"Denis Reischl,\n"
-			"for any commercial and non-commercial purpose.\n\n"
-			"Following persons are granted to read the full Aquilinus\n"
-			"source code for life time :\n"
-			"Neil Schneider, Grant Bagwell and Simon Brown.\n"
-			"If the original author of Aquilinus, Denis Reischl,\n"
-			"discontinues the work on this software, the named persons\n"
-			"automatically inherit all rights to continue this work.\n\n"
-			"Except where otherwise noted, this work is licensed under :\n"
-			"<http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US>.\n"
 			"****************************************************************/\n\n";
 
 		// get the filename

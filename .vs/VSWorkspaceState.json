@@ -1,9 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Aquilinus",
-    "\\Aquilinus\\VS2019"
+    "\\Aquilinus\\VS2019",
+    "\\DxProxy",
+    "\\DxProxy\\DxProxy",
+    "\\Perception",
+    "\\Perception\\Perception"
   ],
-  "SelectedNode": "\\Aquilinus\\VS2019\\Aquilinus.sln",
+  "SelectedNode": "\\DxProxy\\DxProxy\\MatrixRoll.h",
   "PreviewInSolutionExplorer": false
 }
