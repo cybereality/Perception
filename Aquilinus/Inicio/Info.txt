@@ -1,0 +1,59 @@
+
+_________________________________
+Aquilinus Programmers Info File 
+________________________________/
+
+/_______________________________________________________________________________
+Hungarian Notation :
+
+Type prefix	Meaning	Example
+b	boolean	bool bHasEffect;
+c (or none*)	class	Creature cMonster;
+ch	char (used as a char)	char chLetterGrade;
+d	double, long double	double dPi;
+e	enum	Color eColor;
+f	float	float fPercent;
+n	short, int, long
+char used as an integer	int nValue;
+s	struct	Rectangle sRect;
+str	C++ string	std::string strName;
+sz	Null-terminated string	char szName[20];
+The following type modifiers are placed before the prefix if they apply:
+
+INOFFICIAL:
+vec any DirectX vector, POINT, SIZE and similar
+rc RECT
+
+Type modifier	Meaning	Example
+a	array on stack	int anValue[10];
+p	pointer	int* pnValue;
+pa	dynamic array	int* panValue = new int[10];
+r	reference	int rnValue;
+u	unsigned	unsigned int unValue;
+The following scope modifiers are placed before the type modifier if they apply:
+
+Scope modifier	Meaning	Example
+g_	global variable	int g_nGlobalValue;
+m_	member of class	int m_nMemberValue;
+s_	static member of class	int s_nValue;
+A few notes:
+
+This list is not exhaustive. It is meant to cover the most common cases. If you feel a variable of a different type deserves it’s own prefix, give it one!
+Use meaningful variable names and suffixes to clarify your variables. This is especially important with struct and class variables. For example, a Rectangle struct variable holding the position and size of a window is better declared as Rectangle sWindowRect; than Rectangle sWindow;
+Char has a different prefix depending on whether it’s being used as an ASCII character or integer. This helps clarify it’s intended use and prevent mistakes.
+Float has a different prefix than double because floating point literals are doubles by default. Float literals need a f suffix.
+Typedefs don’t fall very well into this system.
+The ‘c’ prefix for a class can be omitted if the variable is a pointer or a reference to a class.
+Because integer types are not differentiated, you can easily change to a larger or smaller integer as needed without changing the variable name. However, changing to a smaller integer is generally not recommended due to potential overflow issues.
+
+/_______________________________________________________________________________
+Regular Expressions :
+
+\t tabulator
+\d number
+\n enter
+\s space between words
+\w any word
+
+$& the result
+[ [

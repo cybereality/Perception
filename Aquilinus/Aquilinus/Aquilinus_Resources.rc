@@ -1,0 +1,9 @@
+#define IMG_FONT01 100
+#define IMG_FONT02 200
+
+#include "Resources.h"
+
+IMG_FONT01 BITMAP "trajanus_roman_regular_65.bmp"
+IMG_FONT02 BITMAP "trajanus_roman_regular_65_sharp.bmp"
+
+

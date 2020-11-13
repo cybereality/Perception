@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="AQU_d3d9.h" />
+    <ClInclude Include="PCL_IDirect3D9.h" />
+    <ClInclude Include="PCL_IDirect3DDevice9.h" />
+    <ClInclude Include="AQU_D3DPERF.h" />
+    <ClInclude Include="..\Aquilinus\AQU_TransferSite.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\AQU_WorkingArea.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\AQU_DirectDraw.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\AQU_FileManager.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\NOD_Basic.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\NOD_HelloWorldDx9.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\NOD_Plugin.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\NOD_FrameDecalDx9.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Aquilinus\NOD_HelloWorldDx10.h">
+      <Filter>AquilinusClasses</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AQU_d3d9.cpp" />
+    <ClCompile Include="PCL_IDirect3D9.cpp" />
+    <ClCompile Include="PCL_IDirect3DDevice9.cpp" />
+    <ClCompile Include="..\Aquilinus\AQU_TransferSite.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\AQU_WorkingArea.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\AQU_DirectDraw.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\AQU_FileManager.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\NOD_Basic.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\NOD_HelloWorldDx9.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\NOD_Plugin.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\NOD_FrameDecalDx9.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Aquilinus\NOD_HelloWorldDx10.cpp">
+      <Filter>AquilinusClasses</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AQU_d3d9.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="AquilinusClasses">
+      <UniqueIdentifier>{5f49d700-e639-4930-a632-fa3e061011d9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

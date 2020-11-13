@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\AquilinusRTE.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\AquilinusRTE.cpp" />
+    <ClCompile Include="..\..\Aquilinus\AQU_DirectDraw.cpp" />
+    <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
+    <ClCompile Include="..\..\Inicio\Inicio.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\AquilinusRTE.h" />
+    <ClInclude Include="..\..\Aquilinus\AQU_DirectDraw.h" />
+    <ClInclude Include="..\..\Aquilinus\AQU_DirectDrawFields.h" />
+    <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
+    <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
+    <ClInclude Include="..\..\Inicio\Inicio.h" />
+  </ItemGroup>
+</Project>

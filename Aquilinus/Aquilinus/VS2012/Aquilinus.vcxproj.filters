@@ -1,0 +1,879 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="AQU_DetourClasses">
+      <UniqueIdentifier>{a52769d1-e6d2-4b45-8bfd-307db7742236}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX10">
+      <UniqueIdentifier>{0d2dc71a-503d-4e6a-b400-ddd66218fbe6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods">
+      <UniqueIdentifier>{12ca419f-6bb2-4121-9e8e-b693ba327c5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX10">
+      <UniqueIdentifier>{fc261251-82b1-4b99-be87-8ade3b249150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DirectDraw">
+      <UniqueIdentifier>{8ef99660-9a80-4e16-9713-3a029a1d5d9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Resources">
+      <UniqueIdentifier>{14799bfa-ab2b-41f0-96b0-71dc97a8d505}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_WorkingArea">
+      <UniqueIdentifier>{1fccad9e-47ae-43fe-bf08-db88af415118}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes">
+      <UniqueIdentifier>{c239b9b5-4031-4ce9-ba13-9c7c8e19cd35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\Basic">
+      <UniqueIdentifier>{c301db6f-a4a0-4854-8ef2-495e555fe2ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9">
+      <UniqueIdentifier>{ce6498b2-bb54-4e8a-b5ab-7e1bdf1212b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9">
+      <UniqueIdentifier>{5f87ad35-78d7-4aed-beec-a03ec4b435d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX11">
+      <UniqueIdentifier>{a3c3c9bd-f27f-4ba2-818e-f6426540f293}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX11">
+      <UniqueIdentifier>{cd130325-602e-42c7-a3b0-301b77fa2bac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9">
+      <UniqueIdentifier>{66676934-c144-4404-820a-0f6bed80e79d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DPixelShader9">
+      <UniqueIdentifier>{16cdb747-e0dd-4b49-a750-e1722d580a00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DQuery9">
+      <UniqueIdentifier>{2b9e5f35-b109-422b-9479-82ebedbb7af9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DStateBlock9">
+      <UniqueIdentifier>{acfad3f1-3a03-40ad-8c2e-9a25d5647e62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DSwapChain9">
+      <UniqueIdentifier>{6a00202f-eb61-4e0b-8a3b-00cad1f2118d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexDeclaration9">
+      <UniqueIdentifier>{0355350e-02e5-48cc-bf36-be0b5417bb96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexShader9">
+      <UniqueIdentifier>{cdda36ff-e8ab-48af-84ed-9c2796ec5be8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DVolume9">
+      <UniqueIdentifier>{2b0725be-a802-47ca-9132-9c0254ff89c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DDevice9">
+      <UniqueIdentifier>{aa9fb10a-6fe7-499a-a9cd-c3ceb3ad33b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9">
+      <UniqueIdentifier>{98ca5d77-894d-4c52-b87a-cd06a71fd093}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DPixelShader9">
+      <UniqueIdentifier>{8069fa9f-d8b7-4f45-b32f-dcf7331c8ada}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DQuery9">
+      <UniqueIdentifier>{11e7c457-0107-4c5f-b6da-834547d3b34e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DStateBlock9">
+      <UniqueIdentifier>{f0691b5b-7fc3-42a1-8e90-4795099f21dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DSwapChain9">
+      <UniqueIdentifier>{023e4af7-b6ce-421a-b004-a729a8f8f30a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DVertexDeclaration9">
+      <UniqueIdentifier>{92e40e07-5791-4ba8-a87d-058b02dd1145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DVertexShader9">
+      <UniqueIdentifier>{893b4bf9-eb49-486e-9826-760bba05e518}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DVolume9">
+      <UniqueIdentifier>{0737cdc5-468b-4d27-bb04-2ac86627bbbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DSurface9">
+      <UniqueIdentifier>{c35576d0-0c18-43c8-89a5-06864d6922c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DVertexBuffer9">
+      <UniqueIdentifier>{b6de60a1-057f-4857-acc3-cc786c6ae8b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9">
+      <UniqueIdentifier>{26188dfe-ffe6-4827-b959-5bf595ba76e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DIndexBuffer9">
+      <UniqueIdentifier>{bfba38d8-41a4-4e31-a6d6-614e915090fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9\DMT_IDirect3DTexture9">
+      <UniqueIdentifier>{46d460cb-52ce-4390-bd63-b4fdfbbe272e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9\DMT_IDirect3DCubeTexture9">
+      <UniqueIdentifier>{c43473d7-8c7d-4422-b74a-000be275f2e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9\DMT_IDirect3DVolumeTexture9">
+      <UniqueIdentifier>{7049e119-c7eb-4de4-9b01-cd0f76992fc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9">
+      <UniqueIdentifier>{41764033-eeff-42db-8310-72d84c70ddac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DSurface9">
+      <UniqueIdentifier>{75d92e66-92e6-4f64-90af-ffe36dff924a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DVertexBuffer9">
+      <UniqueIdentifier>{ef078851-41da-413b-ab12-7f9592425f6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9">
+      <UniqueIdentifier>{9907e52b-3c2a-4c3a-a633-7e1a21c0ca2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DTexture9">
+      <UniqueIdentifier>{ce783ab9-8830-4138-b898-bd4195a209c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DCubeTexture9">
+      <UniqueIdentifier>{897535b2-c115-41ae-8f04-05fc2b8970af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DVolumeTexture9">
+      <UniqueIdentifier>{618a7f29-0693-4ee1-b44d-fafa91a8f86f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DIndexBuffer9">
+      <UniqueIdentifier>{5fbea2c8-6ea1-4baa-8a22-d4b63dc06139}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables">
+      <UniqueIdentifier>{681ff860-8232-49f1-b047-0b6a6789ad2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables">
+      <UniqueIdentifier>{eb53003d-2417-42f6-9135-b2dbbab6d720}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX10">
+      <UniqueIdentifier>{96811407-ec32-4f20-8c9f-28c4a5553426}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9">
+      <UniqueIdentifier>{f00a0005-58c1-408c-abda-a2978c736b74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DDevice9">
+      <UniqueIdentifier>{e088fb6a-f17a-4ded-afb0-cb60ffec1461}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DDevice9\VMT_IDirect3DDevice9Ex">
+      <UniqueIdentifier>{6dcaf942-266f-4e5f-8bbd-14e868c5da1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DPixelShader9">
+      <UniqueIdentifier>{72937b83-94ca-4f26-b827-760d7936ad40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DQuery9">
+      <UniqueIdentifier>{143693a1-d224-472f-ae60-7c5b6c371f9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9">
+      <UniqueIdentifier>{e921720c-e80f-42b1-9b54-e079dfb5b69c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9">
+      <UniqueIdentifier>{835603d0-89bd-4db1-a238-e5403f21365b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9\VMT_IDirect3DCubeTexture9">
+      <UniqueIdentifier>{b829b063-21ec-41cc-9131-b9ea6ae4b6bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9\VMT_IDirect3DTexture9">
+      <UniqueIdentifier>{053678fe-5165-4e59-b74f-cdf423198572}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9\VMT_IDirect3DVolumeTexture9">
+      <UniqueIdentifier>{e98a3dc1-c17d-4f8b-993a-25ef9a52c420}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DIndexBuffer9">
+      <UniqueIdentifier>{f81099aa-a716-40c1-bbe9-dc36f87b2585}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DSurface9">
+      <UniqueIdentifier>{5595c8d4-3d74-4298-b117-39921713c65e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DVertexBuffer9">
+      <UniqueIdentifier>{b6f215d7-13be-440f-8176-f845a2ef088b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DStateBlock9">
+      <UniqueIdentifier>{21a59d62-2f78-472a-a67a-3a206659f84f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DSwapChain9">
+      <UniqueIdentifier>{16ab5f97-26e3-4258-b2c8-c978fe7e248f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DVertexDeclaration9">
+      <UniqueIdentifier>{df455c91-21aa-4dfb-9ca2-cd9573a6bdf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DVertexShader9">
+      <UniqueIdentifier>{8c7d0815-8ada-4982-be51-73c5564f28d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DVolume9">
+      <UniqueIdentifier>{008e2dac-f912-43c2-b896-3ee6730c3b18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\DirectX11">
+      <UniqueIdentifier>{aa512756-52d3-47a8-b4c8-309ccb72accd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_InterfaceTables">
+      <UniqueIdentifier>{69b34c53-3e61-451b-98bc-934a5c6223e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_TransferSite">
+      <UniqueIdentifier>{2f9b8200-4d98-4ea5-9ba9-7caf11d22fbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_FileManager">
+      <UniqueIdentifier>{dbd179d8-3c3a-4ebc-bbb2-5c7bba86f060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9">
+      <UniqueIdentifier>{125af846-8832-4919-981c-236e1b937bb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DDevice9">
+      <UniqueIdentifier>{d01ce919-1ee5-4188-b3c6-d4a66b88d993}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\Elementary">
+      <UniqueIdentifier>{bc5e1a34-412e-42b6-a389-b1a7b467c1fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9">
+      <UniqueIdentifier>{1f92f865-2b13-422b-a419-e766777edc08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DPixelShader9">
+      <UniqueIdentifier>{4062c3b8-a28e-451a-953c-4f91390a7d61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DQuery9">
+      <UniqueIdentifier>{9ac0e997-d27c-4f95-b5e0-930383d4ebcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DStateBlock9">
+      <UniqueIdentifier>{0b3b2bc8-5380-4c6b-8082-1861127cbfdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DSwapChain9">
+      <UniqueIdentifier>{881ec07a-387b-487d-8f2f-cef140ae97e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DVertexDeclaration9">
+      <UniqueIdentifier>{eb051b0f-6111-46fc-98d1-ad55ccd0c90b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DVertexShader9">
+      <UniqueIdentifier>{9195f533-581c-4ca4-8495-7dd8abe3122c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DVolume9">
+      <UniqueIdentifier>{c7fd85e9-8e57-4dd4-8eaf-7ddfe5dbdcdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9">
+      <UniqueIdentifier>{7778dfea-8b0a-4900-b8a9-6343bed9531e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DIndexBuffer9">
+      <UniqueIdentifier>{367a921a-8216-4b03-bc5e-6e0cc660fdfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DVertexBuffer9">
+      <UniqueIdentifier>{c90ea7b9-3d49-4bc6-aab2-5b32e96c89e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DSurface9">
+      <UniqueIdentifier>{1bd893d6-ce92-4ab5-a1dc-afae8aa334fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9\NOD_IDirect3DTexture9">
+      <UniqueIdentifier>{c4c5c1f1-7a10-4746-9a49-750a28da2b32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9\NOD_IDirect3DCubeTexture9">
+      <UniqueIdentifier>{a4aed4b6-ac48-4f66-ae0c-28d8d12242cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9\NOD_IDirect3DVolumeTexture9">
+      <UniqueIdentifier>{60e9126e-187c-4597-83a1-66e44f7f4c69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX9\NOD_IDirect3DDevice9\NOD_IDirect3DDevice9Ex">
+      <UniqueIdentifier>{dcf5b069-8042-483c-ad43-265d2b2178c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9\DCL_IDirect3DDevice9Ex">
+      <UniqueIdentifier>{6d4f756e-50ad-48ca-b80f-e411783cb3c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_DetourMethods\DirectX9\DMT_IDirect3DDevice9\DMT_IDirect3DDevice9Ex">
+      <UniqueIdentifier>{46af6134-05bd-411a-8098-bf02edd109b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\Plugin">
+      <UniqueIdentifier>{405e621b-c3cb-4a0c-a128-436cab120827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\Direct3DOps">
+      <UniqueIdentifier>{5b957bb3-cdb5-4011-9472-1ebbd79d80df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Tables\AQU_VirtualMethodTables\IDXGI">
+      <UniqueIdentifier>{016608ed-8e22-4ee7-900d-96ec0d1747b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX10">
+      <UniqueIdentifier>{1ed55fdc-5db6-4b04-9492-f43f0ee0d14c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\DirectX11">
+      <UniqueIdentifier>{06e76516-f62b-4e13-87d6-6af35e7ad292}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Aquilinus.h" />
+    <ClInclude Include="..\AQU_DirectDraw.h">
+      <Filter>AQU_DirectDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_DirectDrawFields.h">
+      <Filter>AQU_DirectDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Resources.h">
+      <Filter>AQU_Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AquilinusCfg.h" />
+    <ClInclude Include="..\NOD_Basic.h">
+      <Filter>AQU_Nodes\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_Nodes.h">
+      <Filter>AQU_Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_Detour.h">
+      <Filter>AQU_DetourClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_WorkingArea.h">
+      <Filter>AQU_WorkingArea</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D10Device.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D10Device_Super.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D10Device.h">
+      <Filter>AQU_DetourMethods\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_ID3D10Device.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDXGISwapChain.h">
+      <Filter>AQU_DetourMethods\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDXGISwapChain.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDXGISwapChain_Super.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11Device.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11Device_Super.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D11Device.h">
+      <Filter>AQU_DetourMethods\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_ID3D11Device.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11DeviceContext.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11DeviceContext_Super.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D11DeviceContext.h">
+      <Filter>AQU_DetourMethods\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_ID3D11DeviceContext.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_ID3D11Device1.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_ID3D10Device1.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_ID3D11DeviceContext1.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IUnknown.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DDevice9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DDevice9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DDevice9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DDevice9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DPixelShader9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DPixelShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DPixelShader9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DPixelShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DQuery9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DQuery9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DQuery9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DQuery9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DBaseTexture9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DBaseTexture9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DCubeTexture9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DCubeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DCubeTexture9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DCubeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DTexture9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DTexture9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVolumeTexture9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DVolumeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVolumeTexture9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DVolumeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DIndexBuffer9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DIndexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DIndexBuffer9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DIndexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DSurface9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DSurface9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DSurface9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DSurface9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVertexBuffer9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DVertexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVertexBuffer9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DVertexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DStateBlock9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DStateBlock9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DStateBlock9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DStateBlock9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DSwapChain9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DSwapChain9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DSwapChain9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DSwapChain9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVertexDeclaration9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexDeclaration9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVertexDeclaration9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexDeclaration9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVertexShader9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVertexShader9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVolume9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVolume9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DVolume9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVolume9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DResource9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DDevice9Ex.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DDevice9\VMT_IDirect3DDevice9Ex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DCubeTexture9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9\VMT_IDirect3DCubeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DTexture9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9\VMT_IDirect3DTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DVolumeTexture9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9\VMT_IDirect3DVolumeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DBaseTexture9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DBaseTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DIndexBuffer9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DIndexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DSurface9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DSurface9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DVertexBuffer9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DResource9\VMT_IDirect3DVertexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DStateBlock9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DStateBlock9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DSwapChain9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DSwapChain9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DVertexDeclaration9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DVertexDeclaration9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DVertexShader9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DVertexShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DVolume9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DVolume9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DPixelShader9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DPixelShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDirect3DQuery9.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\DirectX9\VMT_IDirect3DQuery9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DResource9.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DResource9_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ITA_D3D9Interfaces.h">
+      <Filter>AQU_Tables\AQU_InterfaceTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ITA_D3D10Interfaces.h">
+      <Filter>AQU_Tables\AQU_InterfaceTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ITA_D3D11Interfaces.h">
+      <Filter>AQU_Tables\AQU_InterfaceTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_GlobalTypes.h" />
+    <ClInclude Include="..\AQU_SupportedInterfaces.h">
+      <Filter>AQU_Tables\AQU_InterfaceTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DPixelShader9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DPixelShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DQuery9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DQuery9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DStateBlock9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DStateBlock9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DSwapChain9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DSwapChain9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DVertexDeclaration9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DVertexDeclaration9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DVertexShader9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DVertexShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DVolume9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DVolume9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DIndexBuffer9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DIndexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DSurface9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DSurface9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DVertexBuffer9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DVertexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DBaseTexture9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DVolumeTexture9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9\DMT_IDirect3DVolumeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DTexture9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9\DMT_IDirect3DTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DCubeTexture9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9\DMT_IDirect3DBaseTexture9\DMT_IDirect3DCubeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DResource9.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DResource9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_TransferSite.h">
+      <Filter>AQU_TransferSite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_NodesStructures.h">
+      <Filter>AQU_Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_FileManager.h">
+      <Filter>AQU_FileManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DDevice9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DPixelShader9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DPixelShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DQuery9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DQuery9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DStateBlock9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DStateBlock9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DSwapChain9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DSwapChain9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DVertexDeclaration9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DVertexDeclaration9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DVertexShader9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DVertexShader9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DVolume9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DVolume9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DIndexBuffer9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DIndexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DSurface9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DSurface9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DVertexBuffer9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DVertexBuffer9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DBaseTexture9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DVolumeTexture9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9\NOD_IDirect3DVolumeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DTexture9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9\NOD_IDirect3DTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DCubeTexture9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9\NOD_IDirect3DBaseTexture9\NOD_IDirect3DCubeTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DResource9.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DResource9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_FixedValues.h">
+      <Filter>AQU_Nodes\Elementary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_HelloWorldDx9.h">
+      <Filter>AQU_Nodes\Elementary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_DecodePNG.h">
+      <Filter>AQU_DirectDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_Deflate.h">
+      <Filter>AQU_DirectDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDirect3DDevice9Ex.h">
+      <Filter>AQU_Nodes\DirectX9\NOD_IDirect3DDevice9\NOD_IDirect3DDevice9Ex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DDevice9ex.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9\DCL_IDirect3DDevice9Ex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDirect3DDevice9ex_Super.h">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9\DCL_IDirect3DDevice9Ex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDirect3DDevice9Ex.h">
+      <Filter>AQU_DetourMethods\DirectX9\DMT_IDirect3DDevice9\DMT_IDirect3DDevice9Ex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_Plugin.h">
+      <Filter>AQU_Nodes\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_FrameDecalDx9.h">
+      <Filter>AQU_Nodes\Direct3DOps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_DebugOutput.h">
+      <Filter>AQU_Nodes\Elementary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ITA_DXGIInterfaces.h">
+      <Filter>AQU_Tables\AQU_InterfaceTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDXGIObject.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\IDXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDXGISwapChain.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\IDXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDXGISwapChain1.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\IDXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\VMT_IDXGIDeviceSubObject.h">
+      <Filter>AQU_Tables\AQU_VirtualMethodTables\IDXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D10Device.h">
+      <Filter>AQU_Nodes\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D10Device1.h">
+      <Filter>AQU_Nodes\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDXGISwapChain.h">
+      <Filter>AQU_Nodes\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDXGISwapChain1.h">
+      <Filter>AQU_Nodes\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_IDXGISwapChain2.h">
+      <Filter>AQU_Nodes\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D11Device.h">
+      <Filter>AQU_Nodes\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D11Device1.h">
+      <Filter>AQU_Nodes\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D11Device2.h">
+      <Filter>AQU_Nodes\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D10Device1.h">
+      <Filter>AQU_DetourMethods\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDXGISwapChain1.h">
+      <Filter>AQU_DetourMethods\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_IDXGISwapChain2.h">
+      <Filter>AQU_DetourMethods\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D11Device1.h">
+      <Filter>AQU_DetourMethods\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D11Device2.h">
+      <Filter>AQU_DetourMethods\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D11DeviceContext1.h">
+      <Filter>AQU_DetourMethods\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DMT_ID3D11DeviceContext2.h">
+      <Filter>AQU_DetourMethods\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D11DeviceContext.h">
+      <Filter>AQU_Nodes\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D11DeviceContext1.h">
+      <Filter>AQU_Nodes\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_ID3D11DeviceContext2.h">
+      <Filter>AQU_Nodes\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NOD_HelloWorldDx10.h">
+      <Filter>AQU_Nodes\Elementary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D10Device1.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D10Device1_Super.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11Device1.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11Device1_Super.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11DeviceContext1.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_ID3D11DeviceContext1_Super.h">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDXGISwapChain1.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DCL_IDXGISwapChain1_Super.h">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Aquilinus.cpp" />
+    <ClCompile Include="..\AQU_DirectDraw.cpp">
+      <Filter>AQU_DirectDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NOD_Basic.cpp">
+      <Filter>AQU_Nodes\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AQU_WorkingArea.cpp">
+      <Filter>AQU_WorkingArea</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_ID3D10Device.cpp">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDXGISwapChain.cpp">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_ID3D11Device.cpp">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_ID3D11DeviceContext.cpp">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DDevice9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DPixelShader9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DPixelShader9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DQuery9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DQuery9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DBaseTexture9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DCubeTexture9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DCubeTexture9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DTexture9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DTexture9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DVolumeTexture9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DBaseTexture9\DCL_IDirect3DVolumeTexture9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DIndexBuffer9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DIndexBuffer9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DSurface9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DSurface9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DVertexBuffer9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9\DCL_IDirect3DVertexBuffer9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DStateBlock9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DStateBlock9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DSwapChain9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DSwapChain9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DVertexDeclaration9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexDeclaration9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DVertexShader9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVertexShader9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DVolume9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DVolume9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DResource9.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DResource9</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AQU_TransferSite.cpp">
+      <Filter>AQU_TransferSite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AQU_FileManager.cpp">
+      <Filter>AQU_FileManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NOD_HelloWorldDx9.cpp">
+      <Filter>AQU_Nodes\Elementary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDirect3DDevice9ex.cpp">
+      <Filter>AQU_DetourClasses\DirectX9\DCL_IDirect3DDevice9\DCL_IDirect3DDevice9Ex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NOD_Plugin.cpp">
+      <Filter>AQU_Nodes\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NOD_FrameDecalDx9.cpp">
+      <Filter>AQU_Nodes\Direct3DOps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NOD_HelloWorldDx10.cpp">
+      <Filter>AQU_Nodes\Elementary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_ID3D10Device1.cpp">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_ID3D11Device1.cpp">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_ID3D11DeviceContext1.cpp">
+      <Filter>AQU_DetourClasses\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDXGISwapChain1.cpp">
+      <Filter>AQU_DetourClasses\DirectX10</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Aquilinus_Resources.rc">
+      <Filter>AQU_Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

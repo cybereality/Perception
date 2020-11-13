@@ -1,0 +1,477 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Developer|Win32">
+      <Configuration>Developer</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Developer|x64">
+      <Configuration>Developer</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{446063BD-E949-4F83-BE26-2188947FADED}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Aquilinus</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Developer|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Developer|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Developer|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Developer|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Developer|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Developer|x64'">
+    <TargetName>$(ProjectName)_$(Platform)</TargetName>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;AQUILINUS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;Glu32.lib;winmm.lib;ddraw.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;AQUILINUS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;Glu32.lib;winmm.lib;ddraw.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;AQUILINUS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;Glu32.lib;winmm.lib;ddraw.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;AQUILINUS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;Glu32.lib;winmm.lib;ddraw.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Developer|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>DEVELOPER_BUILD;WIN32;NDEBUG;_WINDOWS;_USRDLL;AQUILINUS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;Glu32.lib;winmm.lib;ddraw.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Developer|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>DEVELOPER_BUILD;WIN32;NDEBUG;_WINDOWS;_USRDLL;AQUILINUS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;Glu32.lib;winmm.lib;ddraw.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Aquilinus.cpp" />
+    <ClCompile Include="..\AQU_DirectDraw.cpp" />
+    <ClInclude Include="..\AQU_2DData.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClCompile Include="..\AQU_FileManager.cpp" />
+    <ClCompile Include="..\AQU_OpenGL.cpp" />
+    <ClCompile Include="..\AQU_TransferSite.cpp" />
+    <ClCompile Include="..\AQU_WorkingArea.cpp" />
+    <ClCompile Include="..\DCL_ID3D10Device.cpp" />
+    <ClCompile Include="..\DCL_ID3D10Device1.cpp" />
+    <ClCompile Include="..\DCL_ID3D11Device.cpp" />
+    <ClCompile Include="..\DCL_ID3D11Device1.cpp" />
+    <ClCompile Include="..\DCL_ID3D11DeviceContext.cpp" />
+    <ClCompile Include="..\DCL_ID3D11DeviceContext1.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DDevice9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DDevice9ex.cpp" />
+    <ClCompile Include="..\DCL_IDXGISwapChain.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Developer|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\DCL_IDXGISwapChain1.cpp" />
+    <ClCompile Include="..\NOD_Basic.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DResource9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DQuery9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DPixelShader9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DBaseTexture9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DVertexDeclaration9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DVertexShader9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DVolume9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DIndexBuffer9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DSurface9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DVertexBuffer9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DCubeTexture9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DTexture9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DVolumeTexture9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DStateBlock9.cpp" />
+    <ClCompile Include="..\DCL_IDirect3DSwapChain9.cpp" />
+    <ClCompile Include="..\NOD_FrameDecalDx9.cpp" />
+    <ClCompile Include="..\NOD_HelloWorldDx10.cpp" />
+    <ClCompile Include="..\NOD_HelloWorldDx9.cpp" />
+    <ClCompile Include="..\NOD_Plugin.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Aquilinus.h" />
+    <ClInclude Include="..\AquilinusCfg.h" />
+    <ClInclude Include="..\AQU_DecodePNG.h" />
+    <ClInclude Include="..\AQU_Deflate.h" />
+    <ClInclude Include="..\AQU_Detour.h" />
+    <ClInclude Include="..\AQU_DirectDraw.h" />
+    <ClInclude Include="..\AQU_DrawerFields.h" />
+    <ClInclude Include="..\AQU_Drawer.h" />
+    <ClInclude Include="..\AQU_DrawingAPI.h" />
+    <ClInclude Include="..\AQU_FileManager.h" />
+    <ClInclude Include="..\AQU_GlobalTypes.h" />
+    <ClInclude Include="..\AQU_NodesStructures.h" />
+    <ClInclude Include="..\AQU_OpenGL.h" />
+    <ClInclude Include="..\AQU_SupportedInterfaces.h" />
+    <ClInclude Include="..\AQU_TransferSite.h" />
+    <ClInclude Include="..\AQU_WorkingArea.h" />
+    <ClInclude Include="..\AQU_Nodes.h" />
+    <ClInclude Include="..\DCL_ID3D10Device.h" />
+    <ClInclude Include="..\DCL_ID3D10Device1.h" />
+    <ClInclude Include="..\DCL_ID3D10Device1_Super.h" />
+    <ClInclude Include="..\DCL_ID3D10Device_Super.h" />
+    <ClInclude Include="..\DCL_ID3D11Device.h" />
+    <ClInclude Include="..\DCL_ID3D11Device1.h" />
+    <ClInclude Include="..\DCL_ID3D11Device1_Super.h" />
+    <ClInclude Include="..\DCL_ID3D11DeviceContext.h" />
+    <ClInclude Include="..\DCL_ID3D11DeviceContext1.h" />
+    <ClInclude Include="..\DCL_ID3D11DeviceContext1_Super.h" />
+    <ClInclude Include="..\DCL_ID3D11Device_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DDevice9.h" />
+    <ClInclude Include="..\DCL_IDirect3DDevice9ex.h" />
+    <ClInclude Include="..\DCL_IDirect3DDevice9ex_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DDevice9_Super.h" />
+    <ClInclude Include="..\DCL_IDXGISwapChain1.h" />
+    <ClInclude Include="..\DCL_IDXGISwapChain1_Super.h" />
+    <ClInclude Include="..\DMT_ID3D10Device.h" />
+    <ClInclude Include="..\DMT_ID3D10Device1.h" />
+    <ClInclude Include="..\DMT_ID3D11Device.h" />
+    <ClInclude Include="..\DMT_ID3D11Device1.h" />
+    <ClInclude Include="..\DMT_ID3D11Device2.h" />
+    <ClInclude Include="..\DMT_ID3D11DeviceContext.h" />
+    <ClInclude Include="..\DMT_ID3D11DeviceContext1.h" />
+    <ClInclude Include="..\DMT_ID3D11DeviceContext2.h" />
+    <ClInclude Include="..\DMT_IDirect3DBaseTexture9.h" />
+    <ClInclude Include="..\DMT_IDirect3DCubeTexture9.h" />
+    <ClInclude Include="..\DMT_IDirect3DDevice9.h" />
+    <ClInclude Include="..\DCL_ID3D11DeviceContext_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DResource9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DResource9.h" />
+    <ClInclude Include="..\DCL_IDirect3DQuery9.h" />
+    <ClInclude Include="..\DCL_IDirect3DQuery9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DBaseTexture9.h" />
+    <ClInclude Include="..\DCL_IDirect3DBaseTexture9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DCubeTexture9.h" />
+    <ClInclude Include="..\DCL_IDirect3DCubeTexture9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DTexture9.h" />
+    <ClInclude Include="..\DCL_IDirect3DTexture9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DVolumeTexture9.h" />
+    <ClInclude Include="..\DCL_IDirect3DVolumeTexture9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DStateBlock9.h" />
+    <ClInclude Include="..\DCL_IDirect3DStateBlock9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DSwapChain9.h" />
+    <ClInclude Include="..\DCL_IDirect3DSwapChain9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DPixelShader9.h" />
+    <ClInclude Include="..\DCL_IDirect3DVertexDeclaration9.h" />
+    <ClInclude Include="..\DCL_IDirect3DVertexDeclaration9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DVertexShader9.h" />
+    <ClInclude Include="..\DCL_IDirect3DVertexShader9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DVolume9.h" />
+    <ClInclude Include="..\DCL_IDirect3DVolume9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DPixelShader9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DIndexBuffer9.h" />
+    <ClInclude Include="..\DCL_IDirect3DIndexBuffer9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DSurface9.h" />
+    <ClInclude Include="..\DCL_IDirect3DSurface9_Super.h" />
+    <ClInclude Include="..\DCL_IDirect3DVertexBuffer9.h" />
+    <ClInclude Include="..\DCL_IDirect3DVertexBuffer9_Super.h" />
+    <ClInclude Include="..\DMT_IDirect3DDevice9Ex.h" />
+    <ClInclude Include="..\DMT_IDirect3DIndexBuffer9.h" />
+    <ClInclude Include="..\DMT_IDirect3DPixelShader9.h" />
+    <ClInclude Include="..\DMT_IDirect3DQuery9.h" />
+    <ClInclude Include="..\DMT_IDirect3DResource9.h" />
+    <ClInclude Include="..\DMT_IDirect3DStateBlock9.h" />
+    <ClInclude Include="..\DMT_IDirect3DSurface9.h" />
+    <ClInclude Include="..\DMT_IDirect3DSwapChain9.h" />
+    <ClInclude Include="..\DMT_IDirect3DTexture9.h" />
+    <ClInclude Include="..\DMT_IDirect3DVertexBuffer9.h" />
+    <ClInclude Include="..\DMT_IDirect3DVertexDeclaration9.h" />
+    <ClInclude Include="..\DMT_IDirect3DVertexShader9.h" />
+    <ClInclude Include="..\DMT_IDirect3DVolume9.h" />
+    <ClInclude Include="..\DMT_IDirect3DVolumeTexture9.h" />
+    <ClInclude Include="..\DMT_IDXGISwapChain1.h" />
+    <ClInclude Include="..\DMT_IDXGISwapChain2.h" />
+    <ClInclude Include="..\ITA_D3D10Interfaces.h" />
+    <ClInclude Include="..\ITA_D3D11Interfaces.h" />
+    <ClInclude Include="..\ITA_D3D9Interfaces.h" />
+    <ClInclude Include="..\ITA_DXGIInterfaces.h" />
+    <ClInclude Include="..\NOD_D3DX9.h" />
+    <ClInclude Include="..\NOD_DebugOutput.h" />
+    <ClInclude Include="..\NOD_FixedValues.h" />
+    <ClInclude Include="..\NOD_FrameDecalDx9.h" />
+    <ClInclude Include="..\NOD_HelloWorldDx10.h" />
+    <ClInclude Include="..\NOD_HelloWorldDx9.h" />
+    <ClInclude Include="..\NOD_ID3D10Device.h" />
+    <ClInclude Include="..\NOD_ID3D10Device1.h" />
+    <ClInclude Include="..\NOD_ID3D11Device.h" />
+    <ClInclude Include="..\NOD_ID3D11Device1.h" />
+    <ClInclude Include="..\NOD_ID3D11Device2.h" />
+    <ClInclude Include="..\NOD_ID3D11DeviceContext.h" />
+    <ClInclude Include="..\NOD_ID3D11DeviceContext1.h" />
+    <ClInclude Include="..\NOD_ID3D11DeviceContext2.h" />
+    <ClInclude Include="..\NOD_IDirect3DDevice9.h" />
+    <ClInclude Include="..\NOD_IDirect3DDevice9Ex.h" />
+    <ClInclude Include="..\NOD_IDirect3DPixelShader9.h" />
+    <ClInclude Include="..\NOD_IDirect3DQuery9.h" />
+    <ClInclude Include="..\NOD_IDirect3DStateBlock9.h" />
+    <ClInclude Include="..\NOD_IDirect3DSwapChain9.h" />
+    <ClInclude Include="..\NOD_IDirect3DVertexDeclaration9.h" />
+    <ClInclude Include="..\NOD_IDirect3DVertexShader9.h" />
+    <ClInclude Include="..\NOD_IDirect3DVolume9.h" />
+    <ClInclude Include="..\NOD_IDirect3DIndexBuffer9.h" />
+    <ClInclude Include="..\NOD_IDirect3DSurface9.h" />
+    <ClInclude Include="..\NOD_IDirect3DVertexBuffer9.h" />
+    <ClInclude Include="..\NOD_IDirect3DBaseTexture9.h" />
+    <ClInclude Include="..\NOD_IDirect3DVolumeTexture9.h" />
+    <ClInclude Include="..\NOD_IDirect3DTexture9.h" />
+    <ClInclude Include="..\NOD_IDirect3DCubeTexture9.h" />
+    <ClInclude Include="..\NOD_IDirect3DResource9.h" />
+    <ClInclude Include="..\NOD_IDXGISwapChain.h" />
+    <ClInclude Include="..\NOD_IDXGISwapChain1.h" />
+    <ClInclude Include="..\NOD_IDXGISwapChain2.h" />
+    <ClInclude Include="..\NOD_MathOperations.h" />
+    <ClInclude Include="..\NOD_Plugin.h" />
+    <ClInclude Include="..\VMT_IDirect3DPixelShader9.h" />
+    <ClInclude Include="..\VMT_IDirect3DQuery9.h" />
+    <ClInclude Include="..\VMT_IDirect3DSwapChain9.h" />
+    <ClInclude Include="..\VMT_IDirect3DVertexDeclaration9.h" />
+    <ClInclude Include="..\VMT_IDirect3DVertexShader9.h" />
+    <ClInclude Include="..\VMT_IDirect3DVolume9.h" />
+    <ClInclude Include="..\VMT_IDirect3DIndexBuffer9.h" />
+    <ClInclude Include="..\VMT_IDirect3DBaseTexture9.h" />
+    <ClInclude Include="..\VMT_IDirect3DCubeTexture9.h" />
+    <ClInclude Include="..\VMT_IDirect3DTexture9.h" />
+    <ClInclude Include="..\VMT_IDirect3DVolumeTexture9.h" />
+    <ClInclude Include="..\VMT_IDirect3DSurface9.h" />
+    <ClInclude Include="..\VMT_IDirect3DVertexBuffer9.h" />
+    <ClInclude Include="..\VMT_IDirect3DStateBlock9.h" />
+    <ClInclude Include="..\VMT_IDirect3DDevice9Ex.h" />
+    <ClInclude Include="..\VMT_IDirect3DResource9.h" />
+    <ClInclude Include="..\VMT_IDXGIDeviceSubObject.h" />
+    <ClInclude Include="..\VMT_IDXGIObject.h" />
+    <ClInclude Include="..\VMT_IDXGISwapChain1.h" />
+    <ClInclude Include="..\VMT_ID3D11DeviceContext1.h" />
+    <ClInclude Include="..\NOD_Basic.h" />
+    <ClInclude Include="..\DCL_IDXGISwapChain.h" />
+    <ClInclude Include="..\DCL_IDXGISwapChain_Super.h" />
+    <ClInclude Include="..\DMT_IDXGISwapChain.h" />
+    <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\VMT_ID3D10Device.h" />
+    <ClInclude Include="..\VMT_ID3D10Device1.h" />
+    <ClInclude Include="..\VMT_ID3D11Device.h" />
+    <ClInclude Include="..\VMT_ID3D11Device1.h" />
+    <ClInclude Include="..\VMT_ID3D11DeviceContext.h" />
+    <ClInclude Include="..\VMT_IDirect3DDevice9.h" />
+    <ClInclude Include="..\VMT_IDXGISwapChain.h" />
+    <ClInclude Include="..\VMT_IUnknown.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Aquilinus_Resources.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

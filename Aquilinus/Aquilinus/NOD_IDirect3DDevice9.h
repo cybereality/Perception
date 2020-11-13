@@ -1,0 +1,1676 @@
+/********************************************************************
+Vireio Perception : Open-Source Stereoscopic 3D Driver
+Copyright (C) 2012 Andres Hernandez
+
+Aquilinus : Vireio Perception 3D Modification Studio 
+Copyright © 2014 Denis Reischl
+
+Vireio Perception Version History:
+v1.0.0 2012 by Andres Hernandez
+v1.0.X 2013 by John Hicks, Neil Schneider
+v1.1.x 2013 by Primary Coding Author: Chris Drain
+Team Support: John Hicks, Phil Larkson, Neil Schneider
+v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown
+v2.0.4 to v3.0.x 2014-2015 by Grant Bagwell, Simon Brown and Neil Schneider
+v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown and Neil Schneider
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+********************************************************************/
+#ifndef NOD_IDIRECT3DDEVICE9
+#define NOD_IDIRECT3DDEVICE9
+
+#include "VMT_IDirect3DDevice9.h"
+
+#pragma region IDirect3DDevice9 nodes
+
+/**
+* HRESULT WINAPI QueryInterface (REFIID riid, void** ppvObj);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_QueryInterface, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::QueryInterface");
+AQU_D3D_NODE_COMMANDER(AQU_REFIID, L"riid");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_VOID, L"ppvObj");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IUNKNOWN::QueryInterface);
+AQU_D3D_NODE_FOOTER___;
+/**
+* ULONG   WINAPI AddRef(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_AddRef, 200, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::AddRef");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IUNKNOWN::AddRef);
+AQU_D3D_NODE_FOOTER___;
+/**
+* ULONG   WINAPI Release(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_Release, 210, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::Release");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IUNKNOWN::Release);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI TestCooperativeLevel(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_TestCooperativeLevel, 340, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::TestCooperativeLevel");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::TestCooperativeLevel);
+AQU_D3D_NODE_FOOTER___;
+/**
+* UINT    WINAPI GetAvailableTextureMem(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetAvailableTextureMem, 360, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetAvailableTextureMem");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI EvictManagedResources(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_EvictManagedResources, 350, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::EvictManagedResources");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::EvictManagedResources);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetDirect3D(IDirect3D9** ppD3D9);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetDirect3D, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetDirect3D");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3D9, L"ppD3D9");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetDirect3D);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetDeviceCaps(D3DCAPS9* pCaps);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetDeviceCaps, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetDeviceCaps");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DCAPS9, L"pCaps");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetDeviceCaps);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetDisplayMode(UINT iSwapChain,D3DDISPLAYMODE* pMode);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetDisplayMode, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetDisplayMode");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DDISPLAYMODE, L"pMode");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetDisplayMode);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetCreationParameters, 350, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetCreationParameters");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DDEVICE_CREATION_PARAMETERS, L"pParameters");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetCreationParameters);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetCursorProperties, 330, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetCursorProperties");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"XHotSpot");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"YHotSpot");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pCursorBitmap");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetCursorProperties);
+AQU_D3D_NODE_FOOTER___;
+/**
+* void    WINAPI SetCursorPosition(int X,int Y,DWORD Flags);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetCursorPosition, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetCursorPosition");
+AQU_D3D_NODE_COMMANDER(AQU_INT, L"X");
+AQU_D3D_NODE_COMMANDER(AQU_INT, L"Y");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Flags");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetCursorPosition);
+AQU_D3D_NODE_FOOTER___;
+/**
+* BOOL    WINAPI ShowCursor(BOOL bShow);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_ShowCursor, 240, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::ShowCursor");
+AQU_D3D_NODE_COMMANDER(AQU_BOOL, L"bShow");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::ShowCursor);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)  ;
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateAdditionalSwapChain, 390, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateAdditionalSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DPRESENT_PARAMETERS, L"pPresentationParameters");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSWAPCHAIN9, L"pSwapChain");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetSwapChain, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSWAPCHAIN9, L"pSwapChain");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetSwapChain);
+AQU_D3D_NODE_FOOTER___;
+/**
+* UINT    WINAPI GetNumberOfSwapChains(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetNumberOfSwapChains, 350, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetNumberOfSwapChains");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_Reset, 190, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::Reset");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DPRESENT_PARAMETERS, L"pPresentationParameters");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::Reset);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_Present, 210, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::Present");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pSourceRect");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pDestRect");
+AQU_D3D_NODE_COMMANDER(AQU_HWND, L"hDestWindowOverride");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RGNDATA, L"pDirtyRegion");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::Present);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetBackBuffer, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetBackBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iBackBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_D3DBACKBUFFER_TYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSURFACE9, L"ppBackBuffer");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetBackBuffer);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetRasterStatus(UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetRasterStatus, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetRasterStatus");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DRASTER_STATUS, L"pRasterStatus");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetRasterStatus);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetDialogBoxMode(BOOL bEnableDialogs);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetDialogBoxMode, 300, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetDialogBoxMode");
+AQU_D3D_NODE_COMMANDER(AQU_BOOL, L"bEnableDialogs");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetDialogBoxMode);
+AQU_D3D_NODE_FOOTER___;
+/**
+* void    WINAPI SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetGammaRamp, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetGammaRamp");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Flags");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DGAMMARAMP, L"pRamp");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetGammaRamp);
+AQU_D3D_NODE_FOOTER___;
+/**
+* void    WINAPI GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetGammaRamp, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetGammaRamp");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DGAMMARAMP, L"pRamp");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetGammaRamp);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateTexture, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateTexture");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Width");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Height");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Levels");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Usage");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPOOL, L"Pool");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DTEXTURE9, L"ppTexture");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateTexture);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateVolumeTexture, 330, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateVolumeTexture");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Width");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Height");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Depth");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Levels");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Usage");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPOOL, L"Pool");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVOLUMETEXTURE9, L"ppVolumeTexture");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateVolumeTexture);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateCubeTexture(UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateCubeTexture, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateCubeTexture");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"EdgeLength");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Levels");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Usage");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPOOL, L"Pool");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DCUBETEXTURE9, L"ppCubeTexture");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateCubeTexture);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateVertexBuffer, 320, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateVertexBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Length");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Usage");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"FVF");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPOOL, L"Pool");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVERTEXBUFFER9, L"ppVertexBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateVertexBuffer);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateIndexBuffer, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateIndexBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Length");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Usage");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPOOL, L"Pool");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DINDEXBUFFER9, L"ppIndexBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateIndexBuffer);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateRenderTarget, 320, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateRenderTarget");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Width");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Height");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DMULTISAMPLE_TYPE, L"MultiSample");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"MultisampleQuality");
+AQU_D3D_NODE_COMMANDER(AQU_BOOL, L"Lockable");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSURFACE9, L"ppSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateRenderTarget);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateDepthStencilSurface, 390, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateDepthStencilSurface");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Width");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Height");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DMULTISAMPLE_TYPE, L"MultiSample");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"MultisampleQuality");
+AQU_D3D_NODE_COMMANDER(AQU_BOOL, L"Discard");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSURFACE9, L"ppSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_UpdateSurface, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::UpdateSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pSourceSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pSourceRect");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pDestinationSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_POINT, L"pDestPoint");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::UpdateSurface);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_UpdateTexture, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::UpdateTexture");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DBASETEXTURE9, L"pSourceTexture");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DBASETEXTURE9, L"pDestinationTexture");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::UpdateTexture);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetRenderTargetData, 330, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetRenderTargetData");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pRenderTarget");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pDestSurface");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetRenderTargetData);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetFrontBufferData(UINT iSwapChain,IDirect3DSurface9* pDestSurface);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetFrontBufferData, 320, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetFrontBufferData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"iSwapChain");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pDestSurface");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetFrontBufferData);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_StretchRect, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::StretchRect");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pSourceSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pSourceRect");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pDestSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pDestRect");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTEXTUREFILTERTYPE, L"Filter");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::StretchRect);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_ColorFill, 230, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::ColorFill");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pRect");
+AQU_D3D_NODE_COMMANDER(AQU_D3DCOLOR, L"color");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::ColorFill);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateOffscreenPlainSurface, 410, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateOffscreenPlainSurface");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Width");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Height");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"Format");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPOOL, L"Pool");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSURFACE9, L"ppSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_HANDLE, L"pSharedHandle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetRenderTarget, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetRenderTarget");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"RenderTargetIndex");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pRenderTarget");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetRenderTarget);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetRenderTarget, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetRenderTarget");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"RenderTargetIndex");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSURFACE9, L"ppRenderTarget");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetRenderTarget);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetDepthStencilSurface, 360, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetDepthStencilSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DSURFACE9, L"pNewZStencil");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetDepthStencilSurface, 360, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetDepthStencilSurface");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSURFACE9, L"ppZStencilSurface");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI BeginScene(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_BeginScene, 240, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::BeginScene");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::BeginScene);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI EndScene(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_EndScene, 220, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::EndScene");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::EndScene);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_Clear, 190, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::Clear");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Count");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DRECT, L"pRects");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Flags");
+AQU_D3D_NODE_COMMANDER(AQU_D3DCOLOR, L"Color");
+AQU_D3D_NODE_COMMANDER(AQU_FLOAT, L"Z");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Stencil");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::Clear);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetTransform, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetTransform");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTRANSFORMSTATETYPE, L"State");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DMATRIX, L"pMatrix");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetTransform);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetTransform(D3DTRANSFORMSTATETYPE State,D3DMATRIX* pMatrix);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetTransform, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetTransform");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTRANSFORMSTATETYPE, L"State");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DMATRIX, L"pMatrix");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetTransform);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_MultiplyTransform, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::MultiplyTransform");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTRANSFORMSTATETYPE, L"State");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DMATRIX, L"pMatrix");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::MultiplyTransform);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetViewport(CONST D3DVIEWPORT9* pViewport);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetViewport, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetViewport");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DVIEWPORT9, L"pViewport");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetViewport);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetViewport(D3DVIEWPORT9* pViewport);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetViewport, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetViewport");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DVIEWPORT9, L"pViewport");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetViewport);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetMaterial(CONST D3DMATERIAL9* pMaterial);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetMaterial, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetMaterial");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DMATERIAL9, L"pMaterial");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetMaterial);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetMaterial(D3DMATERIAL9* pMaterial);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetMaterial, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetMaterial");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DMATERIAL9, L"pMaterial");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetMaterial);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetLight(DWORD Index,CONST D3DLIGHT9* pLight);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetLight, 220, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetLight");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Index");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DLIGHT9, L"pLight");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetLight);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetLight(DWORD Index,D3DLIGHT9* pLight);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetLight, 220, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetLight");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Index");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DLIGHT9, L"pLight");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetLight);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI LightEnable(DWORD Index,BOOL Enable);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_LightEnable, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::LightEnable");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Index");
+AQU_D3D_NODE_COMMANDER(AQU_BOOL, L"Enable");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::LightEnable);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetLightEnable(DWORD Index,BOOL* pEnable);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetLightEnable, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetLightEnable");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Index");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_BOOL, L"pEnable");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetLightEnable);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetClipPlane(DWORD Index,CONST float* pPlane);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetClipPlane, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetClipPlane");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Index");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pPlane");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetClipPlane);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetClipPlane(DWORD Index,float* pPlane);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetClipPlane, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetClipPlane");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Index");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pPlane");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetClipPlane);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetRenderState(D3DRENDERSTATETYPE State,DWORD Value);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetRenderState, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetRenderState");
+AQU_D3D_NODE_COMMANDER(AQU_D3DRENDERSTATETYPE, L"State");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Value");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetRenderState);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetRenderState(D3DRENDERSTATETYPE State,DWORD* pValue);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetRenderState, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetRenderState");
+AQU_D3D_NODE_COMMANDER(AQU_D3DRENDERSTATETYPE, L"State");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pValue");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetRenderState);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateStateBlock, 300, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateStateBlock");
+AQU_D3D_NODE_COMMANDER(AQU_D3DSTATEBLOCKTYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSTATEBLOCK9, L"ppSB");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateStateBlock);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI BeginStateBlock(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_BeginStateBlock, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::BeginStateBlock");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::BeginStateBlock);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI EndStateBlock(IDirect3DStateBlock9** ppSB);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_EndStateBlock, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::EndStateBlock");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DSTATEBLOCK9, L"ppSB");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::EndStateBlock);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetClipStatus, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetClipStatus");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DCLIPSTATUS9, L"pClipStatus");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetClipStatus);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetClipStatus(D3DCLIPSTATUS9* pClipStatus);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetClipStatus, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetClipStatus");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DCLIPSTATUS9, L"pClipStatus");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetClipStatus);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetTexture, 240, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetTexture");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Stage");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DBASETEXTURE9, L"ppTexture");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetTexture);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetTexture, 240, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetTexture");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Stage");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DBASETEXTURE9, L"pTexture");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetTexture);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD* pValue);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetTextureStageState, 340, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetTextureStageState");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Stage");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTEXTURESTAGESTATETYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pValue");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetTextureStageState);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD Value);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetTextureStageState, 340, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetTextureStageState");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Stage");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTEXTURESTAGESTATETYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Value");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetTextureStageState);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD* pValue);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetSamplerState, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetSamplerState");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Sampler");
+AQU_D3D_NODE_COMMANDER(AQU_D3DTEXTURESTAGESTATETYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pValue");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetSamplerState);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD Value);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetSamplerState, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetSamplerState");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Sampler");
+AQU_D3D_NODE_COMMANDER(AQU_D3DSAMPLERSTATETYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Value");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetSamplerState);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI ValidateDevice(DWORD* pNumPasses);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_ValidateDevice, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::ValidateDevice");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pNumPasses");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::ValidateDevice);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetPaletteEntries(UINT PaletteNumber,CONST PALETTEENTRY* pEntries);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetPaletteEntries, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetPaletteEntries");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"PaletteNumber");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_PALETTEENTRY, L"pEntries");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetPaletteEntries);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetPaletteEntries(UINT PaletteNumber,PALETTEENTRY* pEntries);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetPaletteEntries, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetPaletteEntries");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"PaletteNumber");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_PALETTEENTRY, L"pEntries");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetPaletteEntries);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetCurrentTexturePalette(UINT PaletteNumber);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetCurrentTexturePalette, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetCurrentTexturePalette");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"PaletteNumber");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetCurrentTexturePalette(UINT *pPaletteNumber);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetCurrentTexturePalette, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetCurrentTexturePalette");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pPaletteNumber");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetScissorRect(CONST RECT* pRect);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetScissorRect, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetScissorRect");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pRect");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetScissorRect);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetScissorRect(RECT* pRect);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetScissorRect, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetScissorRect");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pRect");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetScissorRect);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetSoftwareVertexProcessing(BOOL bSoftware);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetSoftwareVertexProcessing, 410, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetSoftwareVertexProcessing");
+AQU_D3D_NODE_COMMANDER(AQU_BOOL, L"bSoftware");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing);
+AQU_D3D_NODE_FOOTER___;
+/**
+* BOOL    WINAPI GetSoftwareVertexProcessing(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetSoftwareVertexProcessing, 410, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetSoftwareVertexProcessing");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetNPatchMode(float nSegments);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetNPatchMode, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetNPatchMode");
+AQU_D3D_NODE_COMMANDER(AQU_FLOAT, L"nSegments");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetNPatchMode);
+AQU_D3D_NODE_FOOTER___;
+/**
+* float   WINAPI GetNPatchMode(void);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetNPatchMode, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetNPatchMode");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetNPatchMode);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DrawPrimitive, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DrawPrimitive");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPRIMITIVETYPE, L"PrimitiveType");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartVertex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"PrimitiveCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DrawPrimitive);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DrawIndexedPrimitive, 340, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DrawIndexedPrimitive");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPRIMITIVETYPE, L"PrimitiveType");
+AQU_D3D_NODE_COMMANDER(AQU_INT, L"BaseVertexIndex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"MinVertexIndex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"NumVertices");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"startIndex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"primCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DrawPrimitiveUP, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DrawPrimitiveUP");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPRIMITIVETYPE, L"PrimitiveType");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"PrimitiveCount");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_VOID, L"pVertexStreamZeroData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"VertexStreamZeroStride");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DrawIndexedPrimitiveUP, 360, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DrawIndexedPrimitiveUP");
+AQU_D3D_NODE_COMMANDER(AQU_D3DPRIMITIVETYPE, L"PrimitiveType");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"MinVertexIndex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"NumVertices");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"PrimitiveCount");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_VOID, L"pIndexData");
+AQU_D3D_NODE_COMMANDER(AQU_D3DFORMAT, L"IndexDataFormat");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_VOID, L"pVertexStreamZeroData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"VertexStreamZeroStride");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI ProcessVertices(UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_ProcessVertices, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::ProcessVertices");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"SrcStartIndex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"DestIndex");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"VertexCount");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DVERTEXBUFFER9, L"pDestBuffer");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DVERTEXDECLARATION9, L"pVertexDecl");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Flags");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::ProcessVertices);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateVertexDeclaration, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateVertexDeclaration");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DVERTEXELEMENT9, L"pVertexElements");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVERTEXDECLARATION9, L"ppDecl");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetVertexDeclaration, 340, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetVertexDeclaration");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DVERTEXDECLARATION9, L"pDecl");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetVertexDeclaration);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetVertexDeclaration, 340, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetVertexDeclaration");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVERTEXDECLARATION9, L"ppDecl");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetVertexDeclaration);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetFVF(DWORD FVF);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetFVF, 200, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetFVF");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"FVF");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetFVF);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetFVF(DWORD* pFVF);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetFVF, 200, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetFVF");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pFVF");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetFVF);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateVertexShader, 320, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateVertexShader");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pFunction");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVERTEXSHADER9, L"ppShader");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateVertexShader);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetVertexShader, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetVertexShader");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DVERTEXSHADER9, L"pShader");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetVertexShader);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetVertexShader(IDirect3DVertexShader9** ppShader);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetVertexShader, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetVertexShader");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVERTEXSHADER9, L"ppShader");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetVertexShader);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetVertexShaderConstantF, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetVertexShaderConstantF");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4fCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetVertexShaderConstantF, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetVertexShaderConstantF");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4fCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetVertexShaderConstantI, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetVertexShaderConstantI");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_INT, L"pConstantData0");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4iCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetVertexShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetVertexShaderConstantI, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetVertexShaderConstantI");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_INT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4iCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetVertexShaderConstantB, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetVertexShaderConstantB");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_BOOL, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"BoolCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetVertexShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetVertexShaderConstantB, 380, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetVertexShaderConstantB");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_BOOL, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"BoolCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetStreamSource, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetStreamSource");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StreamNumber");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DVERTEXBUFFER9, L"pStreamData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"OffsetInBytes");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Stride");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetStreamSource);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9** ppStreamData,UINT* OffsetInBytes,UINT* pStride);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetStreamSource, 290, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetStreamSource");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StreamNumber");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DVERTEXBUFFER9, L"ppStreamData");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"OffsetInBytes");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pStride");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetStreamSource);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetStreamSourceFreq(UINT StreamNumber,UINT Divider);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetStreamSourceFreq, 330, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetStreamSourceFreq");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StreamNumber");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Divider");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetStreamSourceFreq(UINT StreamNumber,UINT* Divider);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetStreamSourceFreq, 330, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetStreamSourceFreq");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StreamNumber");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"Divider");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetIndices(IDirect3DIndexBuffer9* pIndexData);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetIndices, 240, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetIndices");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DINDEXBUFFER9, L"pIndexData");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetIndices);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetIndices(IDirect3DIndexBuffer9** ppIndexData);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetIndices, 240, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetIndices");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DINDEXBUFFER9, L"ppIndexData");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetIndices);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreatePixelShader, 310, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreatePixelShader");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_UINT, L"pFunction");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DPIXELSHADER9, L"ppShader");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreatePixelShader);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetPixelShader, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetPixelShader");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_IDIRECT3DPIXELSHADER9, L"pShader");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetPixelShader);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetPixelShader(IDirect3DPixelShader9** ppShader);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetPixelShader, 280, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetPixelShader");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DPIXELSHADER9, L"ppShader");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetPixelShader);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetPixelShaderConstantF, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetPixelShaderConstantF");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4fCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetPixelShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetPixelShaderConstantF, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetPixelShaderConstantF");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4fCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetPixelShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetPixelShaderConstantI, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetPixelShaderConstantI");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_INT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4iCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetPixelShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetPixelShaderConstantI, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetPixelShaderConstantI");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_INT, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Vector4iCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI SetPixelShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT BoolCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_SetPixelShaderConstantB, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::SetPixelShaderConstantB");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_BOOL, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"BoolCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI GetPixelShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_GetPixelShaderConstantB, 370, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::GetPixelShaderConstantB");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"StartRegister");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_BOOL, L"pConstantData");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"BoolCount");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DrawRectPatch, 270, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DrawRectPatch");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Handle");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pNumSegs");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DRECTPATCH_INFO, L"pRectPatchInfo");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DrawRectPatch);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DrawTriPatch, 260, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DrawTriPatch");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Handle");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_FLOAT, L"pNumSegs");
+AQU_D3D_NODE_COMMANDER(AQU_PNT_D3DTRIPATCH_INFO, L"pTriPatchInfo");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DrawTriPatch);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI DeletePatch(UINT Handle);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_DeletePatch, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::DeletePatch");
+AQU_D3D_NODE_COMMANDER(AQU_UINT, L"Handle");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::DeletePatch);
+AQU_D3D_NODE_FOOTER___;
+/**
+* HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
+**/
+AQU_D3D_NODE_HEADER___(NOD_IDirect3DDevice9_CreateQuery, 250, 100);
+AQU_D3D_NODE_TITLE____(L"IDirect3DDevice9::CreateQuery");
+AQU_D3D_NODE_COMMANDER(AQU_D3DQUERYTYPE, L"Type");
+AQU_D3D_NODE_COMMANDER(AQU_PPNT_IDIRECT3DQUERY9, L"ppQuery");
+AQU_D3D_NODE_METHOD___(DirectX_9_0, ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, VMT_IDIRECT3DDEVICE9::CreateQuery);
+AQU_D3D_NODE_FOOTER___;
+
+#pragma endregion
+
+#pragma region IDirect3DDevice9 node provider method
+
+/**
+* Node provider class.
+***/
+class NOD_IDirect3DDevice9
+{
+public:
+	/**
+	* Provides IDirect3DDevice9 node by index.
+	***/
+	NOD_Basic* Get_IDirect3DDevice9_Node(UINT dwIndex, LONG nX, LONG nY)
+	{
+		if (dwIndex > (UINT)VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateQuery) return nullptr;
+		if (dwIndex <= (UINT)VMT_IUNKNOWN::Release) return Get_IDirect3DDevice9_Node((VMT_IUNKNOWN::VMT_IUnknown)dwIndex, nX, nY);
+		return Get_IDirect3DDevice9_Node((VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9)dwIndex, nX, nY);
+	}
+
+	/**
+	* Provides IUnknown node by enumeration.
+	***/
+	NOD_Basic* Get_IDirect3DDevice9_Node(VMT_IUNKNOWN::VMT_IUnknown eMethod, LONG nX, LONG nY)
+	{
+		switch (eMethod)
+		{
+		case VMT_IUNKNOWN::QueryInterface:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_QueryInterface(nX, nY);
+			break;
+		case VMT_IUNKNOWN::AddRef:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_AddRef(nX, nY);
+			break;
+		case VMT_IUNKNOWN::Release:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_Release(nX, nY);
+			break;
+		default:
+			break;
+		}
+
+		return nullptr;
+	}
+
+	/**
+	* Provides IDirect3DDevice9 node by enumeration.
+	***/
+	NOD_Basic* Get_IDirect3DDevice9_Node(VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9 eMethod, LONG nX, LONG nY)
+	{
+		switch (eMethod)
+		{
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::TestCooperativeLevel :
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_TestCooperativeLevel(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetAvailableTextureMem:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetAvailableTextureMem(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::EvictManagedResources:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_EvictManagedResources(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetDirect3D:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetDirect3D(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetDeviceCaps:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetDeviceCaps(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetDisplayMode:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetDisplayMode(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetCreationParameters:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetCreationParameters(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetCursorProperties:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetCursorProperties(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetCursorPosition:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetCursorPosition(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::ShowCursor:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_ShowCursor(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateAdditionalSwapChain:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateAdditionalSwapChain(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetSwapChain:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetSwapChain(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetNumberOfSwapChains:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetNumberOfSwapChains(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::Reset:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_Reset(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::Present:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_Present(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetBackBuffer:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetBackBuffer(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetRasterStatus:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetRasterStatus(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetDialogBoxMode:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetDialogBoxMode(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetGammaRamp:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetGammaRamp(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetGammaRamp:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetGammaRamp(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateTexture:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateTexture(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateVolumeTexture:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateVolumeTexture(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateCubeTexture:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateCubeTexture(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateVertexBuffer:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateVertexBuffer(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateIndexBuffer:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateIndexBuffer(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateRenderTarget:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateRenderTarget(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateDepthStencilSurface:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateDepthStencilSurface(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::UpdateSurface:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_UpdateSurface(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::UpdateTexture:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_UpdateTexture(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetRenderTargetData:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetRenderTargetData(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetFrontBufferData:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetFrontBufferData(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::StretchRect:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_StretchRect(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::ColorFill:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_ColorFill(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateOffscreenPlainSurface:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateOffscreenPlainSurface(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetRenderTarget:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetRenderTarget(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetRenderTarget:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetRenderTarget(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetDepthStencilSurface:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetDepthStencilSurface(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetDepthStencilSurface:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetDepthStencilSurface(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::BeginScene:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_BeginScene(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::EndScene:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_EndScene(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::Clear:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_Clear(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetTransform:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetTransform(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetTransform:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetTransform(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::MultiplyTransform:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_MultiplyTransform(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetViewport:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetViewport(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetViewport:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetViewport(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetMaterial:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetMaterial(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetMaterial:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetMaterial(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetLight:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetLight(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetLight:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetLight(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::LightEnable:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_LightEnable(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetLightEnable:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetLightEnable(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetClipPlane:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetClipPlane(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetClipPlane:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetClipPlane(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetRenderState:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetRenderState(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetRenderState:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetRenderState(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateStateBlock:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateStateBlock(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::BeginStateBlock:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_BeginStateBlock(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::EndStateBlock:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_EndStateBlock(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetClipStatus:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetClipStatus(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetClipStatus:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetClipStatus(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetTexture:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetTexture(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetTexture:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetTexture(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetTextureStageState:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetTextureStageState(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetTextureStageState:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetTextureStageState(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetSamplerState:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetSamplerState(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetSamplerState:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetSamplerState(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::ValidateDevice:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_ValidateDevice(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetPaletteEntries:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetPaletteEntries(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetPaletteEntries:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetPaletteEntries(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetCurrentTexturePalette:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetCurrentTexturePalette(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetCurrentTexturePalette:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetCurrentTexturePalette(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetScissorRect:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetScissorRect(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetScissorRect:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetScissorRect(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetSoftwareVertexProcessing:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetSoftwareVertexProcessing(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetSoftwareVertexProcessing:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetSoftwareVertexProcessing(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetNPatchMode:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetNPatchMode(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetNPatchMode:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetNPatchMode(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DrawPrimitive:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DrawPrimitive(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DrawIndexedPrimitive:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DrawIndexedPrimitive(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DrawPrimitiveUP:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DrawPrimitiveUP(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DrawIndexedPrimitiveUP:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DrawIndexedPrimitiveUP(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::ProcessVertices:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_ProcessVertices(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateVertexDeclaration:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateVertexDeclaration(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetVertexDeclaration:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetVertexDeclaration(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetVertexDeclaration:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetVertexDeclaration(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetFVF:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetFVF(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetFVF:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetFVF(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateVertexShader:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateVertexShader(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetVertexShader:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetVertexShader(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetVertexShader:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetVertexShader(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetVertexShaderConstantF:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetVertexShaderConstantF(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetVertexShaderConstantF:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetVertexShaderConstantF(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetVertexShaderConstantI:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetVertexShaderConstantI(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetVertexShaderConstantI:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetVertexShaderConstantI(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetVertexShaderConstantB:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetVertexShaderConstantB(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetVertexShaderConstantB:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetVertexShaderConstantB(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetStreamSource:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetStreamSource(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetStreamSource:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetStreamSource(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetStreamSourceFreq:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetStreamSourceFreq(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetStreamSourceFreq:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetStreamSourceFreq(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetIndices:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetIndices(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetIndices:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetIndices(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreatePixelShader:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreatePixelShader(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetPixelShader:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetPixelShader(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetPixelShader:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetPixelShader(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetPixelShaderConstantF:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetPixelShaderConstantF(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetPixelShaderConstantF:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetPixelShaderConstantF(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetPixelShaderConstantI:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetPixelShaderConstantI(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetPixelShaderConstantI:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetPixelShaderConstantI(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::SetPixelShaderConstantB:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_SetPixelShaderConstantB(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::GetPixelShaderConstantB:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_GetPixelShaderConstantB(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DrawRectPatch:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DrawRectPatch(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DrawTriPatch:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DrawTriPatch(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::DeletePatch:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_DeletePatch(nX, nY);
+			break;
+
+		case VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9::CreateQuery:
+			return (NOD_Basic*)new NOD_IDirect3DDevice9_CreateQuery(nX, nY);
+			break;
+
+		default:
+			break;
+		}
+
+		return nullptr;
+	}
+};
+
+#pragma endregion
+
+#endif

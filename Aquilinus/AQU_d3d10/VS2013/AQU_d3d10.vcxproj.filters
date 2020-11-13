@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\AQU_d3d10.cpp" />
+    <ClCompile Include="..\PCL_ID3D10Device.cpp" />
+    <ClCompile Include="..\PCL_IDXGISwapChain.cpp" />
+    <ClCompile Include="..\PCL_ID3D10GeometryShader.cpp">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PCL_ID3D10PixelShader.cpp">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PCL_ID3D10VertexShader.cpp">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PCL_ID3D10DeviceChild.cpp">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\AQU_d3d10.h" />
+    <ClInclude Include="..\PCL_ID3D10Device.h" />
+    <ClInclude Include="..\PCL_IDXGISwapChain.h" />
+    <ClInclude Include="..\PCL_ID3D10GeometryShader.h">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PCL_ID3D10PixelShader.h">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PCL_ID3D10VertexShader.h">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PCL_ID3D10DeviceChild.h">
+      <Filter>AQU_ID3D10DeviceChild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AQU_d3d10shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\AQU_d3d10.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="AQU_ID3D10DeviceChild">
+      <UniqueIdentifier>{1f279644-0fc6-44f0-b981-a517e981a079}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

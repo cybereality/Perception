@@ -1,0 +1,21 @@
+#include "Resources.h"
+
+IDI_MAIN_ICON ICON "aqu.ico" 
+IDI_ICON_BIG ICON "aqu.ico"
+IDI_ICON_SMALL ICON "aqu.ico"
+IMG_FONT01 BITMAP "trajanus_roman_regular_65.bmp"
+IMG_FONT02 BITMAP "trajanus_roman_regular_65_sharp.bmp"
+
+IDD_INPUTBOX DIALOGEX 22, 17, 240, 80
+STYLE WS_POPUP | WS_BORDER
+CAPTION "Aquilinus"
+FONT 16, "MS Shell Dlg", 700, 0, 0x0
+BEGIN
+    LTEXT           "Enter Game Name : ",IDC_STATIC,8,8,100,16
+    LTEXT           "JustATestJustATest",IDC_WINDOW_NAME,8,24,100,16
+    LTEXT           "JustATestJustATest",IDC_PROC_NAME,8,40,100,16
+    EDITTEXT        IDC_INPUTBOX_01,8,56,216,16,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,171,4,51,14,WS_GROUP
+    PUSHBUTTON      "CANCEL",IDCANCEL,171,21,51,14,WS_GROUP
+END
+

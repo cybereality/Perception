@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\Aquilinus\AQU_DirectDraw.cpp" />
+    <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
+    <ClCompile Include="..\Inicio.cpp" />
+    <ClCompile Include="..\..\Aquilinus\NOD_Basic.cpp">
+      <Filter>AQU_Nodes\Basic</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
+    <ClInclude Include="..\..\Aquilinus\AQU_DirectDraw.h" />
+    <ClInclude Include="..\..\Aquilinus\AQU_DirectDrawFields.h" />
+    <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
+    <ClInclude Include="..\Inicio.h" />
+    <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\..\Aquilinus\NOD_Basic.h">
+      <Filter>AQU_Nodes\Basic</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Inicio_Resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Info.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="AQU_Nodes">
+      <UniqueIdentifier>{dab85b5c-7254-4370-8110-79596922c8e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AQU_Nodes\Basic">
+      <UniqueIdentifier>{be8135ca-5b93-457e-90a2-0a6a59f46e3d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
