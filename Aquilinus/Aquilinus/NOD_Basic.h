@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <typeinfo>
 #include "AQU_NodesStructures.h"
 //#include "AQU_DirectDraw.h"
-#include "AQU_Drawer.h"
+//#include "AQU_Drawer.h"
 
 /**
 * Simple clipboard text helper.
@@ -181,8 +181,8 @@ public:
 
 	/*** NOD_Basic public methods ***/
 	virtual HRESULT          Translate(LONG nX, LONG nY, float fZoom);
-	virtual HRESULT          Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom);
-	virtual HRESULT          DrawConnections(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom, std::vector<NOD_Basic*>* ppaNodes, AQU_ConnectionDrawingStyles eDataConnectionStyle, AQU_ConnectionDrawingStyles eStreamConnectionStyle);
+	//virtual HRESULT          Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom);
+	//virtual HRESULT          DrawConnections(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom, std::vector<NOD_Basic*>* ppaNodes, AQU_ConnectionDrawingStyles eDataConnectionStyle, AQU_ConnectionDrawingStyles eStreamConnectionStyle);
 	virtual LONG*            GetCommanderConnectionIndices(std::vector<NOD_Basic*>* ppaNodes, DWORD dwIndex);
 	virtual LONG*            GetProvokerConnectionIndices();
 	virtual DWORD            GetCommanderConnectionsNumber(DWORD dwIndex);

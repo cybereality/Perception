@@ -123,7 +123,7 @@ HRESULT NOD_Basic::Translate(LONG nX, LONG nY, float fZoom)
 * @param pDirectDraw The aquilinus direct draw interface.
 * @param vcOrigin The origin vector for the drawing call, in pixel space.
 ***/
-HRESULT NOD_Basic::Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom)
+/*HRESULT NOD_Basic::Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom)
 {
 	// clear node background
 	pDirectDraw->DrawHLine(m_vecPos, vcOrigin, m_vecSize.cx, m_vecSize.cy, AquilinusColor::Color1, fZoom);
@@ -225,7 +225,7 @@ HRESULT NOD_Basic::Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom)
 
 	return S_OK;
 }
-
+*/
 /**
 * Draw all connections from the Commanders of this node.
 * @param pDirectDraw The aquilinus direct draw interface.
@@ -233,7 +233,7 @@ HRESULT NOD_Basic::Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom)
 * @param fZoom The current workspace zoom factor.
 * @param ppaNodes The vector of ALL nodes (pointer).
 ***/
-HRESULT NOD_Basic::DrawConnections(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom, std::vector<NOD_Basic*>* ppaNodes, AQU_ConnectionDrawingStyles eDataConnectionStyle, AQU_ConnectionDrawingStyles eStreamConnectionStyle)
+/*HRESULT NOD_Basic::DrawConnections(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom, std::vector<NOD_Basic*>* ppaNodes, AQU_ConnectionDrawingStyles eDataConnectionStyle, AQU_ConnectionDrawingStyles eStreamConnectionStyle)
 {
 	// draw commander-decommander connections
 	for (std::vector<NOD_Commander*>::size_type i = 0; i != m_paCommanders.size(); i++)
@@ -337,7 +337,7 @@ HRESULT NOD_Basic::DrawConnections(AQU_Drawer* pDirectDraw, POINT vcOrigin, floa
 	}
 
 	return S_OK;
-}
+}*/
 
 /**
 * Get the commander connection indices.

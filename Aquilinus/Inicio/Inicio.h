@@ -112,9 +112,6 @@ enum class InicioWindows
 };
 
 /*** Inicio Globals  ***/
-AQU_Drawer*           g_pDirectDraw;                                             /**< Pointer to the direct draw class. **/
-AQU_Drawer*           g_pDirectDrawSub;                                          /**< Pointer to the sub window direct draw class. **/
-AQU_Drawer*           g_pDirectDrawProfile;                                      /**< Pointer to the profile window direct draw class. **/
 AQU_FileManager*          g_pFileManager;                                            /**< Inicio File Manager class. ***/
 InicioStatus              g_eInicioStatus;                                           /**< The control status for Inicio or the Aquilinus RTE. **/
 int                       g_nScreenWidth  = GetSystemMetrics(SM_CXFULLSCREEN);

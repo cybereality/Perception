@@ -1,13 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\..\Aquilinus\AQU_DirectDraw.cpp" />
     <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
     <ClCompile Include="..\Inicio.cpp" />
     <ClCompile Include="..\..\Aquilinus\NOD_Basic.cpp">
       <Filter>AQU_Nodes\Basic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Aquilinus\AQU_OpenGL.cpp" />
     <ClCompile Include="..\..\dependecies\imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -26,15 +24,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_DirectDraw.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_DirectDrawFields.h" />
     <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
     <ClInclude Include="..\Inicio.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\..\Aquilinus\NOD_Basic.h">
       <Filter>AQU_Nodes\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Aquilinus\AQU_OpenGL.h" />
     <ClInclude Include="..\..\dependecies\imgui\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>

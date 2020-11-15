@@ -182,7 +182,7 @@ void ImGui_Main()
 			OutputDebugString(buf);
 			OutputDebugString(g_pAquilinusConfig->szProfileFilePath);
 			OutputDebugString(szPNGPath);
-			g_pDirectDraw->LoadBackground(szPNGPath, 256, 64);
+			//g_pDirectDraw->LoadBackground(szPNGPath, 256, 64);
 
 		}
 		else

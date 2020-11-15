@@ -43,7 +43,7 @@ public:
 	~NOD_Plugin();
 
 	/*** NOD_Basic public methods ***/
-	virtual HRESULT          Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom);
+	//virtual HRESULT          Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom);
 	virtual AQU_NodeBehavior WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
 	virtual void             ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex);
@@ -84,7 +84,7 @@ private:
 	* Aquilinus drawer class backup.
 	* Only used to release the bitmap IDs.
 	****/
-	AQU_Drawer* m_pcDrawer;
+	//AQU_Drawer* m_pcDrawer;
 	/**
 	* The logo Bitmap ID.
 	***/
