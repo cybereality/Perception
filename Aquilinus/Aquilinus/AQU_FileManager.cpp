@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -33,8 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WORKSPACE_HEADER_SIZE 30
 #define PROFILE_HEADER_SIZE 30
 #define NODE_HASH_SIZE (sizeof(size_t))
-const char * szWHeader_v1_0_0 = "AQUILINUS_WORKING_AREA_V01.0.0";
-const char * szPHeader_v1_0_0 = "AQUILINUS_GAME_PROFILE_V01.0.0";
+const char* szWHeader_v1_0_0 = "AQUILINUS_WORKING_AREA_V01.0.0";
+const char* szPHeader_v1_0_0 = "AQUILINUS_GAME_PROFILE_V01.0.0";
 
 #include"AQU_FileManager.h"
 #include"AQU_GlobalTypes.h"
@@ -44,73 +44,14 @@ const char * szPHeader_v1_0_0 = "AQUILINUS_GAME_PROFILE_V01.0.0";
 * Creates user directories.
 * @param bCreate True if directories are to be created.
 ***/
-AQU_FileManager::AQU_FileManager(bool bCreate)
+AQU_FileManager::AQU_FileManager(bool bCreate) :
+	m_dwProcessListSize(0),
+	m_hSaveMapFile(nullptr),
+	m_pcProcesses(nullptr)
 {
-	// get user path
-	char *pValue;
-	size_t len;
-	errno_t err = _dupenv_s(&pValue, &len, "userprofile");
-	std::stringstream sstm;
 
-	// get Aquilinus path
-	sstm << pValue << "\\Documents\\My Games\\Aquilinus\\";
-	m_szAquilinusPath = sstm.str();
-	int i;
-	for (i = 0; (i < (int)m_szAquilinusPath.length()) && (i < MAX_PATH - 2); i++)
-		m_szAquilinusPathW[i] = m_szAquilinusPath.c_str()[i];
-	m_szAquilinusPathW[i] = NULL;
-
-	// get profile path
-	sstm = std::stringstream();
-	sstm << m_szAquilinusPath.c_str() << "My Profiles\\";
-	m_szProfilePath = sstm.str();
-	for (i = 0; (i < (int)m_szProfilePath.length()) && (i < MAX_PATH - 2); i++)
-		m_szProfilePathW[i] = m_szProfilePath.c_str()[i];
-	m_szProfilePathW[i] = NULL;
-
-	// get profile path
-	sstm = std::stringstream();
-#ifdef _WIN64
-	sstm << m_szAquilinusPath.c_str() << "My Nodes x64\\";
-#else
-	sstm << m_szAquilinusPath.c_str() << "My Nodes Win32\\";
-#endif
-	m_szPluginPath = sstm.str();
-	for (i = 0; (i < (int)m_szPluginPath.length()) && (i < MAX_PATH - 2); i++)
-		m_szPluginPathW[i] = m_szPluginPath.c_str()[i];
-	m_szPluginPathW[i] = NULL;
-
-	// get profile path
-	sstm = std::stringstream();
-	sstm << m_szAquilinusPath.c_str() << "My Projects\\";
-	m_szProjectPath = sstm.str();
-	for (i = 0; (i < (int)m_szProjectPath.length()) && (i < MAX_PATH - 2); i++)
-		m_szProjectPathW[i] = m_szProjectPath.c_str()[i];
-	m_szProjectPathW[i] = NULL;
-
-	// create zero process list and null file handle
-	m_pcProcesses = nullptr;
-	m_dwProcessListSize = 0;
-	m_hSaveMapFile = NULL;
-
-	if (bCreate)
-	{
-		// create directory... TODO !! Security attributes ??
-		CreateDirectoryA(m_szAquilinusPath.c_str(), NULL);
-		CreateDirectoryA(m_szProfilePath.c_str(), NULL);
-		CreateDirectoryA(m_szPluginPath.c_str(), NULL);
-		CreateDirectoryA(m_szProjectPath.c_str(), NULL);
-
-#ifdef _DEBUG
-		OutputDebugStringA(m_szAquilinusPath.c_str());
-		OutputDebugStringA(m_szProfilePath.c_str());
-		OutputDebugStringA(m_szPluginPath.c_str());
-		OutputDebugStringA(m_szProjectPath.c_str());
-#endif
-
-		// load process file
-		this->LoadProcessList();
-	}
+	// load process file
+	this->LoadProcessListCSV();
 }
 
 /**
@@ -129,127 +70,9 @@ AQU_FileManager::~AQU_FileManager()
 }
 
 /**
-* Encrypts a memory field by the specified encryption mode and cypher.
-* @param eEncryptionMode The supported Aquilinus encryption mode.
-* @param szCypher The cypher to be used.
-* @param pData The memory field to be encrypted.
-* @param dwLength The length of the data field.
-***/
-HRESULT AQU_FileManager::EncryptMemoryField(AQU_EncryptionMode eEncryptionMode, LPCSTR szCypher, LPBYTE pData, UINT dwLength)
-{
-	// get cypher length
-	if ((!szCypher) || (dwLength == 0)) return E_FAIL;
-	UINT dwCypherLength = (UINT)strlen(szCypher);
-
-	// worker fields
-	BYTE cByte;
-	BYTE cByte1;
-	BYTE cCypherChar;
-	UINT dwCypherPosition;
-
-	// switch encryption mode
-	switch (eEncryptionMode)
-	{
-		case Caesar:
-			// loop through memory field, apply cypher
-			for (unsigned int dwPos = 0; dwPos < dwLength; dwPos++)
-			{
-				// get current cypher char and data field char
-				dwCypherPosition = dwPos % dwCypherLength;
-				cCypherChar = ((BYTE*)szCypher)[dwCypherPosition];
-				cByte = ((BYTE*)pData)[dwPos];
-
-				// apply cypher
-				((BYTE*)pData)[dwPos] = (BYTE)((cByte + cCypherChar) % 256);
-			}
-			break;
-		case MixUpPosition:
-			// loop through memory field, apply cypher
-			for (unsigned int dwPos = 0; dwPos < dwLength; dwPos++)
-			{
-				// get current cypher char 
-				dwCypherPosition = dwPos % dwCypherLength;
-				cCypherChar = ((BYTE*)szCypher)[dwCypherPosition];
-
-				// get data field chars
-				cByte = ((BYTE*)pData)[(dwPos + cCypherChar) % dwLength];
-				cByte1 = ((BYTE*)pData)[dwPos];
-
-				// apply cypher
-				((BYTE*)pData)[dwPos] = cByte;
-				((BYTE*)pData)[(dwPos + cCypherChar) % dwLength] = cByte1;
-			}
-			break;
-		default:
-			break;
-	}
-
-	return S_OK;
-}
-
-/**
-* Decrypts a memory field by the specified encryption mode and cypher.
-* @param eEncryptionMode The supported Aquilinus encryption mode.
-* @param szCypher The cypher to be used.
-* @param pData The memory field to be encrypted.
-* @param dwLength The length of the data field.
-***/
-HRESULT AQU_FileManager::DecryptMemoryField(AQU_EncryptionMode eEncryptionMode, LPCSTR szCypher, LPBYTE pData, UINT dwLength)
-{
-	// get cypher length
-	if ((!szCypher) || (dwLength == 0)) return E_FAIL;
-	UINT dwCypherLength = (UINT)strlen(szCypher);
-
-	// worker fields
-	BYTE cByte;
-	BYTE cByte1;
-	BYTE cCypherChar;
-	UINT dwCypherPosition;
-
-	// switch encryption mode
-	switch (eEncryptionMode)
-	{
-		case Caesar:
-			// loop through memory field, unapply cypher
-			for (unsigned int dwPos = 0; dwPos < dwLength; dwPos++)
-			{
-				// get current cypher char and data field char
-				dwCypherPosition = dwPos % dwCypherLength;
-				cCypherChar = ((BYTE*)szCypher)[dwCypherPosition];
-				cByte = ((BYTE*)pData)[dwPos];
-
-				// unapply cypher
-				((BYTE*)pData)[dwPos] = (BYTE)((cByte - cCypherChar) % 256);
-			}
-			break;
-		case MixUpPosition:
-			// loop through memory field, apply cypher
-			for (int nPos = (int)(dwLength - 1); nPos >= 0; nPos--)
-			{
-				// get current cypher char 
-				dwCypherPosition = nPos % dwCypherLength;
-				cCypherChar = ((BYTE*)szCypher)[dwCypherPosition];
-
-				// get data field chars
-				cByte = ((BYTE*)pData)[(nPos + cCypherChar) % dwLength];
-				cByte1 = ((BYTE*)pData)[nPos];
-
-				// apply cypher
-				((BYTE*)pData)[nPos] = cByte;
-				((BYTE*)pData)[(nPos + cCypherChar) % dwLength] = cByte1;
-			}
-			break;
-		default:
-			break;
-	}
-
-	return S_OK;
-}
-
-/**
 * Loads the basic information from a working area file for the Inicio app.
 ***/
-HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD &dwProcessIndex, DWORD &dwSupportedInterfacesNumber, int* pnInterfaceInjectionTechnique, LPWSTR szPicturePath, BOOL &bPicture, DWORD &dwDetourTimeDelay, bool bKeepProcessName)
+HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD& dwProcessIndex, DWORD& dwSupportedInterfacesNumber, int* pnInterfaceInjectionTechnique, LPWSTR szPicturePath, BOOL& bPicture, DWORD& dwDetourTimeDelay, bool bKeepProcessName)
 {
 	OPENFILENAME ofn;
 	wchar_t szFileName[MAX_PATH] = L"";
@@ -386,7 +209,7 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD &dw
 
 	// get the injected classes booleans, first the number of supported interfaces
 	sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-	sstrDataStream.read((char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber*sizeof(int));
+	sstrDataStream.read((char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
 
 	return S_OK;
 }
@@ -394,7 +217,7 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD &dw
 /**
 * Loads the basic information from a profile file for the Inicio app.
 ***/
-HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* psConfig, DWORD &dwSupportedInterfacesNumber, BYTE* &paPictureData, DWORD &dwPictureSize)
+HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* psConfig, DWORD& dwSupportedInterfacesNumber, BYTE*& paPictureData, DWORD& dwPictureSize)
 {
 	// set fields
 	std::stringstream sstrDataStream;
@@ -496,22 +319,8 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 
 	// get new buffer
 	SIZE_T nStreamSize = sstrDataStream.str().size();
-	char *pDecryptedData = new char[nStreamSize];
+	char* pDecryptedData = new char[nStreamSize];
 	sstrDataStream.read(pDecryptedData, nStreamSize);
-
-	// decrypt data
-	DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pDecryptedData, (UINT)nStreamSize);
-	DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pDecryptedData, (UINT)nStreamSize);
-
-	// create the binary stream new with the decrypted data
-	sstrDataStream.clear();
-	sstrDataStream.write((const char*)pDecryptedData, nStreamSize);
-
-	delete pDecryptedData;
-
-	// set back binary stream
-	sstrDataStream.seekg(0);
-	sstrDataStream.seekp(0);
 
 	// first, get the entry
 	sstrDataStream.read((char*)psConfig->szEntryName, ENTRY_SIZE);
@@ -550,7 +359,7 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 
 	// get the injected classes booleans, first the number of supported interfaces
 	sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-	sstrDataStream.read((char*)&psConfig->eInjectionTechnique[0], dwSupportedInterfacesNumber*sizeof(int));
+	sstrDataStream.read((char*)&psConfig->eInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
 
 	return S_OK;
 }
@@ -560,7 +369,7 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 * @param szWorkspacePath The file path.
 * @param sstrDataStream The pure data stream.
 ***/
-HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstream &sstrDataStream)
+HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstream& sstrDataStream)
 {
 	// first, clear the data stream
 	sstrDataStream.clear();
@@ -636,7 +445,7 @@ HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstre
 * @param szWorkspacePath The file path.
 * @param sstrDataStream The pure data stream.
 ***/
-HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream &sstrDataStream)
+HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream& sstrDataStream)
 {
 	sstrDataStream.clear();
 
@@ -701,25 +510,6 @@ HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream &ss
 	sstrDataStream.seekg(0);
 	sstrDataStream.seekp(0);
 
-	// get new buffer
-	SIZE_T nStreamSize = sstrDataStream.str().size();
-	char *pDecryptedData = new char[nStreamSize];
-	sstrDataStream.read(pDecryptedData, nStreamSize);
-
-	// decrypt data
-	DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pDecryptedData, (UINT)nStreamSize);
-	DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pDecryptedData, (UINT)nStreamSize);
-
-	// create the binary stream new with the decrypted data
-	sstrDataStream.clear();
-	sstrDataStream.write((const char*)pDecryptedData, nStreamSize);
-
-	delete pDecryptedData;
-
-	// set back binary stream
-	sstrDataStream.seekg(0);
-	sstrDataStream.seekp(0);
-
 	return S_OK;
 }
 
@@ -762,7 +552,6 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 		// get a binary stream
 		std::stringstream binaryStream;
 
-#ifdef DEVELOPER_BUILD
 		if (bEmptyProfile)
 		{
 			// write down the game name entry 
@@ -771,10 +560,9 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 			binaryStream.write((const char*)&szEntryName[0], ENTRY_SIZE);
 		}
 		else
-#endif
 		{
 			// write down the game name entry 
-			wchar_t* szEntryName = LoadName(dwProcessIndex, szPath);
+			wchar_t* szEntryName = GetName(dwProcessIndex);
 			binaryStream.write((const char*)&szEntryName[0], ENTRY_SIZE);
 		}
 
@@ -792,7 +580,7 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 
 		// and the injected classes booleans, first the number of supported interfaces
 		binaryStream.write((const char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber*sizeof(int));
+		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
 
 		// and the node number ...
 		UINT dwNodeNumber = (UINT)(*ppaNodes).size();
@@ -859,7 +647,7 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 
 			// write down the provoker connection node indices
 			LONG* pnNodeIndices = (*ppaNodes)[i]->GetProvokerConnectionIndices();
-			binaryStream.write((const char*)pnNodeIndices, dwConnectionsNumber*sizeof(LONG));
+			binaryStream.write((const char*)pnNodeIndices, dwConnectionsNumber * sizeof(LONG));
 		}
 
 		// set back binary stream
@@ -927,10 +715,10 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 				// create map view
 				LPVOID pData =
 					MapViewOfFile(m_hSaveMapFile,   // handle to map object
-					FILE_MAP_ALL_ACCESS,            // read/write permission
-					0,
-					0,
-					nLength);
+						FILE_MAP_ALL_ACCESS,            // read/write permission
+						0,
+						0,
+						nLength);
 
 				// return if failed
 				if (pData == NULL)
@@ -945,7 +733,7 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 					CopyMemory(pData, outFile.str().c_str(), nLength);
 
 					// copy save file path
-					CopyMemory(psConfig->szExternalSaveFilePath, ofn.lpstrFile, sizeof(wchar_t)*MAX_PATH);
+					CopyMemory(psConfig->szExternalSaveFilePath, ofn.lpstrFile, sizeof(wchar_t) * MAX_PATH);
 
 					// set file data size, inicio will save whenever this one is set
 					psConfig->dwSizeOfExternalSaveFile = (DWORD)nLength;
@@ -1054,7 +842,6 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 		// get a binary stream
 		std::stringstream binaryStream;
 
-#ifdef DEVELOPER_BUILD
 		if (bEmptyProfile)
 		{
 			// write down the game name entry 
@@ -1063,13 +850,11 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			binaryStream.write((const char*)&szEntryName[0], ENTRY_SIZE);
 		}
 		else
-#endif
 		{
 			// write down the game name entry 
-			wchar_t* szEntryName = LoadName(dwProcessIndex, szPath);
+			wchar_t* szEntryName = GetName(dwProcessIndex);
 			binaryStream.write((const char*)&szEntryName[0], ENTRY_SIZE);
 		}
-#ifdef DEVELOPER_BUILD
 		if (bEmptyProfile)
 		{
 			// write down the window name
@@ -1078,13 +863,11 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			binaryStream.write((const char*)&szWindowName[0], ENTRY_SIZE);
 		}
 		else
-#endif
 		{
 			// write down the window name
-			wchar_t* szWindowName = LoadWindowName(dwProcessIndex, szPath);
+			wchar_t* szWindowName = GetWindowName(dwProcessIndex);
 			binaryStream.write((const char*)&szWindowName[0], ENTRY_SIZE);
 		}
-#ifdef DEVELOPER_BUILD
 		if (bEmptyProfile)
 		{
 			// write down the game process
@@ -1093,10 +876,9 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			binaryStream.write((const char*)&szProcessName[0], ENTRY_SIZE);
 		}
 		else
-#endif
 		{
 			// write down the game process
-			wchar_t* szProcessName = LoadProcessName(dwProcessIndex, szPath);
+			wchar_t* szProcessName = GetProcessName(dwProcessIndex);
 			binaryStream.write((const char*)&szProcessName[0], ENTRY_SIZE);
 		}
 
@@ -1118,7 +900,7 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 
 		// and the injected classes booleans, first the number of supported interfaces
 		binaryStream.write((const char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber*sizeof(int));
+		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
 
 		// and the node number ...
 		UINT dwNodeNumber = (UINT)(*ppaNodes).size();
@@ -1185,27 +967,8 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 
 			// write down the provoker connection node indices
 			LONG* pnNodeIndices = (*ppaNodes)[i]->GetProvokerConnectionIndices();
-			binaryStream.write((const char*)pnNodeIndices, dwConnectionsNumber*sizeof(LONG));
+			binaryStream.write((const char*)pnNodeIndices, dwConnectionsNumber * sizeof(LONG));
 		}
-
-		// set back binary stream
-		binaryStream.seekg(0);
-		binaryStream.seekp(0);
-
-		// get new buffer
-		SIZE_T nStreamSize = binaryStream.str().size();
-		char *pEncryptedData = new char[nStreamSize];
-		binaryStream.read(pEncryptedData, nStreamSize);
-
-		// encrypt data
-		EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pEncryptedData, (UINT)nStreamSize);
-		EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pEncryptedData, (UINT)nStreamSize);
-
-		// create the binary stream new with the encrypted data
-		binaryStream.clear();
-		binaryStream.write((const char*)pEncryptedData, nStreamSize);
-
-		delete pEncryptedData;
 
 		// set back binary stream
 		binaryStream.seekg(0);
@@ -1272,10 +1035,10 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 				// create map view
 				LPVOID pData =
 					MapViewOfFile(m_hSaveMapFile,   // handle to map object
-					FILE_MAP_ALL_ACCESS,            // read/write permission
-					0,
-					0,
-					nLength);
+						FILE_MAP_ALL_ACCESS,            // read/write permission
+						0,
+						0,
+						nLength);
 
 				// return if failed
 				if (pData == NULL)
@@ -1290,7 +1053,7 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 					CopyMemory(pData, outFile.str().c_str(), nLength);
 
 					// copy save file path
-					CopyMemory(psConfig->szExternalSaveFilePath, ofn.lpstrFile, sizeof(wchar_t)*MAX_PATH);
+					CopyMemory(psConfig->szExternalSaveFilePath, ofn.lpstrFile, sizeof(wchar_t) * MAX_PATH);
 
 					// set file data size, inicio will save whenever this one is set
 					psConfig->dwSizeOfExternalSaveFile = (DWORD)nLength;
@@ -1350,14 +1113,14 @@ HRESULT AQU_FileManager::SetCustomDirectoryPath(LPCWSTR szPath)
 	std::wstringstream wsstm = std::wstringstream(szPath);
 
 	// set aquilinus path
-	CopyMemory(m_szAquilinusPathW, wsstm.str().c_str(), sizeof(wchar_t)* MAX_PATH);
+	CopyMemory(m_szAquilinusPathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
 	OutputDebugString(L"Set custom Aquilinus path : ");
 	OutputDebugString(m_szAquilinusPathW);
 
 	// set profile path
 	wsstm = std::wstringstream();
 	wsstm << m_szAquilinusPathW << "My Profiles\\";
-	CopyMemory(m_szProfilePathW, wsstm.str().c_str(), sizeof(wchar_t)* MAX_PATH);
+	CopyMemory(m_szProfilePathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
 
 	// set nodes path
 	wsstm = std::wstringstream();
@@ -1366,12 +1129,12 @@ HRESULT AQU_FileManager::SetCustomDirectoryPath(LPCWSTR szPath)
 #else
 	wsstm << m_szAquilinusPathW << "My Nodes Win32\\";
 #endif
-	CopyMemory(m_szPluginPathW, wsstm.str().c_str(), sizeof(wchar_t)* MAX_PATH);
+	CopyMemory(m_szPluginPathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
 
 	// set projects path
 	wsstm = std::wstringstream();
 	wsstm << m_szAquilinusPathW << "My Projects\\";
-	CopyMemory(m_szProjectPathW, wsstm.str().c_str(), sizeof(wchar_t)* MAX_PATH);
+	CopyMemory(m_szProjectPathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
 
 	return S_OK;
 }
@@ -1409,68 +1172,6 @@ LPCWSTR AQU_FileManager::GetProjectPath()
 }
 
 /**
-*
-***/
-HRESULT AQU_FileManager::LoadProcessList()
-{
-	if (m_pcProcesses) free(m_pcProcesses);
-
-	// open proc file
-	std::ifstream procFile;
-#ifdef _WIN64
-	procFile.open("proc_x64.aqu", std::ios::in | std::ios::binary);
-#else
-	procFile.open("proc_Win32.aqu", std::ios::in | std::ios::binary);
-#endif
-	if (procFile.is_open())
-	{
-		// get the number of processes
-		DWORD dwNumber;
-		procFile.read((char*)&dwNumber, sizeof(DWORD));
-
-		// allocate space
-		m_dwProcessListSize = dwNumber*(PROCESS_ENTRY_SIZE);
-		m_pcProcesses = (BYTE*)malloc(m_dwProcessListSize);
-
-		for (DWORD i = 0; i < dwNumber; i++)
-		{
-			// read process entry data and input hash
-			DWORD dwInputHash;
-			procFile.read((char*)&m_pcProcesses[i*(PROCESS_ENTRY_SIZE)], PROCESS_ENTRY_SIZE);
-			procFile.read((char*)&dwInputHash, sizeof(DWORD));
-
-			// get actual hash
-			DWORD dwHash = this->GetHash((BYTE*)&m_pcProcesses[i*(PROCESS_ENTRY_SIZE)], PROCESS_ENTRY_SIZE);
-
-			// compare hash code and test file length
-			if ((!procFile) || (dwInputHash != dwHash))
-			{
-				m_dwProcessListSize = 0;
-				free(m_pcProcesses);
-				procFile.close();
-				if (!procFile) return INVALID_FILE_SIZE; else return INVALID_FILE_ATTRIBUTES;
-			}
-		}
-	}
-	else
-		return ERROR_FILE_NOT_FOUND;
-
-	procFile.close();
-
-#ifdef _DEBUG
-	// output all process names for debug reasons
-	for (DWORD i = 0; i < this->GetProcessNumber(); i++)
-	{
-		OutputDebugString(this->GetName(i));
-		OutputDebugString(this->GetWindowName(i));
-		OutputDebugString(this->GetProcessName(i));
-	}
-#endif
-
-	return S_OK;
-}
-
-/**
 * Returns the current number of processes.
 ***/
 DWORD AQU_FileManager::GetProcessNumber()
@@ -1488,16 +1189,8 @@ LPWSTR AQU_FileManager::GetName(DWORD dwIndex)
 	static WCHAR ret[ENTRY_SIZE];
 	DWORD dwPos = dwIndex * 3 * MAX_JOLIET_FILENAME * sizeof(wchar_t);
 
-	// decrypt entry
-	DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-	DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-
 	// copy process name
 	CopyMemory((PVOID)ret, (PVOID)&m_pcProcesses[dwPos], ENTRY_SIZE);
-
-	// encrypt entry
-	EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-	EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
 
 	return ret;
 }
@@ -1512,16 +1205,8 @@ LPWSTR AQU_FileManager::GetWindowName(DWORD dwIndex)
 	static WCHAR ret[ENTRY_SIZE];
 	DWORD dwPos = dwIndex * 3 * MAX_JOLIET_FILENAME * sizeof(wchar_t);
 
-	// decrypt entry
-	DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-	DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-
 	// copy process name
 	CopyMemory((PVOID)ret, (PVOID)&m_pcProcesses[dwPos + (ENTRY_SIZE)], ENTRY_SIZE);
-
-	// encrypt entry
-	EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-	EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
 
 	return ret;
 }
@@ -1536,238 +1221,8 @@ LPWSTR AQU_FileManager::GetProcessName(DWORD dwIndex)
 	static WCHAR ret[ENTRY_SIZE];
 	DWORD dwPos = dwIndex * 3 * MAX_JOLIET_FILENAME * sizeof(wchar_t);
 
-	// decrypt entry
-	DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-	DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-
 	// copy process name
 	CopyMemory((PVOID)ret, (PVOID)&m_pcProcesses[dwPos + (2 * ENTRY_SIZE)], ENTRY_SIZE);
-
-	// encrypt entry
-	EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-	EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[dwPos], PROCESS_ENTRY_SIZE);
-
-	return ret;
-}
-
-/**
-* Loads single name entry from the process file and returns the string.
-***/
-LPWSTR AQU_FileManager::LoadName(DWORD dwIndex, LPWSTR szPath)
-{
-	static WCHAR ret[ENTRY_SIZE];
-	std::wstringstream szFilePath;
-#ifdef _WIN64
-	szFilePath << szPath << L"proc_x64.aqu";
-#else
-	szFilePath << szPath << L"proc_Win32.aqu";
-#endif
-
-#ifdef _DEBUG
-	OutputDebugString(szFilePath.str().c_str());
-#endif
-
-	// open proc file
-	std::ifstream procFile;
-	procFile.open(szFilePath.str().c_str(), std::ios::in | std::ios::binary);
-	if (procFile.is_open())
-	{
-		// get the number of processes
-		DWORD dwNumber;
-		procFile.read((char*)&dwNumber, sizeof(DWORD));
-
-		// index out of range ?
-		if (dwIndex >= dwNumber)
-		{
-			procFile.close();
-			return nullptr;
-		}
-
-		// ignore until index
-		procFile.ignore((PROCESS_ENTRY_SIZE + sizeof(DWORD))*dwIndex);
-
-		// allocate space
-		BYTE* pcData = (BYTE*)malloc(PROCESS_ENTRY_SIZE);
-
-		// read process entry data and input hash
-		DWORD dwInputHash;
-		procFile.read((char*)pcData, PROCESS_ENTRY_SIZE);
-		procFile.read((char*)&dwInputHash, sizeof(DWORD));
-
-		// get actual hash
-		DWORD dwHash = this->GetHash((BYTE*)pcData, PROCESS_ENTRY_SIZE);
-
-		// compare hash code and test file length
-		if (dwInputHash != dwHash)
-		{
-			free(pcData);
-			procFile.close();
-			return nullptr;
-		}
-
-		// decrypt entry
-		DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-		DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-
-		// copy process name
-		CopyMemory((PVOID)ret, (PVOID)pcData, ENTRY_SIZE);
-
-		// encrypt entry
-		EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-		EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-	}
-	else
-		return nullptr;
-
-	procFile.close();
-
-	return ret;
-}
-
-/**
-* Loads single window name entry from the process file and returns the string.
-***/
-LPWSTR AQU_FileManager::LoadWindowName(DWORD dwIndex, LPWSTR szPath)
-{
-	static WCHAR ret[ENTRY_SIZE];
-	std::wstringstream szFilePath;
-#ifdef _WIN64
-	szFilePath << szPath << L"proc_x64.aqu";
-#else
-	szFilePath << szPath << L"proc_Win32.aqu";
-#endif
-
-#ifdef _DEBUG
-	OutputDebugString(szFilePath.str().c_str());
-#endif
-
-	// open proc file
-	std::ifstream procFile;
-	procFile.open(szFilePath.str().c_str(), std::ios::in | std::ios::binary);
-	if (procFile.is_open())
-	{
-		// get the number of processes
-		DWORD dwNumber;
-		procFile.read((char*)&dwNumber, sizeof(DWORD));
-
-		// index out of range ?
-		if (dwIndex >= dwNumber)
-		{
-			procFile.close();
-			return nullptr;
-		}
-
-		// ignore until index
-		procFile.ignore((PROCESS_ENTRY_SIZE + sizeof(DWORD))*dwIndex);
-
-		// allocate space
-		BYTE* pcData = (BYTE*)malloc(PROCESS_ENTRY_SIZE);
-
-		// read process entry data and input hash
-		DWORD dwInputHash;
-		procFile.read((char*)pcData, PROCESS_ENTRY_SIZE);
-		procFile.read((char*)&dwInputHash, sizeof(DWORD));
-
-		// get actual hash
-		DWORD dwHash = this->GetHash((BYTE*)pcData, PROCESS_ENTRY_SIZE);
-
-		// compare hash code and test file length
-		if (dwInputHash != dwHash)
-		{
-			free(pcData);
-			procFile.close();
-			return nullptr;
-		}
-
-		// decrypt entry
-		DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-		DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-
-		// copy process name
-		CopyMemory((PVOID)ret, (PVOID)&pcData[ENTRY_SIZE], ENTRY_SIZE);
-
-		// encrypt entry
-		EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-		EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-	}
-	else
-		return nullptr;
-
-	procFile.close();
-
-	return ret;
-}
-
-/**
-* Loads single process name entry from the process file and returns the string.
-***/
-LPWSTR AQU_FileManager::LoadProcessName(DWORD dwIndex, LPWSTR szPath)
-{
-	static WCHAR ret[ENTRY_SIZE];
-	std::wstringstream szFilePath;
-#ifdef _WIN64
-	szFilePath << szPath << L"proc_x64.aqu";
-#else
-	szFilePath << szPath << L"proc_Win32.aqu";
-#endif
-
-#ifdef _DEBUG
-	OutputDebugString(szFilePath.str().c_str());
-#endif
-
-	// open proc file
-	std::ifstream procFile;
-	procFile.open(szFilePath.str().c_str(), std::ios::in | std::ios::binary);
-	if (procFile.is_open())
-	{
-		// get the number of processes
-		DWORD dwNumber;
-		procFile.read((char*)&dwNumber, sizeof(DWORD));
-
-		// index out of range ?
-		if (dwIndex >= dwNumber)
-		{
-			procFile.close();
-			return nullptr;
-		}
-
-		// ignore until index
-		procFile.ignore((PROCESS_ENTRY_SIZE + sizeof(DWORD))*dwIndex);
-
-		// allocate space
-		BYTE* pcData = (BYTE*)malloc(PROCESS_ENTRY_SIZE);
-
-		// read process entry data and input hash
-		DWORD dwInputHash;
-		procFile.read((char*)pcData, PROCESS_ENTRY_SIZE);
-		procFile.read((char*)&dwInputHash, sizeof(DWORD));
-
-		// get actual hash
-		DWORD dwHash = this->GetHash((BYTE*)pcData, PROCESS_ENTRY_SIZE);
-
-		// compare hash code and test file length
-		if (dwInputHash != dwHash)
-		{
-			free(pcData);
-			procFile.close();
-			return nullptr;
-		}
-
-		// decrypt entry
-		DecryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-		DecryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-
-		// copy process name
-		CopyMemory((PVOID)ret, (PVOID)&pcData[ENTRY_SIZE * 2], ENTRY_SIZE);
-
-		// encrypt entry
-		EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-		EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)pcData, PROCESS_ENTRY_SIZE);
-	}
-	else
-		return nullptr;
-
-	procFile.close();
 
 	return ret;
 }
@@ -1788,7 +1243,6 @@ DWORD AQU_FileManager::GetHash(BYTE* pcData, DWORD dwSize)
 	return h;
 }
 
-#ifdef DEVELOPER_BUILD
 /**
 *
 ***/
@@ -1824,56 +1278,17 @@ HRESULT AQU_FileManager::AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR sz
 
 	// copy names
 	DWORD dwLen = (DWORD)wcslen(szName) + 1;
-	if (dwLen>MAX_JOLIET_FILENAME) dwLen = MAX_JOLIET_FILENAME;
-	CopyMemory((PVOID)&m_pcProcesses[m_dwProcessListSize], (PVOID)szName, dwLen*sizeof(wchar_t));
+	if (dwLen > MAX_JOLIET_FILENAME) dwLen = MAX_JOLIET_FILENAME;
+	CopyMemory((PVOID)&m_pcProcesses[m_dwProcessListSize], (PVOID)szName, dwLen * sizeof(wchar_t));
 	dwLen = (DWORD)wcslen(szWindow) + 1;
 	if (dwLen > MAX_JOLIET_FILENAME) dwLen = MAX_JOLIET_FILENAME;
-	CopyMemory((PVOID)&m_pcProcesses[m_dwProcessListSize + (ENTRY_SIZE)], (PVOID)szWindow, dwLen*sizeof(wchar_t));
+	CopyMemory((PVOID)&m_pcProcesses[m_dwProcessListSize + (ENTRY_SIZE)], (PVOID)szWindow, dwLen * sizeof(wchar_t));
 	dwLen = (DWORD)wcslen(szProcess) + 1;
 	if (dwLen > MAX_JOLIET_FILENAME) dwLen = MAX_JOLIET_FILENAME;
-	CopyMemory((PVOID)&m_pcProcesses[m_dwProcessListSize + (2 * ENTRY_SIZE)], (PVOID)szProcess, dwLen*sizeof(wchar_t));
-
-	// encrypt new entry
-	EncryptMemoryField(AQU_EncryptionMode::Caesar, CYPHER_ONE, (LPBYTE)&m_pcProcesses[m_dwProcessListSize], PROCESS_ENTRY_SIZE);
-	EncryptMemoryField(AQU_EncryptionMode::MixUpPosition, CYPHER_TWO, (LPBYTE)&m_pcProcesses[m_dwProcessListSize], PROCESS_ENTRY_SIZE);
+	CopyMemory((PVOID)&m_pcProcesses[m_dwProcessListSize + (2 * ENTRY_SIZE)], (PVOID)szProcess, dwLen * sizeof(wchar_t));
 
 	// set new size
 	m_dwProcessListSize += (PROCESS_ENTRY_SIZE);
-
-	return S_OK;
-}
-
-/**
-*
-***/
-HRESULT AQU_FileManager::SaveProcessList()
-{
-	// save proc file
-	std::ofstream procFile;
-#ifdef _WIN64
-	procFile.open("proc_x64.aqu", std::ios::out | std::ios::binary);
-#else
-	procFile.open("proc_Win32.aqu", std::ios::out | std::ios::binary);
-#endif
-	if (procFile.is_open())
-	{
-		// first, write down the number
-		DWORD dwNumber = this->GetProcessNumber();
-		procFile.write((char*)&dwNumber, sizeof(DWORD));
-
-		for (DWORD i = 0; i < dwNumber; i++)
-		{
-			// write down this process data (name, window name, process name)
-			procFile.write((char*)&m_pcProcesses[i*(PROCESS_ENTRY_SIZE)], PROCESS_ENTRY_SIZE);
-
-			// hash this, write down the hash code
-			DWORD dwHash = this->GetHash((BYTE*)&m_pcProcesses[i*(PROCESS_ENTRY_SIZE)], PROCESS_ENTRY_SIZE);
-			procFile.write((char*)&dwHash, sizeof(DWORD));
-		}
-		//procFile.write((char*)m_pcProcesses,m_dwProcessListSize);
-		procFile.close();
-	}
-	else return E_FAIL;
 
 	return S_OK;
 }
@@ -1884,16 +1299,20 @@ HRESULT AQU_FileManager::SaveProcessList()
 ***/
 HRESULT AQU_FileManager::LoadProcessListCSV()
 {
+	UINT uI = 0;
+	DEBUG_UINT(uI++);
 	// clear old list
 	if (m_pcProcesses) free(m_pcProcesses);
 	m_pcProcesses = nullptr;
 	m_dwProcessListSize = 0;
+	DEBUG_UINT(uI++);
 
 	// open proc file
 	std::wifstream procFile;
 	procFile.open("proc.csv", std::ios::in | std::ios::binary);
 	if (procFile.is_open())
 	{
+		DEBUG_UINT(uI++);
 		// get the number of processes
 		DWORD dwNumber = 0;
 		std::wstring szLine;
@@ -1901,6 +1320,7 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 			++dwNumber;
 		procFile.clear();
 		procFile.seekg(0);
+		DEBUG_UINT(uI++);
 
 		// read line by line
 		for (DWORD i = 0; i < dwNumber; i++)
@@ -1931,16 +1351,18 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 
 			// and add the process
 			AddProcess(szName.c_str(), szWinName.c_str(), szLine.c_str());
-
 		}
+		DEBUG_UINT(uI++);
 	}
 	else
 	{
 		OutputDebugString(L"File not found : proc.csv");
 		return ERROR_FILE_NOT_FOUND;
 	}
+	DEBUG_UINT(uI++);
 
 	procFile.close();
+	DEBUG_UINT(uI++);
 
 	// output all process names for debug reasons
 	for (DWORD i = 0; i < this->GetProcessNumber(); i++)
@@ -1949,6 +1371,7 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 		OutputDebugString(this->GetWindowName(i));
 		OutputDebugString(this->GetProcessName(i));
 	}
+	DEBUG_UINT(uI++);
 
 	return S_OK;
 }
@@ -2020,7 +1443,5 @@ HRESULT AQU_FileManager::SaveGameListTXT()
 
 	return S_OK;
 }
-
-#endif
 
 

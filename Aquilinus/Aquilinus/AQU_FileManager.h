@@ -80,8 +80,6 @@ public:
 	AQU_FileManager(bool bCreate);
 	~AQU_FileManager();
 
-	HRESULT EncryptMemoryField(AQU_EncryptionMode eEncryptionMode, LPCSTR szCypher, LPBYTE pData, UINT dwLength);
-	HRESULT DecryptMemoryField(AQU_EncryptionMode eEncryptionMode, LPCSTR szCypher, LPBYTE pData, UINT dwLength);
 	HRESULT LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD &dwProcessIndex, DWORD &dwSupportedInterfacesNumber, int* pnInterfaceInjectionTechnique, LPWSTR szPicturePath, BOOL &bPicture, DWORD &dwDetourTimeDelay, bool bKeepProcessName);
 	HRESULT LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* psConfig, DWORD &dwSupportedInterfacesNumber, BYTE* &paPictureData, DWORD &dwPictureSize);
 	HRESULT LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstream &sstrDataStream);
@@ -93,23 +91,15 @@ public:
 	LPCWSTR GetPluginPath();
 	LPCWSTR GetProfilePath();
 	LPCWSTR GetProjectPath();
-	HRESULT LoadProcessList();
 	DWORD   GetProcessNumber();
 	LPWSTR  GetName(DWORD dwIndex);
 	LPWSTR  GetWindowName(DWORD dwIndex);
 	LPWSTR  GetProcessName(DWORD dwIndex);
-	LPWSTR  LoadName(DWORD dwIndex, LPWSTR szPath);
-	LPWSTR  LoadWindowName(DWORD dwIndex, LPWSTR szPath);
-	LPWSTR  LoadProcessName(DWORD dwIndex, LPWSTR szPath);
 	DWORD   GetHash(BYTE* pcData, DWORD dwSize);
-
-#ifdef DEVELOPER_BUILD
 	HRESULT AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR szProcess);
-	HRESULT SaveProcessList();
 	HRESULT LoadProcessListCSV();
 	HRESULT SaveProcessListCSV();
 	HRESULT SaveGameListTXT();
-#endif
 
 private:
 	/**

@@ -36,17 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAIN_WINDOW_WIDTH 680
 #define MAIN_WINDOW_HEIGHT 200
+#define MAIN_WINDOW_HEIGHT_NEW 800
+#define MAIN_WINDOW_HEIGHT_OPTIONS 800
 #define MAIN_WINDOW_HEIGHT_INFO 800
-#define SELECT_PROCESS_WINDOW_WIDTH 800
-#define SELECT_PROCESS_WINDOW_HEIGHT 568
-#define NEW_PROJECT_WINDOW_WIDTH 474
-#define NEW_PROJECT_WINDOW_HEIGHT 568
-#define OPTIONS_WINDOW_WIDTH 424
-#define OPTIONS_WINDOW_HEIGHT 680
-#ifdef DEVELOPER_BUILD
-#define ADD_PROCESS_WINDOW_WIDTH 424
-#define ADD_PROCESS_WINDOW_HEIGHT 568
-#endif
 
 #define GLFW_INCLUDE_NONE
 
@@ -79,88 +71,8 @@ enum InicioStatus
 	ToInject
 //	Injected
 	/*NewProjectWindow,
-	OptionsWindow,
-#ifdef DEVELOPER_BUILD
-	AddProcessWindow,
-#endif*/
+	OptionsWindow,*/
 };
-
-#ifndef AQUILINUS_RUNTIME_ENVIRONMENT
-
-/**
-* Enumeration of all Inicio controls.
-***/
-enum InicioControls
-{
-	InicioExit = 0,
-	InicioNewProject = 1,
-	InicioLoadProject = 2,
-	InicioOptions = 3,
-	InicioInfo = 4,
-	InicioLoadProfile = 5,
-	NewProjectExit = 6,
-	ProceedToInjection = 7,
-	NextPage = 8,
-	PreviousPage = 9,
-	OK = 10,
-	ColorsList = 11,
-	SupportedInterfacesList = 12,
-	HookSelection = 13,
-	OptionsExit = 14,
-	SelectProcessExit = 15,
-	GameList = 16,
-	TimeDelaySlider = 17,
-	Info = 18,
-	AddProfileWindow = 19,
-	KeepProcessName = 20,
-	InjectionRepetition = 21,
-	EditMode = 22,
-	D3DSelection = 23,
-	Reserved9 = 24,
-#ifdef DEVELOPER_BUILD
-	ProcessesList = 25,
-	AddProcessExit = 26,
-	NewProcess = 27,
-	SaveProcessList = 28,
-	LoadCSV = 29,
-	SaveCSV = 30,
-	SaveTXT = 31,
-	InicioTypesNumber = 32,   /**< The number of types **/
-#else
-	InicioTypesNumber = 25,   /**< The number of types **/
-#endif
-};
-
-/**
-* Main window control structure.
-***/
-struct InicioControl
-{
-	RECT rcButtonRect;               /**< The main window button rectangle. **/
-	bool bIsPressed;                 /**< True if the mouse button 1 is pressed and the cursor is in the rectangles border. **/
-	union
-	{
-		bool bIsOpen;                /**< True if this control is opened. **/
-		DWORD dwCurrentPage;         /**< The current menu page of a book menu. **/
-		int nMinValue;               /**< The minimum integer value of that control **/
-		float fMinValue;             /**< The minimum float value of that control. **/
-	};
-	union
-	{
-		DWORD dwEntries;              /**< The number of entries in that control. **/
-		int nMaxValue;               /**< The maximum integer value of that control **/
-		float fMaxValue;             /**< The maximum float value of that control. **/
-	};
-	union
-	{
-		LPWSTR * pszEntries;         /**< The entry strings. **/
-		LPCWSTR szText;              /**< The text of the control. **/
-		int nValue;                  /**< The current integer value of that control **/
-		float fValue;                /**< The current float value of that control. **/
-	};
-	DWORD dwSelection;               /**< The current selection. **/
-};
-
 /**
 * The Aquilinus versioning structure.
 ***/
@@ -186,8 +98,6 @@ enum class InicioWindows
 	AddProcess,
 #endif
 };
-
-#endif
 
 /*** Inicio Globals  ***/
 AQU_Drawer*           g_pDirectDraw;                                             /**< Pointer to the direct draw class. **/
@@ -223,54 +133,15 @@ int                       g_nRepeat = 0;                                        
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 AQU_Version               g_eVersion;                                                /**< The current version of Aquilinus. Maybe we put that in the configuration... **/
-InicioControl             g_sInicioControls[InicioControls::InicioTypesNumber];      /**< All inicio controls. Index equals InicioControl enumeration. **/
 InicioWindows             g_eCurrentWindow;                                          /**< The current active window. ***/
 bool                      g_bWindowResize;                                           /**< True if main window ought to be resized. **/
 #endif
 
-#ifdef DEVELOPER_BUILD
-wchar_t             g_szGame[MAX_PATH];
-wchar_t             g_szWindow[MAX_PATH];
-wchar_t             g_szProc[MAX_PATH];
-#endif
-
-#ifndef AQUILINUS_RUNTIME_ENVIRONMENT
-
 /*** Inicio controls methods ***/
-void             InitControls();
+void             ImGui_Main();
+void             ImGui_New();
 void             SaveConfig();
-bool             InRect(RECT rc, POINT pt);
-void             SetSelectionBoxEntry(InicioControl &sInicioControl);
-void             RenderSelectionBox(AQU_Drawer* pDirectDraw, InicioControl &sInicioControl, float fTextSize);
-void             RenderSelectionBoxEntries(AQU_Drawer* pDirectDraw, InicioControl &sInicioControl, float fTextSize);
-void             RenderSelectionTextList(AQU_Drawer* pDirectDraw, InicioControl &sInicioControl);
-void             RenderButton(AQU_Drawer* pDirectDraw, InicioControl &sInicioControl, float fTextSize);
-void             RenderSlider(AQU_Drawer* pDirectDraw, InicioControl &sInicioControl, float fTextSize);
-void             SetSliderValue(InicioControl &sInicioControl, POINT pt);
-void             HandleSelectionButtonDown(InicioControl &sInicioControl);
-void             HandleSelectionButtonUp(InicioControl &sInicioControl);
-void             HandleSelectProcessButtonDown(HWND hwnd);
-void             HandleSelectProcessButtonUp(HWND hwnd);
-void             RenderSelectProcess();
-void             HandleNewProjectButtonDown(HWND hwnd);
-void             HandleNewProjectButtonUp(HWND hwnd);
-void             SetHookSelection(DWORD dwSelection);
-void             RenderNewProject();
-void             HandleOptionsButtonDown(HWND hwnd);
-void             HandleOptionsButtonUp(HWND hwnd);
-void             RenderOptions();
-
-#endif
-
-#ifdef DEVELOPER_BUILD
-
-BOOL    CALLBACK TextInputProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam);
-void             HandleAddProcessButtonDown(HWND hwnd);
-void             HandleAddProcessButtonUp(HWND hwnd);
-void             RenderAddProcess();
 DWORD            EnumerateProcesses(LPWSTR *&pszEntries, DWORD &dwEntries);
-
-#endif
 
 /*** Inicio methods ***/
 HRESULT          InicioInit();
@@ -282,17 +153,9 @@ BOOL             SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnable
 DWORD            GetTargetThreadID(wchar_t * szProcName);
 HRESULT          Inject(DWORD dwID, const wchar_t * szDllName);
 DWORD   WINAPI   InjectionThread(LPVOID Param);
-DWORD   WINAPI   ProfileWindowThread(LPVOID Param);
-DWORD   WINAPI   ProfileWindowMainThread(LPVOID Param);
-LRESULT CALLBACK WndProcProfileWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
-
-DWORD   WINAPI   SubWindowThread(LPVOID Param);
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 int     WINAPI   WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
-
 #endif
 
 #endif
