@@ -64,7 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Inicio menu control status.
 ***/
-enum InicioStatus
+enum class InicioStatus
 {
 	Idle,
 	Injecting,
@@ -73,6 +73,18 @@ enum InicioStatus
 	/*NewProjectWindow,
 	OptionsWindow,*/
 };
+
+/**
+* Injection profiles supported.
+***/
+enum InjectionProfile
+{
+	IP_D3D9    = 0,
+	IP_D3D10   = 1,
+	IP_D3D11   = 2,
+	IP_Count   = 3
+};
+
 /**
 * The Aquilinus versioning structure.
 ***/
@@ -129,6 +141,8 @@ HANDLE                    g_hInjectionThread;
 POINT                     g_vcZeroOrigin;                                            /**< A zero origin used for drawing methods. ***/
 std::vector<std::wstring> g_aszGameNames;                                            /**< The sorted game list to be used in the game selection window. **/
 std::vector<std::wstring> g_aszGameNamesUnsorted;                                    /**< The unsorted game list to be used to get the process index for the game **/
+int                       g_nGameSelected = 0;                                       /**< Index of the selected game. Matches the index in g_aszGameNames. **/
+InjectionProfile          g_eGameProfile;                                            /**< Game graphics profile selected. **/
 int                       g_nRepeat = 0;                                             /**< The number of process IDs to be skipped in injection process. (0..15) **/
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT

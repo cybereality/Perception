@@ -253,7 +253,6 @@ void ImGui_Main()
 ***/
 void ImGui_New()
 {
-	static int s_nGameSelected = 0;
 	if (ImGui::CollapsingHeader("Select Game"))
 	{
 		// 0AB CDE FGH IJK LMN OPQ RST UVW XYZ
@@ -304,8 +303,8 @@ void ImGui_New()
 				// set labels
 				std::string acGameName;
 				for (wchar_t c : g_aszGameNames[i]) acGameName += (char)c;
-				if (ImGui::Selectable(acGameName.c_str(), s_nGameSelected == i))
-					s_nGameSelected = i;
+				if (ImGui::Selectable(acGameName.c_str(), g_nGameSelected == i))
+					g_nGameSelected = i;
 
 				// letter button pressed ?
 				if (nSelect >= 0)
@@ -333,20 +332,24 @@ void ImGui_New()
 				}
 			}
 			ImGui::EndChild();
-		}		
+		}
+
+		// select graphics profile
+		const char* aacElems_names[InjectionProfile::IP_Count] = { "Direct 3D 9.x", "Direct 3D 10.x", "Direct 3D 11.x" };
+		const char* acElem_name = (g_eGameProfile >= 0 && g_eGameProfile < InjectionProfile::IP_Count) ? aacElems_names[g_eGameProfile] : "Unknown";
+		ImGui::SliderInt("GPU API", &(int)g_eGameProfile, 0, InjectionProfile::IP_Count - 1, acElem_name);
 	}
 
 	// selected game
 	ImGui::Separator();
 	std::string acGameName;
 	UINT uI = 0;
-	if ((g_aszGameNames.size() > 0) && (s_nGameSelected >= 0) && (s_nGameSelected < (int)g_aszGameNames.size()))
+	if ((g_aszGameNames.size() > 0) && (g_nGameSelected >= 0) && (g_nGameSelected < (int)g_aszGameNames.size()))
 	{
-		for (wchar_t c : g_aszGameNames[s_nGameSelected]) acGameName += (char)c;
+		for (wchar_t c : g_aszGameNames[g_nGameSelected]) acGameName += (char)c;
 	}
 	ImGui::Text("Game : %s", acGameName.c_str());
 	ImGui::Separator();
-
 }
 
 /**
@@ -367,7 +370,6 @@ void SaveConfig()
 }
 
 #endif
-
 
 /**
 * Enumerate currently running exe process names.
@@ -633,14 +635,14 @@ HRESULT EnumerateGameNames()
 		{
 			OutputDebugString(g_aszGameNames[j + (int)g_nLetterStartIndex[i]].c_str());
 		}
-			}
+	}
 #endif
 
 	// clear game list
 	g_nCurrentLetterSelection = 0;
 
 	return S_OK;
-		}
+}
 
 /**
 * Enumerate supported interface names.
@@ -1167,6 +1169,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
+		// proceed to injection
+		if (g_eInicioStatus == InicioStatus::ToInject)
+		{
+			// create the thread to override the virtual methods table
+			g_eInicioStatus = InicioStatus::Injecting;
+			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaNew;
+			g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+			g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
+			if (g_hInjectionThread == NULL)
+			{
+				g_eInicioStatus = InicioStatus::ToInject;
+				OutputDebugString(L"Aquilinus : Failed to create injection thread !");
+				Sleep(100);
+			}
+		}
+
 		// Poll and handle events, update window fields
 		glfwPollEvents();
 		glfwGetWindowPos(window, &w_posx, &w_posy);
@@ -1302,22 +1320,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				ImGui_New();
 				if (ImGui::Button("Inject", ImVec2(100, 40)))
 				{
-					// proceed to injection
-					// start injection thread if >toInject<  TODO !!!!!!
-					/*if (g_eInicioStatus == InicioStatus::ToInject)
+					// get process id
+					DWORD unOldProcessIndex = g_pAquilinusConfig->dwProcessIndex;
+					for (int i = 0; i < (int)g_aszGameNamesUnsorted.size(); i++)
 					{
-						// create the thread to override the virtual methods table
-						g_eInicioStatus = InicioStatus::Injecting;
-						g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaNew;
-						g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
-						g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
-						if (g_hInjectionThread == NULL)
-							OutputDebugString(L"Aquilinus : Failed to create injection thread !");
-					}*/
+						// compare strings from the sorted and unsorted game list
+						if (g_aszGameNames[g_nGameSelected].compare(g_aszGameNamesUnsorted[i]) == 0)
+						{
+							g_pAquilinusConfig->dwProcessIndex = i;
+						}
+					}
+
+					// set ALL classes to "NoInjection"
+					for (int i = 0; i < SUPPORTED_INTERFACES_NUMBER; i++)
+						g_pAquilinusConfig->eInjectionTechnique[i] = AQU_InjectionTechniques::NoInjection;
+
+					// set injection technique based on d3d selection
+					switch (g_eGameProfile)
+					{
+					case InjectionProfile::IP_D3D9:
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDirect3DDevice9] = AQU_InjectionTechniques::VMTable;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDirect3DStateBlock9] = AQU_InjectionTechniques::VMTable;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDirect3DSwapChain9] = AQU_InjectionTechniques::VMTable;
+						break;
+					case InjectionProfile::IP_D3D10:
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D10Device] = AQU_InjectionTechniques::VMTable;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain] = AQU_InjectionTechniques::VMTable;
+						break;
+					case InjectionProfile::IP_D3D11:
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device] = AQU_InjectionTechniques::VMTable;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext] = AQU_InjectionTechniques::VMTable;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain] = AQU_InjectionTechniques::VMTable;
+						break;
+					default:
+						break;
+					}
 
 					// back to main
 					g_eCurrentWindow = InicioWindows::Main;
-					g_eInicioStatus = InicioStatus::ToInject; //??
+					g_eInicioStatus = InicioStatus::ToInject;
 					g_bWindowResize = true;
 				}
 				ImGui::SameLine();
