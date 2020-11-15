@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAIN_WINDOW_WIDTH 680
 #define MAIN_WINDOW_HEIGHT 200
+#define MAIN_WINDOW_HEIGHT_INFO 800
 #define SELECT_PROCESS_WINDOW_WIDTH 800
 #define SELECT_PROCESS_WINDOW_HEIGHT 568
 #define NEW_PROJECT_WINDOW_WIDTH 474
@@ -73,15 +74,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 enum InicioStatus
 {
-	Initial,
 	Idle,
 	Injecting,
-	ToInject,
-	NewProjectWindow,
+	ToInject
+//	Injected
+	/*NewProjectWindow,
 	OptionsWindow,
 #ifdef DEVELOPER_BUILD
 	AddProcessWindow,
-#endif
+#endif*/
 };
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
@@ -173,13 +174,14 @@ struct AQU_Version
 /**
 * Inicio sub window types.
 ***/
-enum InicioSubWindows
+enum class InicioWindows
 {
-	NoWindow,
+	Main = 0,
 	SelectProcess,
 	SelectProfile,
 	NewProject,
 	Options,
+	Info,
 #ifdef DEVELOPER_BUILD
 	AddProcess,
 #endif
@@ -195,10 +197,8 @@ AQU_FileManager*          g_pFileManager;                                       
 InicioStatus              g_eInicioStatus;                                           /**< The control status for Inicio or the Aquilinus RTE. **/
 int                       g_nScreenWidth  = GetSystemMetrics(SM_CXFULLSCREEN);
 int                       g_nScreenHeight = GetSystemMetrics(SM_CYFULLSCREEN);
-const int                 g_nMainWindowWidth  = MAIN_WINDOW_WIDTH;
-const int                 g_nMainWindowHeight = MAIN_WINDOW_HEIGHT;
-int                       g_nSubWindowWidth  = NULL;
-int                       g_nSubWindowHeight = NULL;
+int                       g_nMainWindowWidth  = MAIN_WINDOW_WIDTH;                   /**< Current window width. **/
+int                       g_nMainWindowHeight = MAIN_WINDOW_HEIGHT;                  /**< Current window height. **/
 DWORD                     g_dwColorSchemeIndex = 0;                                  /**< Global color scheme index. Only needed to load/save options. Actual color scheme index stored in config. **/
 bool                      g_bControlActivated;                                       /**< True if any control is activated currently. **/
 bool                      g_bSubMenuOpen;                                            /**< True if any sub menu is opened. **/
@@ -224,7 +224,8 @@ int                       g_nRepeat = 0;                                        
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 AQU_Version               g_eVersion;                                                /**< The current version of Aquilinus. Maybe we put that in the configuration... **/
 InicioControl             g_sInicioControls[InicioControls::InicioTypesNumber];      /**< All inicio controls. Index equals InicioControl enumeration. **/
-InicioSubWindows          g_eCurrentSubWindow;                                       /**< The current active sub window. ***/
+InicioWindows             g_eCurrentWindow;                                          /**< The current active window. ***/
+bool                      g_bWindowResize;                                           /**< True if main window ought to be resized. **/
 #endif
 
 #ifdef DEVELOPER_BUILD

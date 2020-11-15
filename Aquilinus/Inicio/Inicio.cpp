@@ -56,7 +56,15 @@ void ImGui_Main()
 	ImVec2 sSize = { float(g_nMainWindowWidth) * .2f,  float(g_nMainWindowHeight) * .18f };
 	if (ImGui::Button("New", sSize))
 	{
+		// force idle
+		ForceIdle();
 
+		// enumerate game names
+		EnumerateGameNames();
+
+		// set new project window
+		g_eCurrentWindow = InicioWindows::NewProject;
+		g_bWindowResize = true;
 	}
 	if (ImGui::IsItemHovered())
 	{
@@ -69,6 +77,70 @@ void ImGui_Main()
 	ImGui::SameLine();
 	if (ImGui::Button("Load", sSize))
 	{
+		// force idle
+		ForceIdle();
+
+		// get the current directory
+		wchar_t szCurrentPath[MAX_PATH];
+		GetCurrentDirectory(MAX_PATH, szCurrentPath);
+
+		// keep the "old" process name ?
+		DWORD dwProcessIndexOld = 0;
+		DWORD dwDetourTimeDelay = 0;
+		if (g_bKeepProcessName)
+		{
+			dwProcessIndexOld = g_pAquilinusConfig->dwProcessIndex;
+			dwDetourTimeDelay = g_pAquilinusConfig->dwDetourTimeDelay;
+		}
+
+		// load the working area basics to inject
+		DWORD dwSupportedInterfacesNumber;
+		if (SUCCEEDED(g_pFileManager->LoadWorkingAreaBasics(g_pAquilinusConfig->szWorkspaceFilePath,
+			g_pAquilinusConfig->dwProcessIndex,
+			dwSupportedInterfacesNumber,
+			(int*)g_pAquilinusConfig->eInjectionTechnique,
+			g_pAquilinusConfig->szPictureFilePath,
+			g_pAquilinusConfig->bProfileWindow,
+			g_pAquilinusConfig->dwDetourTimeDelay,
+			g_bKeepProcessName)))
+		{
+			// keep the "old" process name ?
+			if (g_bKeepProcessName)
+			{
+				g_pAquilinusConfig->dwProcessIndex = dwProcessIndexOld;
+				g_pAquilinusConfig->dwDetourTimeDelay = dwDetourTimeDelay;
+			}
+
+			// output debug data...
+			OutputDebugString(L"Aquilinus : Start to inject to....");
+			LPWSTR szName = g_pFileManager->GetName(g_pAquilinusConfig->dwProcessIndex);
+			OutputDebugString(szName);
+			OutputDebugString(g_pAquilinusConfig->szWorkspaceFilePath);
+
+			// ensure to be back in old path before starting the injection thread
+			SetCurrentDirectory(szCurrentPath);
+
+			// create the thread
+			g_eInicioStatus = InicioStatus::Injecting;
+			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaLoad;
+			g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+			g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
+			if (g_hInjectionThread == NULL)
+				OutputDebugString(L"Aquilinus : Failed to create injection thread !");
+
+			// picture present ?
+			if (g_pAquilinusConfig->bProfileWindow)
+			{
+				// create the thread for the profile window
+				if (CreateThread(NULL, 0, ProfileWindowMainThread, NULL, 0, NULL) == NULL)
+					OutputDebugString(L"Aquilinus : Failed to create profile window thread !");
+			}
+		}
+		else
+		{
+			OutputDebugString(L"Aquilinus : Load working area failed!");
+			g_eInicioStatus = InicioStatus::Idle;
+		}
 	}
 	if (ImGui::IsItemHovered())
 	{
@@ -81,7 +153,73 @@ void ImGui_Main()
 	ImGui::SameLine();
 	if (ImGui::Button("Compiled", sSize))
 	{
+		// force idle
+		ForceIdle();
 
+		// get the current directory
+		wchar_t szCurrentPath[MAX_PATH];
+		GetCurrentDirectory(MAX_PATH, szCurrentPath);
+
+		// load the profile basics to inject
+		DWORD dwSupportedInterfacesNumber;
+		if (SUCCEEDED(g_pFileManager->LoadProfileBasics(nullptr, g_pAquilinusConfig, dwSupportedInterfacesNumber, g_pPictureData, g_dwPictureSize)))
+		{
+			if (g_pAquilinusConfig->bEmptyProcess)
+			{
+				std::wstring szP = g_pFileManager->GetProcessName(g_pAquilinusConfig->dwProcessIndex);
+				std::wstring szN = g_pFileManager->GetName(g_pAquilinusConfig->dwProcessIndex);
+				CopyMemory(g_pAquilinusConfig->szEntryName, szN.c_str(), szN.length() + 1);
+				CopyMemory(g_pAquilinusConfig->szProcessName, szP.c_str(), szP.length() + 1);
+			}
+
+			// output debug data...
+			OutputDebugString(L"Aquilinus : Start to inject to....");
+			OutputDebugString(g_pAquilinusConfig->szEntryName);
+			OutputDebugString(g_pAquilinusConfig->szProfileFilePath);
+
+			// ensure to be back in old path before starting the injection thread
+			SetCurrentDirectory(szCurrentPath);
+
+			// create the thread for injection
+			g_eInicioStatus = InicioStatus::Injecting;
+			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::Complemented;
+			g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+			g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
+			if (g_hInjectionThread == NULL)
+				OutputDebugString(L"Aquilinus : Failed to create injection thread !");
+
+			// picture present ?
+			if (g_pAquilinusConfig->bProfileWindow)
+			{
+				// ensure that the image path is zero, so it will use the picture data instead
+				g_pAquilinusConfig->szPictureFilePath[0] = 0;
+
+				// create the thread to override the virtual methods table
+				if (CreateThread(NULL, 0, ProfileWindowMainThread, NULL, 0, NULL) == NULL)
+					OutputDebugString(L"Aquilinus : Failed to create profile window thread !");
+			}
+
+			// thumbnail present ?
+			wchar_t szPNGPath[MAX_PATH];
+			size_t nLen = wcslen(g_pAquilinusConfig->szProfileFilePath);
+			CopyMemory(szPNGPath, g_pAquilinusConfig->szProfileFilePath, nLen * sizeof(wchar_t));
+			szPNGPath[nLen - 4] = 'p';
+			szPNGPath[nLen - 3] = 'n';
+			szPNGPath[nLen - 2] = 'g';
+			szPNGPath[nLen - 1] = 0;
+			wchar_t buf[128];
+			wsprintf(buf, L"LEN %u", nLen);
+			OutputDebugString(buf);
+			OutputDebugString(g_pAquilinusConfig->szProfileFilePath);
+			OutputDebugString(szPNGPath);
+			g_pDirectDraw->LoadBackground(szPNGPath, 256, 64);
+
+		}
+		else
+		{
+			OutputDebugString(L"Aquilinus : Load profile failed!");
+			g_eInicioStatus = InicioStatus::Idle;
+		}
 	}
 	if (ImGui::IsItemHovered())
 	{
@@ -95,7 +233,12 @@ void ImGui_Main()
 	ImGui::SetCursorScreenPos(sPos1);
 	if (ImGui::Button("Options", sSize))
 	{
+		// force idle
+		ForceIdle();
 
+		// set options window
+		g_eCurrentWindow = InicioWindows::Options;
+		g_bWindowResize = true;
 	}
 	if (ImGui::IsItemHovered())
 	{
@@ -108,13 +251,14 @@ void ImGui_Main()
 	ImGui::SameLine();
 	if (ImGui::Button("Info", sSize))
 	{
-		ImGui::BeginTooltip();
-		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-		ImGui::TextUnformatted("Aquilinus - Vireio Perception 3D Modification Studio.");
-		ImGui::PopTextWrapPos();
-		ImGui::EndTooltip();
+		// force idle
+		ForceIdle();
+
+		// set options window
+		g_eCurrentWindow = InicioWindows::Info;
+		g_bWindowResize = true;
 	}
-	
+
 }
 
 /**
@@ -393,7 +537,7 @@ void RenderSelectionBoxEntries(AQU_Drawer* pDirectDraw, InicioControl& sInicioCo
 ***/
 void RenderSelectionTextList(AQU_Drawer* pDirectDraw, InicioControl& sInicioControl)
 {
-	// loop throug entries and draw
+	/*// loop throug entries and draw
 	int nTop = sInicioControl.rcButtonRect.top;
 	for (int i = 0; i < (int)16; i++)
 	{
@@ -454,7 +598,7 @@ void RenderSelectionTextList(AQU_Drawer* pDirectDraw, InicioControl& sInicioCont
 	if (sInicioControl.dwCurrentPage < ((sInicioControl.dwEntries - 1) / 16))
 		RenderButton(pDirectDraw, g_sInicioControls[InicioControls::NextPage], INICIO_SMALL_TEXT_SIZE);
 	if (sInicioControl.dwCurrentPage > 0)
-		RenderButton(pDirectDraw, g_sInicioControls[InicioControls::PreviousPage], INICIO_SMALL_TEXT_SIZE);
+		RenderButton(pDirectDraw, g_sInicioControls[InicioControls::PreviousPage], INICIO_SMALL_TEXT_SIZE);*/
 }
 
 /**
@@ -772,9 +916,9 @@ void HandleSelectProcessButtonUp(HWND hwnd)
 #endif
 
 		// proceed...to new project window
-		g_eCurrentSubWindow = InicioSubWindows::NewProject;
-		g_nSubWindowWidth = NEW_PROJECT_WINDOW_WIDTH;
-		g_nSubWindowHeight = NEW_PROJECT_WINDOW_HEIGHT;
+		//g_eCurrentSubWindow = InicioSubWindows::NewProject;
+		//g_nSubWindowWidth = NEW_PROJECT_WINDOW_WIDTH;
+		//g_nSubWindowHeight = NEW_PROJECT_WINDOW_HEIGHT;
 
 		// set ALL classes to "NoInjection"
 		for (int i = 0; i < SUPPORTED_INTERFACES_NUMBER; i++)
@@ -810,10 +954,10 @@ void HandleSelectProcessButtonUp(HWND hwnd)
 		EnumerateSupportedInterfaces(g_sInicioControls[InicioControls::SupportedInterfacesList].pszEntries, g_sInicioControls[InicioControls::SupportedInterfacesList].dwEntries);
 
 		// resize the back buffer
-		g_pDirectDrawSub->Resize(g_nSubWindowWidth, g_nSubWindowHeight);
+		//g_pDirectDrawSub->Resize(g_nSubWindowWidth, g_nSubWindowHeight);
 
 		// set the new window size
-		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, g_nSubWindowWidth, g_nSubWindowHeight, SWP_NOMOVE);
+		//SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, g_nSubWindowWidth, g_nSubWindowHeight, SWP_NOMOVE);
 
 		// load template ? end window, call load workspace dialog
 		if (g_bKeepProcessName)
@@ -1347,7 +1491,7 @@ void HandleOptionsButtonUp(HWND hwnd)
 	else if (g_sInicioControls[InicioControls::NewProcess].bIsPressed)
 	{
 		// add process
-		g_sInicioControls[InicioControls::NewProcess].bIsPressed = false;
+		/*g_sInicioControls[InicioControls::NewProcess].bIsPressed = false;
 
 		// enumerate current processes.... set selection and page to zero first
 		g_sInicioControls[InicioControls::ProcessesList].dwSelection = 0;
@@ -1363,7 +1507,7 @@ void HandleOptionsButtonUp(HWND hwnd)
 		g_pDirectDrawSub->Resize(g_nSubWindowWidth, g_nSubWindowHeight);
 
 		// set the new window size
-		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, g_nSubWindowWidth, g_nSubWindowHeight, SWP_NOMOVE);
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, g_nSubWindowWidth, g_nSubWindowHeight, SWP_NOMOVE);*/
 	}
 	else if (g_sInicioControls[InicioControls::SaveProcessList].bIsPressed)
 	{
@@ -1829,7 +1973,7 @@ void ForceIdle()
 		TerminateThread(g_hInjectionThread, S_OK);
 
 	// kill profile window
-	if (g_hProfileWindow)
+	/*if (g_hProfileWindow)
 	{
 		if (IsWindow(g_hProfileWindow)) SendMessage(g_hProfileWindow, WM_CLOSE, NULL, NULL);
 		g_hProfileWindow = NULL;
@@ -1844,7 +1988,7 @@ void ForceIdle()
 
 	// release the additional bitmap
 	if (g_pDirectDraw)
-		g_pDirectDraw->ReleaseBackground();
+		g_pDirectDraw->ReleaseBackground();*/
 
 	g_eInicioStatus = InicioStatus::Idle;
 }
@@ -2531,7 +2675,7 @@ LRESULT CALLBACK WndProcProfileWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 DWORD WINAPI SubWindowThread(LPVOID Param)
 {
 	// which sub window ?
-	switch (g_eInicioStatus)
+	/*switch (g_eInicioStatus)
 	{
 	case InicioStatus::NewProjectWindow:
 		// create a select process window
@@ -2590,7 +2734,7 @@ DWORD WINAPI SubWindowThread(LPVOID Param)
 		DispatchMessage(&Msg);
 	}
 
-	return (DWORD)Msg.wParam;
+	return (DWORD)Msg.wParam;*/
 }
 
 /**
@@ -2600,67 +2744,67 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
-	case WM_CREATE:
-		if (g_eInicioStatus == InicioStatus::Initial)
-		{
-			// init inicio
-			InicioInit();
+		/*case WM_CREATE:
+			if (g_eInicioStatus == InicioStatus::Initial)
+			{
+				// init inicio
+				InicioInit();
 
-			// start idle
-			g_eInicioStatus = InicioStatus::Idle;
-			g_bControlActivated = false;
-			g_bSubMenuOpen = false;
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		// get the mouse cursor
-		g_ptMouseCursor.x = (LONG)GET_X_LPARAM(lParam);
-		g_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lParam);
+				// start idle
+				g_eInicioStatus = InicioStatus::Idle;
+				g_bControlActivated = false;
+				g_bSubMenuOpen = false;
+			}
+			break;
+		case WM_LBUTTONDOWN:
+			// get the mouse cursor
+			g_ptMouseCursor.x = (LONG)GET_X_LPARAM(lParam);
+			g_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lParam);
 
-		// go through active controls
-		if (InRect(g_sInicioControls[InicioControls::InicioExit].rcButtonRect, g_ptMouseCursor))
-			SendMessage(hwnd, WM_CLOSE, NULL, NULL);
-		else if (InRect(g_sInicioControls[InicioControls::InicioNewProject].rcButtonRect, g_ptMouseCursor))
-		{
-			// New Project Button activated
-			g_bControlActivated = true;
-			g_sInicioControls[InicioControls::InicioNewProject].bIsPressed = true;
-		}
-		else if (InRect(g_sInicioControls[InicioControls::InicioLoadProject].rcButtonRect, g_ptMouseCursor))
-		{
-			// Load Project Button activated
-			g_bControlActivated = true;
-			g_sInicioControls[InicioControls::InicioLoadProject].bIsPressed = true;
-		}
-		else if (InRect(g_sInicioControls[InicioControls::InicioOptions].rcButtonRect, g_ptMouseCursor))
-		{
-			// Options Button activated
-			g_bControlActivated = true;
-			g_sInicioControls[InicioControls::InicioOptions].bIsPressed = true;
-		}
-		else if (InRect(g_sInicioControls[InicioControls::Info].rcButtonRect, g_ptMouseCursor))
-		{
-			// Options Button activated
-			g_bControlActivated = true;
-			g_sInicioControls[InicioControls::Info].bIsPressed = true;
-		}
-		else if (InRect(g_sInicioControls[InicioControls::AddProfileWindow].rcButtonRect, g_ptMouseCursor) &&
-			(!g_pAquilinusConfig->bProfileWindow) && (g_pAquilinusConfig->eProjectStage == AQU_ProjectStage::WorkingArea))
-		{
-			// add profile button activated
-			g_bControlActivated = true;
-			g_sInicioControls[InicioControls::AddProfileWindow].bIsPressed = true;
-		}
-		else if (InRect(g_sInicioControls[InicioControls::InicioLoadProfile].rcButtonRect, g_ptMouseCursor))
-		{
-			// Options Button activated
-			g_bControlActivated = true;
-			g_sInicioControls[InicioControls::InicioLoadProfile].bIsPressed = true;
-		}
-		break;
+			// go through active controls
+			if (InRect(g_sInicioControls[InicioControls::InicioExit].rcButtonRect, g_ptMouseCursor))
+				SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+			else if (InRect(g_sInicioControls[InicioControls::InicioNewProject].rcButtonRect, g_ptMouseCursor))
+			{
+				// New Project Button activated
+				g_bControlActivated = true;
+				g_sInicioControls[InicioControls::InicioNewProject].bIsPressed = true;
+			}
+			else if (InRect(g_sInicioControls[InicioControls::InicioLoadProject].rcButtonRect, g_ptMouseCursor))
+			{
+				// Load Project Button activated
+				g_bControlActivated = true;
+				g_sInicioControls[InicioControls::InicioLoadProject].bIsPressed = true;
+			}
+			else if (InRect(g_sInicioControls[InicioControls::InicioOptions].rcButtonRect, g_ptMouseCursor))
+			{
+				// Options Button activated
+				g_bControlActivated = true;
+				g_sInicioControls[InicioControls::InicioOptions].bIsPressed = true;
+			}
+			else if (InRect(g_sInicioControls[InicioControls::Info].rcButtonRect, g_ptMouseCursor))
+			{
+				// Options Button activated
+				g_bControlActivated = true;
+				g_sInicioControls[InicioControls::Info].bIsPressed = true;
+			}
+			else if (InRect(g_sInicioControls[InicioControls::AddProfileWindow].rcButtonRect, g_ptMouseCursor) &&
+				(!g_pAquilinusConfig->bProfileWindow) && (g_pAquilinusConfig->eProjectStage == AQU_ProjectStage::WorkingArea))
+			{
+				// add profile button activated
+				g_bControlActivated = true;
+				g_sInicioControls[InicioControls::AddProfileWindow].bIsPressed = true;
+			}
+			else if (InRect(g_sInicioControls[InicioControls::InicioLoadProfile].rcButtonRect, g_ptMouseCursor))
+			{
+				// Options Button activated
+				g_bControlActivated = true;
+				g_sInicioControls[InicioControls::InicioLoadProfile].bIsPressed = true;
+			}
+			break;*/
 	case WM_LBUTTONUP:
 		// new project
-		if (g_sInicioControls[InicioControls::InicioNewProject].bIsPressed)
+		/*if (g_sInicioControls[InicioControls::InicioNewProject].bIsPressed)
 		{
 			// first, set controls to false
 			g_sInicioControls[InicioControls::InicioNewProject].bIsPressed = false;
@@ -2677,9 +2821,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				OutputDebugString(L"Aquilinus : Failed to create new project thread !");
 			else
 				g_eInicioStatus = InicioStatus::NewProjectWindow;
-		}
+		}*/
 		// load profile
-		if (g_sInicioControls[InicioControls::InicioLoadProfile].bIsPressed)
+		/*if (g_sInicioControls[InicioControls::InicioLoadProfile].bIsPressed)
 		{
 			// first, set controls to false
 			g_sInicioControls[InicioControls::InicioLoadProfile].bIsPressed = false;
@@ -2740,7 +2884,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				szPNGPath[nLen - 2] = 'g';
 				szPNGPath[nLen - 1] = 0;
 				wchar_t buf[128];
-				wsprintf(buf, L"LEN %u", nLen);
+				wsprintf(buf, L"LEN %u", (int)nLen);
 				OutputDebugString(buf);
 				OutputDebugString(g_pAquilinusConfig->szProfileFilePath);
 				OutputDebugString(szPNGPath);
@@ -2825,9 +2969,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				OutputDebugString(L"Aquilinus : Load working area failed!");
 				g_eInicioStatus = InicioStatus::Idle;
 			}
-		}
+		}*/
 		// options
-		if (g_sInicioControls[InicioControls::InicioOptions].bIsPressed)
+		/*if (g_sInicioControls[InicioControls::InicioOptions].bIsPressed)
 		{
 			// first, set controls to false
 			g_sInicioControls[InicioControls::InicioOptions].bIsPressed = false;
@@ -2841,9 +2985,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				OutputDebugString(L"Aquilinus : Failed to create new project thread !");
 			else
 				g_eInicioStatus = InicioStatus::OptionsWindow;
-		}
+		}*/
 		// info ... 
-		if (g_sInicioControls[InicioControls::Info].bIsPressed)
+		/*if (g_sInicioControls[InicioControls::Info].bIsPressed)
 		{
 			// first, set controls to false
 			g_sInicioControls[InicioControls::Info].bIsPressed = false;
@@ -2886,7 +3030,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// create message box
 			MessageBox(g_hwnd, buf, L"Info", MB_OK);
-		}
+		}*/
 		// profile window
 		if (g_sInicioControls[InicioControls::AddProfileWindow].bIsPressed)
 		{
@@ -3041,7 +3185,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 #endif
 
 		// status text
-		switch (g_eInicioStatus)
+		/*switch (g_eInicioStatus)
 		{
 		case InicioStatus::Idle:
 			g_pDirectDraw->RenderText(L"Idle", 12, 170, g_vcZeroOrigin, AquilinusColor::Color3, AquilinusColor::Color0, INICIO_SMALL_TEXT_SIZE, 1.0f);
@@ -3058,7 +3202,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case InicioStatus::OptionsWindow:
 			g_pDirectDraw->RenderText(L"Options", 12, 170, g_vcZeroOrigin, AquilinusColor::Color3, AquilinusColor::Color0, INICIO_SMALL_TEXT_SIZE, 1.0f);
 			break;
-		}
+		}*/
 
 		// draw controls
 		RenderButton(g_pDirectDraw, g_sInicioControls[InicioControls::InicioNewProject], INICIO_SMALLER_TEXT_SIZE);
@@ -3102,7 +3246,7 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		g_ptMouseCursor.x = (LONG)GET_X_LPARAM(lParam);
 		g_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lParam);
 
-		switch (g_eCurrentSubWindow)
+		/*switch (g_eCurrentSubWindow)
 		{
 		case InicioSubWindows::SelectProcess:
 			HandleSelectProcessButtonDown(hwnd);
@@ -3118,11 +3262,11 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			HandleAddProcessButtonDown(hwnd);
 			break;
 #endif
-		}
+		}*/
 
 		break;
 	case WM_LBUTTONUP:
-		switch (g_eCurrentSubWindow)
+		/*switch (g_eCurrentSubWindow)
 		{
 		case InicioSubWindows::SelectProcess:
 			HandleSelectProcessButtonUp(hwnd);
@@ -3138,7 +3282,7 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			HandleAddProcessButtonUp(hwnd);
 			break;
 #endif
-		}
+		}*/
 		g_bControlActivated = false;
 		break;
 	case WM_MOUSEMOVE:
@@ -3167,7 +3311,7 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			g_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lParam);
 
 			// any slider in sub window ? if we get more controls create a >HandleMouseMove< method...
-			if ((g_sInicioControls[InicioControls::TimeDelaySlider].bIsPressed) &&
+			/*if ((g_sInicioControls[InicioControls::TimeDelaySlider].bIsPressed) &&
 				(InRect(g_sInicioControls[InicioControls::TimeDelaySlider].rcButtonRect, g_ptMouseCursor)) &&
 				(g_eCurrentSubWindow == InicioSubWindows::SelectProcess))
 			{
@@ -3196,7 +3340,7 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 					g_pAquilinusConfig->dwDetourTimeDelay -= (DWORD)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
 					g_pAquilinusConfig->dwDetourTimeDelay = (DWORD)(g_sInicioControls[InicioControls::InjectionRepetition].nValue & 15);
 				}
-			}
+			}*/
 		}
 		break;
 	case WM_CLOSE:
@@ -3205,9 +3349,9 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			DestroyWindow(hwnd);
 			hwnd = NULL;
 		}
-		return DefWindowProc(hwnd, msg, wParam, lParam);
+		return 0;// DefWindowProc(hwnd, msg, wParam, lParam);
 	case WM_PAINT:
-		if (!g_pDirectDrawSub) break;
+		/*if (!g_pDirectDrawSub) break;
 
 		// check if surface locked
 		if (!g_pDirectDrawSub->VerifyAPI()) break;
@@ -3238,7 +3382,7 @@ LRESULT CALLBACK WndProcSubWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 
 		// present
-		g_pDirectDrawSub->Present();
+		g_pDirectDrawSub->Present();*/
 
 		break;
 	default:
@@ -3296,6 +3440,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// init
 	InicioInit();
 
+	// start idle
+	g_eInicioStatus = InicioStatus::Idle;
+	g_eCurrentWindow = InicioWindows::Main;
+
 	// first, set the instance handle
 	g_hInstance = hInstance;
 
@@ -3303,10 +3451,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	g_eVersion.dwPrima = AQUILINUS_VERSION_PRIMA;
 	g_eVersion.dwSecondo = AQUILINUS_VERSION_SECONDO;
 	g_eVersion.dwTerzo = AQUILINUS_VERSION_TERZO;
-
-	// set initial status, init controls
-	g_eInicioStatus = InicioStatus::Initial;
-	g_eCurrentSubWindow = InicioSubWindows::NoWindow;
 
 	// glfw: initialize and configure
 	if (!glfwInit()) { OutputDebugString(L"Inicio: GLFW Init fail !"); return 1; }
@@ -3331,7 +3475,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	glfwSetFramebufferSizeCallback(window, viewport_callback);
 	glfwSetCursorPosCallback(window, cursor_position_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
-	
+
 	// and init glew
 	bool err = glewInit() != GLEW_OK;
 	if (err)
@@ -3353,7 +3497,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	ImFontConfig sConfig = {};
 	sConfig.SizePixels = 16;
-	ImFont *psFontSmall = io.Fonts->AddFontDefault(&sConfig);
+	ImFont* psFontSmall = io.Fonts->AddFontDefault(&sConfig);
 	sConfig.SizePixels = 22;
 	ImFont* psFontMedium = io.Fonts->AddFontDefault(&sConfig);
 
@@ -3456,24 +3600,159 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			| ImGuiWindowFlags_NoBackground
 			| ImGuiWindowFlags_NoBringToFrontOnFocus;
 		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(g_nMainWindowWidth, g_nMainWindowHeight), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2((float)g_nMainWindowWidth, (float)g_nMainWindowHeight), ImGuiCond_FirstUseEver);
 
 		// select window stage
-		if (true)
+		static bool s_bOpen = true;
+		if (g_eCurrentWindow == InicioWindows::Main)
 		{
-			static float f = 0.0f;
-			static int counter = 0;
-			static bool bClose = false;
+			// window resize ??
+			if (g_bWindowResize)
+			{
+				// set size and constant size
+				g_nMainWindowWidth = MAIN_WINDOW_WIDTH;
+				g_nMainWindowHeight = MAIN_WINDOW_HEIGHT;
+				glfwSetWindowSize(window, g_nMainWindowWidth, g_nMainWindowHeight);
+				glfwSetWindowSizeLimits(window, g_nMainWindowWidth, g_nMainWindowHeight, g_nMainWindowWidth, g_nMainWindowHeight);
+				ImGui::SetNextWindowSize(ImVec2((float)g_nMainWindowWidth, (float)g_nMainWindowHeight), ImGuiCond_None);
+			}
 
+			// main window
 			ImGui::PushFont(psFontMedium);
-			ImGui::Begin("Aquilinus", &bClose, window_flags);
-			ImGui::PopFont();
-			ImGui::PushFont(psFontSmall);
-			ImGui::Text("Vireio Perception 3D Modification Studio");
-			ImGui_Main();
-			ImGui::PopFont();
-						
+			if (ImGui::Begin("Aquilinus", &s_bOpen, window_flags))
+			{
+				ImGui::PopFont();
+				ImGui::PushFont(psFontSmall);
+				ImGui::Text("Vireio Perception 3D Modification Studio");
+				ImGui_Main();
+				ImGui::PopFont();
+			}
+			else
+			{
+				OutputDebugString(L"Inicio: ImGui failed to create window !");
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+			}
 			ImGui::End();
+
+			if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+		else if (g_eCurrentWindow == InicioWindows::Info)
+		{
+			// window resize ??
+			if (g_bWindowResize)
+			{
+				// set size and constant size
+				g_nMainWindowWidth = MAIN_WINDOW_WIDTH;
+				g_nMainWindowHeight = MAIN_WINDOW_HEIGHT_INFO;
+				glfwSetWindowSize(window, g_nMainWindowWidth, g_nMainWindowHeight);
+				glfwSetWindowSizeLimits(window, g_nMainWindowWidth, g_nMainWindowHeight, g_nMainWindowWidth, g_nMainWindowHeight);
+				ImGui::SetNextWindowSize(ImVec2((float)g_nMainWindowWidth, (float)g_nMainWindowHeight), ImGuiCond_None);
+			}
+
+			// info window
+			ImGui::PushFont(psFontMedium);
+			if (ImGui::Begin("Aquilinus Info", &s_bOpen, window_flags))
+			{
+				ImGui::PopFont();
+				ImGui::PushFont(psFontSmall);
+
+
+				// output version
+				/*wchar_t buf[2048];
+				wsprintf(buf,
+					L"Aquilinus - 3D Modification Studio\r\n"
+					L"(c) 2014-2015 by Denis Reischl\r\n"
+					L"Version : %d.%d.%d"
+					L"\r\n"
+					L"\r\n"
+
+					L"\r\n"
+					L"The colourLOVERS palettes and the resulting artwork used in\r\n"
+					L"this software are licensed under:\r\n"
+					L"<http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US>.\r\n"
+					L"\r\n"
+					L"The Aquilinus PNG/Deflate Decoder partially uses altered code\r\n"
+					L"from following sources, with permission by licence :\r\n"
+					L"picoPNG version 20101224\r\n"
+					L"(c) 2005-2010 Lode Vandevenne\r\n"
+					L"Deflate Decompressor\r\n"
+					L"(c) 2011 Stephan Brumme\r\n"
+					L"\r\n"
+					L"Font 'TRAJANUS' used in this software with permission by\r\n"
+					L"licence : \r\n"
+					L"(c) Roger White - all rights reserved\r\n"
+					L"\r\n"
+					L"(read the software documentation for further information)\r\n"
+					, g_eVersion.dwPrima, g_eVersion.dwSecondo, g_eVersion.dwTerzo);
+
+				// create message box
+				MessageBox(g_hwnd, buf, L"Info", MB_OK);*/
+
+				ImGui::TextWrapped("Vireio Perception : Open - Source Stereoscopic 3D Driver");
+				ImGui::TextWrapped("Copyright(C) 2012 Andres Hernandez");
+				ImGui::NewLine();
+				ImGui::TextWrapped("Aquilinus : Vireio Perception 3D Modification Studio");
+				ImGui::TextWrapped("Copyright(C) 2014 Denis Reischl");
+				ImGui::Separator();
+
+				ImGui::TextWrapped("Vireio Perception Version History :");
+				ImGui::TextWrapped("v1.0.0 2012 by Andres Hernandez");
+				ImGui::TextWrapped("v1.0.X 2013 by John Hicks, Neil Schneider");
+				ImGui::TextWrapped("v1.1.x 2013 by Primary Coding Author : Chris Drain");
+				ImGui::TextWrapped("Team Support : John Hicks, Phil Larkson, Neil Schneider");
+				ImGui::TextWrapped("v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown");
+				ImGui::TextWrapped("v2.0.4 to v3.0.x 2014 - 2015 by Grant Bagwell, Simon Brownand Neil Schneider");
+				ImGui::TextWrapped("v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brownand Neil Schneider");
+				ImGui::NewLine();
+
+				ImGui::TextWrapped("This program is free software : you can redistribute itand /or modify");
+				ImGui::TextWrapped("it under the terms of the GNU Lesser General Public License as published by");
+				ImGui::TextWrapped("the Free Software Foundation, either version 3 of the License, or");
+				ImGui::TextWrapped("(at your option) any later version.");
+				ImGui::NewLine();
+
+				ImGui::TextWrapped("This program is distributed in the hope that it will be useful,");
+				ImGui::TextWrapped("but WITHOUT ANY WARRANTY; without even the implied warranty of");
+				ImGui::TextWrapped("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the");
+				ImGui::TextWrapped("GNU Lesser General Public License for more details.");
+				ImGui::NewLine();
+
+				ImGui::TextWrapped("You should have received a copy of the GNU Lesser General Public License");
+				ImGui::TextWrapped("along with this program.If not, see < http://www.gnu.org/licenses/>.");
+				ImGui::NewLine();	ImGui::Separator();
+
+				ImGui::TextWrapped("The Aquilinus PNG/Deflate Decoder partially uses altered code from following sources, with permission by licence :");
+				ImGui::TextWrapped("picoPNG version 20101224 (c) 2005-2010 Lode Vandevenne");
+				ImGui::TextWrapped("Deflate Decompressor (c) 2011 Stephan Brumme");
+				ImGui::Separator(); ImGui::NewLine();
+				ImGui::TextWrapped("Dear ImGui %s", ImGui::GetVersion());
+				ImGui::Separator();
+				ImGui::TextWrapped("By Omar Cornut and all Dear ImGui contributors.");
+				ImGui::TextWrapped("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
+
+				if (ImGui::Button("Ok"))
+				{
+					// back to main
+					g_eCurrentWindow = InicioWindows::Main;
+					g_bWindowResize = true;
+				}
+				ImGui::PopFont();
+
+				if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);
+			}
+			else
+			{
+				OutputDebugString(L"Inicio: ImGui failed to create window !");
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+			}
+			ImGui::End();
+
+		}
+		else
+		{
+			// any wrong window enumeration ?
+			OutputDebugString(L"Inicio: Code failure ! Wrong window enumeration!");
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
 
 		// Rendering
