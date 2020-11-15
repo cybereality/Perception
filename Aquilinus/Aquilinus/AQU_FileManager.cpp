@@ -1309,7 +1309,11 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 
 	// open proc file
 	std::wifstream procFile;
-	procFile.open("proc.csv", std::ios::in | std::ios::binary);
+#ifdef _WIN64
+	procFile.open("proc_x64.csv", std::ios::in | std::ios::binary);
+#else
+	procFile.open("proc_x86.csv", std::ios::in | std::ios::binary);
+#endif
 	if (procFile.is_open())
 	{
 		DEBUG_UINT(uI++);
@@ -1384,7 +1388,11 @@ HRESULT AQU_FileManager::SaveProcessListCSV()
 	std::wofstream outfile;
 
 	// open file
-	outfile.open("proc.csv", std::ios::out);
+#ifdef _WIN64
+	outfile.open("proc_x64.csv", std::ios::out);
+#else
+	outfile.open("proc_x86.csv", std::ios::out);
+#endif
 
 	// loop through processes, write line
 	for (DWORD i = 0; i < this->GetProcessNumber(); i++)

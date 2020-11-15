@@ -31,15 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 
-//#define INICIO_DRAWING_API AQU_DrawingAPIs::API_DirectDraw
-#define INICIO_DRAWING_API AQU_DrawingAPIs::API_OpenGL
-
-#define INICIO_FULL_TEXT_SIZE 1.0f
-#define INICIO_MEDIUM_TEXT_SIZE 0.4f
-#define INICIO_SMALL_TEXT_SIZE 0.25f
-#define INICIO_SMALLER_TEXT_SIZE 0.215f
-#define INICIO_TINY_TEXT_SIZE 0.15f
-
 #pragma region Inicio controls methods
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
@@ -262,6 +253,99 @@ void ImGui_Main()
 ***/
 void ImGui_New()
 {
+	static int s_nGameSelected = 0;
+	if (ImGui::CollapsingHeader("Select Game"))
+	{
+		// 0AB CDE FGH IJK LMN OPQ RST UVW XYZ
+		INT nSelect = -1;
+		ImGui::BeginGroup();
+		if (ImGui::Button("0", ImVec2(40, 40))) nSelect = 0;
+		if (ImGui::Button("C", ImVec2(40, 40))) nSelect = 3;
+		if (ImGui::Button("F", ImVec2(40, 40))) nSelect = 6;
+		if (ImGui::Button("I", ImVec2(40, 40))) nSelect = 9;
+		if (ImGui::Button("L", ImVec2(40, 40))) nSelect = 12;
+		if (ImGui::Button("O", ImVec2(40, 40))) nSelect = 15;
+		if (ImGui::Button("R", ImVec2(40, 40))) nSelect = 18;
+		if (ImGui::Button("U", ImVec2(40, 40))) nSelect = 21;
+		if (ImGui::Button("X", ImVec2(40, 40))) nSelect = 24;
+		ImGui::EndGroup();
+		ImGui::SameLine();
+		ImGui::BeginGroup();
+		if (ImGui::Button("A", ImVec2(40, 40))) nSelect = 1;
+		if (ImGui::Button("D", ImVec2(40, 40))) nSelect = 4;
+		if (ImGui::Button("G", ImVec2(40, 40))) nSelect = 7;
+		if (ImGui::Button("J", ImVec2(40, 40))) nSelect = 10;
+		if (ImGui::Button("M", ImVec2(40, 40))) nSelect = 13;
+		if (ImGui::Button("P", ImVec2(40, 40))) nSelect = 16;
+		if (ImGui::Button("S", ImVec2(40, 40))) nSelect = 19;
+		if (ImGui::Button("V", ImVec2(40, 40))) nSelect = 22;
+		if (ImGui::Button("Y", ImVec2(40, 40))) nSelect = 25;
+		ImGui::EndGroup();
+		ImGui::SameLine();
+		ImGui::BeginGroup();
+		if (ImGui::Button("B", ImVec2(40, 40))) nSelect = 2;
+		if (ImGui::Button("E", ImVec2(40, 40))) nSelect = 5;
+		if (ImGui::Button("H", ImVec2(40, 40))) nSelect = 8;
+		if (ImGui::Button("K", ImVec2(40, 40))) nSelect = 11;
+		if (ImGui::Button("N", ImVec2(40, 40))) nSelect = 14;
+		if (ImGui::Button("Q", ImVec2(40, 40))) nSelect = 17;
+		if (ImGui::Button("T", ImVec2(40, 40))) nSelect = 20;
+		if (ImGui::Button("W", ImVec2(40, 40))) nSelect = 23;
+		if (ImGui::Button("Z", ImVec2(40, 40))) nSelect = 26;
+		ImGui::EndGroup();
+		ImGui::SameLine();
+
+		// Left
+		ImVec2 sSize = ImGui::GetItemRectSize();
+		{
+			ImGui::BeginChild("left pane", ImVec2(float(g_nMainWindowWidth) - 4.f * sSize.x, sSize.y), true);
+			for (int i = 0; i < (int)g_aszGameNames.size(); i++)
+			{
+				// set labels
+				std::string acGameName;
+				for (wchar_t c : g_aszGameNames[i]) acGameName += (char)c;
+				if (ImGui::Selectable(acGameName.c_str(), s_nGameSelected == i))
+					s_nGameSelected = i;
+
+				// letter button pressed ?
+				if (nSelect >= 0)
+				{
+					// 0 selected ?
+					if (nSelect == 0)
+					{
+						// set scroll here
+						ImGui::SetScrollHereY(0.0f);
+						nSelect = -1;
+					}
+					else
+					{
+						// set letter character
+						char cLower = 'a' + (char)(nSelect - 1);
+						char cUpper = 'A' + (char)(nSelect - 1);
+
+						if ((acGameName.c_str()[0] == cLower) || (acGameName.c_str()[0] == cUpper))
+						{
+							// set scroll here
+							ImGui::SetScrollHereY(0.0f);
+							nSelect = -1;
+						}
+					}
+				}
+			}
+			ImGui::EndChild();
+		}		
+	}
+
+	// selected game
+	ImGui::Separator();
+	std::string acGameName;
+	UINT uI = 0;
+	if ((g_aszGameNames.size() > 0) && (s_nGameSelected >= 0) && (s_nGameSelected < (int)g_aszGameNames.size()))
+	{
+		for (wchar_t c : g_aszGameNames[s_nGameSelected]) acGameName += (char)c;
+	}
+	ImGui::Text("Game : %s", acGameName.c_str());
+	ImGui::Separator();
 
 }
 
@@ -549,14 +633,14 @@ HRESULT EnumerateGameNames()
 		{
 			OutputDebugString(g_aszGameNames[j + (int)g_nLetterStartIndex[i]].c_str());
 		}
-	}
+			}
 #endif
 
 	// clear game list
 	g_nCurrentLetterSelection = 0;
 
 	return S_OK;
-}
+		}
 
 /**
 * Enumerate supported interface names.
@@ -1142,18 +1226,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-			// start injection thread if >toInject<  TODO !!!!!!
-			/*if (g_eInicioStatus == InicioStatus::ToInject)
-			{
-				// create the thread to override the virtual methods table
-				g_eInicioStatus = InicioStatus::Injecting;
-				g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaNew;
-				g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
-				g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
-				if (g_hInjectionThread == NULL)
-					OutputDebugString(L"Aquilinus : Failed to create injection thread !");
-			}*/
-
 			// check if external file is to be saved TODO !!!!!
 			/*if ((g_pAquilinusConfig->bExternalSave) && (g_pAquilinusConfig->dwSizeOfExternalSaveFile))
 			{
@@ -1225,8 +1297,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ImGui::PushFont(psFontMedium);
 			if (ImGui::Begin("Aquilinus New", &s_bOpen, window_flags))
 			{
+				ImGui::PopFont();
+				ImGui::PushFont(psFontSmall);
+				ImGui_New();
+				if (ImGui::Button("Inject", ImVec2(100, 40)))
+				{
+					// proceed to injection
+					// start injection thread if >toInject<  TODO !!!!!!
+					/*if (g_eInicioStatus == InicioStatus::ToInject)
+					{
+						// create the thread to override the virtual methods table
+						g_eInicioStatus = InicioStatus::Injecting;
+						g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaNew;
+						g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+						g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
+						if (g_hInjectionThread == NULL)
+							OutputDebugString(L"Aquilinus : Failed to create injection thread !");
+					}*/
 
-				if (ImGui::Button("Ok"))
+					// back to main
+					g_eCurrentWindow = InicioWindows::Main;
+					g_eInicioStatus = InicioStatus::ToInject; //??
+					g_bWindowResize = true;
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Cancel", ImVec2(100, 40)))
 				{
 					// back to main
 					g_eCurrentWindow = InicioWindows::Main;
@@ -1313,8 +1408,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				ImGui::TextWrapped("v1.1.x 2013 by Primary Coding Author : Chris Drain");
 				ImGui::TextWrapped("Team Support : John Hicks, Phil Larkson, Neil Schneider");
 				ImGui::TextWrapped("v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown");
-				ImGui::TextWrapped("v2.0.4 to v3.0.x 2014 - 2015 by Grant Bagwell, Simon Brownand Neil Schneider");
-				ImGui::TextWrapped("v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brownand Neil Schneider");
+				ImGui::TextWrapped("v2.0.4 to v3.0.x 2014 - 2015 by Grant Bagwell, Simon Brown and Neil Schneider");
+				ImGui::TextWrapped("v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown and Neil Schneider");
 				ImGui::NewLine();
 
 				ImGui::TextWrapped("This program is free software : you can redistribute itand /or modify");
