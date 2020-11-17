@@ -52,9 +52,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resources.h"
 #include "..//Aquilinus/AquilinusCfg.h"
 #include "..//Aquilinus/AQU_FileManager.h"
+#include "..\\Aquilinus\AQU_2DData.h"
 #include "..\dependecies\imgui\imgui.h"
 #include "..\dependecies\imgui\imgui_impl_glfw.h"
 #include "..\dependecies\imgui\imgui_impl_opengl3.h"
+#include "..\dependecies\imgui\imgui_internal.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "advapi32.lib")
@@ -148,9 +150,25 @@ InicioWindows             g_eCurrentWindow;                                     
 bool                      g_bWindowResize;                                           /**< True if main window ought to be resized. **/
 #endif
 
+/*** Inicio small helpers ***/
+/**
+* Small color converter helper..
+**/
+inline ImVec4 HEX2Float_Color(UINT uHex)
+{
+	ImVec4 rgbColor;
+	rgbColor.x = ((uHex >> 16) & 0xFF) / 255.f;  // Extract the RR byte
+	rgbColor.y = ((uHex >> 8) & 0xFF) / 255.f;   // Extract the GG byte
+	rgbColor.z = ((uHex) & 0xFF) / 255.f;        // Extract the BB byte
+	rgbColor.w = 1.f;                            // set alpha to 1.f
+
+	return rgbColor;
+}
+
 /*** Inicio controls methods ***/
 void             ImGui_Main();
 void             ImGui_New();
+void             ImGui_StyleColorsByScheme();
 void             SaveConfig();
 DWORD            EnumerateProcesses(LPWSTR *&pszEntries, DWORD &dwEntries);
 

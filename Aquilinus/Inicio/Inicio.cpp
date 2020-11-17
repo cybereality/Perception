@@ -353,6 +353,96 @@ void ImGui_New()
 }
 
 /**
+* Set ImGui style by Colorlovers color scheme.
+**/
+void ImGui_StyleColorsByScheme()
+{
+	ImGuiStyle* style = &ImGui::GetStyle();
+	ImVec4* colors = style->Colors;
+
+	// sort colors... first and last brightest and darkest ones
+	bool bBright = false; if (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] > g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[1]) bBright = true;
+	for (unsigned uI = 1; uI < 5; uI++)
+	{
+		if (((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] >> 16) & 0xff)+((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] >> 8) & 0xff)+ (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0]  & 0xff) < 
+			((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 16) & 0xff) + ((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 8) & 0xff) + (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] & 0xff))
+		{
+			// exchange colors
+			UINT uTmp = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0];
+			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI];
+			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] = uTmp;
+		}
+	}
+	for (unsigned uI = 0; uI < 4; uI++)
+	{
+		if (((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] >> 16) & 0xff) + ((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] >> 8) & 0xff) + (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] & 0xff) >
+			((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 16) & 0xff) + ((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 8) & 0xff) + (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] & 0xff))
+		{
+			// exchange colors
+			UINT uTmp = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4];
+			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI];
+			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] = uTmp;
+		}
+	}
+	
+	// hex to float vectors
+	ImVec4 sColor0 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0]);
+	ImVec4 sColor1 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[1]);
+	ImVec4 sColor2 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[2]);
+	ImVec4 sColor3 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[3]);
+	ImVec4 sColor4 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4]);
+	
+	colors[ImGuiCol_Text] = sColor0;
+	colors[ImGuiCol_TextDisabled] = ImLerp(sColor0, sColor4, 0.6f);
+	colors[ImGuiCol_WindowBg] = sColor4;
+	colors[ImGuiCol_ChildBg] = ImLerp(sColor0, sColor4, 0.95f); colors[ImGuiCol_ChildBg].w = .9f;
+	colors[ImGuiCol_PopupBg] = ImLerp(sColor0, sColor4, 0.92f); colors[ImGuiCol_PopupBg].w = .94f;
+	colors[ImGuiCol_Border] = ImLerp(sColor0, sColor3, 0.43f); colors[ImGuiCol_Border].w = .5f;
+	colors[ImGuiCol_BorderShadow] = ImLerp(sColor0, sColor4, 0.9f);;
+	colors[ImGuiCol_FrameBg] = ImLerp(sColor1, sColor2, 0.7f); colors[ImGuiCol_FrameBg].w = .54f;
+	colors[ImGuiCol_FrameBgHovered] = ImLerp(sColor1, sColor2, 0.9f); colors[ImGuiCol_FrameBgHovered].w = .4f;
+	colors[ImGuiCol_FrameBgActive] = ImLerp(sColor1, sColor2, 0.95f); colors[ImGuiCol_FrameBgActive].w = .6f;
+	colors[ImGuiCol_TitleBg] = ImLerp(sColor0, sColor4, 0.20f);
+	colors[ImGuiCol_TitleBgActive] = ImLerp(sColor0, sColor4, 0.70f);
+	colors[ImGuiCol_TitleBgCollapsed] = sColor4; colors[ImGuiCol_TitleBgCollapsed].w = .5f;
+	colors[ImGuiCol_MenuBarBg] = ImLerp(sColor0, sColor4, 0.14f);
+	colors[ImGuiCol_ScrollbarBg] = ImLerp(sColor0, sColor4, 0.05f); colors[ImGuiCol_ScrollbarBg].w = .5f;
+	colors[ImGuiCol_ScrollbarGrab] = ImLerp(sColor0, sColor4, 0.31f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImLerp(sColor0, sColor4, 0.41f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImLerp(sColor0, sColor4, 0.51f);
+	colors[ImGuiCol_CheckMark] = ImLerp(sColor2, sColor3, 0.3f);
+	colors[ImGuiCol_SliderGrab] = ImLerp(sColor2, sColor3, 0.7f);
+	colors[ImGuiCol_SliderGrabActive] = ImLerp(sColor2, sColor3, 0.9f);
+	colors[ImGuiCol_Button] = ImLerp(sColor2, sColor3, 0.9f); colors[ImGuiCol_Button].w = .4f;
+	colors[ImGuiCol_ButtonHovered] = ImLerp(sColor2, sColor3, 0.8f);
+	colors[ImGuiCol_ButtonActive] = ImLerp(sColor1, sColor3, 0.9f);
+	colors[ImGuiCol_Header] = ImLerp(sColor2, sColor3, 0.7f); colors[ImGuiCol_Header].w = .4f;
+	colors[ImGuiCol_HeaderHovered] = ImLerp(sColor2, sColor3, 0.7f); colors[ImGuiCol_HeaderHovered].w = .8f;
+	colors[ImGuiCol_HeaderActive] = ImLerp(sColor2, sColor3, 0.8f);
+	colors[ImGuiCol_Separator] = colors[ImGuiCol_Border];
+	colors[ImGuiCol_SeparatorHovered] = ImLerp(sColor0, sColor3, 0.7f); colors[ImGuiCol_SeparatorHovered].w = 0.78f;
+	colors[ImGuiCol_SeparatorActive] = ImLerp(sColor0, sColor3, 0.7f); colors[ImGuiCol_SeparatorActive].w = 1.00f;
+	colors[ImGuiCol_ResizeGrip] = ImLerp(sColor0, sColor3, 0.9f); colors[ImGuiCol_ResizeGrip].w = 0.25f;
+	colors[ImGuiCol_ResizeGripHovered] = ImLerp(sColor0, sColor3, 0.9f); colors[ImGuiCol_ResizeGripHovered].w = 0.67f;
+	colors[ImGuiCol_ResizeGripActive] = ImLerp(sColor0, sColor3, 0.9f); colors[ImGuiCol_ResizeGripActive].w = 0.95f;
+	colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
+	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
+	colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
+	colors[ImGuiCol_TabUnfocused] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
+	colors[ImGuiCol_PlotLines] = ImLerp(sColor0, sColor4, 0.6f);
+	colors[ImGuiCol_PlotLinesHovered] = ImLerp(sColor0, sColor3, 0.1f);
+	colors[ImGuiCol_PlotHistogram] = ImLerp(sColor0, sColor3, 0.4f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImLerp(sColor3, sColor2, 0.7f);
+	colors[ImGuiCol_TextSelectedBg] = ImLerp(sColor3, sColor2, 0.7f); colors[ImGuiCol_TextSelectedBg].w = .3f;
+	colors[ImGuiCol_DragDropTarget] = sColor3; colors[ImGuiCol_DragDropTarget].w = .9f;
+	colors[ImGuiCol_NavHighlight] = ImLerp(sColor1, sColor2, 0.8f);
+	colors[ImGuiCol_NavWindowingHighlight] = sColor0; colors[ImGuiCol_NavWindowingHighlight].w = .9f;
+	colors[ImGuiCol_NavWindowingDimBg] = ImLerp(sColor0, sColor4, 0.8f); colors[ImGuiCol_NavWindowingDimBg].w = .2f;
+	colors[ImGuiCol_ModalWindowDimBg] = ImLerp(sColor0, sColor4, 0.8f); colors[ImGuiCol_ModalWindowDimBg].w = .35f;
+}
+
+/**
 * Save the global config file.
 ***/
 void SaveConfig()
@@ -1082,7 +1172,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 1;
 	}
 
-	// Setup Dear ImGui context, font and style
+	// Setup Dear ImGui context, font
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -1091,7 +1181,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImFont* psFontSmall = io.Fonts->AddFontDefault(&sConfig);
 	sConfig.SizePixels = 22;
 	ImFont* psFontMedium = io.Fonts->AddFontDefault(&sConfig);
-	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -1101,7 +1190,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// create file manager
 	g_pFileManager = new AQU_FileManager(true);
-	OutputDebugString(L"xxx");
+	
 	// load or create options file
 #ifdef _WIN64
 	std::ifstream configRead("Aquilinus_x64.cfg");
@@ -1158,13 +1247,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	// set configuration
+	if (g_dwColorSchemeIndex >= AQUILINUS_NUMBER_OF_COLOR_SCHEMES) g_dwColorSchemeIndex = 0;
 	g_pAquilinusConfig->dwColorSchemeIndex = g_dwColorSchemeIndex;
 
 	// always set the detour time delay to zero at startup !
 	g_pAquilinusConfig->dwDetourTimeDelay = 0;
 
-	// set color ! TODO !!!
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	// set color scheme
+	ImGui_StyleColorsByScheme();
+	ImVec4 clear_color = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
