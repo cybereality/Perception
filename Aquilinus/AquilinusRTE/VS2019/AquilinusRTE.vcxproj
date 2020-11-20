@@ -68,7 +68,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
     <TargetName>$(ProjectName)_$(Platform)</TargetName>
@@ -77,10 +77,10 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <TargetName>$(ProjectName)_$(Platform)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
     <TargetName>$(ProjectName)_$(Platform)</TargetName>
@@ -89,7 +89,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <TargetName>$(ProjectName)_$(Platform)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -105,7 +105,7 @@
       <AdditionalDependencies>opengl32.lib;Glu32.lib;ddraw.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "..\..\..\Release\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -121,7 +121,7 @@
       <AdditionalDependencies>opengl32.lib;Glu32.lib;ddraw.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "..\..\..\Release\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -142,7 +142,7 @@
       <AdditionalDependencies>opengl32.lib;Glu32.lib;ddraw.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "..\..\..\Release\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -162,22 +162,17 @@
       <AdditionalDependencies>opengl32.lib;Glu32.lib;ddraw.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)" "..\..\..\Release\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_DirectDraw.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_DirectDrawFields.h" />
     <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_OpenGL.h" />
     <ClInclude Include="..\..\Inicio\Inicio.h" />
     <ClInclude Include="..\AquilinusRTE.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Aquilinus\AQU_DirectDraw.cpp" />
     <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
-    <ClCompile Include="..\..\Aquilinus\AQU_OpenGL.cpp" />
     <ClCompile Include="..\..\Inicio\Inicio.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

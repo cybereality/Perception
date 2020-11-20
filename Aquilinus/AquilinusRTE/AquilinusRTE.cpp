@@ -43,36 +43,34 @@ extern "C" __declspec(dllexport) void Aquilinus_Init()
 	// use the aquilinus dll path for the runtime environment data (plugins)
 	g_pAquilinusConfig->bUseDllPath = true;
 
-	// create and init direct draw 
-	g_pDirectDraw = new AQU_Drawer(AQUILINUS_RTE_DRAWING_API);
+	//// create and init direct draw 
+	//g_pDirectDraw = new AQU_Drawer(AQUILINUS_RTE_DRAWING_API);
 
-	// register the new project window class
-	WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
-	wc.lpfnWndProc = WndProcProfileWindow;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = GetModuleHandle(NULL);
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = L"Aquilinus-Inicio profile class";
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	//// register the new project window class
+	//WNDCLASSEX wc;
+	//wc.cbSize = sizeof(WNDCLASSEX);
+	//wc.style = 0;
+	//wc.lpfnWndProc = WndProcProfileWindow;
+	//wc.cbClsExtra = 0;
+	//wc.cbWndExtra = 0;
+	//wc.hInstance = GetModuleHandle(NULL);
+	//wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	//wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	//wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	//wc.lpszMenuName = NULL;
+	//wc.lpszClassName = L"Aquilinus-Inicio profile class";
+	//wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
-	// exit if failed
-	if (!RegisterClassEx(&wc))
-	{
-		MessageBox(NULL, L"Aquilinus Window Registration Failed!", L"Error!",
-			MB_ICONEXCLAMATION | MB_OK);
-		return;
-	}
+	//// exit if failed
+	//if (!RegisterClassEx(&wc))
+	//{
+	//	MessageBox(NULL, L"Aquilinus Window Registration Failed!", L"Error!",
+	//		MB_ICONEXCLAMATION | MB_OK);
+	//	return;
+	//}
 
 	// start idle
 	g_eInicioStatus = InicioStatus::Idle;
-	g_bControlActivated = false;
-	g_bSubMenuOpen = false;
 }
 
 /**
@@ -85,9 +83,9 @@ extern "C" __declspec(dllexport) void Aquilinus_Close()
 	// close
 	InicioClose();
 
-	if (g_pDirectDraw) delete g_pDirectDraw;
-	if (g_pDirectDrawSub) delete g_pDirectDrawSub;
-	if (g_pDirectDrawProfile) delete g_pDirectDrawProfile;
+	//if (g_pDirectDraw) delete g_pDirectDraw;
+	//if (g_pDirectDrawSub) delete g_pDirectDrawSub;
+	//if (g_pDirectDrawProfile) delete g_pDirectDrawProfile;
 }
 
 /**
@@ -109,7 +107,7 @@ extern "C" __declspec(dllexport) void Aquilinus_LoadProfile(LPCWSTR szPath, LPCW
 	ForceIdle();
 
 	// set to init until loading window finished
-	g_eInicioStatus = InicioStatus::Initial;
+	g_eInicioStatus = InicioStatus::Idle;
 
 	// set D3D9Ex device meanwhile to false
 	g_pAquilinusConfig->bCreateD3D9Ex = FALSE;
@@ -150,15 +148,15 @@ extern "C" __declspec(dllexport) void Aquilinus_LoadProfile(LPCWSTR szPath, LPCW
 			OutputDebugString(L"Aquilinus : Failed to create injection thread !");
 
 		// picture present ?
-		if (g_pAquilinusConfig->bProfileWindow)
-		{
-			// ensure that the image path is zero, so it will use the picture data instead
-			g_pAquilinusConfig->szPictureFilePath[0] = 0;
+		//if (g_pAquilinusConfig->bProfileWindow)
+		//{
+		//	// ensure that the image path is zero, so it will use the picture data instead
+		//	g_pAquilinusConfig->szPictureFilePath[0] = 0;
 
-			// create the thread to override the virtual methods table
-			if (CreateThread(NULL, 0, ProfileWindowMainThread, NULL, 0, NULL) == NULL)
-				OutputDebugString(L"Aquilinus : Failed to create profile window thread !");
-		}
+		//	// create the thread to override the virtual methods table
+		//	if (CreateThread(NULL, 0, ProfileWindowMainThread, NULL, 0, NULL) == NULL)
+		//		OutputDebugString(L"Aquilinus : Failed to create profile window thread !");
+		//}
 	}
 	else
 	{
@@ -200,15 +198,15 @@ extern "C" __declspec(dllexport) void Aquilinus_Reinject()
 		OutputDebugString(L"Aquilinus : Failed to create injection thread !");
 
 	// picture present ?
-	if (g_pAquilinusConfig->bProfileWindow)
-	{
-		// ensure that the image path is zero, so it will use the picture data instead
-		g_pAquilinusConfig->szPictureFilePath[0] = 0;
+	//if (g_pAquilinusConfig->bProfileWindow)
+	//{
+	//	// ensure that the image path is zero, so it will use the picture data instead
+	//	g_pAquilinusConfig->szPictureFilePath[0] = 0;
 
-		// create the thread to override the virtual methods table
-		if (CreateThread(NULL, 0, ProfileWindowMainThread, NULL, 0, NULL) == NULL)
-			OutputDebugString(L"Aquilinus : Failed to create profile window thread !");
-	}
+	//	// create the thread to override the virtual methods table
+	//	if (CreateThread(NULL, 0, ProfileWindowMainThread, NULL, 0, NULL) == NULL)
+	//		OutputDebugString(L"Aquilinus : Failed to create profile window thread !");
+	//}
 
 }
 

@@ -109,6 +109,15 @@ void ImGui_Main()
 			// ensure to be back in old path before starting the injection thread
 			SetCurrentDirectory(szCurrentPath);
 
+			// create the abort event
+			if (g_hInjectionAbortEvent) CloseHandle(g_hInjectionAbortEvent);
+			g_hInjectionAbortEvent = CreateEvent(
+					NULL,               // default security attributes
+					TRUE,               // manual-reset event
+					FALSE,              // initial state is nonsignaled
+					TEXT("Abort")  // object name
+				);
+
 			// create the thread
 			g_eInicioStatus = InicioStatus::Injecting;
 			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaLoad;
@@ -160,6 +169,15 @@ void ImGui_Main()
 
 			// ensure to be back in old path before starting the injection thread
 			SetCurrentDirectory(szCurrentPath);
+
+			// create the abort event
+			if (g_hInjectionAbortEvent) CloseHandle(g_hInjectionAbortEvent);
+			g_hInjectionAbortEvent = CreateEvent(
+				NULL,               // default security attributes
+				TRUE,               // manual-reset event
+				FALSE,              // initial state is nonsignaled
+				TEXT("Abort")  // object name
+			);
 
 			// create the thread for injection
 			g_eInicioStatus = InicioStatus::Injecting;
@@ -337,7 +355,22 @@ void ImGui_New()
 		// select graphics profile
 		const char* aacElems_names[InjectionProfile::IP_Count] = { "Direct 3D 9.x", "Direct 3D 10.x", "Direct 3D 11.x" };
 		const char* acElem_name = (g_eGameProfile >= 0 && g_eGameProfile < InjectionProfile::IP_Count) ? aacElems_names[g_eGameProfile] : "Unknown";
-		ImGui::SliderInt("GPU API", &(int)g_eGameProfile, 0, InjectionProfile::IP_Count - 1, acElem_name);
+		static int s_nSelection = 0;
+		ImGui::SliderInt("GPU API", &s_nSelection, 0, InjectionProfile::IP_Count - 1, acElem_name);
+		switch (s_nSelection)
+		{
+		case 0:
+			g_eGameProfile = InjectionProfile::IP_D3D9;
+			break;
+		case 1:
+			g_eGameProfile = InjectionProfile::IP_D3D10;
+			break;
+		case 2:
+			g_eGameProfile = InjectionProfile::IP_D3D11;
+			break;
+		default:
+			break;
+		}
 	}
 
 	// selected game
@@ -460,67 +493,6 @@ void SaveConfig()
 }
 
 #endif
-
-/**
-* Enumerate currently running exe process names.
-***/
-DWORD EnumerateProcesses(LPWSTR*& pszEntries, DWORD& dwEntries)
-{
-	PROCESSENTRY32W pe32;
-	HANDLE hSnapShot;
-	BOOL bFoundProc = false;
-
-	// get snapshot handle
-	hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hSnapShot == INVALID_HANDLE_VALUE)
-	{
-		OutputDebugString(L"Aquilinus : Unable create toolhelp snapshot!");
-		return 0;
-	}
-
-	// loop through processes, count them
-	pe32.dwSize = sizeof(PROCESSENTRY32W);
-	bFoundProc = Process32FirstW(hSnapShot, &pe32);
-	dwEntries = 0;
-	while (bFoundProc)
-	{
-		// is an exe process ?
-		int len = (int)wcslen(pe32.szExeFile);
-		if (len > 0)
-		{
-			if ((pe32.szExeFile[len - 1] == 'e') &&
-				(pe32.szExeFile[len - 2] == 'x') &&
-				(pe32.szExeFile[len - 3] == 'e'))
-				dwEntries++;
-		}
-		bFoundProc = Process32NextW(hSnapShot, &pe32);
-	}
-
-	// loop again, enumerate
-	pszEntries = new LPWSTR[dwEntries];
-	DWORD nIndex = 0;
-	bFoundProc = Process32FirstW(hSnapShot, &pe32);
-	while (bFoundProc)
-	{
-		// is an exe process ?
-		int len = (int)wcslen(pe32.szExeFile);
-		if (len > 0)
-		{
-			if ((pe32.szExeFile[len - 1] == 'e') &&
-				(pe32.szExeFile[len - 2] == 'x') &&
-				(pe32.szExeFile[len - 3] == 'e'))
-			{
-				pszEntries[nIndex] = new wchar_t[wcslen(pe32.szExeFile) + sizeof(wchar_t)];
-				CopyMemory((PVOID)pszEntries[nIndex], pe32.szExeFile, (wcslen(pe32.szExeFile) * sizeof(wchar_t) + sizeof(wchar_t)));
-				nIndex++;
-			}
-		}
-		bFoundProc = Process32NextW(hSnapShot, &pe32);
-	}
-
-	return 0;
-}
-
 #pragma endregion
 
 #pragma region Inicio methods
@@ -597,7 +569,7 @@ HRESULT InicioInit()
 void InicioClose()
 {
 	ForceIdle();
-	TerminateThread(g_hInjectionThread, S_OK);
+	SetEvent(g_hInjectionAbortEvent);
 	UnmapViewOfFile((LPCVOID)g_pAquilinusConfig);
 	CloseHandle(g_hConfigMapFile);
 }
@@ -609,25 +581,7 @@ void ForceIdle()
 {
 	// stop injection thread if running
 	if (g_eInicioStatus == InicioStatus::Injecting)
-		TerminateThread(g_hInjectionThread, S_OK);
-
-	// kill profile window
-	/*if (g_hProfileWindow)
-	{
-		if (IsWindow(g_hProfileWindow)) SendMessage(g_hProfileWindow, WM_CLOSE, NULL, NULL);
-		g_hProfileWindow = NULL;
-	}
-
-	// kill sub window
-	if (g_hSubWindow)
-	{
-		if (IsWindow(g_hSubWindow)) SendMessage(g_hSubWindow, WM_CLOSE, NULL, NULL);
-		g_hSubWindow = NULL;
-	}
-
-	// release the additional bitmap
-	if (g_pDirectDraw)
-		g_pDirectDraw->ReleaseBackground();*/
+		SetEvent(g_hInjectionAbortEvent);
 
 	g_eInicioStatus = InicioStatus::Idle;
 }
@@ -728,9 +682,6 @@ HRESULT EnumerateGameNames()
 	}
 #endif
 
-	// clear game list
-	g_nCurrentLetterSelection = 0;
-
 	return S_OK;
 }
 
@@ -744,7 +695,7 @@ HRESULT EnumerateSupportedInterfaces(LPWSTR*& pszEntries, DWORD& dwEntries)
 	pszEntries = new LPWSTR[dwEntries];
 	for (int nIndex = 0; nIndex < SUPPORTED_INTERFACES_NUMBER; nIndex++)
 	{
-		pszEntries[nIndex] = new wchar_t[wcslen(AQU_SUPPORTEDINTERFACES::g_sSupportedInterfaces[nIndex].szName) + sizeof(wchar_t)];
+		pszEntries[nIndex] = new wchar_t[wcslen(AQU_SUPPORTEDINTERFACES::g_sSupportedInterfaces[nIndex].szName) + 1];
 		CopyMemory((PVOID)pszEntries[nIndex], AQU_SUPPORTEDINTERFACES::g_sSupportedInterfaces[nIndex].szName, (wcslen(AQU_SUPPORTEDINTERFACES::g_sSupportedInterfaces[nIndex].szName) * sizeof(wchar_t) + sizeof(wchar_t)));
 	}
 
@@ -780,7 +731,6 @@ BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 		tp.Privileges[0].Attributes = 0;
 
 	// Enable the privilege or disable all privileges.
-
 	if (!AdjustTokenPrivileges(
 		hToken,
 		FALSE,
@@ -863,13 +813,13 @@ DWORD GetTargetThreadID(wchar_t* szProcName)
 ***/
 HRESULT Inject(DWORD dwID, const wchar_t* szDllName)
 {
-	HANDLE hProc;
-	HANDLE hToken;
+	HANDLE hProc = nullptr;
+	HANDLE hToken = nullptr;
 	wchar_t szBuffer[128] = { 0 };
-	LPVOID pRemoteString, pLoadLibraryA;
+	LPVOID pRemoteString = nullptr, pLoadLibraryA = nullptr;
 
 	if (!dwID)
-		return false;
+		return E_FAIL;
 
 	// open the desired process
 	hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwID);
@@ -915,8 +865,10 @@ HRESULT Inject(DWORD dwID, const wchar_t* szDllName)
 	}
 
 	// get LoadLibraryA method address
-	pLoadLibraryA = (LPVOID)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
-	if (pLoadLibraryA == NULL)
+	HMODULE hKernel = GetModuleHandle(L"kernel32.dll");
+	if (hKernel)
+		pLoadLibraryA = (LPVOID)GetProcAddress(hKernel, "LoadLibraryA");
+	if (pLoadLibraryA == nullptr)
 	{
 		wsprintf(szBuffer, L"Aquilinus : Failed to get the address of >LoadLibraryW< : %d", GetLastError());
 		OutputDebugString(szBuffer);
@@ -933,8 +885,11 @@ HRESULT Inject(DWORD dwID, const wchar_t* szDllName)
 	// Allocate space in the process for our DLL 
 	pRemoteString = (LPVOID)VirtualAllocEx(hProc, NULL, wcslen(szDllName), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
-	// Write the string name of our DLL in the memory allocated 
-	WriteProcessMemory(hProc, (LPVOID)pRemoteString, szDll, wcslen(szDllName), NULL);
+	// Write the string name of our DLL in the memory allocated
+	if ((pRemoteString) && (szDll))
+		WriteProcessMemory(hProc, (LPVOID)pRemoteString, szDll, wcslen(szDllName), NULL);
+	else
+		return E_FAIL;
 
 	// free memory
 	free(szDll);
@@ -947,9 +902,9 @@ HRESULT Inject(DWORD dwID, const wchar_t* szDllName)
 		return E_FAIL;
 	}
 
-	CloseHandle(hToken);
-	CloseHandle(hProc);
-	return true;
+	if (hToken) CloseHandle(hToken);
+	if (hProc) CloseHandle(hProc);
+	return S_OK;
 }
 
 /**
@@ -961,9 +916,13 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 	int nRepeat = *(int*)Param;
 
 	// Retrieve process ID
-	DWORD dwID = NULL;
+	DWORD dwID = NULL, dwRes = 1;
 	while (dwID == NULL)
 	{
+		// abort ??
+		dwRes = WaitForSingleObject(g_hInjectionAbortEvent, 10);
+		if (dwRes == WAIT_OBJECT_0) return 0;
+
 		// get the process name, only for complemented profiles get it directly from the cfg
 		std::wstring szP;
 		if (g_pAquilinusConfig->eProjectStage == AQU_ProjectStage::Complemented)
@@ -1080,48 +1039,49 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
 /**
-* Window callback methods
+* Viewport callback.
 ***/
-int cp_x;
-int cp_y;
-int offset_cpx;
-int offset_cpy;
-int w_posx;
-int w_posy;
-int buttonEvent, controlEvent;
 void viewport_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
+
+/**
+* Cursor position callback.
+***/
 void cursor_position_callback(GLFWwindow* window, double x, double y) {
-	if ((buttonEvent == 1) && ((y < (double)22) || (buttonEvent == 1))) // TODO !! SET BY TOP BAR FONT SIZE
+	if ((g_buttonEvent == 1) && ((y < (double)22) || (g_buttonEvent == 1))) // TODO !! SET BY TOP BAR FONT SIZE
 	{
-		offset_cpx = (int)x - cp_x;
-		offset_cpy = (int)y - cp_y;
+		g_offset_cpx = (int)x - g_cp_x;
+		g_offset_cpy = (int)y - g_cp_y;
 	}
 }
+
+/**
+* Mouse button callback.
+***/
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
 		if (y < (double)22) // TODO !! SET BY TOP BAR FONT SIZE
 		{
-			cp_x = (int)floor(x);
-			cp_y = (int)floor(y);
-			buttonEvent = 1;
+			g_cp_x = (int)floor(x);
+			g_cp_y = (int)floor(y);
+			g_buttonEvent = 1;
 		}
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-		buttonEvent = 0;
-		cp_x = 0;
-		cp_y = 0;
+		g_buttonEvent = 0;
+		g_cp_x = 0;
+		g_cp_y = 0;
 	}
 }
 
 /**
 * Inicio main windows entry point.
 ***/
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,_In_ LPSTR lpCmdLine,_In_ int nCmdShow)
 {
 	OutputDebugString(L"Inicio : Started...");
 
@@ -1131,9 +1091,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// start idle
 	g_eInicioStatus = InicioStatus::Idle;
 	g_eCurrentWindow = InicioWindows::Main;
-
-	// first, set the instance handle
-	g_hInstance = hInstance;
 
 	// set the version
 	g_eVersion.dwPrima = AQUILINUS_VERSION_PRIMA;
@@ -1260,6 +1217,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
+		// create the abort event
+		if (g_hInjectionAbortEvent) CloseHandle(g_hInjectionAbortEvent);
+		g_hInjectionAbortEvent = CreateEvent(
+			NULL,               // default security attributes
+			TRUE,               // manual-reset event
+			FALSE,              // initial state is nonsignaled
+			TEXT("Abort")  // object name
+		);
+
 		// proceed to injection
 		if (g_eInicioStatus == InicioStatus::ToInject)
 		{
@@ -1278,13 +1244,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		// Poll and handle events, update window fields
 		glfwPollEvents();
-		glfwGetWindowPos(window, &w_posx, &w_posy);
-		glfwSetWindowPos(window, w_posx + offset_cpx, w_posy + offset_cpy);
-		controlEvent = 0;
-		offset_cpx = 0;
-		offset_cpy = 0;
-		cp_x += offset_cpx;
-		cp_y += offset_cpy;
+		glfwGetWindowPos(window, &g_w_posx, &g_w_posy);
+		glfwSetWindowPos(window, g_w_posx + g_offset_cpx, g_w_posy + g_offset_cpy);
+		g_controlEvent = 0;
+		g_offset_cpx = 0;
+		g_offset_cpy = 0;
+		g_cp_x += g_offset_cpx;
+		g_cp_y += g_offset_cpy;
 
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -1613,6 +1579,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+	if (g_hInjectionAbortEvent) CloseHandle(g_hInjectionAbortEvent);
 
 	return (DWORD)0;
 }

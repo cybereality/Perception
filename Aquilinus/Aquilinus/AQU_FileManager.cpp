@@ -1270,9 +1270,9 @@ HRESULT AQU_FileManager::AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR sz
 		// allocate first space
 		m_pcProcesses = (BYTE*)malloc(PROCESS_ENTRY_SIZE);
 
-		// fill with random characters to avoid cypher detection
+		// fill with zero
 		for (int i = 0; i < PROCESS_ENTRY_SIZE; i++)
-			m_pcProcesses[i] = (BYTE)(rand() % 256);
+			m_pcProcesses[i] = (BYTE)0;
 
 	}
 

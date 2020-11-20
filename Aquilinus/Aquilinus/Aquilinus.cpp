@@ -354,7 +354,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 		g_pAQU_WorkingArea = new AQU_WorkingArea(hInstance, g_pAQU_TransferSite);
 
 		// output debug information
-		OutputDebugString(g_pAQU_TransferSite->m_pFileManager->LoadName(g_pAQU_TransferSite->m_pConfig->dwProcessIndex, g_pAQU_TransferSite->m_pConfig->szAquilinusPath));
+		OutputDebugString(g_pAQU_TransferSite->m_pFileManager->GetName(g_pAQU_TransferSite->m_pConfig->dwProcessIndex));
 
 		// load the workspace
 		g_pAQU_WorkingArea->s_LoadWorkSpace();

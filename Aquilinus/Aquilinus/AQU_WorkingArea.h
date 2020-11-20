@@ -30,9 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AQU_WORKINGAREA_CLASS
 #define AQU_WORKINGAREA_CLASS
 
-#define AQUILINUS_DRAWING_API AQU_DrawingAPIs::API_OpenGL
-//#define AQUILINUS_DRAWING_API AQU_DrawingAPIs::API_DirectDraw
-
 #include <d3d10_1.h>
 #include <d3d10.h>
 #include <windowsx.h>
@@ -43,6 +40,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "AQU_FileManager.h"
 #include "AQU_Nodes.h"
 #include "AQU_GlobalTypes.h"
+#include "..\dependecies\imgui\imgui.h"
+#include "..\dependecies\imgui\imgui_impl_glfw.h"
+#include "..\dependecies\imgui\imgui_impl_opengl3.h"
+#include "..\dependecies\imgui\imgui_internal.h"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#pragma comment(lib, "advapi32.lib")
 
 /**
 * Working area menu control status.
@@ -51,55 +55,6 @@ enum AQU_WorkingAreaStatus
 {
 	Idle,
 	ToIdle,
-	WindowResize,
-	WorkspaceZoom,
-	WorkspaceScrollX,
-	WorkspaceScrollY,
-	NodeActive,
-	TopMenuBar_File,
-	TopMenuBar_Options,
-};
-
-/**
-* Top menu >File< entries enumeration.
-***/
-enum AQU_TopMenuBarFileEntries
-{
-	SAVE_WORKING_AREA,
-	COMPILE_PROFILE,
-	SAVE_EXTERNALLY,
-	NUMBER_OF_FILE_ENTRIES = 3
-};
-
-
-/**
-* Top menu >File< entries enumeration.
-***/
-enum AQU_TopMenuBarOptionsEntries
-{
-	REINSTATE_INTERFACES,
-	DRAW_DATA_LINES,
-	DRAW_DATA_SLINGS,
-	DRAW_DATA_PIPELINES,
-	DRAW_DATA_DOTTED,
-	DRAW_STREAM_LINES,
-	DRAW_STREAM_SLINGS,
-	DRAW_STREAM_PIPELINES,
-	DRAW_STREAM_DOTTED,
-	DELETE_UNCONNECTED,
-	NUMBER_OF_OPTIONS_ENTRIES = 10
-};
-
-/**
-* Working area element sizes data field.
-***/
-struct AQU_WorkingAreaElementSizes
-{
-	/*** Workspace border sizes. ***/
-	DWORD dwMenu;                 /**< The size, in pixels, of the upper menu tab. ***/
-	DWORD dwDataSheet;            /**< The size, in pixels, of the left side data shed tab. ***/
-	DWORD dwScrollBarRight;       /**< The size, in pixels, of the right side scroll bar tab. ***/
-	DWORD dwScrollBarBottom;      /**< The size, in pixels, of the bottom scroll bar tab. ***/
 };
 
 /**
@@ -113,20 +68,40 @@ public :
 	virtual ~AQU_WorkingArea();
 
 	/*** AQU_WorkingArea public methods ***/
-	static LRESULT CALLBACK s_WorkingAreaWndProc   (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	static DWORD   WINAPI   s_WorkingAreaMsgThread (void* param);
 	static HRESULT          s_LoadWorkSpace        ();
+	static void             s_Viewport_callback(GLFWwindow* window, int width, int height)	{ glViewport(0, 0, width, height);	}
+	static void             s_Cursor_position_callback(GLFWwindow* window, double x, double y) 
+	{
+		if ((m_sWindowControl.nButtonEvent == 1) && ((y < (double)22) || (m_sWindowControl.nButtonEvent == 1))) // TODO !! SET BY TOP BAR FONT SIZE
+		{
+			m_sWindowControl.nOffset_cpx = (int)x - m_sWindowControl.nCp_x;
+			m_sWindowControl.nOffset_cpy = (int)y - m_sWindowControl.nCp_y;
+		}
+	}
+	static void             s_Mouse_button_callback(GLFWwindow* window, int button, int action, int mods) 
+	{
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			if (y < (double)22) // TODO !! SET BY TOP BAR FONT SIZE
+			{
+				m_sWindowControl.nCp_x = (int)floor(x);
+				m_sWindowControl.nCp_y = (int)floor(y);
+				m_sWindowControl.nButtonEvent = 1;
+			}
+		}
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+			m_sWindowControl.nButtonEvent = 0;
+			m_sWindowControl.nCp_x = 0;
+			m_sWindowControl.nCp_y = 0;
+		}
+	}
 
 private:
 	/*** AQU_WorkingArea private methods ***/
 	static HRESULT s_EnumeratePlugins (LPCWSTR szDllPath);
-	static int     s_GetNodeIndex     (POINT vecCursor, POINT vecOrigin, float fZoom);
-	static void    s_UpdateActiveNode (UINT msg, WPARAM wParam, LPARAM lParam);
-
-	/**
-	* Pointer to the direct draw class.
-	***/
-	static AQU_Drawer* m_pDirectDraw;
+	
 	/**
 	* The window class.
 	***/
@@ -140,13 +115,18 @@ private:
 	***/
 	static HINSTANCE m_hInstance;
 	/**
-	* Desktop width.
+	* ImGui window control fields.
 	***/
-	static int m_nScreenWidth;  
-	/**
-	* Desktop height.
-	***/
-	static int m_nScreenHeight;
+	static struct WindowControl
+	{
+		int nCp_x;
+		int nCp_y;
+		int nOffset_cpx;
+		int nOffset_cpy;
+		int nW_posx;
+		int nW_posy;
+		int nButtonEvent, nControlEvent;
+	} m_sWindowControl;
 	/**
 	* Working area width.
 	***/
@@ -160,67 +140,9 @@ private:
 	***/
 	static POINT m_ptMouseCursor;
 	/**
-	* The current zoom factor.
-	***/
-	static float m_fZoom;
-	/**
-	* The y scollbar value.
-	***/
-	static float m_fXScrollPos;
-	/**
-	* The y scollbar value.
-	***/
-	static float m_fYScrollPos;
-	/**
-	* The data sheet y scrolling value.
-	***/
-	static float m_fYScrollDataSheet;
-	/**
-	* The size of the workspace.
-	* (in pixel space with zoom factor 1.0)
-	***/
-	static SIZE m_vcWorkspaceSize;
-	/**
-	* The size of the DataSheet.
-	***/
-	static SIZE m_vcDataSheetSize;
-	/**
 	* All nodes vector.
 	***/
 	static std::vector<NOD_Basic*> m_paNodes;
-	/**
-	* Active node index.
-	* -1 if no node active.
-	***/
-	static int m_nActiveNodeIndex;
-	/**
-	* The currently selected data sheet category.
-	***/
-	static int m_nDataSheetCategorySelection;
-	/**
-	* The currently selected data sheet entry (for the selected category).
-	***/
-	static int m_nDataSheetEntrySelection;
-	/**
-	* Active data shed entry.
-	* -1 if no entry active.
-	***/
-	static int m_nActiveDataSheetEntry;
-	/**
-	* The currently selected top menu >File< entry selection.
-	* -1 if no entry active.
-	***/
-	static int m_nActiveTopMenuFileEntry;
-	/**
-	* The currently selected top menu >Options< entry selection.
-	* -1 if no entry active.
-	***/
-	static int m_nActiveTopMenuOptionsEntry;
-	/**
-	* Active node behavior.
-	* Only in question if m_nActiveNodeIndex > -1.
-	***/
-	static AQU_NodeBehavior m_eActiveNodeBehavior;
 	/**
 	* Working Area status.
 	***/
@@ -229,10 +151,6 @@ private:
 	* The Aquilinus transfer site.
 	***/
 	static AQU_TransferSite* m_pcTransferSite;
-	/**
-	* The sizes of the workspace elements.
-	***/
-	static AQU_WorkingAreaElementSizes m_sWorkingAreaElementSizes;
 	/**
 	* The plugin enumeration name vector.
 	***/
@@ -257,48 +175,6 @@ private:
 	* The enlisted plugin handles.
 	***/
 	static std::vector<HMODULE> m_vcPluginHandles;
-	/**
-	* Highlighted menu entries (File).
-	* Pointer to the entry bool, one per menu entry. True to highlight.
-	***/
-	static BOOL* m_pbHighlightEntryFile[AQU_TopMenuBarFileEntries::NUMBER_OF_FILE_ENTRIES];
-	/**
-	* Highlighted menu entries (Options).
-	* Pointer to the entry bool, one per menu entry. True to highlight.
-	***/
-	static BOOL* m_pbHighlightEntryOptions[AQU_TopMenuBarOptionsEntries::NUMBER_OF_OPTIONS_ENTRIES];
-	/**
-	* True if lines are drawn for commander connections.
-	***/
-	static BOOL m_bDrawDataLines;
-	/**
-	* True if slings are drawn for commander connections.
-	***/
-	static BOOL m_bDrawDataSlings;
-	/**
-	* True if lines are drawn for commander connections.
-	***/
-	static BOOL m_bDrawDataPipelines;
-	/**
-	* True if commander connections are drawn dotted.
-	***/
-	static BOOL m_bDrawDataDotted;
-	/**
-	* True if lines are drawn for provoker connections.
-	***/
-	static BOOL m_bDrawStreamLines;
-	/**
-	* True if slings are drawn for provoker connections.
-	***/
-	static BOOL m_bDrawStreamSlings;
-	/**
-	* True if lines are drawn for provoker connections.
-	***/
-	static BOOL m_bDrawStreamPipelines;
-	/**
-	* True if provoker connections are drawn dotted.
-	***/
-	static BOOL m_bDrawStreamDotted;
 };
 
 #endif

@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 NOD_Plugin::NOD_Plugin(LONG nX, LONG nY, LPWSTR szFilePath) :NOD_Basic(nX, nY, 140, 100),
-m_pcDrawer(nullptr),
+//m_pcDrawer(nullptr),
 m_dwUpdateCounter(0)
 {
 	// convert to LPCSTR
@@ -137,11 +137,11 @@ m_dwUpdateCounter(0)
 ***/
 NOD_Plugin::~NOD_Plugin()
 {
-	if (m_pcDrawer)
+	/*if (m_pcDrawer)
 	{
 		m_pcDrawer->ReleaseBitmap(m_dwControlID);
 		m_pcDrawer->ReleaseBitmap(m_dwLogoID);
-	}
+	}*/
 	FreeLibrary(m_hm);
 	m_hm = NULL;
 }
@@ -152,9 +152,9 @@ NOD_Plugin::~NOD_Plugin()
 * @param pcDrawer The aquilinus drawing interface.
 * @param vcOrigin The origin vector for the drawing call, in pixel space.
 ***/
-HRESULT NOD_Plugin::Draw(AQU_Drawer* pcDrawer, POINT vcOrigin, float fZoom)
+HRESULT NOD_Plugin::Draw(POINT vcOrigin)
 {
-	DWORD dwWidth;
+	/*DWORD dwWidth;
 
 	// backup the drawer
 	if (!m_pcDrawer) m_pcDrawer = pcDrawer;
@@ -225,12 +225,9 @@ HRESULT NOD_Plugin::Draw(AQU_Drawer* pcDrawer, POINT vcOrigin, float fZoom)
 			m_dwControlID = pcDrawer->RegisterBitmap(m_hBitmapControl);
 		else
 		{
-			/*if (!m_dwUpdateCounter)
-			{*/
+			
 			pcDrawer->UpdateBitmap(m_hBitmapControl, m_dwControlID);
-			/*	m_dwUpdateCounter = 5;
-			}
-			else m_dwUpdateCounter--;*/
+			
 		}
 
 		// get size of bitmap
@@ -338,7 +335,7 @@ HRESULT NOD_Plugin::Draw(AQU_Drawer* pcDrawer, POINT vcOrigin, float fZoom)
 	{
 		// verify node height
 		if (m_vecSize.cy < (pt.y - m_vecPos.y + 16)) m_vecSize.cy = pt.y - m_vecPos.y + 16;
-	}
+	}*/
 
 	return S_OK;
 }
@@ -426,11 +423,11 @@ void* NOD_Plugin::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMet
 	m_pvReturn = m_pNodus->Provoke(pcThis, eD3D, eD3DInterface, eD3DMethod, 0, nIndex);
 
 	// next cycle behavior ?
-	if (nIndex & AQU_PluginFlags::DoubleCallFlag)
+	if (nIndex & int(AQU_PluginFlags::DoubleCallFlag))
 		m_eNextNodeCall = AQU_NextNodeCall::DoubleCall;
 
 	// immediate return with method replacement ?
-	if (nIndex & AQU_PluginFlags::ImmediateReturnFlag)
+	if (nIndex & int(AQU_PluginFlags::ImmediateReturnFlag))
 	{
 		m_bReturn = true;
 		return m_pvReturn;

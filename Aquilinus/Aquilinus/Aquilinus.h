@@ -40,13 +40,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d10.h>
 #pragma comment(lib, "d3d10.lib")
 
-// #include <d3dx10.h>
+#include <d3dx10.h>
 #pragma comment(lib, "d3dx10.lib")
 
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
-// #include <d3dx9.h>
+#include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
 #include <DXGI.h>
@@ -124,9 +124,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 AQU_TransferSite*       g_pAQU_TransferSite;    /**< The transfer site. **/
 AQU_WorkingArea*        g_pAQU_WorkingArea;     /**< The working area. **/
 std::vector<NOD_Basic*> g_paNodes;              /**< The nodes vector used for complemented profiles. **/
-int                     g_area_width = 600;    /**< The default width of the working area window. **/
+int                     g_area_width = 600;     /**< The default width of the working area window. **/
 int                     g_area_height = 200;    /**< The default height of the working area window. **/
-int                     g_profile_width = 600; /**< The default width of the profile window. **/
+int                     g_profile_width = 600;  /**< The default width of the profile window. **/
 int                     g_profile_height = 200; /**< The default height of the profile window. **/
 #pragma endregion
 

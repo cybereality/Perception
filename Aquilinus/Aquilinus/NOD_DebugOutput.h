@@ -51,9 +51,9 @@ public:
 	}
 
 	/*** NOD_Basic public members ***/
-	virtual HRESULT Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom)
+	virtual HRESULT Draw(POINT vcOrigin)
 	{
-		HRESULT ret = NOD_Basic::Draw(pDirectDraw, vcOrigin, fZoom);
+		/*HRESULT ret = NOD_Basic::Draw(pDirectDraw, vcOrigin, fZoom);
 
 		// get node data... and draw
 		if (m_paDecommanders[0]->m_pInput != nullptr)
@@ -65,9 +65,9 @@ public:
 				strStream << L"X:" << pVec->x << L"::Y:" << pVec->y << L"::Z:" << pVec->z << L"::W:" << pVec->w;
 				pDirectDraw->RenderText(strStream.str().c_str(), 10 + m_vecPos.x, 60 + m_vecPos.y, vcOrigin, AquilinusColor::Color2, AquilinusColor::Color1, AQUILINUS_TINY_TEXT_SIZE, fZoom);
 			}
-		}
+		}*/
 
-		return ret;
+		return S_OK;
 	}
 	virtual const char*   GetNodeType() { return "Debug D3D Vector"; }
 	virtual       UINT32  GetNodeTypeId() { return ELEMENTARY_NODE_DEBUG_D3DVECTOR; }
@@ -88,36 +88,36 @@ public:
 	}
 
 	/*** NOD_Basic public members ***/
-	virtual       HRESULT Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom)
+	virtual       HRESULT Draw(POINT vcOrigin)
 	{
-		HRESULT ret = NOD_Basic::Draw(pDirectDraw, vcOrigin, fZoom);
+		//HRESULT ret = NOD_Basic::Draw(pDirectDraw, vcOrigin, fZoom);
 
-		// get node data... and draw
-		if (m_paDecommanders[0]->m_pInput != nullptr)
-		{
-			if ((*((void**)m_paDecommanders[0]->m_pInput)) != nullptr)
-			{
-				D3DMATRIX * pMat = *(D3DMATRIX**)m_paDecommanders[0]->m_pInput;
-				std::wstringstream strStream;
+		//// get node data... and draw
+		//if (m_paDecommanders[0]->m_pInput != nullptr)
+		//{
+		//	if ((*((void**)m_paDecommanders[0]->m_pInput)) != nullptr)
+		//	{
+		//		D3DMATRIX * pMat = *(D3DMATRIX**)m_paDecommanders[0]->m_pInput;
+		//		std::wstringstream strStream;
 
-				// loop through matrix, output data
-				int x = 10, y = 60;
-				for (int i = 0; i < 4; i++)
-				{
-					for (int j = 0; j < 4; j++)
-					{
-						strStream << L"[" << i << L"][" << j << L"]:" << pMat->m[i][j];
-						pDirectDraw->RenderText(strStream.str().c_str(), x + m_vecPos.x, y + m_vecPos.y, vcOrigin, AquilinusColor::Color2, AquilinusColor::Color1, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-						strStream.str(std::wstring());
-						x += 100;
-					}
-					x = 10;
-					y += 24;
-				}
-			}
-		}
+		//		// loop through matrix, output data
+		//		int x = 10, y = 60;
+		//		for (int i = 0; i < 4; i++)
+		//		{
+		//			for (int j = 0; j < 4; j++)
+		//			{
+		//				strStream << L"[" << i << L"][" << j << L"]:" << pMat->m[i][j];
+		//				pDirectDraw->RenderText(strStream.str().c_str(), x + m_vecPos.x, y + m_vecPos.y, vcOrigin, AquilinusColor::Color2, AquilinusColor::Color1, AQUILINUS_TINY_TEXT_SIZE, fZoom);
+		//				strStream.str(std::wstring());
+		//				x += 100;
+		//			}
+		//			x = 10;
+		//			y += 24;
+		//		}
+		//	}
+		//}
 
-		return ret;
+		return S_OK;
 	}
 	virtual const char*   GetNodeType() { return "Debug D3D Matrix"; }
 	virtual       UINT32  GetNodeTypeId() { return ELEMENTARY_NODE_DEBUG_D3DMATRIX; }

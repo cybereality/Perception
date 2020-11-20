@@ -116,7 +116,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * The current stage of the project.
 ***/
-enum AQU_ProjectStage
+enum class AQU_ProjectStage
 {
 	NoProject = 0,
 	BrokenProject = 1,

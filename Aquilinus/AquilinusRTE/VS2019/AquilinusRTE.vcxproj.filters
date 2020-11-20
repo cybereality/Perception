@@ -5,18 +5,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\AquilinusRTE.cpp" />
-    <ClCompile Include="..\..\Aquilinus\AQU_DirectDraw.cpp" />
     <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
     <ClCompile Include="..\..\Inicio\Inicio.cpp" />
-    <ClCompile Include="..\..\Aquilinus\AQU_OpenGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\AquilinusRTE.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_DirectDraw.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_DirectDrawFields.h" />
     <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
     <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
     <ClInclude Include="..\..\Inicio\Inicio.h" />
-    <ClInclude Include="..\..\Aquilinus\AQU_OpenGL.h" />
   </ItemGroup>
 </Project>

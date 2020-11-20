@@ -289,11 +289,11 @@
     <Filter Include="AQU_Drawer">
       <UniqueIdentifier>{8ef99660-9a80-4e16-9713-3a029a1d5d9b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="AQU_Drawer\AQU_DrawingAPI">
-      <UniqueIdentifier>{52d07b83-ef67-4950-95a0-a62363ad204c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="AQU_Nodes\DirectX9\NOD_D3DX9">
       <UniqueIdentifier>{2e4ab76f-e1d4-4b91-bc40-6eee447e21ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{a8c1f320-67a1-4cdf-972c-2df48fc506e1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -765,21 +765,6 @@
     <ClInclude Include="..\DCL_IDXGISwapChain1_Super.h">
       <Filter>AQU_DetourClasses\DirectX10</Filter>
     </ClInclude>
-    <ClInclude Include="..\AQU_Drawer.h">
-      <Filter>AQU_Drawer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AQU_DrawingAPI.h">
-      <Filter>AQU_Drawer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AQU_DrawerFields.h">
-      <Filter>AQU_Drawer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AQU_DirectDraw.h">
-      <Filter>AQU_Drawer\AQU_DrawingAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AQU_OpenGL.h">
-      <Filter>AQU_Drawer\AQU_DrawingAPI</Filter>
-    </ClInclude>
     <ClInclude Include="..\AQU_2DData.h">
       <Filter>AQU_Drawer</Filter>
     </ClInclude>
@@ -788,6 +773,30 @@
     </ClInclude>
     <ClInclude Include="..\NOD_D3DX9.h">
       <Filter>AQU_Nodes\DirectX9\NOD_D3DX9</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -891,16 +900,35 @@
     <ClCompile Include="..\DCL_IDXGISwapChain1.cpp">
       <Filter>AQU_DetourClasses\DirectX10</Filter>
     </ClCompile>
-    <ClCompile Include="..\AQU_DirectDraw.cpp">
-      <Filter>AQU_Drawer\AQU_DrawingAPI</Filter>
+    <ClCompile Include="..\..\dependecies\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\AQU_OpenGL.cpp">
-      <Filter>AQU_Drawer\AQU_DrawingAPI</Filter>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_glfw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Aquilinus_Resources.rc">
       <Filter>AQU_Resources</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\dependecies\imgui\imgui.natvis">
+      <Filter>imgui</Filter>
+    </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\dependecies\imgui\LICENSE.txt">
+      <Filter>imgui</Filter>
+    </Text>
   </ItemGroup>
 </Project>

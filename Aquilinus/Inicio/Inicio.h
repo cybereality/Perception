@@ -72,8 +72,6 @@ enum class InicioStatus
 	Injecting,
 	ToInject
 //	Injected
-	/*NewProjectWindow,
-	OptionsWindow,*/
 };
 
 /**
@@ -108,9 +106,6 @@ enum class InicioWindows
 	NewProject,
 	Options,
 	Info,
-#ifdef DEVELOPER_BUILD
-	AddProcess,
-#endif
 };
 
 /*** Inicio Globals  ***/
@@ -121,23 +116,14 @@ int                       g_nScreenHeight = GetSystemMetrics(SM_CYFULLSCREEN);
 int                       g_nMainWindowWidth  = MAIN_WINDOW_WIDTH;                   /**< Current window width. **/
 int                       g_nMainWindowHeight = MAIN_WINDOW_HEIGHT;                  /**< Current window height. **/
 DWORD                     g_dwColorSchemeIndex = 0;                                  /**< Global color scheme index. Only needed to load/save options. Actual color scheme index stored in config. **/
-bool                      g_bControlActivated;                                       /**< True if any control is activated currently. **/
-bool                      g_bSubMenuOpen;                                            /**< True if any sub menu is opened. **/
 bool                      g_bKeepProcessName = false;                                /**< True if the game process should be kept for next workspace load **/
-bool                      g_bLetterButtonPressed[27];                                /**< True if the button for that letter is pressed in the select process window. **/
 DWORD                     g_nLetterStartIndex[27];                                   /**< The start index for that Letter (0, A, B,....., X, Y, Z) in the game list. **/
 DWORD                     g_nLetterEntriesNumber[27];                                /**< The number of entries for that Letter (0, A, B,....., X, Y, Z) in the game list. **/
-DWORD                     g_nCurrentLetterSelection;                                 /**< The Letter selection (0, A, B,....., X, Y, Z) in the game list. From 0 to 27. **/
-POINT                     g_ptMouseCursor;                                           /**< The current mouse cursor. **/
 WNDCLASSEX                g_wc;                                                      /**< The window class. **/
-HINSTANCE                 g_hInstance;                                               /**< The main instance handle. **/
-HWND                      g_hwnd;                                                    /**< The main window handle **/
-HWND                      g_hSubWindow;                                              /**< The handle for the sub window. **/
-HWND                      g_hProfileWindow;                                          /**< The handle for the profile window. **/
 BYTE*                     g_pPictureData;                                            /**< The global picture data. **/
 DWORD                     g_dwPictureSize;                                           /**< The size of the raw (PNG) data. **/
 HANDLE                    g_hInjectionThread;
-POINT                     g_vcZeroOrigin;                                            /**< A zero origin used for drawing methods. ***/
+HANDLE                    g_hInjectionAbortEvent;                                    /**< Abort injection event. ***/
 std::vector<std::wstring> g_aszGameNames;                                            /**< The sorted game list to be used in the game selection window. **/
 std::vector<std::wstring> g_aszGameNamesUnsorted;                                    /**< The unsorted game list to be used to get the process index for the game **/
 int                       g_nGameSelected = 0;                                       /**< Index of the selected game. Matches the index in g_aszGameNames. **/
@@ -148,6 +134,10 @@ int                       g_nRepeat = 0;                                        
 AQU_Version               g_eVersion;                                                /**< The current version of Aquilinus. Maybe we put that in the configuration... **/
 InicioWindows             g_eCurrentWindow;                                          /**< The current active window. ***/
 bool                      g_bWindowResize;                                           /**< True if main window ought to be resized. **/
+int	                      g_cp_x, g_cp_y;
+int                       g_offset_cpx, g_offset_cpy;
+int                       g_w_posx, g_w_posy;
+int                       g_buttonEvent, g_controlEvent;
 #endif
 
 /*** Inicio small helpers ***/
@@ -170,7 +160,6 @@ void             ImGui_Main();
 void             ImGui_New();
 void             ImGui_StyleColorsByScheme();
 void             SaveConfig();
-DWORD            EnumerateProcesses(LPWSTR *&pszEntries, DWORD &dwEntries);
 
 /*** Inicio methods ***/
 HRESULT          InicioInit();
@@ -184,7 +173,12 @@ HRESULT          Inject(DWORD dwID, const wchar_t * szDllName);
 DWORD   WINAPI   InjectionThread(LPVOID Param);
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
-int     WINAPI   WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+
+/*** GL callbacks ***/
+void             viewport_callback(GLFWwindow* window, int width, int height);
+void             cursor_position_callback(GLFWwindow* window, double x, double y);
+void             mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+
 #endif
 
 #endif

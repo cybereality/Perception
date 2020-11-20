@@ -44,8 +44,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <typeinfo>
 #include "AQU_NodesStructures.h"
-//#include "AQU_DirectDraw.h"
-//#include "AQU_Drawer.h"
 
 /**
 * Simple clipboard text helper.
@@ -93,7 +91,7 @@ enum AQU_NodeBehavior
 /**
 * Provoker/Invoker setting.
 ***/
-enum AQU_NodeProvokingType
+enum class AQU_NodeProvokingType
 {
 	Both = 0,           /**< Node has both : Provoker and Invoker ***/
 	OnlyProvoker = 1,   /**< Node has only Provoker, no Invoker ***/
@@ -105,7 +103,7 @@ enum AQU_NodeProvokingType
 * Setting for the next provoking circle.
 * To be set back to >DefaultBehavior< after next circle.
 **/
-enum AQU_NextNodeCall
+enum class AQU_NextNodeCall
 {
 	DefaultBehavior = 0,  /** Default behavior : provoke -> call D3D method **/
 	DoubleCall = 1,       /** Double call : call D3D method -> provoke -> call D3D method **/
@@ -114,23 +112,10 @@ enum AQU_NextNodeCall
 /**
 * Plugin flags.
 **/
-enum AQU_PluginFlags
+enum class AQU_PluginFlags
 {
 	DoubleCallFlag = 512,       /** Double call : call D3D method -> provoke -> call D3D method **/
 	ImmediateReturnFlag = 1024, /** Immediate return : D3D method call replaced by plugin **/
-};
-
-/**
-* Connection drawing styles.
-***/
-enum AQU_ConnectionDrawingStyles
-{
-	Line,
-	Sling,
-	Pipeline,
-	DottedLine,
-	DottedSling,
-	DottedPipeline,
 };
 
 /**
@@ -181,8 +166,7 @@ public:
 
 	/*** NOD_Basic public methods ***/
 	virtual HRESULT          Translate(LONG nX, LONG nY, float fZoom);
-	//virtual HRESULT          Draw(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom);
-	//virtual HRESULT          DrawConnections(AQU_Drawer* pDirectDraw, POINT vcOrigin, float fZoom, std::vector<NOD_Basic*>* ppaNodes, AQU_ConnectionDrawingStyles eDataConnectionStyle, AQU_ConnectionDrawingStyles eStreamConnectionStyle);
+	virtual HRESULT          Draw(POINT vcOrigin);
 	virtual LONG*            GetCommanderConnectionIndices(std::vector<NOD_Basic*>* ppaNodes, DWORD dwIndex);
 	virtual LONG*            GetProvokerConnectionIndices();
 	virtual DWORD            GetCommanderConnectionsNumber(DWORD dwIndex);
