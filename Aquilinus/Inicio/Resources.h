@@ -29,13 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 #include <windows.h>
 
-#define IDI_ICON_BIG 10
-#define IDI_ICON_SMALL 20
-#define IMG_FONT01 100
-#define IMG_FONT02 200
-#define IDD_INPUTBOX 110
-#define IDC_STATIC 120
-#define IDC_INPUTBOX_01 130
-#define IDC_WINDOW_NAME 140
-#define IDC_PROC_NAME	150
-
+constexpr auto IDI_ICON_BIG = 10;
+constexpr auto IDI_ICON_SMALL = 20;
+constexpr auto GLFW_ICON = 30;

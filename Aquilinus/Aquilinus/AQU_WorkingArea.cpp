@@ -57,13 +57,15 @@ int                                           AQU_WorkingArea::m_nWindowHeight;
 POINT                                         AQU_WorkingArea::m_ptMouseCursor;
 std::vector<NOD_Basic*>                       AQU_WorkingArea::m_paNodes;
 AQU_WorkingAreaStatus                         AQU_WorkingArea::m_eWorkingAreaStatus;
-AQU_TransferSite*                             AQU_WorkingArea::m_pcTransferSite;
+AQU_TransferSite* AQU_WorkingArea::m_pcTransferSite;
 std::vector<LPSTR>                            AQU_WorkingArea::m_vcPluginNames;
 std::vector<LPWSTR>                           AQU_WorkingArea::m_vcPluginCategories;
 std::vector<LPWSTR>                           AQU_WorkingArea::m_vcPluginFilePathes;
 std::vector<UINT>                             AQU_WorkingArea::m_vcPluginIDs;
 std::vector<AQU_Nodus*>                       AQU_WorkingArea::m_vcPlugins;
 std::vector<HMODULE>                          AQU_WorkingArea::m_vcPluginHandles;
+int                                           AQU_WorkingArea::m_nDataSheetCategorySelection;
+int                                           AQU_WorkingArea::m_nDataSheetEntrySelection;
 #pragma endregion
 
 #pragma region AQU_WorkingArea con-/destructor
@@ -91,7 +93,11 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 	m_pcTransferSite = pcTransferSite;
 	m_pcTransferSite->m_bIsWorkingArea = true;
 	m_eWorkingAreaStatus = AQU_WorkingAreaStatus::Idle;
-	
+
+	// data sheet selection
+	m_nDataSheetEntrySelection = -1;
+	m_nDataSheetCategorySelection = -1;
+
 	// enumerate plugins
 	s_EnumeratePlugins(pcTransferSite->m_pFileManager->GetPluginPath());
 
@@ -408,7 +414,8 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		ImGui::NewFrame();
 
 		// main window set flags and zero pos
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar
+			| ImGuiWindowFlags_NoMove
 			| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoCollapse
 			| ImGuiWindowFlags_NoBackground
@@ -417,20 +424,128 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth, (float)m_nWindowHeight), ImGuiCond_FirstUseEver);
 
 		// main window
-		ImGui::PushFont(psFontMedium);
 		if (ImGui::Begin("Aquilinus", nullptr, window_flags))
 		{
-			ImGui::PopFont();
+			// get small font, create main menu bar
 			ImGui::PushFont(psFontSmall);
-			ImGui::Text("Vireio Perception 3D Modification Studio");
+			if (ImGui::BeginMainMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("Load", "CTRL+L")) {}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Edit"))
+				{
+					if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+					if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+					ImGui::Separator();
+					if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+					if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+					if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+					ImGui::EndMenu();
+				}
+				ImGui::EndMainMenuBar();
+			}
 
+			// get start y position, output description and a separator line... menu bar height ~ 1.2xFontSize
+			float fStartY = ImGui::GetFontSize();
+			ImVec2 sStart_rect_max = { 0.0f, fStartY * 1.2f };
+			ImVec2 sStart_rect_text = { fStartY * .5f, fStartY * 2.5f };
+			ImGui::SetCursorPos(sStart_rect_text);
+			ImGui::Text("Aquilinus : Vireio Perception 3D Modification Studio");
+			ImGui::Separator();
 
+			// output injected interfaces info
+			for (int i = 0; i < SUPPORTED_INTERFACES_NUMBER; i++)
+			{
+				if (m_pcTransferSite->m_pConfig->eInjectionTechnique[i] != AQU_InjectionTechniques::NoInjection)
+				{
+					// create text buffers
+					char buffer[64];
+					wsprintfA(buffer, "%d", m_pcTransferSite->m_anInterfaceRefCount[i]);
+					std::wstring acBuffW(AQU_SUPPORTEDINTERFACES::g_sSupportedInterfaces[i].szName, 0, 64);
+					std::string acBuffA;
+					for (wchar_t c : acBuffW) acBuffA += (char)c;
 
+					// output interface ref count
+					ImGui::Text(buffer);
 
+					// adjust spacing and output interface name
+					// ImVec2 sSize = ImGui::GetItemRectSize();
+					ImGui::SameLine(50.0f); ImGui::Text(acBuffA.c_str());
+				}
+			}
 
+			// get last y position
+			ImVec2 sChild_rect_max = ImGui::GetItemRectMax();
+			sChild_rect_max.x = 0.0f;
+			sChild_rect_max.y += ImGui::GetFontSize();
+			static bool s_bInit = false;
 
+			// loop through categories
+			for (std::vector<AQU_DataSheetEntry*>::size_type h = 0; h != m_pcTransferSite->m_paDataSheetCategories.size(); h++)
+			{
+				if (!s_bInit)
+				{
+					// set next window start position
+					ImGui::SetNextWindowPos(sChild_rect_max);
+					ImVec2 sSize = { 240.0f, 100.0f };
+					ImGui::SetNextWindowSize(sSize);
+					sChild_rect_max.y += sSize.y;
+				}
 
+				// new category window
+				std::string acTitleA;
+				std::wstring acTitleW(m_pcTransferSite->m_paDataSheetCategories[h]->m_szTitle);
+				for (wchar_t c : acTitleW) acTitleA += (char)c;
+				if (ImGui::Begin(acTitleA.c_str()))
+				{
+					// loop through entries
+					for (std::vector<AQU_DataSheetEntry*>::size_type i = 0; i != m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries.size(); i++)
+					{
+						// entry as selectable, first convert to std::string()
+						std::wstring acSelectableW(m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_szTitle);
+						std::string acSelectableA;
+						for (wchar_t c : acSelectableW) acSelectableA += (char)c;
+						if (ImGui::Selectable(acSelectableA.c_str(), (m_nDataSheetEntrySelection == (int)i) && (m_nDataSheetCategorySelection == (int)h)))
+						{
+							m_nDataSheetEntrySelection = (int)i;
+							m_nDataSheetCategorySelection = (int)h;
+						}
 
+						// sub entries ?
+						if (m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber > 0)
+						{
+							// output sub entries if hovered
+							if (ImGui::IsItemHovered())
+							{
+								ImGui::BeginTooltip();
+								ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+								// output sub-entries
+								for (int j = 0; j < (int)m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber; j++)
+								{
+									std::wstring acSubW(m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_paSubEntries[j]);
+									std::string acSubA;
+									for (wchar_t c : acSubW) acSubA += (char)c;
+									ImGui::Text(acSubA.c_str());
+								}
+								ImGui::PopTextWrapPos();
+								ImGui::EndTooltip();
+							}
+						}
+					}
+				}
+
+				// adjust window minimum y position
+				ImVec2 sPos = ImGui::GetWindowPos();
+				if (sPos.y < sStart_rect_max.y) { sPos.y = sStart_rect_max.y; ImGui::SetWindowPos(sPos); }
+
+				ImGui::End();
+
+			}
+
+			s_bInit = true;
 			ImGui::PopFont();
 		}
 		else
@@ -461,6 +576,13 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	// cleanup nodes vector
+	for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
+	{
+		delete m_paNodes[i];
+	}
+	m_paNodes.clear();
 
 	return (DWORD)0;
 }

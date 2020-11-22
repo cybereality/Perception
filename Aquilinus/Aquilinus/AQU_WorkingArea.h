@@ -73,7 +73,7 @@ public :
 	static void             s_Viewport_callback(GLFWwindow* window, int width, int height)	{ glViewport(0, 0, width, height);	}
 	static void             s_Cursor_position_callback(GLFWwindow* window, double x, double y) 
 	{
-		if ((m_sWindowControl.nButtonEvent == 1) && ((y < (double)22) || (m_sWindowControl.nButtonEvent == 1))) // TODO !! SET BY TOP BAR FONT SIZE
+		if ((m_sWindowControl.nButtonEvent == 1) && ((y < (double)ImGui::GetFontSize()) || (m_sWindowControl.nButtonEvent == 1)))
 		{
 			m_sWindowControl.nOffset_cpx = (int)x - m_sWindowControl.nCp_x;
 			m_sWindowControl.nOffset_cpy = (int)y - m_sWindowControl.nCp_y;
@@ -175,6 +175,14 @@ private:
 	* The enlisted plugin handles.
 	***/
 	static std::vector<HMODULE> m_vcPluginHandles;
+	/**
+	* The currently selected data sheet category.
+	***/
+	static int m_nDataSheetCategorySelection;
+	/**
+	* The currently selected data sheet entry (for the selected category).
+	***/
+	static int m_nDataSheetEntrySelection;
 };
 
 #endif

@@ -1073,9 +1073,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 ***/
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
-	OutputDebugString(L"Inicio : Started...");
+	// avoid double injection app window
+	HWND hFindWindow = FindWindow(nullptr, L"Vireio Perception: Aquilinus-Inicio");
+	if (hFindWindow != 0)
+	{
+		OutputDebugString(L"Aquilinus injection app is already present !");
+		return 0;
+	}
 
 	// init
+	OutputDebugString(L"Inicio : Started...");
 	InicioInit();
 
 	// start idle
@@ -1095,7 +1102,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// glfw window creation
 	glfwWindowHint(GLFW_DECORATED, 0);
-	GLFWwindow* window = glfwCreateWindow(g_nMainWindowWidth, g_nMainWindowHeight, "Inicio", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(g_nMainWindowWidth, g_nMainWindowHeight, "Vireio Perception: Aquilinus-Inicio", NULL, NULL);
 	if (window == NULL)
 	{
 		OutputDebugString(L"Inicio: GLFW window creation failed !");

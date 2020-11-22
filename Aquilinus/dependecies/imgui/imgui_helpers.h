@@ -115,11 +115,11 @@ namespace ImGui
 		colors[ImGuiCol_FrameBg] = ImLerp(asColor[1], asColor[2], 0.7f); colors[ImGuiCol_FrameBg].w = .54f;
 		colors[ImGuiCol_FrameBgHovered] = ImLerp(asColor[1], asColor[2], 0.9f); colors[ImGuiCol_FrameBgHovered].w = .4f;
 		colors[ImGuiCol_FrameBgActive] = ImLerp(asColor[1], asColor[2], 0.95f); colors[ImGuiCol_FrameBgActive].w = .6f;
-		colors[ImGuiCol_TitleBg] = ImLerp(asColor[0], asColor[4], 0.20f);
-		colors[ImGuiCol_TitleBgActive] = ImLerp(asColor[0], asColor[4], 0.70f);
+		colors[ImGuiCol_TitleBg] = ImLerp(asColor[0], asColor[4], 0.60f);
+		colors[ImGuiCol_TitleBgActive] = ImLerp(asColor[0], asColor[4], 0.45f);
 		colors[ImGuiCol_TitleBgCollapsed] = asColor[4]; colors[ImGuiCol_TitleBgCollapsed].w = .5f;
-		colors[ImGuiCol_MenuBarBg] = ImLerp(asColor[0], asColor[4], 0.14f);
-		colors[ImGuiCol_ScrollbarBg] = ImLerp(asColor[0], asColor[4], 0.05f); colors[ImGuiCol_ScrollbarBg].w = .5f;
+		colors[ImGuiCol_MenuBarBg] = ImLerp(asColor[0], asColor[4], 0.64f);
+		colors[ImGuiCol_ScrollbarBg] = ImLerp(asColor[0], asColor[4], 0.55f); colors[ImGuiCol_ScrollbarBg].w = .5f;
 		colors[ImGuiCol_ScrollbarGrab] = ImLerp(asColor[0], asColor[4], 0.31f);
 		colors[ImGuiCol_ScrollbarGrabHovered] = ImLerp(asColor[0], asColor[4], 0.41f);
 		colors[ImGuiCol_ScrollbarGrabActive] = ImLerp(asColor[0], asColor[4], 0.51f);
