@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 
-#pragma region Inicio controls methods
+#pragma region Inicio GUI methods
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
@@ -112,11 +112,11 @@ void ImGui_Main()
 			// create the abort event
 			if (g_hInjectionAbortEvent) CloseHandle(g_hInjectionAbortEvent);
 			g_hInjectionAbortEvent = CreateEvent(
-					NULL,               // default security attributes
-					TRUE,               // manual-reset event
-					FALSE,              // initial state is nonsignaled
-					TEXT("Abort")  // object name
-				);
+				NULL,               // default security attributes
+				TRUE,               // manual-reset event
+				FALSE,              // initial state is nonsignaled
+				TEXT("Abort")  // object name
+			);
 
 			// create the thread
 			g_eInicioStatus = InicioStatus::Injecting;
@@ -390,90 +390,79 @@ void ImGui_New()
 **/
 void ImGui_StyleColorsByScheme()
 {
-	ImGuiStyle* style = &ImGui::GetStyle();
-	ImVec4* colors = style->Colors;
-
-	// sort colors... first and last brightest and darkest ones
-	bool bBright = false; if (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] > g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[1]) bBright = true;
-	for (unsigned uI = 1; uI < 5; uI++)
-	{
-		if (((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] >> 16) & 0xff)+((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] >> 8) & 0xff)+ (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0]  & 0xff) < 
-			((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 16) & 0xff) + ((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 8) & 0xff) + (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] & 0xff))
-		{
-			// exchange colors
-			UINT uTmp = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0];
-			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0] = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI];
-			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] = uTmp;
-		}
-	}
-	for (unsigned uI = 0; uI < 4; uI++)
-	{
-		if (((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] >> 16) & 0xff) + ((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] >> 8) & 0xff) + (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] & 0xff) >
-			((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 16) & 0xff) + ((g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] >> 8) & 0xff) + (g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] & 0xff))
-		{
-			// exchange colors
-			UINT uTmp = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4];
-			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4] = g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI];
-			g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[uI] = uTmp;
-		}
-	}
-	
-	// hex to float vectors
-	ImVec4 sColor0 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0]);
-	ImVec4 sColor1 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[1]);
-	ImVec4 sColor2 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[2]);
-	ImVec4 sColor3 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[3]);
-	ImVec4 sColor4 = HEX2Float_Color(g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[4]);
-	
-	colors[ImGuiCol_Text] = sColor0;
-	colors[ImGuiCol_TextDisabled] = ImLerp(sColor0, sColor4, 0.6f);
-	colors[ImGuiCol_WindowBg] = sColor4;
-	colors[ImGuiCol_ChildBg] = ImLerp(sColor0, sColor4, 0.95f); colors[ImGuiCol_ChildBg].w = .9f;
-	colors[ImGuiCol_PopupBg] = ImLerp(sColor0, sColor4, 0.92f); colors[ImGuiCol_PopupBg].w = .94f;
-	colors[ImGuiCol_Border] = ImLerp(sColor0, sColor3, 0.43f); colors[ImGuiCol_Border].w = .5f;
-	colors[ImGuiCol_BorderShadow] = ImLerp(sColor0, sColor4, 0.9f);;
-	colors[ImGuiCol_FrameBg] = ImLerp(sColor1, sColor2, 0.7f); colors[ImGuiCol_FrameBg].w = .54f;
-	colors[ImGuiCol_FrameBgHovered] = ImLerp(sColor1, sColor2, 0.9f); colors[ImGuiCol_FrameBgHovered].w = .4f;
-	colors[ImGuiCol_FrameBgActive] = ImLerp(sColor1, sColor2, 0.95f); colors[ImGuiCol_FrameBgActive].w = .6f;
-	colors[ImGuiCol_TitleBg] = ImLerp(sColor0, sColor4, 0.20f);
-	colors[ImGuiCol_TitleBgActive] = ImLerp(sColor0, sColor4, 0.70f);
-	colors[ImGuiCol_TitleBgCollapsed] = sColor4; colors[ImGuiCol_TitleBgCollapsed].w = .5f;
-	colors[ImGuiCol_MenuBarBg] = ImLerp(sColor0, sColor4, 0.14f);
-	colors[ImGuiCol_ScrollbarBg] = ImLerp(sColor0, sColor4, 0.05f); colors[ImGuiCol_ScrollbarBg].w = .5f;
-	colors[ImGuiCol_ScrollbarGrab] = ImLerp(sColor0, sColor4, 0.31f);
-	colors[ImGuiCol_ScrollbarGrabHovered] = ImLerp(sColor0, sColor4, 0.41f);
-	colors[ImGuiCol_ScrollbarGrabActive] = ImLerp(sColor0, sColor4, 0.51f);
-	colors[ImGuiCol_CheckMark] = ImLerp(sColor2, sColor3, 0.3f);
-	colors[ImGuiCol_SliderGrab] = ImLerp(sColor2, sColor3, 0.7f);
-	colors[ImGuiCol_SliderGrabActive] = ImLerp(sColor2, sColor3, 0.9f);
-	colors[ImGuiCol_Button] = ImLerp(sColor2, sColor3, 0.9f); colors[ImGuiCol_Button].w = .4f;
-	colors[ImGuiCol_ButtonHovered] = ImLerp(sColor2, sColor3, 0.8f);
-	colors[ImGuiCol_ButtonActive] = ImLerp(sColor1, sColor3, 0.9f);
-	colors[ImGuiCol_Header] = ImLerp(sColor2, sColor3, 0.7f); colors[ImGuiCol_Header].w = .4f;
-	colors[ImGuiCol_HeaderHovered] = ImLerp(sColor2, sColor3, 0.7f); colors[ImGuiCol_HeaderHovered].w = .8f;
-	colors[ImGuiCol_HeaderActive] = ImLerp(sColor2, sColor3, 0.8f);
-	colors[ImGuiCol_Separator] = colors[ImGuiCol_Border];
-	colors[ImGuiCol_SeparatorHovered] = ImLerp(sColor0, sColor3, 0.7f); colors[ImGuiCol_SeparatorHovered].w = 0.78f;
-	colors[ImGuiCol_SeparatorActive] = ImLerp(sColor0, sColor3, 0.7f); colors[ImGuiCol_SeparatorActive].w = 1.00f;
-	colors[ImGuiCol_ResizeGrip] = ImLerp(sColor0, sColor3, 0.9f); colors[ImGuiCol_ResizeGrip].w = 0.25f;
-	colors[ImGuiCol_ResizeGripHovered] = ImLerp(sColor0, sColor3, 0.9f); colors[ImGuiCol_ResizeGripHovered].w = 0.67f;
-	colors[ImGuiCol_ResizeGripActive] = ImLerp(sColor0, sColor3, 0.9f); colors[ImGuiCol_ResizeGripActive].w = 0.95f;
-	colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
-	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
-	colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
-	colors[ImGuiCol_TabUnfocused] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
-	colors[ImGuiCol_PlotLines] = ImLerp(sColor0, sColor4, 0.6f);
-	colors[ImGuiCol_PlotLinesHovered] = ImLerp(sColor0, sColor3, 0.1f);
-	colors[ImGuiCol_PlotHistogram] = ImLerp(sColor0, sColor3, 0.4f);
-	colors[ImGuiCol_PlotHistogramHovered] = ImLerp(sColor3, sColor2, 0.7f);
-	colors[ImGuiCol_TextSelectedBg] = ImLerp(sColor3, sColor2, 0.7f); colors[ImGuiCol_TextSelectedBg].w = .3f;
-	colors[ImGuiCol_DragDropTarget] = sColor3; colors[ImGuiCol_DragDropTarget].w = .9f;
-	colors[ImGuiCol_NavHighlight] = ImLerp(sColor1, sColor2, 0.8f);
-	colors[ImGuiCol_NavWindowingHighlight] = sColor0; colors[ImGuiCol_NavWindowingHighlight].w = .9f;
-	colors[ImGuiCol_NavWindowingDimBg] = ImLerp(sColor0, sColor4, 0.8f); colors[ImGuiCol_NavWindowingDimBg].w = .2f;
-	colors[ImGuiCol_ModalWindowDimBg] = ImLerp(sColor0, sColor4, 0.8f); colors[ImGuiCol_ModalWindowDimBg].w = .35f;
+	ImGui::ColorSchemeHex sScheme = {};
+	CopyMemory(&sScheme.uColor[0], &g_colorSchemes[g_pAquilinusConfig->dwColorSchemeIndex].uColor[0], sizeof(UINT[5]));
+	ImGui::StyleColorsByScheme(sScheme);
 }
+
+/**
+* ImGui Options.
+***/
+void ImGui_Options(AquilinusCfg& sConfig)
+{
+	// set selection
+	static int s_nStyle_idx = -1;
+	s_nStyle_idx = (int)sConfig.dwColorSchemeIndex;
+
+	// create selection string by color scheme names
+	static std::string acItems(AQUILINUS_NUMBER_OF_COLOR_SCHEMES * 32, '\0');
+	static bool s_bInit = false;
+	if (!s_bInit)
+	{
+		// create a zero-separated string for ImGui
+		UINT uCount = 0;
+		for (unsigned uI = 0; uI < AQUILINUS_NUMBER_OF_COLOR_SCHEMES; uI++)
+		{
+			unsigned uSize;
+			for (uSize = 0; uSize < 31; uSize++)
+				if (g_colorSchemes[uI].szName[uSize] == 0) break;
+			uSize++;
+			CopyMemory(&acItems[uCount], &g_colorSchemes[uI].szName[0], (size_t)uSize);
+			uCount += uSize;
+		}
+
+		s_bInit = true;
+	}
+
+	// set combo box
+	if (ImGui::Combo("Color Scheme", &s_nStyle_idx, acItems.c_str()))
+	{
+		if ((s_nStyle_idx >= 0) && (s_nStyle_idx < AQUILINUS_NUMBER_OF_COLOR_SCHEMES))
+			sConfig.dwColorSchemeIndex = (DWORD)s_nStyle_idx;
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(g_colorSchemes[sConfig.dwColorSchemeIndex].szName);
+		std::string acL = std::string("by ") + std::string(g_colorSchemes[sConfig.dwColorSchemeIndex].szLover);
+		ImGui::TextUnformatted(acL.c_str());
+		ImGui::TextUnformatted(g_colorSchemes[sConfig.dwColorSchemeIndex].szLink);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+	ImGui::SameLine();
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted("All Color Schemes are User-Generated Content from and licenced at ColourLovers.com ! https://www.colourlovers.com/terms ");
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+
+	// checkbox D3D9Ex
+	ImGui::Checkbox("Create D3D9Ex", (bool*)&sConfig.bCreateD3D9Ex);
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted("Creates a D3D9Ex device instead of a D3D9 device.");
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+	}
 
 /**
 * Save the global config file.
@@ -493,6 +482,7 @@ void SaveConfig()
 }
 
 #endif
+
 #pragma endregion
 
 #pragma region Inicio methods
@@ -665,8 +655,8 @@ HRESULT EnumerateGameNames()
 				nCurrentLetter++;
 				if (nCurrentLetter >= 27) i = (int)g_aszGameNames.size();
 			}
+			}
 		}
-	}
 
 #ifdef _DEBUG
 	// output debug list
@@ -683,7 +673,7 @@ HRESULT EnumerateGameNames()
 #endif
 
 	return S_OK;
-}
+	}
 
 /**
 * Enumerate supported interface names.
@@ -952,9 +942,9 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 					dwID = GetTargetThreadID(szProc);
 				}
 				nRepeat--;
-			}
 		}
 	}
+}
 
 	// suspend the process
 	STARTUPINFO si;
@@ -1004,7 +994,7 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 		{
 			OutputDebugString(L"Aquilinus : DLL Loaded!");
 		}
-	}
+		}
 	else
 		OutputDebugString(L"Aquilinus : No target process found !");
 
@@ -1034,7 +1024,7 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 	}
 
 	return S_OK;
-}
+	}
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
@@ -1081,7 +1071,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 /**
 * Inicio main windows entry point.
 ***/
-int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,_In_ LPSTR lpCmdLine,_In_ int nCmdShow)
+int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
 	OutputDebugString(L"Inicio : Started...");
 
@@ -1147,7 +1137,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,
 
 	// create file manager
 	g_pFileManager = new AQU_FileManager(true);
-	
+
 	// load or create options file
 #ifdef _WIN64
 	std::ifstream configRead("Aquilinus_x64.cfg");
@@ -1242,6 +1232,60 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,
 			}
 		}
 
+		// check if external file is to be saved
+		if ((g_pAquilinusConfig->bExternalSave) && (g_pAquilinusConfig->dwSizeOfExternalSaveFile))
+		{
+			// set bool to false
+			g_pAquilinusConfig->bExternalSave = false;
+
+			// get the config map handle
+			HANDLE hSaveFile = OpenFileMapping(
+				FILE_MAP_ALL_ACCESS,   // read/write access
+				FALSE,                 // do not inherit the name
+				L"AquilinusSaveMap");   // name of the Aquilinus config
+
+			// failed ?
+			if (hSaveFile == NULL)
+			{
+				OutputDebugString(TEXT("Aquilinus : Could not create file mapping object.\n"));
+			}
+			else
+			{
+				// create map view
+				LPVOID pData =
+					MapViewOfFile(hSaveFile,   // handle to map object
+						FILE_MAP_ALL_ACCESS,              // read/write permission
+						0,
+						0,
+						g_pAquilinusConfig->dwSizeOfExternalSaveFile);
+
+				// failed ?
+				if (pData == NULL)
+				{
+					OutputDebugString(TEXT("Aquilinus : Could not map view of file.\n"));
+					CloseHandle(hSaveFile);
+				}
+				else
+				{
+					// save working area file
+					std::ofstream outFile;
+					outFile.open(g_pAquilinusConfig->szExternalSaveFilePath, std::ios::out | std::ios::binary);
+					if (outFile.is_open())
+					{
+						// write the file data
+						outFile.write((const char*)pData, g_pAquilinusConfig->dwSizeOfExternalSaveFile);
+						outFile.close();
+					}
+					else
+						OutputDebugString(L"Aquilinus : Could not open file to write !");
+
+					// close handle
+					UnmapViewOfFile((LPCVOID)hSaveFile);
+					CloseHandle(hSaveFile);
+				}
+			}
+		}
+
 		// Poll and handle events, update window fields
 		glfwPollEvents();
 		glfwGetWindowPos(window, &g_w_posx, &g_w_posy);
@@ -1300,60 +1344,6 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,
 			ImGui::End();
 
 			if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-			// check if external file is to be saved TODO !!!!!
-			/*if ((g_pAquilinusConfig->bExternalSave) && (g_pAquilinusConfig->dwSizeOfExternalSaveFile))
-			{
-				// set bool to false
-				g_pAquilinusConfig->bExternalSave = false;
-
-				// get the config map handle
-				HANDLE hSaveFile = OpenFileMapping(
-					FILE_MAP_ALL_ACCESS,   // read/write access
-					FALSE,                 // do not inherit the name
-					L"AquilinusSaveMap");   // name of the Aquilinus config
-
-				// failed ?
-				if (hSaveFile == NULL)
-				{
-					OutputDebugString(TEXT("Aquilinus : Could not create file mapping object.\n"));
-				}
-				else
-				{
-					// create map view
-					LPVOID pData =
-						MapViewOfFile(hSaveFile,   // handle to map object
-							FILE_MAP_ALL_ACCESS,              // read/write permission
-							0,
-							0,
-							g_pAquilinusConfig->dwSizeOfExternalSaveFile);
-
-					// failed ?
-					if (pData == NULL)
-					{
-						OutputDebugString(TEXT("Aquilinus : Could not map view of file.\n"));
-						CloseHandle(hSaveFile);
-					}
-					else
-					{
-						// save working area file
-						std::ofstream outFile;
-						outFile.open(g_pAquilinusConfig->szExternalSaveFilePath, std::ios::out | std::ios::binary);
-						if (outFile.is_open())
-						{
-							// write the file data
-							outFile.write((const char*)pData, g_pAquilinusConfig->dwSizeOfExternalSaveFile);
-							outFile.close();
-						}
-						else
-							OutputDebugString(L"Aquilinus : Could not open file to write !");
-
-						// close handle
-						UnmapViewOfFile((LPCVOID)hSaveFile);
-						CloseHandle(hSaveFile);
-					}
-				}
-			}*/
 		}
 		else if (g_eCurrentWindow == InicioWindows::NewProject)
 		{
@@ -1454,14 +1444,47 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,
 			ImGui::PushFont(psFontMedium);
 			if (ImGui::Begin("Aquilinus Options", &s_bOpen, window_flags))
 			{
+				ImGui::PopFont();
 
-				if (ImGui::Button("Ok"))
+				ImGui::PushFont(psFontSmall);
+				static AquilinusCfg s_sConfigTmp = {};
+				static bool s_bTmpConfigInit = false;
+				if (!s_bTmpConfigInit)
 				{
+					// set all relevant config fields
+					s_sConfigTmp.dwColorSchemeIndex = g_pAquilinusConfig->dwColorSchemeIndex;
+					s_sConfigTmp.bCreateD3D9Ex = g_pAquilinusConfig->bCreateD3D9Ex;
+					s_bTmpConfigInit = true;
+				}
+				ImGui_Options(s_sConfigTmp);
+				if (ImGui::Button("Apply", ImVec2(100, 40)))
+				{
+					// set all relevant config fields
+					g_pAquilinusConfig->dwColorSchemeIndex = s_sConfigTmp.dwColorSchemeIndex;
+					g_pAquilinusConfig->bCreateD3D9Ex = s_sConfigTmp.bCreateD3D9Ex;
+					g_dwColorSchemeIndex = s_sConfigTmp.dwColorSchemeIndex;
+
+					// set color scheme
+					ImGui_StyleColorsByScheme();
+					clear_color = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+
+					// and save config
+					SaveConfig();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Back", ImVec2(100, 40)))
+				{
+					// set all relevant config fields
+					s_sConfigTmp.dwColorSchemeIndex = g_pAquilinusConfig->dwColorSchemeIndex;
+					s_sConfigTmp.bCreateD3D9Ex = g_pAquilinusConfig->bCreateD3D9Ex;
+
 					// back to main
 					g_eCurrentWindow = InicioWindows::Main;
 					g_bWindowResize = true;
 				}
 				ImGui::PopFont();
+
+
 
 				if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);
 			}
@@ -1582,7 +1605,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,
 	if (g_hInjectionAbortEvent) CloseHandle(g_hInjectionAbortEvent);
 
 	return (DWORD)0;
-}
+	}
 
 #endif
 

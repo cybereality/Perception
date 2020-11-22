@@ -49,9 +49,9 @@ enum AquilinusColor
 struct ColorScheme
 {
 	UINT uColor[5];
-	WCHAR szName[32];
-	WCHAR szLover[32];
-	WCHAR szLink[128];
+	CHAR szName[32];
+	CHAR szLover[32];
+	CHAR szLink[128];
 };
 
 /**
@@ -90,9 +90,9 @@ ColorScheme g_colorSchemes[] =
 	0xAFAFAF,
 	0xEAEAEA,
 	0x575757,
-	L"Agassian War Dogs",
-	L"rockstatic",
-	L"http://www.colourlovers.com/palette/1681868/Agassian_War_Dogs"
+	"Agassian War Dogs",
+	"rockstatic",
+	"http://www.colourlovers.com/palette/1681868/Agassian_War_Dogs"
 	},
 
 	/*http://www.colourlovers.com/palette/1415764/Ancient_Armoury
@@ -107,9 +107,9 @@ ColorScheme g_colorSchemes[] =
 	0x2B2A25,
 	0xFFD1BA,
 	0xBB8D6B,
-	L"Ancient Armoury",
-	L"rafferty",
-	L"http://www.colourlovers.com/palette/1415764/Ancient_Armoury"
+	"Ancient Armoury",
+	"rafferty",
+	"http://www.colourlovers.com/palette/1415764/Ancient_Armoury"
 	},
 
 	/*http://www.colourlovers.com/palette/2549121/Ancient_History
@@ -124,9 +124,9 @@ ColorScheme g_colorSchemes[] =
 	0xCD766D,
 	0xF9B98D,
 	0xF39562,
-	L"Ancient History",
-	L"Duchess",
-	L"http://www.colourlovers.com/palette/2549121/Ancient_History"
+	"Ancient History",
+	"Duchess",
+	"http://www.colourlovers.com/palette/2549121/Ancient_History"
 	},
 
 	/*http://www.colourlovers.com/palette/2441571/ancient_maps
@@ -141,9 +141,9 @@ ColorScheme g_colorSchemes[] =
 	0x6E737A,
 	0xA19191,
 	0x967575,
-	L"Ancient Maps",
-	L"redcurrant",
-	L"http://www.colourlovers.com/palette/2441571/ancient_maps"
+	"Ancient Maps",
+	"redcurrant",
+	"http://www.colourlovers.com/palette/2441571/ancient_maps"
 	},
 
 	/*http://www.colourlovers.com/palette/3363853/%E2%80%A2Ancient_Scent%E2%80%A2
@@ -158,9 +158,9 @@ ColorScheme g_colorSchemes[] =
 	0xFBB694,
 	0xBA0281,
 	0x662D54,
-	L"*Ancient Scent*",
-	L"Duklida",
-	L"http://www.colourlovers.com/palette/3363853/%E2%80%A2Ancient_Scent%E2%80%A2"
+	"*Ancient Scent*",
+	"Duklida",
+	"http://www.colourlovers.com/palette/3363853/%E2%80%A2Ancient_Scent%E2%80%A2"
 	},
 
 	/*http://www.colourlovers.com/palette/3305300/%E2%80%A2Ancient_Souls%E2%80%A2
@@ -175,9 +175,9 @@ ColorScheme g_colorSchemes[] =
 	0xEC979A,
 	0xFDCAC9,
 	0xE8E8DE,
-	L"*Ancient Souls*",
-	L"Duklida",
-	L"http://www.colourlovers.com/palette/3305300/%E2%80%A2Ancient_Souls%E2%80%A2"
+	"*Ancient Souls*",
+	"Duklida",
+	"http://www.colourlovers.com/palette/3305300/%E2%80%A2Ancient_Souls%E2%80%A2"
 	},
 
 	/*http://www.colourlovers.com/palette/218745/Antica_Pompeii
@@ -192,9 +192,9 @@ ColorScheme g_colorSchemes[] =
 	0x17989C,
 	0x2E1802,
 	0xC01818,
-	L"Antica Pompeii",
-	L"vermilion",
-	L"http://www.colourlovers.com/palette/218745/Antica_Pompeii"
+	"Antica Pompeii",
+	"vermilion",
+	"http://www.colourlovers.com/palette/218745/Antica_Pompeii"
 	},
 
 	/*http://www.colourlovers.com/palette/3204414/%E2%80%A2Antique_Prophecy%E2%80%A2
@@ -209,9 +209,9 @@ ColorScheme g_colorSchemes[] =
 	0x7E9C92,
 	0x2B2E45,
 	0xE6CF00,
-	L"*Antique Prophecy*",
-	L"Duklida",
-	L"http://www.colourlovers.com/palette/3204414/%E2%80%A2Antique_Prophecy%E2%80%A2"
+	"*Antique Prophecy*",
+	"Duklida",
+	"http://www.colourlovers.com/palette/3204414/%E2%80%A2Antique_Prophecy%E2%80%A2"
 	},
 
 	/*http://www.colourlovers.com/palette/2890270/Aquileia_mosaics
@@ -226,9 +226,9 @@ ColorScheme g_colorSchemes[] =
 	0xF0E5D3,
 	0xD6B48B,
 	0x935246,
-	L"Aquileia Mosaics",
-	L"LenAine",
-	L"http://www.colourlovers.com/palette/2890270/Aquileia_mosaics"
+	"Aquileia Mosaics",
+	"LenAine",
+	"http://www.colourlovers.com/palette/2890270/Aquileia_mosaics"
 	},
 
 	/*http://www.colourlovers.com/palette/3459585/Aquilinus
@@ -243,9 +243,9 @@ ColorScheme g_colorSchemes[] =
 	0xC28416,
 	0x3D3737,
 	0x7F060B,
-	L"Aquilinus",
-	L"EisernSchild",
-	L"http://www.colourlovers.com/palette/3459585/Aquilinus"
+	"Aquilinus",
+	"EisernSchild",
+	"http://www.colourlovers.com/palette/3459585/Aquilinus"
 	},
 
 	/*http://www.colourlovers.com/palette/179975/autumn_in_Rome
@@ -260,9 +260,9 @@ ColorScheme g_colorSchemes[] =
 	0xD2A23E,
 	0xE7D3B3,
 	0xC4AF83,
-	L"Autumn in Rome",
-	L"webfruits",
-	L"http://www.colourlovers.com/palette/179975/autumn_in_Rome"
+	"Autumn in Rome",
+	"webfruits",
+	"http://www.colourlovers.com/palette/179975/autumn_in_Rome"
 	},
 
 	/*http://www.colourlovers.com/palette/3240116/%E2%80%A2Autumn_Rainbow%E2%80%A2
@@ -277,9 +277,9 @@ ColorScheme g_colorSchemes[] =
 	0xFA6957,
 	0x60A589,
 	0x554141,
-	L"Autumn Rainbow",
-	L"Duklida",
-	L"http://www.colourlovers.com/palette/3240116/%E2%80%A2Autumn_Rainbow%E2%80%A2"
+	"Autumn Rainbow",
+	"Duklida",
+	"http://www.colourlovers.com/palette/3240116/%E2%80%A2Autumn_Rainbow%E2%80%A2"
 	},
 
 	/*http://www.colourlovers.com/palette/68185/burning_empire
@@ -294,9 +294,9 @@ ColorScheme g_colorSchemes[] =
 	0x803839,
 	0x4D1A29,
 	0x593D3D,
-	L"Burning Empire",
-	L"deliquescence",
-	L"http://www.colourlovers.com/palette/68185/burning_empire"
+	"Burning Empire",
+	"deliquescence",
+	"http://www.colourlovers.com/palette/68185/burning_empire"
 	},
 
 	/*http://www.colourlovers.com/palette/1683630/Caesar
@@ -312,9 +312,9 @@ ColorScheme g_colorSchemes[] =
 	0x705800,
 	0x4A0808,
 	0x2B1900,
-	L"Caesar",
-	L"chay33",
-	L"http://www.colourlovers.com/palette/1683630/Caesar"
+	"Caesar",
+	"chay33",
+	"http://www.colourlovers.com/palette/1683630/Caesar"
 	},
 
 	/*http://www.colourlovers.com/palette/2643876/Caesars_Toga
@@ -329,9 +329,9 @@ ColorScheme g_colorSchemes[] =
 	0xF6F3F4,
 	0xF5DD19,
 	0x0C0C0C,
-	L"Caesar's Toga",
-	L"Lafrance",
-	L"http://www.colourlovers.com/palette/2643876/Caesars_Toga"
+	"Caesar's Toga",
+	"Lafrance",
+	"http://www.colourlovers.com/palette/2643876/Caesars_Toga"
 	},
 
 	/*http://www.colourlovers.com/palette/1412275/caesar_and_cleopatra
@@ -346,9 +346,9 @@ ColorScheme g_colorSchemes[] =
 	0x9C848C,
 	0x070605,
 	0x251A1B,
-	L"Caesar and Cleopatra",
-	L"earlgrey",
-	L"http://www.colourlovers.com/palette/1412275/caesar_and_cleopatra"
+	"Caesar and Cleopatra",
+	"earlgrey",
+	"http://www.colourlovers.com/palette/1412275/caesar_and_cleopatra"
 	},
 
 	/*http://www.colourlovers.com/palette/652634/Colosseum
@@ -363,9 +363,9 @@ ColorScheme g_colorSchemes[] =
 	0xAD9A8E,
 	0x967878,
 	0xFA0505,
-	L"Colosseum",
-	L"Tuna",
-	L"http://www.colourlovers.com/palette/652634/Colosseum"
+	"Colosseum",
+	"Tuna",
+	"http://www.colourlovers.com/palette/652634/Colosseum"
 	},
 
 	/*http://www.colourlovers.com/palette/1438291/ColoursOfTheLand_RC
@@ -380,9 +380,9 @@ ColorScheme g_colorSchemes[] =
 	0xC95A14,
 	0x800000,
 	0x2B0000,
-	L"Colours of the Land",
-	L"rafferty",
-	L"http://www.colourlovers.com/palette/1438291/ColoursOfTheLand_RC"
+	"Colours of the Land",
+	"rafferty",
+	"http://www.colourlovers.com/palette/1438291/ColoursOfTheLand_RC"
 	},
 
 	/*http://www.colourlovers.com/palette/3440867/Final_Say
@@ -397,9 +397,9 @@ ColorScheme g_colorSchemes[] =
 	0x8E5BB3,
 	0x92A2E0,
 	0xB8BFFF,
-	L"Final Say",
-	L"Duchess",
-	L"http://www.colourlovers.com/palette/3440867/Final_Say"
+	"Final Say",
+	"Duchess",
+	"http://www.colourlovers.com/palette/3440867/Final_Say"
 	},
 
 	/*http://www.colourlovers.com/palette/3353986/graceful_rome
@@ -414,9 +414,9 @@ ColorScheme g_colorSchemes[] =
 	0xE0AB2D,
 	0x212020,
 	0x880047,
-	L"Graceful Rome",
-	L"coloraura",
-	L"http://www.colourlovers.com/palette/3353986/graceful_rome"
+	"Graceful Rome",
+	"coloraura",
+	"http://www.colourlovers.com/palette/3353986/graceful_rome"
 	},
 
 	/*http://www.colourlovers.com/palette/788789/Last_Day_of_Pompeii
@@ -431,9 +431,9 @@ ColorScheme g_colorSchemes[] =
 	0xE6E0AA,
 	0x916A3D,
 	0x261C0F,
-	L"Last Day of Pompeii",
-	L"WNDINTER",
-	L"http://www.colourlovers.com/palette/788789/Last_Day_of_Pompeii"
+	"Last Day of Pompeii",
+	"WNDINTER",
+	"http://www.colourlovers.com/palette/788789/Last_Day_of_Pompeii"
 	},
 
 	/*http://www.colourlovers.com/palette/857991/Nero_Claudius_Caesar
@@ -448,9 +448,9 @@ ColorScheme g_colorSchemes[] =
 	0x852C40,
 	0x401129,
 	0x1F0716,
-	L"Nero Claudius Caesar",
-	L"Colorguru",
-	L"http://www.colourlovers.com/palette/857991/Nero_Claudius_Caesar"
+	"Nero Claudius Caesar",
+	"Colorguru",
+	"http://www.colourlovers.com/palette/857991/Nero_Claudius_Caesar"
 	},
 
 	/*http://www.colourlovers.com/palette/134940/Pompeii
@@ -465,9 +465,9 @@ ColorScheme g_colorSchemes[] =
 	0x607890,
 	0x484860,
 	0xD84830,
-	L"Pompeii",
-	L"skylaced",
-	L"http://www.colourlovers.com/palette/134940/Pompeii"
+	"Pompeii",
+	"skylaced",
+	"http://www.colourlovers.com/palette/134940/Pompeii"
 	},
 
 	/*http://www.colourlovers.com/palette/2382224/Roman_Blue
@@ -482,9 +482,9 @@ ColorScheme g_colorSchemes[] =
 	0xD0C9AF,
 	0x68AA8F,
 	0x7B9A9D,
-	L"Roman Blue",
-	L"QueenElisheba",
-	L"http://www.colourlovers.com/palette/2382224/Roman_Blue"
+	"Roman Blue",
+	"QueenElisheba",
+	"http://www.colourlovers.com/palette/2382224/Roman_Blue"
 	},
 
 	/*http://www.colourlovers.com/palette/941694/Roman_Dusk
@@ -499,9 +499,9 @@ ColorScheme g_colorSchemes[] =
 	0x74818A,
 	0xDDC088,
 	0x563320,
-	L"Roman Dusk",
-	L"Phantom Ink",
-	L"http://www.colourlovers.com/palette/941694/Roman_Dusk"
+	"Roman Dusk",
+	"Phantom Ink",
+	"http://www.colourlovers.com/palette/941694/Roman_Dusk"
 	},
 
 	/*http://www.colourlovers.com/palette/478790/Roman_Empire
@@ -516,9 +516,9 @@ ColorScheme g_colorSchemes[] =
 	0x967747,
 	0xCCA262,
 	0xF2C074,
-	L"Roman Empire",
-	L"Cucutor",
-	L"http://www.colourlovers.com/palette/478790/Roman_Empire"
+	"Roman Empire",
+	"Cucutor",
+	"http://www.colourlovers.com/palette/478790/Roman_Empire"
 	},
 
 	/*http://www.colourlovers.com/palette/3004953/Roman_fresco
@@ -533,9 +533,9 @@ ColorScheme g_colorSchemes[] =
 	0x8F916C,
 	0xAC650D,
 	0x821906,
-	L"Roman Fresco",
-	L"haluk",
-	L"http://www.colourlovers.com/palette/3004953/Roman_fresco"
+	"Roman Fresco",
+	"haluk",
+	"http://www.colourlovers.com/palette/3004953/Roman_fresco"
 	},
 
 	/*http://www.colourlovers.com/palette/1303328/Roman_Garden
@@ -550,9 +550,9 @@ ColorScheme g_colorSchemes[] =
 	0xF9F0C9,
 	0xB1AC86,
 	0x99886C,
-	L"Roman Garden",
-	L"gwenjcl",
-	L"http://www.colourlovers.com/palette/1303328/Roman_Garden"
+	"Roman Garden",
+	"gwenjc",
+	"http://www.colourlovers.com/palette/1303328/Roman_Garden"
 	},
 
 	/*http://www.colourlovers.com/palette/1798761/Romanum
@@ -567,9 +567,9 @@ ColorScheme g_colorSchemes[] =
 	0x3C3808,
 	0x7D4A2D,
 	0xBEA58F,
-	L"Romanum",
-	L"kcnlsn",
-	L"http://www.colourlovers.com/palette/1798761/Romanum"
+	"Romanum",
+	"kcnlsn",
+	"http://www.colourlovers.com/palette/1798761/Romanum"
 	},
 
 	/*http://www.colourlovers.com/palette/3198402/%E2%80%A2Rome_Courtyard%E2%80%A2
@@ -584,9 +584,9 @@ ColorScheme g_colorSchemes[] =
 	0xA8A244,
 	0xC15D43,
 	0x372525,
-	L"*Rome Courtyard*",
-	L"Duklida",
-	L"http://www.colourlovers.com/palette/3198402/%E2%80%A2Rome_Courtyard%E2%80%A2"
+	"*Rome Courtyard*",
+	"Duklida",
+	"http://www.colourlovers.com/palette/3198402/%E2%80%A2Rome_Courtyard%E2%80%A2"
 	},
 
 	/*http://www.colourlovers.com/palette/1502224/Rome_in_Sepia
@@ -601,9 +601,9 @@ ColorScheme g_colorSchemes[] =
 	0xB39D88,
 	0x7D6F66,
 	0x3E3634,
-	L"Rome in Sepia",
-	L"lenazap",
-	L"http://www.colourlovers.com/palette/1502224/Rome_in_Sepia"
+	"Rome in Sepia",
+	"lenazap",
+	"http://www.colourlovers.com/palette/1502224/Rome_in_Sepia"
 	},
 
 	/*http://www.colourlovers.com/palette/683789/Romulus
@@ -618,9 +618,9 @@ ColorScheme g_colorSchemes[] =
 	0x485C67,
 	0x8B0400,
 	0x670101,
-	L"Romulus",
-	L"mary_cherry_17",
-	L"http://www.colourlovers.com/palette/683789/Romulus"
+	"Romulus",
+	"mary_cherry_17",
+	"http://www.colourlovers.com/palette/683789/Romulus"
 	},
 
 	/*http://www.colourlovers.com/palette/2277174/tiberius
@@ -635,9 +635,9 @@ ColorScheme g_colorSchemes[] =
 	0x686B60,
 	0x33524B,
 	0x043536,
-	L"Tiberius",
-	L"iambubby",
-	L"http://www.colourlovers.com/palette/2277174/tiberius"
+	"Tiberius",
+	"iambubby",
+	"http://www.colourlovers.com/palette/2277174/tiberius"
 	},
 
 	/*http://www.colourlovers.com/palette/2411327/Trajans_Market
@@ -652,9 +652,9 @@ ColorScheme g_colorSchemes[] =
 	0x98764A,
 	0x734B3D,
 	0x96816C,
-	L"Trajan's Market",
-	L"bigrocket",
-	L"http://www.colourlovers.com/palette/2411327/Trajans_Market"
+	"Trajan's Market",
+	"bigrocket",
+	"http://www.colourlovers.com/palette/2411327/Trajans_Market"
 	},
 
 	/*http://www.colourlovers.com/palette/1974985/Vacanze_romane
@@ -669,9 +669,9 @@ ColorScheme g_colorSchemes[] =
 	0xFF001B,
 	0xD3D674,
 	0xF4F2D5,
-	L"Vacanze Romane",
-	L"plch",
-	L"http://www.colourlovers.com/palette/1974985/Vacanze_romane"
+	"Vacanze Romane",
+	"plch",
+	"http://www.colourlovers.com/palette/1974985/Vacanze_romane"
 	},
 
 	/*http://www.colourlovers.com/palette/2305105/Vesuves
@@ -686,9 +686,9 @@ ColorScheme g_colorSchemes[] =
 	0xA4BABE,
 	0x2C4547,
 	0x101C1B,
-	L"Vesuves",
-	L"deobogdo",
-	L"http://www.colourlovers.com/palette/2305105/Vesuves"
+	"Vesuves",
+	"deobogdo",
+	"http://www.colourlovers.com/palette/2305105/Vesuves"
 	},
 
 	/*http://www.colourlovers.com/palette/248355/Via_Rome
@@ -703,9 +703,9 @@ ColorScheme g_colorSchemes[] =
 	0xFFFFCC,
 	0xE69966,
 	0xCC3300,
-	L"Via Rome",
-	L"_183",
-	L"http://www.colourlovers.com/palette/248355/Via_Rome"
+	"Via Rome",
+	"_183",
+	"http://www.colourlovers.com/palette/248355/Via_Rome"
 	},
 };
 

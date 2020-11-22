@@ -27,9 +27,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
 #pragma region AQU_WorkingArea include/define
 #include"AQU_WorkingArea.h"
 #include"AQU_2DData.h"
+#include "..\dependecies\imgui\imgui_helpers.h"
+
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%d", a); OutputDebugString(buf); }
@@ -381,8 +384,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 	OutputDebugString(L"Aquilinus : Injectd window creation succeeded !");
 
 	// set color scheme
-	//ImGui_StyleColorsByScheme();
-	ImGui::StyleColorsClassic();
+	ImGui::ColorSchemeHex sScheme = {};
+	CopyMemory(&sScheme.uColor[0], &g_colorSchemes[m_pcTransferSite->m_pConfig->dwColorSchemeIndex].uColor[0], sizeof(UINT[5]));
+	ImGui::StyleColorsByScheme(sScheme);
 	ImVec4 clear_color = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 
 	// render loop
@@ -404,8 +408,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		ImGui::NewFrame();
 
 		// main window set flags and zero pos
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
-			| ImGuiWindowFlags_NoMove
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove
 			| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoCollapse
 			| ImGuiWindowFlags_NoBackground
@@ -413,12 +416,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth, (float)m_nWindowHeight), ImGuiCond_FirstUseEver);
 
-		// select window stage
-		static bool s_bOpen = true;
-
 		// main window
 		ImGui::PushFont(psFontMedium);
-		if (ImGui::Begin("Aquilinus", &s_bOpen, window_flags))
+		if (ImGui::Begin("Aquilinus", nullptr, window_flags))
 		{
 			ImGui::PopFont();
 			ImGui::PushFont(psFontSmall);

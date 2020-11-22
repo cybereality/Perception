@@ -273,6 +273,7 @@
     <ClCompile Include="..\Aquilinus.cpp" />
     <ClInclude Include="..\..\dependecies\imgui\imconfig.h" />
     <ClInclude Include="..\..\dependecies\imgui\imgui.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_helpers.h" />
     <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h" />
     <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h" />

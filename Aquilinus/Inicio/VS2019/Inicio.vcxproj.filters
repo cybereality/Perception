@@ -45,6 +45,9 @@
     <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_helpers.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Inicio_Resources.rc" />

@@ -57,6 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..\dependecies\imgui\imgui_impl_glfw.h"
 #include "..\dependecies\imgui\imgui_impl_opengl3.h"
 #include "..\dependecies\imgui\imgui_internal.h"
+#include "..\dependecies\imgui\imgui_helpers.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "advapi32.lib")
@@ -139,21 +140,6 @@ int                       g_offset_cpx, g_offset_cpy;
 int                       g_w_posx, g_w_posy;
 int                       g_buttonEvent, g_controlEvent;
 #endif
-
-/*** Inicio small helpers ***/
-/**
-* Small color converter helper..
-**/
-inline ImVec4 HEX2Float_Color(UINT uHex)
-{
-	ImVec4 rgbColor;
-	rgbColor.x = ((uHex >> 16) & 0xFF) / 255.f;  // Extract the RR byte
-	rgbColor.y = ((uHex >> 8) & 0xFF) / 255.f;   // Extract the GG byte
-	rgbColor.z = ((uHex) & 0xFF) / 255.f;        // Extract the BB byte
-	rgbColor.w = 1.f;                            // set alpha to 1.f
-
-	return rgbColor;
-}
 
 /*** Inicio controls methods ***/
 void             ImGui_Main();

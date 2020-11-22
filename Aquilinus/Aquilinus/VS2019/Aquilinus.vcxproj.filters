@@ -798,6 +798,9 @@
     <ClInclude Include="..\..\dependecies\imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\dependecies\imgui\imgui_helpers.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Aquilinus.cpp" />
