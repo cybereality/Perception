@@ -54,7 +54,7 @@ HINSTANCE                                     AQU_WorkingArea::m_hInstance;
 AQU_WorkingArea::WindowControl                AQU_WorkingArea::m_sWindowControl;
 int                                           AQU_WorkingArea::m_nWindowWidth;
 int                                           AQU_WorkingArea::m_nWindowHeight;
-POINT                                         AQU_WorkingArea::m_ptMouseCursor;
+ImVec2                                        AQU_WorkingArea::m_sMouseCursor;
 std::vector<NOD_Basic*>                       AQU_WorkingArea::m_paNodes;
 AQU_WorkingAreaStatus                         AQU_WorkingArea::m_eWorkingAreaStatus;
 AQU_TransferSite* AQU_WorkingArea::m_pcTransferSite;
@@ -87,6 +87,7 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 	m_nWindowWidth = GetSystemMetrics(SM_CXFULLSCREEN) >> 1;
 	m_nWindowHeight = GetSystemMetrics(SM_CYFULLSCREEN);
 	m_sWindowControl = {};
+	m_sMouseCursor = {};
 
 	// set module handle and config
 	m_hInstance = hInstance;
@@ -446,6 +447,20 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					ImGui::EndMenu();
 				}
 				ImGui::EndMainMenuBar();
+
+				/*case AQU_TopMenuBarFileEntries::SAVE_WORKING_AREA:
+					// and save...
+					m_pcTransferSite->m_pFileManager->SaveWorkingArea(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
+					break;
+				case AQU_TopMenuBarFileEntries::COMPILE_PROFILE:
+					m_pcTransferSite->m_pFileManager->CompileProfile(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
+					break;
+				case AQU_TopMenuBarFileEntries::SAVE_EXTERNALLY:
+					// set bool vice versa, do not kill the file menu so set back to file menu status
+					m_pcTransferSite->m_pConfig->bExternalSave = !m_pcTransferSite->m_pConfig->bExternalSave;
+					m_eWorkingAreaStatus = AQU_WorkingAreaStatus::TopMenuBar_File;
+				default:
+					break;*/
 			}
 
 			// get start y position, output description and a separator line... menu bar height ~ 1.2xFontSize
@@ -472,7 +487,6 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					ImGui::Text(buffer);
 
 					// adjust spacing and output interface name
-					// ImVec2 sSize = ImGui::GetItemRectSize();
 					ImGui::SameLine(50.0f); ImGui::Text(acBuffA.c_str());
 				}
 			}
@@ -508,12 +522,8 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						std::wstring acSelectableW(m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_szTitle);
 						std::string acSelectableA;
 						for (wchar_t c : acSelectableW) acSelectableA += (char)c;
-						if (ImGui::Selectable(acSelectableA.c_str(), (m_nDataSheetEntrySelection == (int)i) && (m_nDataSheetCategorySelection == (int)h)))
-						{
-							m_nDataSheetEntrySelection = (int)i;
-							m_nDataSheetCategorySelection = (int)h;
-						}
-
+						ImGui::Selectable(acSelectableA.c_str(), (m_nDataSheetEntrySelection == (int)i) && (m_nDataSheetCategorySelection == (int)h));
+						
 						// sub entries ?
 						if (m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber > 0)
 						{
@@ -534,6 +544,23 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 								ImGui::EndTooltip();
 							}
 						}
+
+						// create drag and drop source
+						if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoDisableHover | ImGuiDragDropFlags_SourceNoHoldToOpenOthers))
+						{
+							// set selection as DnD source
+							m_nDataSheetEntrySelection = (int)i;
+							m_nDataSheetCategorySelection = (int)h;
+
+							// TODO !! DIFFERNET NODES OUTPUT !!!
+
+							// set interface + method as info text
+							ImGui::Text("%s::%s", acTitleA.c_str(), acSelectableA.c_str());
+							ImGui::SetDragDropPayload("Aqu_DnD", nullptr, 0);
+							ImGui::EndDragDropSource();
+						}
+
+						
 					}
 				}
 
@@ -544,6 +571,28 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				ImGui::End();
 
 			}
+
+			// get old position, set position by mouse cursor
+			ImVec2 sPosOld = ImGui::GetCursorPos();
+			ImGui::SetCursorPos(m_sMouseCursor);
+
+			// create fake selectable as DnD target
+			const char* name1 = " ";
+			ImGui::Selectable(name1, false, ImGuiSelectableFlags_Disabled);
+
+			// create drag and drop target
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Aqu_DnD", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+				{
+					// create node
+					OutputDebugString(L"Create Node");
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			// set old position, continue
+			ImGui::SetCursorPos(sPosOld);
 
 			s_bInit = true;
 			ImGui::PopFont();

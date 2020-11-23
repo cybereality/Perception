@@ -442,7 +442,7 @@ void ImGui_Options(AquilinusCfg& sConfig)
 		ImGui::EndTooltip();
 	}
 	ImGui::SameLine();
-	ImGui::TextDisabled("(?)");
+	ImGui::TextDisabled("(source?)");
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();

@@ -73,6 +73,7 @@ public :
 	static void             s_Viewport_callback(GLFWwindow* window, int width, int height)	{ glViewport(0, 0, width, height);	}
 	static void             s_Cursor_position_callback(GLFWwindow* window, double x, double y) 
 	{
+		m_sMouseCursor.x = (float)x; m_sMouseCursor.y = (float)y;
 		if ((m_sWindowControl.nButtonEvent == 1) && ((y < (double)ImGui::GetFontSize()) || (m_sWindowControl.nButtonEvent == 1)))
 		{
 			m_sWindowControl.nOffset_cpx = (int)x - m_sWindowControl.nCp_x;
@@ -138,7 +139,7 @@ private:
 	/**
 	* The current mouse cursor.
 	***/
-	static POINT m_ptMouseCursor;
+	static ImVec2 m_sMouseCursor;
 	/**
 	* All nodes vector.
 	***/
