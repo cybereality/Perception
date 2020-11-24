@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -59,6 +59,8 @@ NOD_Basic::NOD_Basic(LONG nX, LONG nY, LONG nWidth, LONG nHeight)
 
 	m_pvReturn = NULL;
 	m_bReturn = false;
+	m_bFirstDraw = false;
+	m_acTitleA = std::string();
 
 	m_fZoom = 1.0f;
 	m_vecLocalMouseCursor.x = 0;
@@ -91,11 +93,11 @@ NOD_Basic::NOD_Basic(LONG nX, LONG nY, LONG nWidth, LONG nHeight)
 NOD_Basic::~NOD_Basic()
 {
 	for (std::vector<NOD_Commander*>::size_type i = 0; i != m_paCommanders.size(); i++)
-	if (m_paCommanders[i])
-		delete m_paCommanders[i];
+		if (m_paCommanders[i])
+			delete m_paCommanders[i];
 	for (std::vector<NOD_Decommander*>::size_type i = 0; i != m_paDecommanders.size(); i++)
-	if (m_paDecommanders[i])
-		delete m_paDecommanders[i];
+		if (m_paDecommanders[i])
+			delete m_paDecommanders[i];
 }
 
 /**
@@ -124,7 +126,13 @@ HRESULT NOD_Basic::Translate(LONG nX, LONG nY, float fZoom)
 ***/
 HRESULT NOD_Basic::Draw(POINT vcOrigin)
 {
+	// convert title to std::string
+	if (m_acTitleA.length() == 0)
+		for (size_t i = 0; i < wcslen(m_szTitle); i++) m_acTitleA += (char)m_szTitle[i];
 
+	// output title + separator
+	ImGui::Text(m_acTitleA.c_str());
+	ImGui::Separator();
 
 	return S_OK;
 }

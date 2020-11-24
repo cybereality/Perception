@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <typeinfo>
 #include "AQU_NodesStructures.h"
+#include "..\dependecies\imgui\imgui.h"
 
 /**
 * Simple clipboard text helper.
@@ -185,6 +186,7 @@ public:
 	virtual void*            Provoke(void* pcThis, std::vector<NOD_Basic*>* ppaNodes) { return Provoke(pcThis, m_cProvoker.m_eD3D, m_cProvoker.m_eD3DInterface, m_cProvoker.m_eD3DMethod, ppaNodes); }
 	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
 	virtual POINT            GetNodePosition();
+	virtual ImVec2           GetNodeSize() { return ImVec2((float)m_vecSize.cx, (float)m_vecSize.cy); }
 	virtual DWORD            GetSaveDataSize();
 	virtual char*            GetSaveData(UINT* pdwSizeOfData);
 	virtual void             InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
@@ -192,11 +194,16 @@ public:
 	virtual UINT             GetNodeTypeId() { return NULL; }
 	virtual void             VerifyConnections(std::vector<NOD_Basic*>* ppaNodes);
 	virtual AQU_NextNodeCall GetNextCycleBehavior() { AQU_NextNodeCall eRet = m_eNextNodeCall; m_eNextNodeCall = AQU_NextNodeCall::DefaultBehavior;	return eRet; }
+	virtual bool             IsFirstDraw() { if (!m_bFirstDraw) { m_bFirstDraw = true; return false; } else return m_bFirstDraw; }
 
 	/**
 	* The title text of the node.
 	**/
 	LPCWSTR m_szTitle;
+	/**
+	* The title as std::string(). Converted within Draw()
+	***/
+	std::string m_acTitleA;
 	/**
 	* The node provoker.
 	* Must be public since the detour classes will use it.
@@ -293,6 +300,10 @@ protected:
 	* can move the node, if not this will be handled as window event.
 	***/
 	DWORD m_dwHeaderSize;
+	/*
+	* True after that node is drawn the first time.
+	**/
+	bool m_bFirstDraw;
 };
 
 #endif

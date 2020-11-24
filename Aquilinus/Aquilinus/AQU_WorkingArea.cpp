@@ -427,6 +427,8 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		// main window
 		if (ImGui::Begin("Aquilinus", nullptr, window_flags))
 		{
+#pragma region Main Menu Bar
+
 			// get small font, create main menu bar
 			ImGui::PushFont(psFontSmall);
 			if (ImGui::BeginMainMenuBar())
@@ -463,6 +465,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					break;*/
 			}
 
+#pragma endregion
+#pragma region Info Text Background
+
 			// get start y position, output description and a separator line... menu bar height ~ 1.2xFontSize
 			float fStartY = ImGui::GetFontSize();
 			ImVec2 sStart_rect_max = { 0.0f, fStartY * 1.2f };
@@ -490,6 +495,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					ImGui::SameLine(50.0f); ImGui::Text(acBuffA.c_str());
 				}
 			}
+
+#pragma endregion
+#pragma region Categories
 
 			// get last y position
 			ImVec2 sChild_rect_max = ImGui::GetItemRectMax();
@@ -572,6 +580,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 			}
 
+#pragma endregion
+#pragma region Node creation (Drag n Drop Target)
+
 			// get old position, set position by mouse cursor
 			ImVec2 sPosOld = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(m_sMouseCursor);
@@ -583,16 +594,106 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			// create drag and drop target
 			if (ImGui::BeginDragDropTarget())
 			{
+				// create node
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Aqu_DnD", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
 				{
-					// create node
-					OutputDebugString(L"Create Node");
+					// create node if d3d interface method selected in the data sheet
+					if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1) && (m_nDataSheetCategorySelection < (int)m_pcTransferSite->m_aInterfaceIndices.size()))
+					{
+						// node already present ?
+						if (!m_pcTransferSite->IsD3DNodePresent((AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection], m_nDataSheetEntrySelection))
+						{
+							// get node provider
+							AQU_NodeProvider* pProvider = new AQU_NodeProvider();
+
+							// create node
+							NOD_Basic* pNode = pProvider->Get_D3D_Node((AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
+								(UINT)m_nDataSheetEntrySelection,
+								(LONG)m_sMouseCursor.x,
+								(LONG)m_sMouseCursor.y);
+
+							// delete provider
+							delete pProvider;
+
+							// register the node
+							m_pcTransferSite->RegisterD3DNode(pNode,
+								(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
+								m_nDataSheetEntrySelection);
+
+							// add node
+							m_paNodes.push_back(pNode);
+
+						}
+					}
+					// create elementary node ?
+					else if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1) && (m_nDataSheetCategorySelection == m_pcTransferSite->m_nElementaryNodesTabIndex))
+					{
+						// get node provider
+						AQU_NodeProvider* pProvider = new AQU_NodeProvider();
+
+						// create node
+						NOD_Basic* pNode = pProvider->Get_Elementary_Node((AQU_ElementaryNodes)m_nDataSheetEntrySelection,
+							(LONG)m_sMouseCursor.x,
+							(LONG)m_sMouseCursor.y);
+
+						// delete provider
+						delete pProvider;
+
+						// add node
+						m_paNodes.push_back(pNode);
+					}
+					// create plugin node ?
+					else if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1))
+					{
+						// get plugin node index
+						DWORD dwIndex = 0;
+						for (int i = 0; i < (int)m_pcTransferSite->m_aPluginCategoryIndices.size(); i++)
+						{
+							if (m_pcTransferSite->m_aPluginCategoryIndices[i] == m_nDataSheetCategorySelection)
+							{
+								if (m_pcTransferSite->m_aPluginEntryIndices[i] == m_nDataSheetEntrySelection)
+									dwIndex = (DWORD)i;
+							}
+						}
+
+						// create plugin node
+						NOD_Plugin* pPlugin = new NOD_Plugin(
+							(LONG)m_sMouseCursor.x,
+							(LONG)m_sMouseCursor.y,
+							m_vcPluginFilePathes[dwIndex]);
+
+						// add node
+						m_paNodes.push_back(pPlugin);
+					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
 			// set old position, continue
 			ImGui::SetCursorPos(sPosOld);
+
+#pragma endregion
+#pragma region connectors + nodes
+
+			// draw the nodes
+			for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
+			{
+				// set node position if new
+				if (!m_paNodes[i]->IsFirstDraw())
+				{
+					// set next window start position
+					ImGui::SetNextWindowPos(m_sMouseCursor);
+					ImGui::SetNextWindowSize(m_paNodes[i]->GetNodeSize());
+				}
+
+				// and draw (in case update)
+				POINT sTmp = {};
+				std::string ac("Node "); ac += std::to_string((unsigned)i);
+				if (ImGui::Begin(ac.c_str(), false, ImGuiWindowFlags_NoTitleBar))
+				m_paNodes[i]->Draw(sTmp);
+			}
+
+#pragma endregion
 
 			s_bInit = true;
 			ImGui::PopFont();
@@ -944,4 +1045,3 @@ HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 
 	return S_OK;
 }
-#pragma endregion
