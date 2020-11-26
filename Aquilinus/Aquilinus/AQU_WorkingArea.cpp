@@ -503,19 +503,15 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			ImVec2 sChild_rect_max = ImGui::GetItemRectMax();
 			sChild_rect_max.x = 0.0f;
 			sChild_rect_max.y += ImGui::GetFontSize();
-			static bool s_bInit = false;
 
 			// loop through categories
 			for (std::vector<AQU_DataSheetEntry*>::size_type h = 0; h != m_pcTransferSite->m_paDataSheetCategories.size(); h++)
 			{
-				if (!s_bInit)
-				{
-					// set next window start position
-					ImGui::SetNextWindowPos(sChild_rect_max);
-					ImVec2 sSize = { 240.0f, 100.0f };
-					ImGui::SetNextWindowSize(sSize);
-					sChild_rect_max.y += sSize.y;
-				}
+				// set next window start position
+				ImGui::SetNextWindowPos(sChild_rect_max, ImGuiCond_FirstUseEver);
+				ImVec2 sSize = { 240.0f, 100.0f };
+				ImGui::SetNextWindowSize(sSize, ImGuiCond_FirstUseEver);
+				sChild_rect_max.y += sSize.y;
 
 				// new category window
 				std::string acTitleA;
@@ -560,11 +556,22 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							m_nDataSheetEntrySelection = (int)i;
 							m_nDataSheetCategorySelection = (int)h;
 
-							// TODO !! DIFFERNET NODES OUTPUT !!!
-
 							// set interface + method as info text
 							ImGui::Text("%s::%s", acTitleA.c_str(), acSelectableA.c_str());
-							ImGui::SetDragDropPayload("Aqu_DnD", nullptr, 0);
+							
+							// create ImNodes compatible payload data (empty... just for compatiblity)
+							struct _DragConnectionPayload
+							{
+								void* node_id = nullptr;
+								const char* slot_title = nullptr;
+								int slot_kind = 0;
+							} drag_data{};
+
+							drag_data.node_id = nullptr;
+							drag_data.slot_kind = 0;
+							drag_data.slot_title = nullptr;
+
+							ImGui::SetDragDropPayload("Aqu_DnD", &drag_data, sizeof(drag_data));
 							ImGui::EndDragDropSource();
 						}
 
@@ -675,6 +682,45 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 #pragma endregion
 #pragma region connectors + nodes
 
+			static ImNodes::CanvasState canvas;
+			sChild_rect_max.x += 300.f;
+			ImGui::SetNextWindowPos(sChild_rect_max, ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth - sChild_rect_max.x, (float)m_nWindowHeight - sChild_rect_max.y), ImGuiCond_FirstUseEver);
+			if (ImGui::Begin("ImNodes", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+			{
+				ImNodes::BeginCanvas(&canvas);
+
+				struct Node
+				{
+					ImVec2 pos{};
+					bool selected{};
+					ImNodes::Ez::SlotInfo inputs[1];
+					ImNodes::Ez::SlotInfo outputs[1];
+				};
+
+				static Node nodes[3] = {
+					{{50, 100}, false, {{"In", 1}}, {{"Out", 1}}},
+					{{250, 50}, false, {{"In", 1}}, {{"Out", 1}}},
+					{{250, 100}, false, {{"In", 1}}, {{"Out", 1}}},
+				};
+
+				for (Node& node : nodes)
+				{
+					if (ImNodes::Ez::BeginNode(&node, "Node Title", &node.pos, &node.selected))
+					{
+						ImNodes::Ez::InputSlots(node.inputs, 1);
+						ImNodes::Ez::OutputSlots(node.outputs, 1);
+						ImNodes::Ez::EndNode();
+					}
+				}
+
+				ImNodes::Connection(&nodes[1], "In", &nodes[0], "Out");
+				ImNodes::Connection(&nodes[2], "In", &nodes[0], "Out");
+
+				ImNodes::EndCanvas();
+			}
+			ImGui::End();
+
 			// draw the nodes
 			for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
 			{
@@ -695,7 +741,6 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 #pragma endregion
 
-			s_bInit = true;
 			ImGui::PopFont();
 		}
 		else
