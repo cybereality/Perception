@@ -43,14 +43,11 @@ void* NOD_Basic::m_pvReturn;
 ***/
 NOD_Basic::NOD_Basic(LONG nX, LONG nY, LONG nWidth, LONG nHeight)
 {
-	m_vecPos.x = nX;
-	m_vecPos.y = nY;
+	m_sPos.x = (float)nX;
+	m_sPos.y = (float)nY;
 
-	m_fXPos = (float)nX;
-	m_fYPos = (float)nY;
-
-	m_vecSize.cx = nWidth;
-	m_vecSize.cy = nHeight;
+	m_sSize.x = (float)nWidth;
+	m_sSize.y = (float)nHeight;
 
 	m_szTitle = L"Basic Node";
 	m_NodeBehavior = AQU_NodeBehavior::Inactive;
@@ -61,6 +58,7 @@ NOD_Basic::NOD_Basic(LONG nX, LONG nY, LONG nWidth, LONG nHeight)
 	m_bReturn = false;
 	m_bFirstDraw = false;
 	m_acTitleA = std::string();
+	m_bActive = false;
 
 	m_fZoom = 1.0f;
 	m_vecLocalMouseCursor.x = 0;
@@ -101,30 +99,12 @@ NOD_Basic::~NOD_Basic()
 }
 
 /**
-* Moves the node to the desired position.
-***/
-HRESULT NOD_Basic::Translate(LONG nX, LONG nY, float fZoom)
-{
-	// TODO !! MAX X/Y RANGE
-
-	m_fXPos += nX / fZoom;
-	m_fYPos += nY / fZoom;
-
-	if (m_fXPos < 0.0f) m_fXPos = 0.0f;
-	if (m_fYPos < 0.0f) m_fYPos = 0.0f;
-
-	m_vecPos.x = (LONG)m_fXPos;
-	m_vecPos.y = (LONG)m_fYPos;
-
-	return S_OK;
-}
-
-/**
-* Draws the node.
+* Draws (updates) the node.
 * The basic node draws the border and the connectors.
+* Do NOT use ImGui::Separator() here, graphical glitch.
 * @param vcOrigin The origin vector for the drawing call, in pixel space.
 ***/
-HRESULT NOD_Basic::Draw(POINT vcOrigin)
+HRESULT NOD_Basic::Update()
 {
 	// convert title to std::string
 	if (m_acTitleA.length() == 0)
@@ -132,7 +112,6 @@ HRESULT NOD_Basic::Draw(POINT vcOrigin)
 
 	// output title + separator
 	ImGui::Text(m_acTitleA.c_str());
-	ImGui::Separator();
 
 	return S_OK;
 }
@@ -243,35 +222,6 @@ AQU_NodeBehavior NOD_Basic::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 
 	return m_NodeBehavior;
-}
-
-/**
-* Tests wether the cursor is within the nodes border.
-* @param vecCursor The position of the mouse cursor.
-* @param vcOrigin The origin of the render surface, in pixel space.
-* @param fZoom The zoom factor, will be saved in the node class.
-* @returns True if the cursor is within the nodes border.
-***/
-bool NOD_Basic::IsLocal(POINT vecCursor, POINT vcOrigin, float fZoom)
-{
-	// set zoom factor
-	m_fZoom = fZoom;
-
-	LONG nXDif = (vecCursor.x - vcOrigin.x) - (LONG)(m_fXPos * fZoom);
-	LONG nYDif = (vecCursor.y - vcOrigin.y) - (LONG)(m_fYPos * fZoom);
-
-	if ((nXDif >= 0) &&
-		(nXDif <= (LONG)((float)(m_vecSize.cx * fZoom))) &&
-		(nYDif >= 0) &&
-		(nYDif <= (LONG)((float)(m_vecSize.cy * fZoom))))
-	{
-		m_vecLocalMouseCursor.x = (LONG)((float)nXDif / fZoom);
-		m_vecLocalMouseCursor.y = (LONG)((float)nYDif / fZoom);
-
-		return true;
-	}
-
-	return false;
 }
 
 /**
@@ -475,14 +425,6 @@ void* NOD_Basic::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMeth
 	}
 
 	return m_pvReturn;
-}
-
-/**
-* Provides the current position of the node.
-***/
-POINT NOD_Basic::GetNodePosition()
-{
-	return m_vecPos;
 }
 
 /**

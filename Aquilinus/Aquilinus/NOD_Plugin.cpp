@@ -63,8 +63,8 @@ m_dwUpdateCounter(0)
 		m_bReturn = m_pNodus->GetMethodReplacement();
 
 		// set size
-		m_vecSize.cx = (LONG)m_pNodus->GetNodeWidth();
-		m_vecSize.cy = (LONG)m_pNodus->GetNodeHeight();
+		m_sSize.x = (float)m_pNodus->GetNodeWidth();
+		m_sSize.y = (float)m_pNodus->GetNodeHeight();
 
 		// set name
 		std::string strA(m_pNodus->GetNodeType());

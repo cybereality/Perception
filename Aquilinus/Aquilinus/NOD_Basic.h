@@ -166,8 +166,7 @@ public:
 	virtual ~NOD_Basic();
 
 	/*** NOD_Basic public methods ***/
-	virtual HRESULT          Translate(LONG nX, LONG nY, float fZoom);
-	virtual HRESULT          Draw(POINT vcOrigin);
+	virtual HRESULT          Update();
 	virtual LONG*            GetCommanderConnectionIndices(std::vector<NOD_Basic*>* ppaNodes, DWORD dwIndex);
 	virtual LONG*            GetProvokerConnectionIndices();
 	virtual DWORD            GetCommanderConnectionsNumber(DWORD dwIndex);
@@ -175,7 +174,6 @@ public:
 	virtual DWORD            GetInvokerConnectionsNumber();
 	virtual void             SetNewIndex(DWORD unIndex);
 	virtual AQU_NodeBehavior WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
-	virtual bool             IsLocal(POINT vecCursor, POINT vcOrigin, float fZoom);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
 	virtual POINT            GetConnectionOrigin();
 	virtual void             ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex);
@@ -185,8 +183,8 @@ public:
 	virtual void             AlignData(LONG nDecommanderIndex, void* pData);
 	virtual void*            Provoke(void* pcThis, std::vector<NOD_Basic*>* ppaNodes) { return Provoke(pcThis, m_cProvoker.m_eD3D, m_cProvoker.m_eD3DInterface, m_cProvoker.m_eD3DMethod, ppaNodes); }
 	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
-	virtual POINT            GetNodePosition();
-	virtual ImVec2           GetNodeSize() { return ImVec2((float)m_vecSize.cx, (float)m_vecSize.cy); }
+	virtual ImVec2           GetNodePosition() { return m_sPos; }
+	virtual ImVec2           GetNodeSize() { return m_sSize; }
 	virtual DWORD            GetSaveDataSize();
 	virtual char*            GetSaveData(UINT* pdwSizeOfData);
 	virtual void             InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
@@ -204,6 +202,14 @@ public:
 	* The title as std::string(). Converted within Draw()
 	***/
 	std::string m_acTitleA;
+	/**
+	* The actual, floating position in the canvas. Public, since accessed by ImNodes.
+	***/
+	ImVec2 m_sPos;
+	/**
+	* True if active.
+	***/
+	bool m_bActive;
 	/**
 	* The node provoker.
 	* Must be public since the detour classes will use it.
@@ -244,21 +250,9 @@ protected:
 	***/
 	NOD_Invoker m_cInvoker;
 	/**
-	* The position of the node in the working area (in full zoom pixel space).
-	***/
-	POINT m_vecPos;
-	/**
-	* The actual, floating x position.
-	***/
-	float m_fXPos;
-	/**
-	* The actual, floating y position.
-	***/
-	float m_fYPos;
-	/**
-	* The size of the node in the working area (in full zoom pixel space).
+	* The size of the node in the canvas (in full zoom pixel space).
 	**/
-	SIZE m_vecSize;
+	ImVec2 m_sSize;
 	/**
 	* Current zoom factor, needed for node translation.
 	***/

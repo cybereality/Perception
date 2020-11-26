@@ -590,157 +590,138 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 #pragma endregion
 #pragma region Node creation (Drag n Drop Target)
 
-			// get old position, set position by mouse cursor
-			ImVec2 sPosOld = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(m_sMouseCursor);
-
-			// create fake selectable as DnD target
-			const char* name1 = " ";
-			ImGui::Selectable(name1, false, ImGuiSelectableFlags_Disabled);
-
-			// create drag and drop target
-			if (ImGui::BeginDragDropTarget())
+			// create a node editor canvas
+			static ImNodes::CanvasState canvas;
+			ImVec2 sPosCanvas = sStart_rect_max;
+			sPosCanvas.x += 300.f;
+			ImGui::SetNextWindowPos(sPosCanvas, ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth - sPosCanvas.x, (float)m_nWindowHeight - sPosCanvas.y), ImGuiCond_FirstUseEver);
+			if (ImGui::Begin("ImNodes", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 			{
-				// create node
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Aqu_DnD", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+				ImNodes::BeginCanvas(&canvas);
+
+				// get old position, set position by mouse cursor
+				ImVec2 sPosOld = ImGui::GetCursorPos();
+				ImVec2 sTargetPos = ImGui::GetMousePos();
+				sTargetPos.x -= ImGui::GetWindowPos().x;
+				sTargetPos.y -= ImGui::GetWindowPos().y;
+				ImGui::SetCursorPos(sTargetPos);
+
+				// create fake selectable as DnD target
+				const char* name1 = " ";
+				ImGui::Selectable(name1, false, ImGuiSelectableFlags_Disabled);
+
+				// subtract canvas offset for Drag n Drop
+				sTargetPos.x -= canvas.offset.x;
+				sTargetPos.y -= canvas.offset.y;
+
+				// create drag and drop target
+				if (ImGui::BeginDragDropTarget())
 				{
-					// create node if d3d interface method selected in the data sheet
-					if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1) && (m_nDataSheetCategorySelection < (int)m_pcTransferSite->m_aInterfaceIndices.size()))
+					// create node
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Aqu_DnD", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
 					{
-						// node already present ?
-						if (!m_pcTransferSite->IsD3DNodePresent((AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection], m_nDataSheetEntrySelection))
+						// create node if d3d interface method selected in the data sheet
+						if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1) && (m_nDataSheetCategorySelection < (int)m_pcTransferSite->m_aInterfaceIndices.size()))
+						{
+							// node already present ?
+							if (!m_pcTransferSite->IsD3DNodePresent((AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection], m_nDataSheetEntrySelection))
+							{
+								// get node provider
+								AQU_NodeProvider* pProvider = new AQU_NodeProvider();
+
+								// create node
+								NOD_Basic* pNode = pProvider->Get_D3D_Node((AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
+									(UINT)m_nDataSheetEntrySelection,
+									(LONG)sTargetPos.x,
+									(LONG)sTargetPos.y);
+
+								// delete provider
+								delete pProvider;
+
+								// register the node
+								m_pcTransferSite->RegisterD3DNode(pNode,
+									(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
+									m_nDataSheetEntrySelection);
+
+								// add node
+								m_paNodes.push_back(pNode);
+
+							}
+						}
+						// create elementary node ?
+						else if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1) && (m_nDataSheetCategorySelection == m_pcTransferSite->m_nElementaryNodesTabIndex))
 						{
 							// get node provider
 							AQU_NodeProvider* pProvider = new AQU_NodeProvider();
 
 							// create node
-							NOD_Basic* pNode = pProvider->Get_D3D_Node((AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
-								(UINT)m_nDataSheetEntrySelection,
-								(LONG)m_sMouseCursor.x,
-								(LONG)m_sMouseCursor.y);
+							NOD_Basic* pNode = pProvider->Get_Elementary_Node((AQU_ElementaryNodes)m_nDataSheetEntrySelection,
+								(LONG)sTargetPos.x,
+								(LONG)sTargetPos.y);
 
 							// delete provider
 							delete pProvider;
 
-							// register the node
-							m_pcTransferSite->RegisterD3DNode(pNode,
-								(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
-								m_nDataSheetEntrySelection);
-
 							// add node
 							m_paNodes.push_back(pNode);
-
 						}
-					}
-					// create elementary node ?
-					else if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1) && (m_nDataSheetCategorySelection == m_pcTransferSite->m_nElementaryNodesTabIndex))
-					{
-						// get node provider
-						AQU_NodeProvider* pProvider = new AQU_NodeProvider();
-
-						// create node
-						NOD_Basic* pNode = pProvider->Get_Elementary_Node((AQU_ElementaryNodes)m_nDataSheetEntrySelection,
-							(LONG)m_sMouseCursor.x,
-							(LONG)m_sMouseCursor.y);
-
-						// delete provider
-						delete pProvider;
-
-						// add node
-						m_paNodes.push_back(pNode);
-					}
-					// create plugin node ?
-					else if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1))
-					{
-						// get plugin node index
-						DWORD dwIndex = 0;
-						for (int i = 0; i < (int)m_pcTransferSite->m_aPluginCategoryIndices.size(); i++)
+						// create plugin node ?
+						else if ((m_nDataSheetCategorySelection > -1) && (m_nDataSheetEntrySelection > -1))
 						{
-							if (m_pcTransferSite->m_aPluginCategoryIndices[i] == m_nDataSheetCategorySelection)
+							// get plugin node index
+							DWORD dwIndex = 0;
+							for (int i = 0; i < (int)m_pcTransferSite->m_aPluginCategoryIndices.size(); i++)
 							{
-								if (m_pcTransferSite->m_aPluginEntryIndices[i] == m_nDataSheetEntrySelection)
-									dwIndex = (DWORD)i;
+								if (m_pcTransferSite->m_aPluginCategoryIndices[i] == m_nDataSheetCategorySelection)
+								{
+									if (m_pcTransferSite->m_aPluginEntryIndices[i] == m_nDataSheetEntrySelection)
+										dwIndex = (DWORD)i;
+								}
 							}
+
+							// create plugin node
+							NOD_Plugin* pPlugin = new NOD_Plugin(
+								(LONG)sTargetPos.x,
+								(LONG)sTargetPos.y,
+								m_vcPluginFilePathes[dwIndex]);
+
+							// add node
+							m_paNodes.push_back(pPlugin);
 						}
-
-						// create plugin node
-						NOD_Plugin* pPlugin = new NOD_Plugin(
-							(LONG)m_sMouseCursor.x,
-							(LONG)m_sMouseCursor.y,
-							m_vcPluginFilePathes[dwIndex]);
-
-						// add node
-						m_paNodes.push_back(pPlugin);
 					}
+					ImGui::EndDragDropTarget();
 				}
-				ImGui::EndDragDropTarget();
-			}
 
-			// set old position, continue
-			ImGui::SetCursorPos(sPosOld);
+				// set old position, continue
+				ImGui::SetCursorPos(sPosOld);
 
 #pragma endregion
 #pragma region connectors + nodes
-
-			static ImNodes::CanvasState canvas;
-			sChild_rect_max.x += 300.f;
-			ImGui::SetNextWindowPos(sChild_rect_max, ImGuiCond_FirstUseEver);
-			ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth - sChild_rect_max.x, (float)m_nWindowHeight - sChild_rect_max.y), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("ImNodes", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
-			{
-				ImNodes::BeginCanvas(&canvas);
-
-				struct Node
+								
+				// update / draw the nodes
+				for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
 				{
-					ImVec2 pos{};
-					bool selected{};
-					ImNodes::Ez::SlotInfo inputs[1];
-					ImNodes::Ez::SlotInfo outputs[1];
-				};
-
-				static Node nodes[3] = {
-					{{50, 100}, false, {{"In", 1}}, {{"Out", 1}}},
-					{{250, 50}, false, {{"In", 1}}, {{"Out", 1}}},
-					{{250, 100}, false, {{"In", 1}}, {{"Out", 1}}},
-				};
-
-				for (Node& node : nodes)
-				{
-					if (ImNodes::Ez::BeginNode(&node, "Node Title", &node.pos, &node.selected))
+					if (ImNodes::Ez::BeginNode(&m_paNodes[i], " ", &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
 					{
-						ImNodes::Ez::InputSlots(node.inputs, 1);
-						ImNodes::Ez::OutputSlots(node.outputs, 1);
+						// set cursor back, update
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetTextLineHeight());
+						m_paNodes[i]->Update();
+						//ImNodes::Ez::InputSlots(node.inputs, 1);
+						//ImNodes::Ez::OutputSlots(node.outputs, 1);
 						ImNodes::Ez::EndNode();
 					}
 				}
 
-				ImNodes::Connection(&nodes[1], "In", &nodes[0], "Out");
-				ImNodes::Connection(&nodes[2], "In", &nodes[0], "Out");
+				// ImNodes::Connection(&nodes[1], "In", &nodes[0], "Out");
+				// ImNodes::Connection(&nodes[2], "In", &nodes[0], "Out");
 
 				ImNodes::EndCanvas();
 			}
 			ImGui::End();
 
-			// draw the nodes
-			for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
-			{
-				// set node position if new
-				if (!m_paNodes[i]->IsFirstDraw())
-				{
-					// set next window start position
-					ImGui::SetNextWindowPos(m_sMouseCursor);
-					ImGui::SetNextWindowSize(m_paNodes[i]->GetNodeSize());
-				}
-
-				// and draw (in case update)
-				POINT sTmp = {};
-				std::string ac("Node "); ac += std::to_string((unsigned)i);
-				if (ImGui::Begin(ac.c_str(), false, ImGuiWindowFlags_NoTitleBar))
-				m_paNodes[i]->Draw(sTmp);
-			}
-
 #pragma endregion
-
+			
 			ImGui::PopFont();
 		}
 		else
@@ -749,8 +730,6 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
 		ImGui::End();
-
-
 
 		// Rendering
 		ImGui::Render();

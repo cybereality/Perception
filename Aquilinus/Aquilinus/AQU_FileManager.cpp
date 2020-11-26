@@ -594,9 +594,9 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 			binaryStream.write((const char*)&id, sizeof(UINT));
 
 			// add node position
-			POINT pos = (*ppaNodes)[i]->GetNodePosition();
-			binaryStream.write((const char*)&pos.x, sizeof(LONG));
-			binaryStream.write((const char*)&pos.y, sizeof(LONG));
+			ImVec2 pos = (*ppaNodes)[i]->GetNodePosition();
+			binaryStream.write((const char*)&pos.x, sizeof(float));
+			binaryStream.write((const char*)&pos.y, sizeof(float));
 
 			// test for plugin node
 			if (id == ELEMENTARY_NODE_PLUGIN)
@@ -914,9 +914,9 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			binaryStream.write((const char*)&id, sizeof(UINT));
 
 			// add node position
-			POINT pos = (*ppaNodes)[i]->GetNodePosition();
-			binaryStream.write((const char*)&pos.x, sizeof(LONG));
-			binaryStream.write((const char*)&pos.y, sizeof(LONG));
+			ImVec2 pos = (*ppaNodes)[i]->GetNodePosition();
+			binaryStream.write((const char*)&pos.x, sizeof(float));
+			binaryStream.write((const char*)&pos.y, sizeof(float));
 
 			// test for plugin node
 			if (id == ELEMENTARY_NODE_PLUGIN)
