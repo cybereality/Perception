@@ -35,6 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 enum NOD_Plugtype
 {
+	// provoker/invoker
+	AQU_PROVOKE                                     = 65535,
+
 	// windows standard data types
 	AQU_BOOL                                        = 0,
 	AQU_BYTE                                        = 1, 
@@ -2059,6 +2062,10 @@ struct NOD_Commander
 	**/
 	LPCWSTR m_szTitle;
 	/**
+	* Title text.
+	***/
+	CHAR m_szTitleA[32];
+	/**
 	* Y Position on the node.
 	* To be determined by the nodes drawing method.
 	***/
@@ -2086,6 +2093,10 @@ struct NOD_Decommander
 	* The title text of the commander.
 	**/
 	LPCWSTR m_szTitle;
+	/**
+	* Title text.
+	***/
+	CHAR m_szTitleA[32];
 	/**
 	* Y Position on the node.
 	* To be determined by the nodes drawing method.

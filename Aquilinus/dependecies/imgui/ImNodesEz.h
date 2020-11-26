@@ -44,6 +44,10 @@ struct SlotInfo
 IMGUI_API bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected);
 /// Terminates current node. Should be called regardless of BeginNode() returns value.
 IMGUI_API void EndNode();
+
+// implemented for Aquilinus/Vireio Perception direct access
+IMGUI_API bool Slot(const char* title, int kind);
+
 /// Renders input slot region. Kind is unique value whose sign is ignored.
 /// This function must always be called after BeginNode() and before OutputSlots().
 /// When no input slots are rendered call InputSlots(nullptr, 0);

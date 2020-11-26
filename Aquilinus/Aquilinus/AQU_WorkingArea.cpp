@@ -639,6 +639,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 								// delete provider
 								delete pProvider;
 
+								// convert strings
+								pNode->ConvertStrings();
+
 								// register the node
 								m_pcTransferSite->RegisterD3DNode(pNode,
 									(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces)m_pcTransferSite->m_aInterfaceIndices[m_nDataSheetCategorySelection],
@@ -663,6 +666,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							// delete provider
 							delete pProvider;
 
+							// convert strings
+							pNode->ConvertStrings();
+
 							// add node
 							m_paNodes.push_back(pNode);
 						}
@@ -686,6 +692,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 								(LONG)sTargetPos.y,
 								m_vcPluginFilePathes[dwIndex]);
 
+							// convert strings
+							pPlugin->ConvertStrings();
+
 							// add node
 							m_paNodes.push_back(pPlugin);
 						}
@@ -704,11 +713,56 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				{
 					if (ImNodes::Ez::BeginNode(&m_paNodes[i], " ", &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
 					{
+						const auto& style = ImGui::GetStyle();
+						static LPCSTR szInvoke = "invoke";
+						static LPCSTR szProvoke = "provoke";
+
+						// Render input slots
+						ImGui::BeginGroup();
+						{
+							int nSum = (int)m_paNodes[i]->m_paDecommanders.size();
+							for (int j = 0; j < nSum; j++)
+							{
+								// create slot
+								ImNodes::Ez::Slot(m_paNodes[i]->m_paDecommanders[j]->m_szTitleA, ImNodes::InputSlotKind((int)m_paNodes[i]->m_paDecommanders[j]->m_ePlugtype));
+							}
+
+							// invoker
+							if (m_paNodes[i]->HasInvoker())
+								ImNodes::Ez::Slot(szInvoke, ImNodes::InputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+						}
+						ImGui::EndGroup();
+
+						// Move cursor to the next column
+						ImGui::SetCursorScreenPos({ ImGui::GetItemRectMax().x + style.ItemSpacing.x, ImGui::GetItemRectMin().y });
+
+						// Begin region for node content
+						ImGui::BeginGroup();
+
 						// set cursor back, update
 						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetTextLineHeight());
 						m_paNodes[i]->Update();
-						//ImNodes::Ez::InputSlots(node.inputs, 1);
-						//ImNodes::Ez::OutputSlots(node.outputs, 1);
+
+						// End region of node content
+						ImGui::EndGroup();
+
+						// Render output slots in the next column
+						ImGui::SetCursorScreenPos({ ImGui::GetItemRectMax().x + style.ItemSpacing.x, ImGui::GetItemRectMin().y });
+						ImGui::BeginGroup();
+						{
+							int nSum = (int)m_paNodes[i]->m_paCommanders.size();
+							for (int j = 0; j < nSum; j++)
+							{
+								// create slot
+								ImNodes::Ez::Slot(m_paNodes[i]->m_paCommanders[j]->m_szTitleA, ImNodes::OutputSlotKind((int)m_paNodes[i]->m_paCommanders[j]->m_ePlugtype));
+							}
+
+							// provoker
+							if (m_paNodes[i]->HasProvoker())
+								ImNodes::Ez::Slot(szProvoke, ImNodes::OutputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+						}
+						ImGui::EndGroup();
+						
 						ImNodes::Ez::EndNode();
 					}
 				}

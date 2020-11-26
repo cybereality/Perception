@@ -472,4 +472,24 @@ void NOD_Basic::VerifyConnections(std::vector<NOD_Basic*>* ppaNodes)
 	}
 }
 
+/**
+* Convert all strings (both commanders and decommanders).
+**/
+void NOD_Basic::ConvertStrings()
+{
+	for (std::vector<NOD_Decommander*>::size_type i = 0; i != m_paDecommanders.size(); i++)
+	{
+		int nLength = wcslen(m_paDecommanders[i]->m_szTitle);
+		if (nLength > 32) nLength = 32;
+		for (size_t j = 0; j < (size_t)nLength; j++) m_paDecommanders[i]->m_szTitleA[j] = (char)m_paDecommanders[i]->m_szTitle[j];
+	}
+
+	for (std::vector<NOD_Commander*>::size_type i = 0; i != m_paCommanders.size(); i++)
+	{
+		int nLength = wcslen(m_paCommanders[i]->m_szTitle);
+		if (nLength > 32) nLength = 32;
+		for (size_t j = 0; j < (size_t)nLength; j++) m_paCommanders[i]->m_szTitleA[j] = (char)m_paCommanders[i]->m_szTitle[j];
+	}
+}
+
 

@@ -80,7 +80,7 @@ inline std::string GetClipboardText()
 /**
 * The current control beahvior of a node.
 ***/
-enum AQU_NodeBehavior
+enum class AQU_NodeBehavior
 {
 	Inactive,
 	Translate,
@@ -193,6 +193,9 @@ public:
 	virtual void             VerifyConnections(std::vector<NOD_Basic*>* ppaNodes);
 	virtual AQU_NextNodeCall GetNextCycleBehavior() { AQU_NextNodeCall eRet = m_eNextNodeCall; m_eNextNodeCall = AQU_NextNodeCall::DefaultBehavior;	return eRet; }
 	virtual bool             IsFirstDraw() { if (!m_bFirstDraw) { m_bFirstDraw = true; return false; } else return m_bFirstDraw; }
+	virtual bool             HasInvoker() { return ((m_eNodeProvokingType == AQU_NodeProvokingType::Both) || (m_eNodeProvokingType == AQU_NodeProvokingType::OnlyInvoker)); }
+	virtual bool             HasProvoker() { return ((m_eNodeProvokingType == AQU_NodeProvokingType::Both) || (m_eNodeProvokingType == AQU_NodeProvokingType::OnlyProvoker)); }
+	virtual void             ConvertStrings();
 
 	/**
 	* The title text of the node.
