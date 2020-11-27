@@ -35,11 +35,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 enum NOD_Plugtype
 {
+	// plugtypes can be used negative and positive, so zero is no connection
+	AQU_NO_CONNECTION                               = 0,
+
 	// provoker/invoker
 	AQU_PROVOKE                                     = 65535,
 
 	// windows standard data types
-	AQU_BOOL                                        = 0,
 	AQU_BYTE                                        = 1, 
 	AQU_CHAR                                        = 2,
 	AQU_DOUBLE                                      = 3, 
@@ -56,6 +58,7 @@ enum NOD_Plugtype
 	AQU_VOID                                        = 14,
 	AQU_HDC                                         = 15,
 	AQU_WCHAR                                       = 16,
+	AQU_BOOL                                        = 17,
 	AQU_FIXEDPOINTER                                = 64,
 	AQU_SHAREDPOINTER                               = 65,
 

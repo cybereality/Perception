@@ -30,6 +30,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AQU_WORKINGAREA_CLASS
 #define AQU_WORKINGAREA_CLASS
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#   define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include <d3d10_1.h>
 #include <d3d10.h>
 #include <windowsx.h>
@@ -44,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..\dependecies\imgui\imgui_impl_glfw.h"
 #include "..\dependecies\imgui\imgui_impl_opengl3.h"
 #include "..\dependecies\imgui\imgui_internal.h"
-#include "..\dependecies\imgui\ImNodesEz.h"
+#include "..\dependecies\imgui\ImNodes.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "advapi32.lib")

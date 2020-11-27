@@ -271,7 +271,6 @@
     <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\..\dependecies\imgui\ImNodes.cpp" />
-    <ClCompile Include="..\..\dependecies\imgui\ImNodesEz.cpp" />
     <ClCompile Include="..\Aquilinus.cpp" />
     <ClInclude Include="..\..\dependecies\imgui\imconfig.h" />
     <ClInclude Include="..\..\dependecies\imgui\imgui.h" />
@@ -280,7 +279,6 @@
     <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h" />
     <ClInclude Include="..\..\dependecies\imgui\ImNodes.h" />
-    <ClInclude Include="..\..\dependecies\imgui\ImNodesEz.h" />
     <ClInclude Include="..\..\dependecies\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\..\dependecies\imgui\imstb_textedit.h" />
     <ClInclude Include="..\..\dependecies\imgui\imstb_truetype.h" />

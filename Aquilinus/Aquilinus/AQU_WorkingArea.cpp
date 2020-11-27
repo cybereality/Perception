@@ -527,7 +527,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						std::string acSelectableA;
 						for (wchar_t c : acSelectableW) acSelectableA += (char)c;
 						ImGui::Selectable(acSelectableA.c_str(), (m_nDataSheetEntrySelection == (int)i) && (m_nDataSheetCategorySelection == (int)h));
-						
+
 						// sub entries ?
 						if (m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber > 0)
 						{
@@ -558,7 +558,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 							// set interface + method as info text
 							ImGui::Text("%s::%s", acTitleA.c_str(), acSelectableA.c_str());
-							
+
 							// create ImNodes compatible payload data (empty... just for compatiblity)
 							struct _DragConnectionPayload
 							{
@@ -575,7 +575,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							ImGui::EndDragDropSource();
 						}
 
-						
+
 					}
 				}
 
@@ -707,63 +707,85 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 #pragma endregion
 #pragma region connectors + nodes
-								
+
 				// update / draw the nodes
 				for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
 				{
-					if (ImNodes::Ez::BeginNode(&m_paNodes[i], " ", &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
+					if (ImNodes::BeginNode(&m_paNodes[i], &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
 					{
-						const auto& style = ImGui::GetStyle();
-						static LPCSTR szInvoke = "invoke";
-						static LPCSTR szProvoke = "provoke";
+						// set node size X ... add space for slots
+						ImVec2 sSize = m_paNodes[i]->GetNodeSize();
+						sSize.x += m_paNodes[i]->GetSlotSpace();
+						sSize.y = 0.f;
+						ImGui::ItemSize(sSize);
 
-						// Render input slots
+						// set size state, center node title
+						auto* storage = ImGui::GetStateStorage();
+						float node_width = sSize.x;
+						storage->SetFloat(ImGui::GetID("node-width"), node_width);
+						if (node_width > 0)
+						{
+							// center node title
+							ImVec2 title_size = m_paNodes[i]->GetNodeHeaderTextSize();
+							if (node_width > title_size.x)
+								ImGui::SetCursorPosX(ImGui::GetCursorPosX() + node_width / 2.f - title_size.x / 2.f);
+						}
+
+						// Update node and render node title.. 
+						m_paNodes[i]->Update();
+						ImGui::BeginGroup();
+
+						// backup cursor position
+						ImVec2 sPos = ImGui::GetCursorPos();
+
 						ImGui::BeginGroup();
 						{
+							// decommander slots
 							int nSum = (int)m_paNodes[i]->m_paDecommanders.size();
 							for (int j = 0; j < nSum; j++)
 							{
 								// create slot
-								ImNodes::Ez::Slot(m_paNodes[i]->m_paDecommanders[j]->m_szTitleA, ImNodes::InputSlotKind((int)m_paNodes[i]->m_paDecommanders[j]->m_ePlugtype));
+								ImNodes::BeginSlot(m_paNodes[i]->m_paDecommanders[j]->m_szTitleA, ImNodes::InputSlotKind((int)m_paNodes[i]->m_paDecommanders[j]->m_ePlugtype));
+								m_paNodes[i]->InputSlot(m_paNodes[i]->m_paDecommanders[j]->m_szTitleA, ImNodes::InputSlotKind((int)m_paNodes[i]->m_paDecommanders[j]->m_ePlugtype));
+								ImNodes::EndSlot();
 							}
 
 							// invoker
 							if (m_paNodes[i]->HasInvoker())
-								ImNodes::Ez::Slot(szInvoke, ImNodes::InputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+							{
+								ImNodes::BeginSlot("Invoke", ImNodes::InputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+								m_paNodes[i]->InputSlot("Invoke", ImNodes::InputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+								ImNodes::EndSlot();
+							}
 						}
 						ImGui::EndGroup();
 
-						// Move cursor to the next column
-						ImGui::SetCursorScreenPos({ ImGui::GetItemRectMax().x + style.ItemSpacing.x, ImGui::GetItemRectMin().y });
+						// reset cursor position
+						ImGui::SetCursorPos(sPos);
 
-						// Begin region for node content
-						ImGui::BeginGroup();
-
-						// set cursor back, update
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetTextLineHeight());
-						m_paNodes[i]->Update();
-
-						// End region of node content
-						ImGui::EndGroup();
-
-						// Render output slots in the next column
-						ImGui::SetCursorScreenPos({ ImGui::GetItemRectMax().x + style.ItemSpacing.x, ImGui::GetItemRectMin().y });
 						ImGui::BeginGroup();
 						{
 							int nSum = (int)m_paNodes[i]->m_paCommanders.size();
 							for (int j = 0; j < nSum; j++)
 							{
 								// create slot
-								ImNodes::Ez::Slot(m_paNodes[i]->m_paCommanders[j]->m_szTitleA, ImNodes::OutputSlotKind((int)m_paNodes[i]->m_paCommanders[j]->m_ePlugtype));
+								ImNodes::BeginSlot(m_paNodes[i]->m_paCommanders[j]->m_szTitleA, ImNodes::OutputSlotKind((int)m_paNodes[i]->m_paCommanders[j]->m_ePlugtype));
+								m_paNodes[i]->OutputSlot(m_paNodes[i]->m_paCommanders[j]->m_szTitleA, ImNodes::OutputSlotKind((int)m_paNodes[i]->m_paCommanders[j]->m_ePlugtype));
+								ImNodes::EndSlot();
 							}
 
 							// provoker
 							if (m_paNodes[i]->HasProvoker())
-								ImNodes::Ez::Slot(szProvoke, ImNodes::OutputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+							{
+								ImNodes::BeginSlot("Provoke", ImNodes::OutputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+								m_paNodes[i]->OutputSlot("Provoke", ImNodes::OutputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+								ImNodes::EndSlot();
+							}
 						}
 						ImGui::EndGroup();
-						
-						ImNodes::Ez::EndNode();
+
+						ImGui::EndGroup();
+						ImNodes::EndNode();
 					}
 				}
 
@@ -775,7 +797,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			ImGui::End();
 
 #pragma endregion
-			
+
 			ImGui::PopFont();
 		}
 		else

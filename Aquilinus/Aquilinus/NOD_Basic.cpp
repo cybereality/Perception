@@ -60,6 +60,9 @@ NOD_Basic::NOD_Basic(LONG nX, LONG nY, LONG nWidth, LONG nHeight)
 	m_acTitleA = std::string();
 	m_bActive = false;
 
+	// slot space
+	m_fSlotSpace = 200.f;
+
 	m_fZoom = 1.0f;
 	m_vecLocalMouseCursor.x = 0;
 	m_vecLocalMouseCursor.y = 0;
@@ -234,6 +237,93 @@ bool NOD_Basic::SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod)
 {
 	// basic node supports any device, interface and its methods, so return >true<
 	return true;
+}
+
+/**
+* Node input slot/link/connection. TODO !! ZOOM
+***/
+void NOD_Basic::InputSlot(const char* title, int kind) 
+{
+	// set cursor
+	const auto& style = ImGui::GetStyle();
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() - style.ItemSpacing.x); //  * zoom);
+
+	// get text size, connection circle
+	auto* draw_lists = ImGui::GetWindowDrawList();
+	ImVec2 title_size = ImGui::CalcTextSize(title);
+	ImRect circle_rect{
+			ImGui::GetCursorScreenPos(),
+			ImGui::GetCursorScreenPos() + ImVec2{10.f, 10.f}
+	};
+
+	// Vertical-align circle in the middle of the line.
+	float circle_offset_y = title_size.y / 2.f - 5.f;
+	circle_rect.Min.y += circle_offset_y;
+	circle_rect.Max.y += circle_offset_y;
+	draw_lists->AddCircleFilled(circle_rect.GetCenter(), 5.f, 0xffffffff);
+
+	// add item
+	ImGui::ItemSize(circle_rect.GetSize());
+	ImGui::ItemAdd(circle_rect, ImGui::GetID(title));
+
+	// if (bDrawSlotTitles) {} // TODO !!!
+	{
+		ImGui::SameLine();
+		ImGui::TextUnformatted(title);
+	}
+	/*else
+	{
+		ImGui::SameLine();
+		ImGui::TextUnformatted(" ");
+	}*/
+
+	ImGui::SameLine();
+	ImGui::GetCurrentWindow()->DC.CursorMaxPos.x -= style.ItemSpacing.x;
+}
+
+/**
+* Node output slot/link/connection.
+**/
+void NOD_Basic::OutputSlot(const char* title, int kind) 
+{
+	// set cursor
+	const auto& style = ImGui::GetStyle();
+	float fPos = ImGui::GetCursorPosX() + m_fSlotSpace + m_sSize.x + style.ItemSpacing.x;
+	ImVec2 title_size = ImGui::CalcTextSize(title);
+	ImGui::SetCursorPosX(fPos - title_size.x - style.ItemSpacing.x); //  * zoom);
+
+	// if (bDrawSlotTitles) {} // TODO !!!
+	{
+		ImGui::TextUnformatted(title);
+		ImGui::SameLine();
+	}
+	/*else
+	{
+		ImGui::TextUnformatted(" ");
+		ImGui::SameLine();
+	}*/
+
+	ImGui::SetCursorPosX(fPos); //  * zoom);
+
+	// get text size, connection circle
+	auto* draw_lists = ImGui::GetWindowDrawList();
+	ImRect circle_rect{
+			ImGui::GetCursorScreenPos(),
+			ImGui::GetCursorScreenPos() + ImVec2{10.f, 10.f}
+	};
+
+	// Vertical-align circle in the middle of the line.
+	float circle_offset_y = title_size.y / 2.f - 5.f;
+	circle_rect.Min.y += circle_offset_y;
+	circle_rect.Max.y += circle_offset_y;
+	draw_lists->AddCircleFilled(circle_rect.GetCenter(), 5.f, 0xffffffff);
+
+	// add item
+	ImGui::ItemSize(circle_rect.GetSize());
+	ImGui::ItemAdd(circle_rect, ImGui::GetID(title));
+
+	ImGui::SameLine();
+	ImGui::GetCurrentWindow()->DC.CursorMaxPos.x -= style.ItemSpacing.x;
 }
 
 /**
@@ -426,6 +516,19 @@ void* NOD_Basic::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMeth
 
 	return m_pvReturn;
 }
+
+/*
+* Returns the size of the node header text, in case the node has no image header.
+*/
+ImVec2 NOD_Basic::GetNodeHeaderTextSize()
+{
+	// convert title to std::string
+	if (m_acTitleA.length() == 0)
+		for (size_t i = 0; i < wcslen(m_szTitle); i++) m_acTitleA += (char)m_szTitle[i];
+
+	return ImGui::CalcTextSize(m_acTitleA.c_str());
+}
+
 
 /**
 * Provides the size of the save data block.

@@ -30,12 +30,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NOD_BASIC_CLASS
 #define NOD_BASIC_CLASS
 
-#define AQUILINUS_FONT_PIXELSIZE 128
+/*#define AQUILINUS_FONT_PIXELSIZE 128
 #define AQUILINUS_FULL_TEXT_SIZE 1.0f
 #define AQUILINUS_MEDIUM_TEXT_SIZE 0.38f
 #define AQUILINUS_SMALL_TEXT_SIZE 0.25f
 #define AQUILINUS_SMALLER_TEXT_SIZE 0.215f
-#define AQUILINUS_TINY_TEXT_SIZE 0.15f
+#define AQUILINUS_TINY_TEXT_SIZE 0.15f*/
+
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#   define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 
 #include <ddraw.h>
 #include <Windowsx.h>
@@ -45,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <typeinfo>
 #include "AQU_NodesStructures.h"
 #include "..\dependecies\imgui\imgui.h"
+#include "..\dependecies\imgui\imgui_internal.h"
 
 /**
 * Simple clipboard text helper.
@@ -175,6 +180,8 @@ public:
 	virtual void             SetNewIndex(DWORD unIndex);
 	virtual AQU_NodeBehavior WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
+	virtual void             InputSlot(const char* title, int kind);
+	virtual void             OutputSlot(const char* title, int kind);
 	virtual POINT            GetConnectionOrigin();
 	virtual void             ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex);
 	virtual void             ConnectDecommander(NOD_Basic* pNode, LONG nThisNodeIndex, DWORD dwCommanderIndex, DWORD dwDecommanderIndex);
@@ -185,6 +192,8 @@ public:
 	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
 	virtual ImVec2           GetNodePosition() { return m_sPos; }
 	virtual ImVec2           GetNodeSize() { return m_sSize; }
+	virtual ImVec2           GetNodeHeaderTextSize();
+	virtual float            GetSlotSpace() { return m_fSlotSpace; }
 	virtual DWORD            GetSaveDataSize();
 	virtual char*            GetSaveData(UINT* pdwSizeOfData);
 	virtual void             InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
@@ -260,6 +269,10 @@ protected:
 	* Current zoom factor, needed for node translation.
 	***/
 	float m_fZoom;
+	/**
+	* Added to node width, reserved for slots.
+	***/
+	float m_fSlotSpace;
 	/**
 	* Current local mouse cursor position.
 	***/

@@ -804,9 +804,6 @@
     <ClInclude Include="..\..\dependecies\imgui\ImNodes.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\ImNodesEz.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Aquilinus.cpp" />
@@ -925,9 +922,6 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dependecies\imgui\ImNodes.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\ImNodesEz.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
