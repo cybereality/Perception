@@ -711,7 +711,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				// update / draw the nodes
 				for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
 				{
-					if (ImNodes::BeginNode(&m_paNodes[i], &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
+					if (ImNodes::BeginNode((void*)m_paNodes[i], &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
 					{
 						// set node size X ... add space for slots
 						ImVec2 sSize = m_paNodes[i]->GetNodeSize();
@@ -787,10 +787,45 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						ImGui::EndGroup();
 						ImNodes::EndNode();
 					}
+
+					// draw provoker-invoker connections
+					for (std::vector<NOD_Invoker*>::size_type j = 0; j != m_paNodes[i]->m_cProvoker.m_paInvokers.size(); j++)
+					{
+						// get destination node index and update connection
+						LONG lDestNodeIndex = m_paNodes[i]->m_cProvoker.m_paInvokers[j]->m_lNodeIndex;
+						ImNodes::Connection((void*)m_paNodes[lDestNodeIndex], "Invoke", (void*)m_paNodes[i], "Provoke");
+					}
 				}
 
-				// ImNodes::Connection(&nodes[1], "In", &nodes[0], "Out");
-				// ImNodes::Connection(&nodes[2], "In", &nodes[0], "Out");
+				// new connection ?
+				NOD_Basic* pNodeIn = nullptr;
+				NOD_Basic* pNodeOut = nullptr;
+				const char* pcInput_slot = nullptr;
+				const char* pcOutput_slot = nullptr;
+				if (ImNodes::GetNewConnection((void**)&pNodeIn, &pcInput_slot, (void**)&pNodeOut, &pcOutput_slot))
+				{
+					if ((!pNodeIn) || (!pcInput_slot) || (!pNodeOut) || (!pcOutput_slot)) break;
+					std::string acIn = std::string(pcInput_slot);
+					std::string acOut = std::string(pcOutput_slot);
+					OutputDebugStringA(pcInput_slot);
+					if ((acIn.compare("Invoke") == 0) && (acOut.compare("Provoke") == 0))
+					{
+						// get the input node index and connect invoker
+						int nIx = -1;
+						for (int nI = 0; nI < (int)m_paNodes.size(); nI++)
+							if (pNodeIn == m_paNodes[nI]) nIx = nI;
+
+						if (nIx > -1)
+							pNodeOut->ConnectInvoker(pNodeIn, (LONG)nIx);
+						else
+							OutputDebugString(L"Aquilinus: (Error) Node not listed !!");
+					}
+					else
+					{
+
+					}
+
+				}
 
 				ImNodes::EndCanvas();
 			}
