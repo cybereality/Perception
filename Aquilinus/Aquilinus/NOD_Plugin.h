@@ -46,8 +46,7 @@ public:
 	virtual HRESULT          Draw(POINT vcOrigin);
 	virtual AQU_NodeBehavior WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
-	virtual void             ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex);
-	virtual void             ConnectProvoker(NOD_Basic* pNode, LONG nThisNodeIndex);
+	// TODO !! CONNECTION METHODS NEW !!
 	virtual void             ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
 	virtual void             AlignData(LONG nDecommanderIndex, void* pData) { m_pNodus->SetInputPointer((DWORD)nDecommanderIndex, pData); NOD_Basic::AlignData(nDecommanderIndex, pData); }
 	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);

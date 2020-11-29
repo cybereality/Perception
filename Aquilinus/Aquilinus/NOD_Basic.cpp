@@ -337,45 +337,48 @@ POINT NOD_Basic::GetConnectionOrigin()
 }
 
 /**
-* Connects the decommander of this node with the commander of the provided node, if cursor hits its position.
+* Connects the commander of this node with the decommander of the provided node.
 ***/
-void NOD_Basic::ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex)
+void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::string acCommander, std::string acDecommander)
 {
-	if ((m_vecLocalMouseCursor.x < 8) && (pNode))
+	if (!pNode) return;
+	NOD_Commander* psCommander = nullptr;
+	NOD_Decommander* psDecommander = nullptr;
+
+	// get commander, decommander
+	for (NOD_Commander* pC : m_paCommanders) 
+		if (acCommander.compare(pC->m_szTitleA) == 0) psCommander = pC;
+	for (NOD_Decommander* pD : pNode->m_paDecommanders)
+		if (acDecommander.compare(pD->m_szTitleA) == 0) psDecommander = pD;
+
+	if ((psCommander) && (psDecommander))
 	{
-		// mouse cursor is at the left border, so loop through decommanders 
-		for (std::vector<NOD_Decommander*>::size_type i = 0; i != m_paDecommanders.size(); i++)
+		// same plugtype ?
+		if (psCommander->m_ePlugtype == psDecommander->m_ePlugtype)
 		{
-			// is the mouse cursor at a decommander plug and does the decommander share the same connection rule ? (VOID decommander connects to everything)
-			if ((m_vecLocalMouseCursor.y >= m_paDecommanders[i]->m_lNodeYPos) &&
-				(m_vecLocalMouseCursor.y <= (m_paDecommanders[i]->m_lNodeYPos + 4)) &&
-				((pNode->m_paCommanders[pNode->m_nCommanderIndex]->m_ePlugtype == m_paDecommanders[i]->m_ePlugtype) || (m_paDecommanders[i]->m_ePlugtype == NOD_Plugtype::AQU_VOID)))
-			{
-				// set this node index
-				m_paDecommanders[i]->m_lNodeIndex = nThisNodeIndex;
+			// set destination node index
+			psDecommander->m_lNodeIndex = nDestNodeIndex;
 
-				// connect decommander of this node
-				m_paDecommanders[i]->m_paCommanders.push_back(pNode->m_paCommanders[pNode->m_nCommanderIndex]);
+			// connect commander of the connection node
+			psDecommander->m_paCommanders.push_back(psCommander);
 
-				// connect commander of the connection node
-				pNode->m_paCommanders[pNode->m_nCommanderIndex]->m_paDecommanders.push_back(m_paDecommanders[i]);
+			// connect commander of this node
+			psCommander->m_paDecommanders.push_back(psDecommander);
 
-				// set connection node data if it has no provoker !
-				m_paDecommanders[i]->m_pInput = pNode->m_paCommanders[pNode->m_nCommanderIndex]->m_pOutput;
-
-			}
+			// set connection node data if it has no provoker !
+			psDecommander->m_pInput = psCommander->m_pOutput;
 		}
 	}
 }
 
+
 /**
 * Connects the commander of this node with the decommander of the provided node.
-* For loading operations.
 ***/
 void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, DWORD dwCommanderIndex, DWORD dwDecommanderIndex)
 {
-	// does the decommander share the same connection rule ? (VOID decommander connects to everything)
-	if ((m_paCommanders[dwCommanderIndex]->m_ePlugtype == pNode->m_paDecommanders[dwDecommanderIndex]->m_ePlugtype) || (pNode->m_paDecommanders[dwDecommanderIndex]->m_ePlugtype == NOD_Plugtype::AQU_VOID))
+	// does the decommander share the same connection rule ? 
+	if (m_paCommanders[dwCommanderIndex]->m_ePlugtype == pNode->m_paDecommanders[dwDecommanderIndex]->m_ePlugtype)
 	{
 		// set destination node index
 		pNode->m_paDecommanders[dwDecommanderIndex]->m_lNodeIndex = nDestNodeIndex;
@@ -389,39 +392,6 @@ void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, DWORD 
 		// set connection node data if it has no provoker !
 		pNode->m_paDecommanders[dwDecommanderIndex]->m_pInput = m_paCommanders[dwCommanderIndex]->m_pOutput;
 	}
-}
-
-/**
-* Connects the invoker of this node with the provoker of the provided node, if cursor hits its position and the provokers method call is supported.
-***/
-void NOD_Basic::ConnectProvoker(NOD_Basic* pNode, LONG nThisNodeIndex)
-{
-	if (m_vecLocalMouseCursor.x < 8)
-	{
-		// mouse cursor is at the left border, verify invoker
-		if ((m_vecLocalMouseCursor.y >= m_cInvoker.m_lNodeYPos) &&
-			(m_vecLocalMouseCursor.y <= (m_cInvoker.m_lNodeYPos + 4)) &&
-			((m_eNodeProvokingType == AQU_NodeProvokingType::Both) || (m_eNodeProvokingType == AQU_NodeProvokingType::OnlyInvoker)) &&
-			(SupportsD3DMethod(pNode->m_cProvoker.m_eD3D, pNode->m_cProvoker.m_eD3DInterface, pNode->m_cProvoker.m_eD3DMethod)))
-		{
-			// set this node index
-			m_cInvoker.m_lNodeIndex = nThisNodeIndex;
-
-			// connect provoker of the connection node
-			m_cInvoker.m_paProvokers.push_back(&pNode->m_cProvoker);
-			if (m_cInvoker.m_paProvokers.size() == 1)
-			{
-				// set node calling method if this is the first connected provoker
-				m_cProvoker.m_eD3D = pNode->m_cProvoker.m_eD3D;
-				m_cProvoker.m_eD3DInterface = pNode->m_cProvoker.m_eD3DInterface;
-				m_cProvoker.m_eD3DMethod = pNode->m_cProvoker.m_eD3DMethod;
-			}
-
-			// connect invoker of this node
-			pNode->m_cProvoker.m_paInvokers.push_back(&m_cInvoker);
-		}
-	}
-
 }
 
 /**

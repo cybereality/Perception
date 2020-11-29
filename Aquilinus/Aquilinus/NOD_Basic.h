@@ -30,13 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NOD_BASIC_CLASS
 #define NOD_BASIC_CLASS
 
-/*#define AQUILINUS_FONT_PIXELSIZE 128
-#define AQUILINUS_FULL_TEXT_SIZE 1.0f
-#define AQUILINUS_MEDIUM_TEXT_SIZE 0.38f
-#define AQUILINUS_SMALL_TEXT_SIZE 0.25f
-#define AQUILINUS_SMALLER_TEXT_SIZE 0.215f
-#define AQUILINUS_TINY_TEXT_SIZE 0.15f*/
-
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #   define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -183,9 +176,8 @@ public:
 	virtual void             InputSlot(const char* title, int kind);
 	virtual void             OutputSlot(const char* title, int kind);
 	virtual POINT            GetConnectionOrigin();
-	virtual void             ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex);
-	virtual void             ConnectDecommander(NOD_Basic* pNode, LONG nThisNodeIndex, DWORD dwCommanderIndex, DWORD dwDecommanderIndex);
-	virtual void             ConnectProvoker(NOD_Basic* pNode, LONG nThisNodeIndex);
+	virtual void             ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::string acCommander, std::string acDecommander);
+	virtual void             ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, DWORD dwCommanderIndex, DWORD dwDecommanderIndex);
 	virtual void             ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
 	virtual void             AlignData(LONG nDecommanderIndex, void* pData);
 	virtual void*            Provoke(void* pcThis, std::vector<NOD_Basic*>* ppaNodes) { return Provoke(pcThis, m_cProvoker.m_eD3D, m_cProvoker.m_eD3DInterface, m_cProvoker.m_eD3DMethod, ppaNodes); }

@@ -788,6 +788,18 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						ImNodes::EndNode();
 					}
 
+					// draw commander-decommander connections
+					for (std::vector<NOD_Commander*>::size_type j = 0; j != m_paNodes[i]->m_paCommanders.size(); j++)
+					{
+						for (std::vector<NOD_Decommander*>::size_type k = 0; k != m_paNodes[i]->m_paCommanders[j]->m_paDecommanders.size(); k++)
+						{
+							// get destination node index and update connection
+							LONG lDestNodeIndex = m_paNodes[i]->m_paCommanders[j]->m_paDecommanders[k]->m_lNodeIndex;
+							ImNodes::Connection((void*)m_paNodes[lDestNodeIndex], m_paNodes[i]->m_paCommanders[j]->m_paDecommanders[k]->m_szTitleA, 
+								(void*)m_paNodes[i], m_paNodes[i]->m_paCommanders[j]->m_szTitleA);
+						}
+					}
+
 					// draw provoker-invoker connections
 					for (std::vector<NOD_Invoker*>::size_type j = 0; j != m_paNodes[i]->m_cProvoker.m_paInvokers.size(); j++)
 					{
@@ -807,14 +819,15 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					if ((!pNodeIn) || (!pcInput_slot) || (!pNodeOut) || (!pcOutput_slot)) break;
 					std::string acIn = std::string(pcInput_slot);
 					std::string acOut = std::string(pcOutput_slot);
-					OutputDebugStringA(pcInput_slot);
+					
+					// get the input node index 
+					int nIx = -1;
+					for (int nI = 0; nI < (int)m_paNodes.size(); nI++)
+						if (pNodeIn == m_paNodes[nI]) nIx = nI;
+
 					if ((acIn.compare("Invoke") == 0) && (acOut.compare("Provoke") == 0))
 					{
-						// get the input node index and connect invoker
-						int nIx = -1;
-						for (int nI = 0; nI < (int)m_paNodes.size(); nI++)
-							if (pNodeIn == m_paNodes[nI]) nIx = nI;
-
+						// connect invoker
 						if (nIx > -1)
 							pNodeOut->ConnectInvoker(pNodeIn, (LONG)nIx);
 						else
@@ -822,7 +835,11 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					}
 					else
 					{
-
+						// connect decommander
+						if (nIx > -1)
+							pNodeOut->ConnectDecommander(pNodeIn, (LONG)nIx, acOut, acIn);
+						else
+							OutputDebugString(L"Aquilinus: (Error) Node not listed !!");
 					}
 
 				}
@@ -1050,10 +1067,6 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 				m_paNodes[i]->ConnectInvoker(m_paNodes[lNodeIndex], lNodeIndex);
 			}
 		}
-
-		// loop through the nodes again to call the connect commander method 
-		for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
-			m_paNodes[i]->ConnectCommander(nullptr, 0);
 	}
 
 	// set d3d override to false

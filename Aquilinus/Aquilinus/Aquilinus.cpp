@@ -548,10 +548,6 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 					g_paNodes[i]->ConnectInvoker(g_paNodes[lNodeIndex], lNodeIndex);
 				}
 			}
-
-			// loop through the nodes again to call the connect commander method
-			for (std::vector<NOD_Basic*>::size_type i = 0; i != g_paNodes.size(); i++)
-				g_paNodes[i]->ConnectCommander(nullptr, 0);
 		}
 
 		// set d3d override to false

@@ -373,32 +373,6 @@ bool NOD_Plugin::SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod)
 /**
 * Calls super method and sets all plugin input pointers new.
 ***/
-void NOD_Plugin::ConnectCommander(NOD_Basic* pNode, LONG nThisNodeIndex)
-{
-	// call super method
-	NOD_Basic::ConnectCommander(pNode, nThisNodeIndex);
-
-	// loop through decommanders, set input pointer
-	for (std::vector<NOD_Decommander*>::size_type i = 0; i != m_paDecommanders.size(); i++)
-		m_pNodus->SetInputPointer((DWORD)i, m_paDecommanders[i]->m_pInput);
-}
-
-/**
-* Calls super method and sets all plugin input pointers new.
-***/
-void NOD_Plugin::ConnectProvoker(NOD_Basic* pNode, LONG nThisNodeIndex)
-{
-	// loop through decommanders, set input pointer
-	for (std::vector<NOD_Decommander*>::size_type i = 0; i != m_paDecommanders.size(); i++)
-		m_pNodus->SetInputPointer((DWORD)i, m_paDecommanders[i]->m_pInput);
-
-	// call super method
-	NOD_Basic::ConnectProvoker(pNode, nThisNodeIndex);
-}
-
-/**
-* Calls super method and sets all plugin input pointers new.
-***/
 void NOD_Plugin::ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex)
 {
 	// loop through decommanders, set input pointer
