@@ -181,9 +181,9 @@ private:
 	***/
 	float m_fYScale;
 	/**
-	* True if text should be underlined.
+	* Input raw.
 	***/
-	bool m_bUnderline;
+	void* m_apInputRaw[4];
 };
 
 #endif

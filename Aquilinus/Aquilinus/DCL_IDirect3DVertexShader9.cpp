@@ -38,7 +38,7 @@ template<typename T> tstringstream& operator,(tstringstream& tss, T t) { tss << 
 #define OUTPUT_DEBUG_STRING_IDirect3DVertexShader9(...)
 #endif
 #define AQU_IDIRECT3DVERTEXSHADER9_HEADER________(a) if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DVertexShader9[a]) && (m_pcTransferSite->m_ppNOD_IDirect3DVertexShader9[a]->m_cProvoker.m_paInvokers.size() > 0)) {
-#define AQU_IDIRECT3DVERTEXSHADER9_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_IDirect3DVertexShader9[a]->m_paCommanders[b]->m_pOutput = (void*)&c;
+#define AQU_IDIRECT3DVERTEXSHADER9_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_IDirect3DVertexShader9[a]->m_paCommandersTemporary[b]->m_pOutput = (void*)&c;
 #define AQU_IDIRECT3DVERTEXSHADER9_PROVOKE_______(a) m_pcTransferSite->m_bForceD3D = true; void* pvRet = m_pcTransferSite->m_ppNOD_IDirect3DVertexShader9[a]->Provoke((void*)pcThis, m_pcTransferSite->m_ppaNodes); m_pcTransferSite->m_bForceD3D = false;
 #define AQU_IDIRECT3DVERTEXSHADER9_REPLACE_METHOD(a,b) if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DVertexShader9[a]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn){ static b hr = (b)*(b*)pvRet; return hr; } }
 

@@ -42,7 +42,7 @@ template<typename T> tstringstream& operator,(tstringstream& tss, T t) { tss << 
 #endif
 #define AQU_ID3D11DEVICECONTEXT_PRECALL_______(a) if (m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->GetNextCycleBehavior() == AQU_NextNodeCall::DoubleCall)
 #define AQU_ID3D11DEVICECONTEXT_HEADER________(a) m_pcTransferSite->m_dwMainThreadId = GetCurrentThreadId(); if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]) && (m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->m_cProvoker.m_paInvokers.size() > 0)) {
-#define AQU_ID3D11DEVICECONTEXT_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->m_paCommanders[b]->m_pOutput = (void*)&c;
+#define AQU_ID3D11DEVICECONTEXT_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->m_paCommandersTemporary[b]->m_pOutput = (void*)&c;
 #define AQU_ID3D11DEVICECONTEXT_PROVOKE_______(a) m_pcTransferSite->m_bForceD3D = true; void* pvRet = m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->Provoke((void*)pcThis, m_pcTransferSite->m_ppaNodes); m_pcTransferSite->m_bForceD3D = false; 
 #define AQU_ID3D11DEVICECONTEXT_REPLACE_METHOD(a,b) if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn){ static b hr = (b)*(b*)pvRet; return hr; } }
 #define AQU_ID3D11DEVICECONTEXT_REPLACE_VOID__(a) if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_ID3D11DeviceContext[a]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn){ return; } }

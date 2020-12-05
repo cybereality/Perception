@@ -100,7 +100,7 @@ m_dwUpdateCounter(0)
 		for (DWORD i = 0; i < m_pNodus->GetCommandersNumber(); i++)
 		{
 			NOD_Commander* pC = new NOD_Commander();
-			pC->m_ePlugtype = (NOD_Plugtype)m_pNodus->GetCommanderType(i);
+			pC->m_ePlugtype = (int)m_pNodus->GetCommanderType(i);
 			pC->m_szTitle = m_pNodus->GetCommanderName(i);
 			pC->m_pOutput = m_pNodus->GetOutputPointer(i);
 			pC->m_paDecommanders.clear();
@@ -111,7 +111,7 @@ m_dwUpdateCounter(0)
 		for (DWORD i = 0; i < m_pNodus->GetDecommandersNumber(); i++)
 		{
 			NOD_Decommander* pD = new NOD_Decommander();
-			pD->m_ePlugtype = (NOD_Plugtype)m_pNodus->GetDecommanderType(i);
+			pD->m_ePlugtype = (int)m_pNodus->GetDecommanderType(i);
 			pD->m_szTitle = m_pNodus->GetDecommanderName(i);
 			pD->m_pInput = nullptr;
 			pD->m_paCommanders.clear();

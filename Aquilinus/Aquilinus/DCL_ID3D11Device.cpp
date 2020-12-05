@@ -40,7 +40,7 @@ template<typename T> tstringstream& operator,(tstringstream& tss, T t) { tss << 
 #define OUTPUT_DEBUG_STRING_ID3D11Device(...)
 #endif
 #define AQU_ID3D11DEVICE_HEADER________(a) DWORD dwId = GetCurrentThreadId(); auto it = std::find(m_pcTransferSite->m_adwCurrentThreadIds.begin(), m_pcTransferSite->m_adwCurrentThreadIds.end(), dwId); if ((it == m_pcTransferSite->m_adwCurrentThreadIds.end()) && ((dwId != m_pcTransferSite->m_dwMainThreadId) || (!m_pcTransferSite->m_bForceD3D)) && (m_pcTransferSite->m_ppNOD_ID3D11Device[a]) && (m_pcTransferSite->m_ppNOD_ID3D11Device[a]->m_cProvoker.m_paInvokers.size() > 0)) {
-#define AQU_ID3D11DEVICE_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_ID3D11Device[a]->m_paCommanders[b]->m_pOutput = (void*)&c;
+#define AQU_ID3D11DEVICE_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_ID3D11Device[a]->m_paCommandersTemporary[b]->m_pOutput = (void*)&c;
 #define AQU_ID3D11DEVICE_PROVOKE_______(a) it = std::find(m_pcTransferSite->m_adwCurrentThreadIds.begin(), m_pcTransferSite->m_adwCurrentThreadIds.end(), 0); *it = dwId; void* pvRet = m_pcTransferSite->m_ppNOD_ID3D11Device[a]->Provoke((void*)pcThis, m_pcTransferSite->m_ppaNodes); *it = 0;
 #define AQU_ID3D11DEVICE_REPLACE_METHOD(a,b) if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_ID3D11Device[a]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn){ static b hr = (b)*(b*)pvRet; return hr; } }
 #define AQU_ID3D11DEVICE_REPLACE_VOID__(a) if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_ID3D11Device[a]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn){ return; } }

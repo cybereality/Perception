@@ -31,10 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AQU_NODES
 
 #pragma region Node Macros
-#define AQU_D3D_NODE_HEADER___(cl,w,h) class cl : public NOD_Basic { public: cl(LONG nX, LONG nY):NOD_Basic(nX, nY, w, h) { m_paCommanders.clear();
+#define AQU_D3D_NODE_HEADER___(cl,w,h) class cl : public NOD_Basic { public: cl(LONG nX, LONG nY):NOD_Basic(nX, nY, w, h) { m_paCommanders.clear(); m_paCommandersTemporary.clear();  NOD_Commander * pCBunch = new NOD_Commander();
 #define AQU_D3D_NODE_TITLE____(t) { m_szTitle = t; m_eNodeProvokingType = AQU_NodeProvokingType::OnlyProvoker; }
-#define AQU_D3D_NODE_COMMANDER(pt,t) { NOD_Commander * pC = new NOD_Commander(); pC->m_ePlugtype = NOD_Plugtype::pt; pC->m_szTitle = t;	pC->m_paDecommanders.clear(); m_paCommanders.push_back(pC);	}
-#define AQU_D3D_NODE_METHOD___(d,i,m) { m_cProvoker.m_eD3D = AQU_Direct3DVersion::d; m_cProvoker.m_eD3DInterface = i; m_cProvoker.m_eD3DMethod = m; } }  virtual UINT GetNodeTypeId() { return (((UINT)d)<<24)+(((UINT)i)<<16)+(UINT)m; }
+#define AQU_D3D_NODE_COMMANDER(pt,t) { NOD_Commander * pC = new NOD_Commander(); pC->m_ePlugtype = NOD_Plugtype::pt; pC->m_szTitle = t;	pC->m_paDecommanders.clear(); m_paCommandersTemporary.push_back(pC); pCBunch->m_apOutput.push_back((void*)(&pC->m_pOutput)); }
+#define AQU_D3D_NODE_METHOD___(d,i,m) { m_cProvoker.m_eD3D = AQU_Direct3DVersion::d; m_cProvoker.m_eD3DInterface = i; m_cProvoker.m_eD3DMethod = m; } pCBunch->m_ePlugtype = NOD_Plugtype::WireCable(i,m); pCBunch->m_szTitle = L"Cable Wire"; pCBunch->m_paDecommanders.clear(); m_paCommanders.push_back(pCBunch); }  virtual UINT GetNodeTypeId() { return (((UINT)d)<<24)+(((UINT)i)<<16)+(UINT)m; }
 #define AQU_D3D_NODE_FOOTER___ virtual const char* GetNodeType() { return typeid(this).name(); } };
 #pragma endregion
 

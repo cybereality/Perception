@@ -225,6 +225,12 @@ public:
 	***/
 	std::vector<NOD_Commander*> m_paCommanders;
 	/**
+	* Vector to all temporary node commanders.
+	* Must be public since the detour classes will use it.
+	* Temporary commanders can be bunched to single commanders.
+	***/
+	std::vector<NOD_Commander*> m_paCommandersTemporary;
+	/**
 	* The return value for this node.
 	* The type of the return value is determined by the node type.
 	* To be changed in the Provoke() method.

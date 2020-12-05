@@ -185,7 +185,8 @@ struct AquilinusCfg
 	AQU_ProjectStage        eProjectStage;                                    /**< The project stage, defines wether the project has a working area or is complemented and the loading state. **/
 	AQU_InjectionTechniques eInjectionTechnique[MAX_INTERFACES_NUMBER];       /**< The chosen injection technique for each supported D3D interface. ***/
 	DWORD                   dwColorSchemeIndex;                               /**< The current color scheme index. **/
-	DWORD                   dwDetourTimeDelay;                                /**< The delay time for the detour, in milliseconds. The low 4 bits (0..15) value param is the injection repetition **/
+	DWORD                   dwDetourTimeDelay;                                /**< The delay time for the detour, in milliseconds. **/
+	int                     nInjectionRepetition;                            /**< Repeat the injectin process for various times. (0..15) **/
 	BOOL                    bProfileWindow;                                   /**< True if a profile window is present for the current game profile. **/
 	BOOL                    bExternalSave;                                    /**< True if Inicio should save a file path stored in a memory data page. ***/
 	BOOL                    bUseDllPath;                                      /**< True if Aquilinus uses the dll path stored in this->szAquilinusPath, False if it uses the path in User//my games//Aquilnus **/

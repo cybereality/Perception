@@ -34,6 +34,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"VMT_IDirect3DSwapchain9.h"
 #include"Resources.h"
 
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+
 #pragma region font glyph data
 
 /**
@@ -160,8 +163,7 @@ NOD_HelloWorldDx9::NOD_HelloWorldDx9(LONG nX, LONG nY):NOD_Basic(nX, nY, 140, 10
 	m_pcFontTexture(NULL),
 	m_vsFont(NULL),
 	m_psFont(NULL),
-	m_vbFontGlyph(NULL),
-	m_bUnderline(false)
+	m_vbFontGlyph(NULL)
 { 
 	SetRect(&m_rcFont, 0, 0, 0, 0);
 	m_eNodeProvokingType = AQU_NodeProvokingType::Both;
@@ -173,13 +175,20 @@ NOD_HelloWorldDx9::NOD_HelloWorldDx9(LONG nX, LONG nY):NOD_Basic(nX, nY, 140, 10
 	m_paDecommanders.clear();
 	m_szTitle = L"Hello World Dx9"; 
 
-	NOD_Decommander * pD = new NOD_Decommander();
-	pD->m_ePlugtype = NOD_Plugtype::AQU_BOOL;
-	pD->m_szTitle = L"bUnderline";
-	pD->m_pInput = nullptr;
-	pD->m_paCommanders.clear();
-	pD->m_lDecommanderIndex = 0;
-	m_paDecommanders.push_back(pD);
+	{
+		NOD_Decommander* pD = new NOD_Decommander();
+		pD->m_ePlugtype = NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::Present);
+		pD->m_szTitle = L"D3D9::Present";
+		pD->m_pInput = nullptr;
+		pD->m_paCommanders.clear();
+		pD->m_lDecommanderIndex = 0;
+		m_paDecommanders.push_back(pD);
+
+		//AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pSourceRect");
+		//AQU_D3D_NODE_COMMANDER(AQU_PNT_RECT, L"pDestRect");
+		//AQU_D3D_NODE_COMMANDER(AQU_HWND, L"hDestWindowOverride");
+		//AQU_D3D_NODE_COMMANDER(AQU_PNT_RGNDATA, L"pDirtyRegion");
+	}
 }
 
 /**
@@ -207,10 +216,32 @@ bool NOD_HelloWorldDx9::SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DM
 ***/
 void* NOD_HelloWorldDx9::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes)
 {
-	// get node data... cast bool using int to avoid warning C4800
+	// get node data... 
 	if (m_paDecommanders[0]->m_pInput != nullptr)
-		m_bUnderline = (((int*)*(int**)m_paDecommanders[0]->m_pInput)!=0);
-	else m_bUnderline = false;
+	{
+		void** ppIn = (void**)(m_paDecommanders[0]->m_pInput);
+		if (ppIn[0])
+			m_apInputRaw[0] = *(void**)ppIn[0];
+		if (ppIn[1])
+			m_apInputRaw[1] = *(void**)ppIn[1];
+		if (ppIn[2])
+			m_apInputRaw[2] = *(void**)ppIn[2];
+		if (ppIn[3])
+			m_apInputRaw[3] = *(void**)ppIn[3];
+
+		// debug output... this is a test here for wire bunches
+		static bool s_bDebug = false;
+		if (!s_bDebug)
+		{
+			DEBUG_HEX(m_paDecommanders[0]->m_pInput);
+			DEBUG_HEX(m_apInputRaw[0]);
+			DEBUG_HEX(m_apInputRaw[1]);
+			DEBUG_HEX(m_apInputRaw[2]);
+			DEBUG_HEX(m_apInputRaw[3]);
+			s_bDebug = true;
+		}
+	}
+	else ZeroMemory(&m_apInputRaw[0], sizeof(void*)*4);
 
 	// cast device
 	LPDIRECT3DDEVICE9 pcDevice = nullptr;
@@ -493,21 +524,9 @@ HRESULT NOD_HelloWorldDx9::RenderGlyph(LPDIRECT3DDEVICE9 pcDevice,DWORD dwIndex,
 	float fYY = fY-(float(g_HelloWorldFontGlyphes[dwIndex].rcSrc.top)*m_fYScale);
 	float Pos[] = {fX, fYY};
 	m_ctVFont->SetFloatArray(pcDevice,"Pos", Pos, 2);
-
-	// text is to be underlined ?
-	if (m_bUnderline)
-	{
-		// draw glyph
-		pcDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, dwIndex*4, 2);
-
-		// draw underline
-		Pos[1] = fY-(float(g_HelloWorldFontGlyphes[62].rcSrc.top)*m_fYScale);
-		m_ctVFont->SetFloatArray(pcDevice,"Pos", Pos, 2);
-		return pcDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 62*4, 2);
-	}
-	else
-		// draw
-		return pcDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, dwIndex*4, 2);
+	
+	// draw
+	return pcDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, dwIndex*4, 2);
 }
 
 /**

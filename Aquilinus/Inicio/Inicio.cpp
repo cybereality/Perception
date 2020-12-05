@@ -82,7 +82,7 @@ void ImGui_Main()
 			dwDetourTimeDelay = g_pAquilinusConfig->dwDetourTimeDelay;
 		}
 
-		// load the working area basics to inject
+		// load the working area basics to inject... TODO !! INJECTION REPETITION
 		DWORD dwSupportedInterfacesNumber;
 		if (SUCCEEDED(g_pFileManager->LoadWorkingAreaBasics(g_pAquilinusConfig->szWorkspaceFilePath,
 			g_pAquilinusConfig->dwProcessIndex,
@@ -121,7 +121,7 @@ void ImGui_Main()
 			// create the thread
 			g_eInicioStatus = InicioStatus::Injecting;
 			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaLoad;
-			g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+			g_nRepeat = g_pAquilinusConfig->nInjectionRepetition;
 			g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
 			if (g_hInjectionThread == NULL)
 				OutputDebugString(L"Aquilinus : Failed to create injection thread !");
@@ -182,7 +182,7 @@ void ImGui_Main()
 			// create the thread for injection
 			g_eInicioStatus = InicioStatus::Injecting;
 			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::Complemented;
-			g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+			g_nRepeat = g_pAquilinusConfig->nInjectionRepetition;
 			g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
 			if (g_hInjectionThread == NULL)
 				OutputDebugString(L"Aquilinus : Failed to create injection thread !");
@@ -371,6 +371,8 @@ void ImGui_New()
 		default:
 			break;
 		}
+		ImGui::SliderInt("Repeat Injection", &g_pAquilinusConfig->nInjectionRepetition, 0, 15, "%d times");
+		ImGui::SliderInt("Detour Time Delay", (int*)&g_pAquilinusConfig->dwDetourTimeDelay, 0, 15, "%d ms");
 	}
 
 	// selected game
@@ -989,7 +991,6 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 		{
 			OutputDebugString(L"Aquilinus : DLL Not Loaded!");
 		}
-
 		else
 		{
 			OutputDebugString(L"Aquilinus : DLL Loaded!");
@@ -1206,6 +1207,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// always set the detour time delay to zero at startup !
 	g_pAquilinusConfig->dwDetourTimeDelay = 0;
+	g_pAquilinusConfig->nInjectionRepetition = 0;
 
 	// set color scheme
 	ImGui_StyleColorsByScheme();
@@ -1229,7 +1231,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			// create the thread to override the virtual methods table
 			g_eInicioStatus = InicioStatus::Injecting;
 			g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingAreaNew;
-			g_nRepeat = (int)(g_pAquilinusConfig->dwDetourTimeDelay & 15);
+			g_nRepeat = g_pAquilinusConfig->nInjectionRepetition;
 			g_hInjectionThread = CreateThread(NULL, 0, InjectionThread, &g_nRepeat, 0, NULL);
 			if (g_hInjectionThread == NULL)
 			{

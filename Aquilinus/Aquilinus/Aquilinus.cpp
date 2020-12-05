@@ -2209,14 +2209,14 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileA_Detour(LPDIRECT3DSURFACE9 pDestSurf
 		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromFileA;
@@ -2261,14 +2261,14 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileW_Detour(LPDIRECT3DSURFACE9 pDestSurf
 		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromFileW;
@@ -2313,15 +2313,15 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromResourceA_Detour(LPDIRECT3DSURFACE9 pDest
 		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromResourceA;
@@ -2366,15 +2366,15 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromResourceW_Detour(LPDIRECT3DSURFACE9 pDest
 		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromResourceW;
@@ -2419,15 +2419,15 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileInMemory_Detour(LPDIRECT3DSURFACE9 pD
 		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromFileInMemory;
@@ -2471,14 +2471,14 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromSurface_Detour(LPDIRECT3DSURFACE9 pDestSu
 		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromSurface;
@@ -2522,16 +2522,16 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromMemory_Detour(LPDIRECT3DSURFACE9 pDestSur
 		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcMemory]->m_pOutput = (void*)&pSrcMemory;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcFormat]->m_pOutput = (void*)&SrcFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcPitch]->m_pOutput = (void*)&SrcPitch;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcMemory]->m_pOutput = (void*)&pSrcMemory;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcFormat]->m_pOutput = (void*)&SrcFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcPitch]->m_pOutput = (void*)&SrcPitch;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromMemory;
@@ -2576,11 +2576,11 @@ HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FI
 		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveSurfaceToFileA;
@@ -2625,11 +2625,11 @@ HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_F
 		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveSurfaceToFileW;
@@ -2674,11 +2674,11 @@ HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf
 		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveSurfaceToFileInMemory;
@@ -2723,14 +2723,14 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileA_Detour(LPDIRECT3DVOLUME9 pDestVolume
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromFileA;
@@ -2775,14 +2775,14 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileW_Detour(LPDIRECT3DVOLUME9 pDestVolume
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromFileW;
@@ -2827,15 +2827,15 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromResourceA_Detour(LPDIRECT3DVOLUME9 pDestVo
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromResourceA;
@@ -2880,15 +2880,15 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromResourceW_Detour(LPDIRECT3DVOLUME9 pDestVo
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromResourceW;
@@ -2933,15 +2933,15 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileInMemory_Detour(LPDIRECT3DVOLUME9 pDes
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromFileInMemory;
@@ -2986,14 +2986,14 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromVolume_Detour(LPDIRECT3DVOLUME9 pDestVolum
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromVolume;
@@ -3038,17 +3038,17 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromMemory_Detour(LPDIRECT3DVOLUME9 pDestVolum
 		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcMemory]->m_pOutput = (void*)&pSrcMemory;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcFormat]->m_pOutput = (void*)&SrcFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcRowPitch]->m_pOutput = (void*)&SrcRowPitch;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcSlicePitch]->m_pOutput = (void*)&SrcSlicePitch;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcMemory]->m_pOutput = (void*)&pSrcMemory;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcFormat]->m_pOutput = (void*)&SrcFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcRowPitch]->m_pOutput = (void*)&SrcRowPitch;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcSlicePitch]->m_pOutput = (void*)&SrcSlicePitch;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromMemory;
@@ -3093,11 +3093,11 @@ HRESULT WINAPI D3D9_D3DXSaveVolumeToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FIL
 		if (pSrcVolume) pSrcVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveVolumeToFileA;
@@ -3142,11 +3142,11 @@ HRESULT WINAPI D3D9_D3DXSaveVolumeToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_FI
 		if (pSrcVolume) pSrcVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveVolumeToFileW;
@@ -3191,11 +3191,11 @@ HRESULT WINAPI D3D9_D3DXSaveVolumeToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf,
 		if (pSrcVolume) pSrcVolume->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveVolumeToFileInMemory;
@@ -3235,13 +3235,13 @@ HRESULT WINAPI D3D9_D3DXCreateTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT Wid
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTexture;
@@ -3280,12 +3280,12 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTexture;
@@ -3324,14 +3324,14 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UI
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTexture;
@@ -3370,8 +3370,8 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDevice,
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileA;
@@ -3410,8 +3410,8 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDevice,
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileW;
@@ -3450,8 +3450,8 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDev
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileA;
@@ -3490,8 +3490,8 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDev
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileW;
@@ -3530,8 +3530,8 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileA;
@@ -3570,8 +3570,8 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileW;
@@ -3610,9 +3610,9 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 pDev
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceA;
@@ -3651,9 +3651,9 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 pDev
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceW;
@@ -3692,9 +3692,9 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceA;
@@ -3733,9 +3733,9 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceW;
@@ -3774,9 +3774,9 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceA_Detour(LPDIRECT3DDEVICE
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceA;
@@ -3815,9 +3815,9 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceW_Detour(LPDIRECT3DDEVICE
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceW;
@@ -3856,19 +3856,19 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pDevic
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileExA;
@@ -3907,19 +3907,19 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pDevic
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileExW;
@@ -3958,18 +3958,18 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileExA;
@@ -4008,18 +4008,18 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileExW;
@@ -4058,20 +4058,20 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileExA;
@@ -4110,20 +4110,20 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileExW;
@@ -4162,20 +4162,20 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceExA_Detour(LPDIRECT3DDEVICE9 pD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceExA;
@@ -4214,20 +4214,20 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceExW_Detour(LPDIRECT3DDEVICE9 pD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceExW;
@@ -4266,19 +4266,19 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceExA_Detour(LPDIRECT3DDEVICE
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceExA;
@@ -4317,19 +4317,19 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceExW_Detour(LPDIRECT3DDEVICE
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceExW;
@@ -4368,21 +4368,21 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceExA_Detour(LPDIRECT3DDEVI
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceExA;
@@ -4421,21 +4421,21 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceExW_Detour(LPDIRECT3DDEVI
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceExW;
@@ -4473,9 +4473,9 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileInMemory_Detour(LPDIRECT3DDEVICE9 p
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileInMemory;
@@ -4513,9 +4513,9 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileInMemory_Detour(LPDIRECT3DDEVIC
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileInMemory;
@@ -4554,9 +4554,9 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileInMemory_Detour(LPDIRECT3DDEV
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileInMemory;
@@ -4594,20 +4594,20 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEVICE9
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileInMemoryEx;
@@ -4646,19 +4646,19 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEV
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileInMemoryEx;
@@ -4697,21 +4697,21 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx_Detour(LPDIRECT3DD
 	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx;
@@ -4754,10 +4754,10 @@ HRESULT WINAPI D3D9_D3DXSaveTextureToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FI
 		if (pSrcTexture) pSrcTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveTextureToFileA;
@@ -4802,10 +4802,10 @@ HRESULT WINAPI D3D9_D3DXSaveTextureToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_F
 		if (pSrcTexture) pSrcTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveTextureToFileW;
@@ -4850,10 +4850,10 @@ HRESULT WINAPI D3D9_D3DXSaveTextureToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf
 		if (pSrcTexture) pSrcTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveTextureToFileInMemory;
@@ -4897,10 +4897,10 @@ HRESULT WINAPI D3D9_D3DXFilterTexture_Detour(LPDIRECT3DBASETEXTURE9 pBaseTexture
 		if (pBaseTexture) pBaseTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pBaseTexture]->m_pOutput = (void*)&pBaseTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::SrcLevel]->m_pOutput = (void*)&SrcLevel;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pBaseTexture]->m_pOutput = (void*)&pBaseTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcLevel]->m_pOutput = (void*)&SrcLevel;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFilterTexture;
@@ -4945,9 +4945,9 @@ HRESULT WINAPI D3D9_D3DXFillTexture_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFI
 		if (pTexture) pTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillTexture;
@@ -4992,9 +4992,9 @@ HRESULT WINAPI D3D9_D3DXFillCubeTexture_Detour(LPDIRECT3DCUBETEXTURE9 pCubeTextu
 		if (pCubeTexture) pCubeTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pCubeTexture]->m_pOutput = (void*)&pCubeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pCubeTexture]->m_pOutput = (void*)&pCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillCubeTexture;
@@ -5039,9 +5039,9 @@ HRESULT WINAPI D3D9_D3DXFillVolumeTexture_Detour(LPDIRECT3DVOLUMETEXTURE9 pVolum
 		if (pVolumeTexture) pVolumeTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pVolumeTexture]->m_pOutput = (void*)&pVolumeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pVolumeTexture]->m_pOutput = (void*)&pVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillVolumeTexture;
@@ -5086,8 +5086,8 @@ HRESULT WINAPI D3D9_D3DXFillTextureTX_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD3DX
 		if (pTexture) pTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillTextureTX;
@@ -5132,8 +5132,8 @@ HRESULT WINAPI D3D9_D3DXFillCubeTextureTX_Detour(LPDIRECT3DCUBETEXTURE9 pCubeTex
 		if (pCubeTexture) pCubeTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pCubeTexture]->m_pOutput = (void*)&pCubeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pCubeTexture]->m_pOutput = (void*)&pCubeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillCubeTextureTX;
@@ -5178,8 +5178,8 @@ HRESULT WINAPI D3D9_D3DXFillVolumeTextureTX_Detour(LPDIRECT3DVOLUMETEXTURE9 pVol
 		if (pVolumeTexture) pVolumeTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pVolumeTexture]->m_pOutput = (void*)&pVolumeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pVolumeTexture]->m_pOutput = (void*)&pVolumeTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillVolumeTextureTX;
@@ -5224,12 +5224,12 @@ HRESULT WINAPI D3D9_D3DXComputeNormalMap_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD
 		if (pTexture) pTexture->GetDevice(&pcThis);
 
 		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Flags]->m_pOutput = (void*)&Flags;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Channel]->m_pOutput = (void*)&Channel;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommanders[NOD_D3DX9_Commanders::Amplitude]->m_pOutput = (void*)&Amplitude;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Flags]->m_pOutput = (void*)&Flags;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Channel]->m_pOutput = (void*)&Channel;
+		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Amplitude]->m_pOutput = (void*)&Amplitude;
 
 		// overwrite the method id here
 		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXComputeNormalMap;

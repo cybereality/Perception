@@ -50,7 +50,7 @@ AQU_FileManager::AQU_FileManager(bool bCreate) :
 	m_pcProcesses(nullptr)
 {
 
-	// load process file
+	// load process file.. TODO !!! DO NOT LOAD WITHIN AQUILINUS.DLL
 	this->LoadProcessListCSV();
 }
 

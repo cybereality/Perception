@@ -38,7 +38,7 @@ template<typename T> tstringstream& operator,(tstringstream& tss, T t) { tss << 
 #define OUTPUT_DEBUG_STRING_IDirect3DSwapChain9(...)
 #endif
 #define AQU_IDIRECT3DSWAPCHAIN9_HEADER________(a) if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[a]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[a]->m_cProvoker.m_paInvokers.size() > 0)) {
-#define AQU_IDIRECT3DSWAPCHAIN9_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[a]->m_paCommanders[b]->m_pOutput = (void*)&c;
+#define AQU_IDIRECT3DSWAPCHAIN9_SET_DATA______(a,b,c) m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[a]->m_paCommandersTemporary[b]->m_pOutput = (void*)&c;
 #define AQU_IDIRECT3DSWAPCHAIN9_PROVOKE_______(a) m_pcTransferSite->m_bForceD3D = true; void* pvRet = m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[a]->Provoke((void*)pcThis, m_pcTransferSite->m_ppaNodes); m_pcTransferSite->m_bForceD3D = false;
 #define AQU_IDIRECT3DSWAPCHAIN9_REPLACE_METHOD(a,b) if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[a]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn){ static b hr = (b)*(b*)pvRet; return hr; } }
 
@@ -74,8 +74,8 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::QueryInterface(IDirect3DSwapChain9* pcTh
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IUNKNOWN::QueryInterface]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IUNKNOWN::QueryInterface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IUNKNOWN::QueryInterface]->m_paCommanders[0]->m_pOutput = (void*)&riid;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IUNKNOWN::QueryInterface]->m_paCommanders[1]->m_pOutput = (void*)&ppvObj;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IUNKNOWN::QueryInterface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&riid;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IUNKNOWN::QueryInterface]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppvObj;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -137,11 +137,11 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::Present(IDirect3DSwapChain9* pcThis, CON
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommanders[0]->m_pOutput = (void*)&pSourceRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommanders[1]->m_pOutput = (void*)&pDestRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommanders[2]->m_pOutput = (void*)&hDestWindowOverride;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommanders[3]->m_pOutput = (void*)&pDirtyRegion;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommanders[4]->m_pOutput = (void*)&dwFlags;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSourceRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDestRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommandersTemporary[2]->m_pOutput = (void*)&hDestWindowOverride;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDirtyRegion;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::Present]->m_paCommandersTemporary[4]->m_pOutput = (void*)&dwFlags;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -173,7 +173,7 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::GetFrontBufferData(IDirect3DSwapChain9* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData]->m_paCommanders[0]->m_pOutput = (void*)&pDestSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pDestSurface;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -205,9 +205,9 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::GetBackBuffer(IDirect3DSwapChain9* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_paCommanders[0]->m_pOutput = (void*)&iBackBuffer;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_paCommanders[1]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_paCommanders[2]->m_pOutput = (void*)&ppBackBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iBackBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer]->m_paCommandersTemporary[2]->m_pOutput = (void*)&ppBackBuffer;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -239,7 +239,7 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::GetRasterStatus(IDirect3DSwapChain9* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetRasterStatus]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetRasterStatus]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetRasterStatus]->m_paCommanders[0]->m_pOutput = (void*)&pRasterStatus;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetRasterStatus]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pRasterStatus;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -271,7 +271,7 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::GetDisplayMode(IDirect3DSwapChain9* pcTh
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDisplayMode]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDisplayMode]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDisplayMode]->m_paCommanders[0]->m_pOutput = (void*)&pMode;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDisplayMode]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pMode;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -303,7 +303,7 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::GetDevice(IDirect3DSwapChain9* pcThis, I
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDevice]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDevice]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDevice]->m_paCommanders[0]->m_pOutput = (void*)&ppDevice;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetDevice]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppDevice;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -335,7 +335,7 @@ HRESULT WINAPI DCL_IDirect3DSwapChain9::GetPresentParameters(IDirect3DSwapChain9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetPresentParameters]) && (m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetPresentParameters]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetPresentParameters]->m_paCommanders[0]->m_pOutput = (void*)&pPresentationParameters;
+		m_pcTransferSite->m_ppNOD_IDirect3DSwapChain9[VMT_IDIRECT3DSWAPCHAIN9::GetPresentParameters]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pPresentationParameters;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;

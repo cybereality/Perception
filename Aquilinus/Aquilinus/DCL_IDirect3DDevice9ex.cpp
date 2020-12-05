@@ -88,8 +88,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::QueryInterface(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]->m_paCommanders[0]->m_pOutput = (void*)&riid;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]->m_paCommanders[1]->m_pOutput = (void*)&ppvObj;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&riid;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppvObj;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -282,7 +282,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDirect3D(IDirect3DDevice9Ex* pcThis, I
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]->m_paCommanders[0]->m_pOutput = (void*)&ppD3D9;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppD3D9;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -314,7 +314,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDeviceCaps(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]->m_paCommanders[0]->m_pOutput = (void*)&pCaps;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pCaps;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -346,8 +346,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayMode(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_paCommanders[1]->m_pOutput = (void*)&pMode;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pMode;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -379,7 +379,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCreationParameters(IDirect3DDevice9Ex*
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]->m_paCommanders[0]->m_pOutput = (void*)&pParameters;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pParameters;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -411,9 +411,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCursorProperties(IDirect3DDevice9Ex* p
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_paCommanders[0]->m_pOutput = (void*)&XHotSpot;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_paCommanders[1]->m_pOutput = (void*)&YHotSpot;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_paCommanders[2]->m_pOutput = (void*)&pCursorBitmap;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_paCommandersTemporary[0]->m_pOutput = (void*)&XHotSpot;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_paCommandersTemporary[1]->m_pOutput = (void*)&YHotSpot;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pCursorBitmap;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -445,9 +445,9 @@ void WINAPI DCL_IDirect3DDevice9Ex::SetCursorPosition(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_paCommanders[0]->m_pOutput = (void*)&X;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_paCommanders[1]->m_pOutput = (void*)&Y;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_paCommanders[2]->m_pOutput = (void*)&Flags;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_paCommandersTemporary[0]->m_pOutput = (void*)&X;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Y;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Flags;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -475,7 +475,7 @@ BOOL    WINAPI DCL_IDirect3DDevice9Ex::ShowCursor(IDirect3DDevice9Ex* pcThis, BO
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]->m_paCommanders[0]->m_pOutput = (void*)&bShow;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]->m_paCommandersTemporary[0]->m_pOutput = (void*)&bShow;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -507,8 +507,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateAdditionalSwapChain(IDirect3DDevice
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_paCommanders[0]->m_pOutput = (void*)&pPresentationParameters;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_paCommanders[1]->m_pOutput = (void*)&pSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pPresentationParameters;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pSwapChain;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -540,8 +540,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSwapChain(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_paCommanders[1]->m_pOutput = (void*)&pSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pSwapChain;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -602,7 +602,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Reset(IDirect3DDevice9Ex* pcThis, D3DPRES
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]->m_paCommanders[0]->m_pOutput = (void*)&pPresentationParameters;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pPresentationParameters;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -634,10 +634,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Present(IDirect3DDevice9Ex* pcThis, CONST
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommanders[0]->m_pOutput = (void*)&pSourceRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommanders[1]->m_pOutput = (void*)&pDestRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommanders[2]->m_pOutput = (void*)&hDestWindowOverride;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommanders[3]->m_pOutput = (void*)&pDirtyRegion;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSourceRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDestRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[2]->m_pOutput = (void*)&hDestWindowOverride;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDirtyRegion;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -669,10 +669,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetBackBuffer(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommanders[1]->m_pOutput = (void*)&iBackBuffer;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommanders[2]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommanders[3]->m_pOutput = (void*)&ppBackBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommandersTemporary[1]->m_pOutput = (void*)&iBackBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_paCommandersTemporary[3]->m_pOutput = (void*)&ppBackBuffer;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -704,8 +704,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRasterStatus(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_paCommanders[1]->m_pOutput = (void*)&pRasterStatus;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pRasterStatus;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -737,7 +737,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDialogBoxMode(IDirect3DDevice9Ex* pcTh
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]->m_paCommanders[0]->m_pOutput = (void*)&bEnableDialogs;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]->m_paCommandersTemporary[0]->m_pOutput = (void*)&bEnableDialogs;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -769,9 +769,9 @@ void WINAPI DCL_IDirect3DDevice9Ex::SetGammaRamp(IDirect3DDevice9Ex* pcThis, UIN
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_paCommanders[1]->m_pOutput = (void*)&Flags;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_paCommanders[2]->m_pOutput = (void*)&pRamp;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Flags;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pRamp;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -799,8 +799,8 @@ void WINAPI DCL_IDirect3DDevice9Ex::GetGammaRamp(IDirect3DDevice9Ex* pcThis, UIN
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]->m_paCommanders[1]->m_pOutput = (void*)&pRamp;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pRamp;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -828,14 +828,14 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateTexture(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[2]->m_pOutput = (void*)&Levels;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[3]->m_pOutput = (void*)&Usage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[4]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[5]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[6]->m_pOutput = (void*)&ppTexture;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommanders[7]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Levels;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[4]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[6]->m_pOutput = (void*)&ppTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_paCommandersTemporary[7]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -867,15 +867,15 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVolumeTexture(IDirect3DDevice9Ex* p
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[2]->m_pOutput = (void*)&Depth;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[3]->m_pOutput = (void*)&Levels;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[4]->m_pOutput = (void*)&Usage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[5]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[6]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[7]->m_pOutput = (void*)&ppVolumeTexture;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommanders[8]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Depth;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Levels;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[4]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[6]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[7]->m_pOutput = (void*)&ppVolumeTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_paCommandersTemporary[8]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -907,13 +907,13 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateCubeTexture(IDirect3DDevice9Ex* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[0]->m_pOutput = (void*)&EdgeLength;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[1]->m_pOutput = (void*)&Levels;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[2]->m_pOutput = (void*)&Usage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[3]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[4]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[5]->m_pOutput = (void*)&ppCubeTexture;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommanders[6]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[0]->m_pOutput = (void*)&EdgeLength;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Levels;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[4]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[5]->m_pOutput = (void*)&ppCubeTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_paCommandersTemporary[6]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -945,12 +945,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexBuffer(IDirect3DDevice9Ex* pc
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommanders[0]->m_pOutput = (void*)&Length;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommanders[1]->m_pOutput = (void*)&Usage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommanders[2]->m_pOutput = (void*)&FVF;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommanders[3]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommanders[4]->m_pOutput = (void*)&ppVertexBuffer;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommanders[5]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Length;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommandersTemporary[2]->m_pOutput = (void*)&FVF;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommandersTemporary[4]->m_pOutput = (void*)&ppVertexBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_paCommandersTemporary[5]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -982,12 +982,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateIndexBuffer(IDirect3DDevice9Ex* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommanders[0]->m_pOutput = (void*)&Length;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommanders[1]->m_pOutput = (void*)&Usage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommanders[3]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommanders[4]->m_pOutput = (void*)&ppIndexBuffer;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommanders[5]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Length;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommandersTemporary[4]->m_pOutput = (void*)&ppIndexBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_paCommandersTemporary[5]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1019,14 +1019,14 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTarget(IDirect3DDevice9Ex* pc
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[3]->m_pOutput = (void*)&MultiSample;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[4]->m_pOutput = (void*)&MultisampleQuality;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[5]->m_pOutput = (void*)&Lockable;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[6]->m_pOutput = (void*)&ppSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommanders[7]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[3]->m_pOutput = (void*)&MultiSample;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[4]->m_pOutput = (void*)&MultisampleQuality;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Lockable;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[6]->m_pOutput = (void*)&ppSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_paCommandersTemporary[7]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1058,14 +1058,14 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurface(IDirect3DDevice
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[3]->m_pOutput = (void*)&MultiSample;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[4]->m_pOutput = (void*)&MultisampleQuality;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[5]->m_pOutput = (void*)&Discard;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[6]->m_pOutput = (void*)&ppSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommanders[7]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[3]->m_pOutput = (void*)&MultiSample;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[4]->m_pOutput = (void*)&MultisampleQuality;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Discard;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[6]->m_pOutput = (void*)&ppSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_paCommandersTemporary[7]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1097,10 +1097,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateSurface(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommanders[0]->m_pOutput = (void*)&pSourceSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommanders[1]->m_pOutput = (void*)&pSourceRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommanders[2]->m_pOutput = (void*)&pDestinationSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommanders[3]->m_pOutput = (void*)&pDestPoint;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSourceSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pSourceRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pDestinationSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDestPoint;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1132,8 +1132,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateTexture(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_paCommanders[0]->m_pOutput = (void*)&pSourceTexture;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_paCommanders[1]->m_pOutput = (void*)&pDestinationTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSourceTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDestinationTexture;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1165,8 +1165,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTargetData(IDirect3DDevice9Ex* p
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_paCommanders[0]->m_pOutput = (void*)&pRenderTarget;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_paCommanders[1]->m_pOutput = (void*)&pDestSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pRenderTarget;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDestSurface;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1198,8 +1198,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFrontBufferData(IDirect3DDevice9Ex* pc
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_paCommanders[1]->m_pOutput = (void*)&pDestSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDestSurface;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1231,11 +1231,11 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::StretchRect(IDirect3DDevice9Ex* pcThis, I
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommanders[0]->m_pOutput = (void*)&pSourceSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommanders[1]->m_pOutput = (void*)&pSourceRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommanders[2]->m_pOutput = (void*)&pDestSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommanders[3]->m_pOutput = (void*)&pDestRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommanders[4]->m_pOutput = (void*)&Filter;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSourceSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pSourceRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pDestSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDestRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_paCommandersTemporary[4]->m_pOutput = (void*)&Filter;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1267,9 +1267,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ColorFill(IDirect3DDevice9Ex* pcThis, IDi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_paCommanders[0]->m_pOutput = (void*)&pSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_paCommanders[1]->m_pOutput = (void*)&pRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_paCommanders[2]->m_pOutput = (void*)&color;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_paCommandersTemporary[2]->m_pOutput = (void*)&color;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1301,12 +1301,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(IDirect3DDevi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommanders[3]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommanders[4]->m_pOutput = (void*)&ppSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommanders[5]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommandersTemporary[4]->m_pOutput = (void*)&ppSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_paCommandersTemporary[5]->m_pOutput = (void*)&pSharedHandle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1338,8 +1338,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderTarget(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_paCommanders[0]->m_pOutput = (void*)&RenderTargetIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_paCommanders[1]->m_pOutput = (void*)&pRenderTarget;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_paCommandersTemporary[0]->m_pOutput = (void*)&RenderTargetIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pRenderTarget;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1371,8 +1371,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTarget(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_paCommanders[0]->m_pOutput = (void*)&RenderTargetIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_paCommanders[1]->m_pOutput = (void*)&ppRenderTarget;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_paCommandersTemporary[0]->m_pOutput = (void*)&RenderTargetIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppRenderTarget;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1404,7 +1404,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDepthStencilSurface(IDirect3DDevice9Ex
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface]->m_paCommanders[0]->m_pOutput = (void*)&pNewZStencil;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pNewZStencil;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1436,7 +1436,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDepthStencilSurface(IDirect3DDevice9Ex
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface]->m_paCommanders[0]->m_pOutput = (void*)&ppZStencilSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppZStencilSurface;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1526,12 +1526,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Clear(IDirect3DDevice9Ex* pcThis, DWORD C
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommanders[0]->m_pOutput = (void*)&Count;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommanders[1]->m_pOutput = (void*)&pRects;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommanders[2]->m_pOutput = (void*)&Flags;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommanders[3]->m_pOutput = (void*)&Color;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommanders[4]->m_pOutput = (void*)&Z;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommanders[5]->m_pOutput = (void*)&Stencil;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Count;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pRects;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Flags;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Color;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommandersTemporary[4]->m_pOutput = (void*)&Z;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Stencil;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1563,8 +1563,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTransform(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]->m_paCommanders[0]->m_pOutput = (void*)&State;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]->m_paCommanders[1]->m_pOutput = (void*)&pMatrix;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]->m_paCommandersTemporary[0]->m_pOutput = (void*)&State;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pMatrix;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1596,8 +1596,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTransform(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]->m_paCommanders[0]->m_pOutput = (void*)&State;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]->m_paCommanders[1]->m_pOutput = (void*)&pMatrix;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]->m_paCommandersTemporary[0]->m_pOutput = (void*)&State;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pMatrix;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1629,8 +1629,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::MultiplyTransform(IDirect3DDevice9Ex* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_paCommanders[0]->m_pOutput = (void*)&State;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_paCommanders[1]->m_pOutput = (void*)&pMatrix;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_paCommandersTemporary[0]->m_pOutput = (void*)&State;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pMatrix;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1662,7 +1662,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetViewport(IDirect3DDevice9Ex* pcThis, C
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetViewport]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetViewport]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetViewport]->m_paCommanders[0]->m_pOutput = (void*)&pViewport;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetViewport]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pViewport;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1694,7 +1694,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetViewport(IDirect3DDevice9Ex* pcThis, D
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetViewport]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetViewport]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetViewport]->m_paCommanders[0]->m_pOutput = (void*)&pViewport;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetViewport]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pViewport;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1726,7 +1726,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaterial(IDirect3DDevice9Ex* pcThis, C
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetMaterial]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetMaterial]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetMaterial]->m_paCommanders[0]->m_pOutput = (void*)&pMaterial;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetMaterial]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pMaterial;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1758,7 +1758,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaterial(IDirect3DDevice9Ex* pcThis, D
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetMaterial]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetMaterial]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetMaterial]->m_paCommanders[0]->m_pOutput = (void*)&pMaterial;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetMaterial]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pMaterial;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1790,8 +1790,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetLight(IDirect3DDevice9Ex* pcThis, DWOR
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]->m_paCommanders[0]->m_pOutput = (void*)&Index;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]->m_paCommanders[1]->m_pOutput = (void*)&pLight;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Index;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pLight;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1823,8 +1823,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLight(IDirect3DDevice9Ex* pcThis, DWOR
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]->m_paCommanders[0]->m_pOutput = (void*)&Index;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]->m_paCommanders[1]->m_pOutput = (void*)&pLight;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Index;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pLight;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1856,8 +1856,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::LightEnable(IDirect3DDevice9Ex* pcThis, D
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]->m_paCommanders[0]->m_pOutput = (void*)&Index;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]->m_paCommanders[1]->m_pOutput = (void*)&Enable;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Index;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Enable;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1889,8 +1889,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLightEnable(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_paCommanders[0]->m_pOutput = (void*)&Index;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_paCommanders[1]->m_pOutput = (void*)&pEnable;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Index;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pEnable;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1922,8 +1922,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipPlane(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_paCommanders[0]->m_pOutput = (void*)&Index;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_paCommanders[1]->m_pOutput = (void*)&pPlane;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Index;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pPlane;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1955,8 +1955,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipPlane(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_paCommanders[0]->m_pOutput = (void*)&Index;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_paCommanders[1]->m_pOutput = (void*)&pPlane;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Index;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pPlane;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -1988,8 +1988,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderState(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_paCommanders[0]->m_pOutput = (void*)&State;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_paCommanders[1]->m_pOutput = (void*)&Value;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&State;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Value;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2021,8 +2021,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderState(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_paCommanders[0]->m_pOutput = (void*)&State;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_paCommanders[1]->m_pOutput = (void*)&pValue;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&State;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pValue;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2054,8 +2054,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateStateBlock(IDirect3DDevice9Ex* pcTh
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_paCommanders[0]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_paCommanders[1]->m_pOutput = (void*)&ppSB;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppSB;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2116,7 +2116,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndStateBlock(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EndStateBlock]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EndStateBlock]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EndStateBlock]->m_paCommanders[0]->m_pOutput = (void*)&ppSB;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EndStateBlock]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppSB;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2148,7 +2148,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipStatus(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipStatus]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipStatus]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipStatus]->m_paCommanders[0]->m_pOutput = (void*)&pClipStatus;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipStatus]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pClipStatus;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2180,7 +2180,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipStatus(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipStatus]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipStatus]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipStatus]->m_paCommanders[0]->m_pOutput = (void*)&pClipStatus;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipStatus]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pClipStatus;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2212,8 +2212,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTexture(IDirect3DDevice9Ex* pcThis, DW
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]->m_paCommanders[0]->m_pOutput = (void*)&Stage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]->m_paCommanders[1]->m_pOutput = (void*)&ppTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Stage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppTexture;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2245,8 +2245,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTexture(IDirect3DDevice9Ex* pcThis, DW
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]->m_paCommanders[0]->m_pOutput = (void*)&Stage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]->m_paCommanders[1]->m_pOutput = (void*)&pTexture;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Stage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pTexture;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2278,9 +2278,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTextureStageState(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_paCommanders[0]->m_pOutput = (void*)&Stage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_paCommanders[1]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_paCommanders[2]->m_pOutput = (void*)&pValue;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Stage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pValue;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2312,9 +2312,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTextureStageState(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_paCommanders[0]->m_pOutput = (void*)&Stage;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_paCommanders[1]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_paCommanders[2]->m_pOutput = (void*)&Value;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Stage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Value;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2346,9 +2346,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSamplerState(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_paCommanders[0]->m_pOutput = (void*)&Sampler;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_paCommanders[1]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_paCommanders[2]->m_pOutput = (void*)&pValue;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Sampler;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pValue;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2380,9 +2380,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSamplerState(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_paCommanders[0]->m_pOutput = (void*)&Sampler;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_paCommanders[1]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_paCommanders[2]->m_pOutput = (void*)&Value;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Sampler;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Value;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2414,7 +2414,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ValidateDevice(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ValidateDevice]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ValidateDevice]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ValidateDevice]->m_paCommanders[0]->m_pOutput = (void*)&pNumPasses;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ValidateDevice]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pNumPasses;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2446,8 +2446,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPaletteEntries(IDirect3DDevice9Ex* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_paCommanders[0]->m_pOutput = (void*)&PaletteNumber;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_paCommanders[1]->m_pOutput = (void*)&pEntries;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PaletteNumber;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pEntries;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2479,8 +2479,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPaletteEntries(IDirect3DDevice9Ex* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_paCommanders[0]->m_pOutput = (void*)&PaletteNumber;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_paCommanders[1]->m_pOutput = (void*)&pEntries;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PaletteNumber;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pEntries;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2512,7 +2512,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCurrentTexturePalette(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette]->m_paCommanders[0]->m_pOutput = (void*)&PaletteNumber;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PaletteNumber;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2544,7 +2544,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCurrentTexturePalette(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette]->m_paCommanders[0]->m_pOutput = (void*)&PaletteNumber;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PaletteNumber;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2576,7 +2576,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetScissorRect(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetScissorRect]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetScissorRect]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetScissorRect]->m_paCommanders[0]->m_pOutput = (void*)&pRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetScissorRect]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pRect;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2608,7 +2608,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetScissorRect(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetScissorRect]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetScissorRect]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetScissorRect]->m_paCommanders[0]->m_pOutput = (void*)&pRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetScissorRect]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pRect;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2640,7 +2640,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSoftwareVertexProcessing(IDirect3DDevi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing]->m_paCommanders[0]->m_pOutput = (void*)&bSoftware;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing]->m_paCommandersTemporary[0]->m_pOutput = (void*)&bSoftware;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2701,7 +2701,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetNPatchMode(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetNPatchMode]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetNPatchMode]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetNPatchMode]->m_paCommanders[0]->m_pOutput = (void*)&nSegments;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetNPatchMode]->m_paCommandersTemporary[0]->m_pOutput = (void*)&nSegments;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2762,9 +2762,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitive(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_paCommanders[0]->m_pOutput = (void*)&PrimitiveType;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_paCommanders[1]->m_pOutput = (void*)&StartVertex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_paCommanders[2]->m_pOutput = (void*)&PrimitiveCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PrimitiveType;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_paCommandersTemporary[1]->m_pOutput = (void*)&StartVertex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_paCommandersTemporary[2]->m_pOutput = (void*)&PrimitiveCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2796,12 +2796,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitive(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommanders[0]->m_pOutput = (void*)&PrimitiveType;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommanders[1]->m_pOutput = (void*)&BaseVertexIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommanders[2]->m_pOutput = (void*)&MinVertexIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommanders[3]->m_pOutput = (void*)&NumVertices;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommanders[4]->m_pOutput = (void*)&startIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommanders[5]->m_pOutput = (void*)&primCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PrimitiveType;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommandersTemporary[1]->m_pOutput = (void*)&BaseVertexIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommandersTemporary[2]->m_pOutput = (void*)&MinVertexIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommandersTemporary[3]->m_pOutput = (void*)&NumVertices;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommandersTemporary[4]->m_pOutput = (void*)&startIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_paCommandersTemporary[5]->m_pOutput = (void*)&primCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2833,10 +2833,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitiveUP(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommanders[0]->m_pOutput = (void*)&PrimitiveType;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommanders[1]->m_pOutput = (void*)&PrimitiveCount;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommanders[2]->m_pOutput = (void*)&pVertexStreamZeroData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommanders[3]->m_pOutput = (void*)&VertexStreamZeroStride;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PrimitiveType;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommandersTemporary[1]->m_pOutput = (void*)&PrimitiveCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pVertexStreamZeroData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_paCommandersTemporary[3]->m_pOutput = (void*)&VertexStreamZeroStride;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2868,14 +2868,14 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(IDirect3DDevice9Ex
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[0]->m_pOutput = (void*)&PrimitiveType;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[1]->m_pOutput = (void*)&MinVertexIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[2]->m_pOutput = (void*)&NumVertices;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[3]->m_pOutput = (void*)&PrimitiveCount;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[4]->m_pOutput = (void*)&pIndexData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[5]->m_pOutput = (void*)&IndexDataFormat;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[6]->m_pOutput = (void*)&pVertexStreamZeroData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommanders[7]->m_pOutput = (void*)&VertexStreamZeroStride;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[0]->m_pOutput = (void*)&PrimitiveType;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[1]->m_pOutput = (void*)&MinVertexIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[2]->m_pOutput = (void*)&NumVertices;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[3]->m_pOutput = (void*)&PrimitiveCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[4]->m_pOutput = (void*)&pIndexData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[5]->m_pOutput = (void*)&IndexDataFormat;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[6]->m_pOutput = (void*)&pVertexStreamZeroData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_paCommandersTemporary[7]->m_pOutput = (void*)&VertexStreamZeroStride;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2907,12 +2907,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ProcessVertices(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommanders[0]->m_pOutput = (void*)&SrcStartIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommanders[1]->m_pOutput = (void*)&DestIndex;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommanders[2]->m_pOutput = (void*)&VertexCount;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommanders[3]->m_pOutput = (void*)&pDestBuffer;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommanders[4]->m_pOutput = (void*)&pVertexDecl;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommanders[5]->m_pOutput = (void*)&Flags;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommandersTemporary[0]->m_pOutput = (void*)&SrcStartIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommandersTemporary[1]->m_pOutput = (void*)&DestIndex;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommandersTemporary[2]->m_pOutput = (void*)&VertexCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDestBuffer;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommandersTemporary[4]->m_pOutput = (void*)&pVertexDecl;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Flags;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2944,8 +2944,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexDeclaration(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_paCommanders[0]->m_pOutput = (void*)&pVertexElements;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_paCommanders[1]->m_pOutput = (void*)&ppDecl;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pVertexElements;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppDecl;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -2977,7 +2977,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexDeclaration(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration]->m_paCommanders[0]->m_pOutput = (void*)&pDecl;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pDecl;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3009,7 +3009,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexDeclaration(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration]->m_paCommanders[0]->m_pOutput = (void*)&ppDecl;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppDecl;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3041,7 +3041,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetFVF(IDirect3DDevice9Ex* pcThis, DWORD 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetFVF]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetFVF]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetFVF]->m_paCommanders[0]->m_pOutput = (void*)&FVF;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetFVF]->m_paCommandersTemporary[0]->m_pOutput = (void*)&FVF;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3073,7 +3073,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFVF(IDirect3DDevice9Ex* pcThis, DWORD*
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFVF]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFVF]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFVF]->m_paCommanders[0]->m_pOutput = (void*)&pFVF;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFVF]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pFVF;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3106,8 +3106,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_paCommanders[0]->m_pOutput = (void*)&pFunction;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_paCommanders[1]->m_pOutput = (void*)&ppShader;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pFunction;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppShader;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3227,7 +3227,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShader]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShader]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShader]->m_paCommanders[0]->m_pOutput = (void*)&pShader;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShader]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pShader;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3346,7 +3346,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShader(IDirect3DDevice9Ex* pcThi
 	//if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShader]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShader]->m_cProvoker.m_paInvokers.size() > 0))
 	//{
 	//	// set data
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShader]->m_paCommanders[0]->m_pOutput = (void*)&ppShader;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShader]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppShader;
 
 	//	// provoke, set bForceD3D to "true" for any provoking circle
 	//	m_pcTransferSite->m_bForceD3D = true;
@@ -3378,9 +3378,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantF(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_paCommanders[2]->m_pOutput = (void*)&Vector4fCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4fCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3412,9 +3412,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantF(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_paCommanders[2]->m_pOutput = (void*)&Vector4fCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4fCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3446,9 +3446,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantI(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_paCommanders[2]->m_pOutput = (void*)&Vector4iCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4iCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3480,9 +3480,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantI(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_paCommanders[2]->m_pOutput = (void*)&Vector4iCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4iCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3514,9 +3514,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantB(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_paCommanders[2]->m_pOutput = (void*)&BoolCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_paCommandersTemporary[2]->m_pOutput = (void*)&BoolCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3548,9 +3548,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantB(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_paCommanders[2]->m_pOutput = (void*)&BoolCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_paCommandersTemporary[2]->m_pOutput = (void*)&BoolCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3582,10 +3582,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSource(IDirect3DDevice9Ex* pcThi
 	//if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_cProvoker.m_paInvokers.size() > 0))
 	//{
 	//	// set data
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommanders[0]->m_pOutput = (void*)&StreamNumber;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommanders[1]->m_pOutput = (void*)&pStreamData;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommanders[2]->m_pOutput = (void*)&OffsetInBytes;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommanders[3]->m_pOutput = (void*)&Stride;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StreamNumber;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pStreamData;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommandersTemporary[2]->m_pOutput = (void*)&OffsetInBytes;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Stride;
 
 	//	// provoke, set bForceD3D to "true" for any provoking circle
 	//	m_pcTransferSite->m_bForceD3D = true;
@@ -3617,10 +3617,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSource(IDirect3DDevice9Ex* pcThi
 	//if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_cProvoker.m_paInvokers.size() > 0))
 	//{
 	//	// set data
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommanders[0]->m_pOutput = (void*)&StreamNumber;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommanders[1]->m_pOutput = (void*)&ppStreamData;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommanders[2]->m_pOutput = (void*)&pOffsetInBytes;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommanders[3]->m_pOutput = (void*)&pStride;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StreamNumber;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppStreamData;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pOffsetInBytes;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pStride;
 
 	//	// provoke, set bForceD3D to "true" for any provoking circle
 	//	m_pcTransferSite->m_bForceD3D = true;
@@ -3652,8 +3652,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSourceFreq(IDirect3DDevice9Ex* p
 	//if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]->m_cProvoker.m_paInvokers.size() > 0))
 	//{
 	//	// set data
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]->m_paCommanders[0]->m_pOutput = (void*)&StreamNumber;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]->m_paCommanders[1]->m_pOutput = (void*)&Setting;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StreamNumber;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Setting;
 
 	//	// provoke, set bForceD3D to "true" for any provoking circle
 	//	m_pcTransferSite->m_bForceD3D = true;
@@ -3685,8 +3685,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSourceFreq(IDirect3DDevice9Ex* p
 	//if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]->m_cProvoker.m_paInvokers.size() > 0))
 	//{
 	//	// set data
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]->m_paCommanders[0]->m_pOutput = (void*)&StreamNumber;
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]->m_paCommanders[1]->m_pOutput = (void*)&pSetting;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StreamNumber;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pSetting;
 
 	//	// provoke, set bForceD3D to "true" for any provoking circle
 	//	m_pcTransferSite->m_bForceD3D = true;
@@ -3718,7 +3718,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetIndices(IDirect3DDevice9Ex* pcThis, ID
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetIndices]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetIndices]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetIndices]->m_paCommanders[0]->m_pOutput = (void*)&pIndexData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetIndices]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pIndexData;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3750,7 +3750,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetIndices(IDirect3DDevice9Ex* pcThis, ID
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetIndices]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetIndices]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetIndices]->m_paCommanders[0]->m_pOutput = (void*)&ppIndexData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetIndices]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppIndexData;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3784,8 +3784,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]->m_paCommanders[0]->m_pOutput = (void*)&pFunction;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]->m_paCommanders[1]->m_pOutput = (void*)&ppShader;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pFunction;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppShader;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -3906,7 +3906,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShader]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShader]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShader]->m_paCommanders[0]->m_pOutput = (void*)&pShader;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShader]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pShader;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4025,7 +4025,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShader(IDirect3DDevice9Ex* pcThis
 	//if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShader]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShader]->m_cProvoker.m_paInvokers.size() > 0))
 	//{
 	//	// set data
-	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShader]->m_paCommanders[0]->m_pOutput = (void*)&ppShader;
+	//	m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShader]->m_paCommandersTemporary[0]->m_pOutput = (void*)&ppShader;
 
 	//	// provoke, set bForceD3D to "true" for any provoking circle
 	//	m_pcTransferSite->m_bForceD3D = true;
@@ -4057,9 +4057,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantF(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_paCommanders[2]->m_pOutput = (void*)&Vector4fCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4fCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4091,9 +4091,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantF(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_paCommanders[2]->m_pOutput = (void*)&Vector4fCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4fCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4125,9 +4125,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantI(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_paCommanders[2]->m_pOutput = (void*)&Vector4iCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4iCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4159,9 +4159,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantI(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_paCommanders[2]->m_pOutput = (void*)&Vector4iCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Vector4iCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4193,9 +4193,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantB(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_paCommanders[2]->m_pOutput = (void*)&BoolCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_paCommandersTemporary[2]->m_pOutput = (void*)&BoolCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4227,9 +4227,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantB(IDirect3DDevice9E
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_paCommanders[0]->m_pOutput = (void*)&StartRegister;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_paCommanders[1]->m_pOutput = (void*)&pConstantData;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_paCommanders[2]->m_pOutput = (void*)&BoolCount;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_paCommandersTemporary[0]->m_pOutput = (void*)&StartRegister;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pConstantData;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_paCommandersTemporary[2]->m_pOutput = (void*)&BoolCount;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4261,9 +4261,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawRectPatch(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_paCommanders[0]->m_pOutput = (void*)&Handle;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_paCommanders[1]->m_pOutput = (void*)&pNumSegs;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_paCommanders[2]->m_pOutput = (void*)&pRectPatchInfo;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Handle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pNumSegs;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pRectPatchInfo;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4295,9 +4295,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawTriPatch(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_paCommanders[0]->m_pOutput = (void*)&Handle;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_paCommanders[1]->m_pOutput = (void*)&pNumSegs;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_paCommanders[2]->m_pOutput = (void*)&pTriPatchInfo;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Handle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pNumSegs;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pTriPatchInfo;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4329,7 +4329,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DeletePatch(IDirect3DDevice9Ex* pcThis, U
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DeletePatch]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DeletePatch]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DeletePatch]->m_paCommanders[0]->m_pOutput = (void*)&Handle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DeletePatch]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Handle;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4361,8 +4361,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateQuery(IDirect3DDevice9Ex* pcThis, D
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_paCommanders[0]->m_pOutput = (void*)&Type;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_paCommanders[1]->m_pOutput = (void*)&ppQuery;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Type;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_paCommandersTemporary[1]->m_pOutput = (void*)&ppQuery;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4398,10 +4398,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetConvolutionMonoKernel(IDirect3DDevice9
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommanders[0]->m_pOutput = (void*)&width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommanders[1]->m_pOutput = (void*)&height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommanders[2]->m_pOutput = (void*)&rows;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommanders[3]->m_pOutput = (void*)&columns;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommandersTemporary[0]->m_pOutput = (void*)&width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommandersTemporary[1]->m_pOutput = (void*)&height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommandersTemporary[2]->m_pOutput = (void*)&rows;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_paCommandersTemporary[3]->m_pOutput = (void*)&columns;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4433,14 +4433,14 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ComposeRects(IDirect3DDevice9Ex* pcThis, 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[0]->m_pOutput = (void*)&pSrc;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[1]->m_pOutput = (void*)&pDst;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[2]->m_pOutput = (void*)&pSrcRectDescs;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[3]->m_pOutput = (void*)&NumRects;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[4]->m_pOutput = (void*)&pDstRectDescs;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[5]->m_pOutput = (void*)&Operation;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[6]->m_pOutput = (void*)&Xoffset;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommanders[7]->m_pOutput = (void*)&Yoffset;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSrc;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDst;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pSrcRectDescs;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[3]->m_pOutput = (void*)&NumRects;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[4]->m_pOutput = (void*)&pDstRectDescs;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Operation;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[6]->m_pOutput = (void*)&Xoffset;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_paCommandersTemporary[7]->m_pOutput = (void*)&Yoffset;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4472,11 +4472,11 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::PresentEx(IDirect3DDevice9Ex* pcThis, CON
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommanders[0]->m_pOutput = (void*)&pSourceRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommanders[1]->m_pOutput = (void*)&pDestRect;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommanders[2]->m_pOutput = (void*)&hDestWindowOverride;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommanders[3]->m_pOutput = (void*)&pDirtyRegion;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommanders[4]->m_pOutput = (void*)&dwFlags;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pSourceRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pDestRect;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommandersTemporary[2]->m_pOutput = (void*)&hDestWindowOverride;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDirtyRegion;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_paCommandersTemporary[4]->m_pOutput = (void*)&dwFlags;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4508,7 +4508,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetGPUThreadPriority(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetGPUThreadPriority]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetGPUThreadPriority]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetGPUThreadPriority]->m_paCommanders[0]->m_pOutput = (void*)&pPriority;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetGPUThreadPriority]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pPriority;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4540,7 +4540,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetGPUThreadPriority(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetGPUThreadPriority]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetGPUThreadPriority]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetGPUThreadPriority]->m_paCommanders[0]->m_pOutput = (void*)&Priority;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetGPUThreadPriority]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Priority;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4572,7 +4572,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::WaitForVBlank(IDirect3DDevice9Ex* pcThis,
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::WaitForVBlank]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::WaitForVBlank]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::WaitForVBlank]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::WaitForVBlank]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4604,8 +4604,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckResourceResidency(IDirect3DDevice9Ex
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]->m_paCommanders[0]->m_pOutput = (void*)&pResourceArray;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]->m_paCommanders[1]->m_pOutput = (void*)&NumResources;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pResourceArray;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]->m_paCommandersTemporary[1]->m_pOutput = (void*)&NumResources;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4637,7 +4637,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaximumFrameLatency(IDirect3DDevice9Ex
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetMaximumFrameLatency]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetMaximumFrameLatency]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetMaximumFrameLatency]->m_paCommanders[0]->m_pOutput = (void*)&MaxLatency;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetMaximumFrameLatency]->m_paCommandersTemporary[0]->m_pOutput = (void*)&MaxLatency;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4669,7 +4669,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaximumFrameLatency(IDirect3DDevice9Ex
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetMaximumFrameLatency]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetMaximumFrameLatency]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetMaximumFrameLatency]->m_paCommanders[0]->m_pOutput = (void*)&pMaxLatency;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetMaximumFrameLatency]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pMaxLatency;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4701,7 +4701,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckDeviceState(IDirect3DDevice9Ex* pcTh
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckDeviceState]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckDeviceState]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckDeviceState]->m_paCommanders[0]->m_pOutput = (void*)&hDestinationWindow;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckDeviceState]->m_paCommandersTemporary[0]->m_pOutput = (void*)&hDestinationWindow;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4733,15 +4733,15 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTargetEx(IDirect3DDevice9Ex* 
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[3]->m_pOutput = (void*)&MultiSample;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[4]->m_pOutput = (void*)&MultisampleQuality;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[5]->m_pOutput = (void*)&Lockable;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[6]->m_pOutput = (void*)&ppSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[7]->m_pOutput = (void*)&pSharedHandle;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommanders[8]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[3]->m_pOutput = (void*)&MultiSample;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[4]->m_pOutput = (void*)&MultisampleQuality;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Lockable;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[6]->m_pOutput = (void*)&ppSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[7]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_paCommandersTemporary[8]->m_pOutput = (void*)&Usage;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4773,13 +4773,13 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(IDirect3DDe
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[3]->m_pOutput = (void*)&Pool;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[4]->m_pOutput = (void*)&ppSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[5]->m_pOutput = (void*)&pSharedHandle;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommanders[6]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[3]->m_pOutput = (void*)&Pool;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[4]->m_pOutput = (void*)&ppSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[5]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_paCommandersTemporary[6]->m_pOutput = (void*)&Usage;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4811,15 +4811,15 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(IDirect3DDevi
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[0]->m_pOutput = (void*)&Width;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[1]->m_pOutput = (void*)&Height;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[2]->m_pOutput = (void*)&Format;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[3]->m_pOutput = (void*)&MultiSample;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[4]->m_pOutput = (void*)&MultisampleQuality;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[5]->m_pOutput = (void*)&Discard;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[6]->m_pOutput = (void*)&ppSurface;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[7]->m_pOutput = (void*)&pSharedHandle;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommanders[8]->m_pOutput = (void*)&Usage;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[0]->m_pOutput = (void*)&Width;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[1]->m_pOutput = (void*)&Height;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[2]->m_pOutput = (void*)&Format;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[3]->m_pOutput = (void*)&MultiSample;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[4]->m_pOutput = (void*)&MultisampleQuality;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[5]->m_pOutput = (void*)&Discard;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[6]->m_pOutput = (void*)&ppSurface;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[7]->m_pOutput = (void*)&pSharedHandle;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_paCommandersTemporary[8]->m_pOutput = (void*)&Usage;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4851,8 +4851,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ResetEx(IDirect3DDevice9Ex* pcThis, D3DPR
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]->m_paCommanders[0]->m_pOutput = (void*)&pPresentationParameters;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]->m_paCommanders[1]->m_pOutput = (void*)&pFullscreenDisplayMode;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]->m_paCommandersTemporary[0]->m_pOutput = (void*)&pPresentationParameters;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pFullscreenDisplayMode;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
@@ -4884,9 +4884,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayModeEx(IDirect3DDevice9Ex* pcTh
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_cProvoker.m_paInvokers.size() > 0))
 	{
 		// set data
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_paCommanders[0]->m_pOutput = (void*)&iSwapChain;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_paCommanders[1]->m_pOutput = (void*)&pMode;
-		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_paCommanders[2]->m_pOutput = (void*)&pRotation;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_paCommandersTemporary[0]->m_pOutput = (void*)&iSwapChain;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_paCommandersTemporary[1]->m_pOutput = (void*)&pMode;
+		m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_paCommandersTemporary[2]->m_pOutput = (void*)&pRotation;
 
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;

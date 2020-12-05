@@ -353,6 +353,12 @@ void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::s
 
 	if ((psCommander) && (psDecommander))
 	{
+		// verify if bunched commander
+		if (psCommander->m_apOutput.size())
+		{
+			psCommander->m_pOutput = &psCommander->m_apOutput[0];
+		}
+
 		// same plugtype ?
 		if (psCommander->m_ePlugtype == psDecommander->m_ePlugtype)
 		{
@@ -377,6 +383,12 @@ void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::s
 ***/
 void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, DWORD dwCommanderIndex, DWORD dwDecommanderIndex)
 {
+	// verify if bunched commander
+	if (m_paCommanders[dwCommanderIndex]->m_apOutput.size())
+	{
+		m_paCommanders[dwCommanderIndex]->m_pOutput = &m_paCommanders[dwCommanderIndex]->m_apOutput[0];
+	}
+
 	// does the decommander share the same connection rule ? 
 	if (m_paCommanders[dwCommanderIndex]->m_ePlugtype == pNode->m_paDecommanders[dwDecommanderIndex]->m_ePlugtype)
 	{
