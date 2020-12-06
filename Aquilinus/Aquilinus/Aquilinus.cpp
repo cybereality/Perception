@@ -62,9 +62,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"DMT_ID3D11DeviceContext2.h"//#include"DMT_ID3D11DeviceContext3.h"
 
 #pragma region Aquilinus global helpers
-/**
-* Debug console helper function.
-***/
+/// <summary>
+/// Debug console helper
+/// </summary>
 void OutputDebug(char* lpszFormat, ...)
 {
 	char szBuffer[512];
@@ -79,37 +79,42 @@ void OutputDebug(char* lpszFormat, ...)
 	va_end(args);
 }
 
-/**
-* Compare memory mask helper.
-***/
-bool bCompare(const BYTE* pData, const BYTE* bMask, const char* szMask)
+/// <summary>
+/// Memory mask search helper
+/// </summary>
+inline bool bCompare(const BYTE* pData, const BYTE* bMask, const char* szMask)
 {
 	for (; *szMask; ++szMask, ++pData, ++bMask)
 		if ((*szMask == 'x') && (*pData != *bMask))
 			return false;
 
-	// Windows 10 64bit fix : bool always in (..)
+	// put bool always in braces !!
 	return ((*szMask) == NULL);
 }
 
-/**
-* Find memory pattern helper.
-***/
-UINT_PTR FindPattern(UINT_PTR dValor, UINT_PTR dLer, BYTE *bMaskara, char * szMaskara)
+/// <summary>
+/// Memory pattern search helper.
+/// <param name="dValor"></param>
+/// <param name="dLer"></param>
+/// <param name="bMaskara"></param>
+/// <param name="szMaskara"></param>
+/// </summary>
+inline UINT_PTR FindPattern(UINT_PTR dValor, UINT_PTR dLer, BYTE *bMaskara, char * szMaskara)
 {
 	for (UINT_PTR i = 0; i < dLer; i++)
 		if (bCompare((PBYTE)(dValor + i), bMaskara, szMaskara))
-		{
-			OutputDebugString(L"TRUE");
-			DEBUG_HEX(dValor + i);
 			return (UINT_PTR)(dValor + i);
-		}
 	return false;
 }
-/**
-* Find memory twin dword helper.
-***/
-UINT_PTR FindTwinDword(UINT_PTR dValor, DWORD dLer, DWORD dValue, DWORD dSpace)
+
+/// <summary>
+/// Memory pattern search helper.
+/// <param name="dValor"></param>
+/// <param name="dLer"></param>
+/// <param name="dValue"></param>
+/// <param name="dSpace"></param>
+/// </summary>
+inline UINT_PTR FindTwinDword(UINT_PTR dValor, DWORD dLer, DWORD dValue, DWORD dSpace)
 {
 	for (UINT_PTR i = 0; i < dLer; i++)
 		if (((*(UINT_PTR*)(dValor + i)) == dValue) &&
@@ -123,9 +128,12 @@ UINT_PTR FindTwinDword(UINT_PTR dValor, DWORD dLer, DWORD dValue, DWORD dSpace)
 
 #pragma region DllMain and Init
 
-/**
-* Main dll entry point.
-***/
+/// <summary>
+/// => Dll main 
+/// <param name="hinstModule">dll input module</param>
+/// <param name="dwReason">dll input message</param>
+/// <param name="lpvReserved">unused/reserved</param>
+/// </summary>
 BOOL WINAPI DllMain(HINSTANCE hinstModule, DWORD dwReason, LPVOID lpvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
@@ -138,8 +146,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstModule, DWORD dwReason, LPVOID lpvReserved)
 
 			return TRUE;
 		}
-		else
-			MessageBox(nullptr, L"Failed to init Aquilinus", L"Error", 0);
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
@@ -163,9 +169,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstModule, DWORD dwReason, LPVOID lpvReserved)
 	return FALSE;
 }
 
-/**
-* Init Aquilinus fields.
-***/
+/// <summary>
+/// => Init Aquilinus
+/// </summary>
 HRESULT WINAPI AquilinusInit(VOID)
 {
 	// get the config map handle
@@ -197,6 +203,7 @@ HRESULT WINAPI AquilinusInit(VOID)
 		return E_FAIL;
 	}
 
+	// TODO !! set m_bGatherVShaderBySet + m_bGatherPShaderBySet
 	// create the global transfer site class
 	g_pAQU_TransferSite = new AQU_TransferSite(g_pAquilinusConfig);
 	g_pAQU_TransferSite->InitD3DNodes();
@@ -333,9 +340,10 @@ HRESULT WINAPI AquilinusInit(VOID)
 	return S_OK;
 }
 
-/**
-* Creates project window(s).
-***/
+/// <summary>
+/// => Init Project
+/// Create working area. Create new or load project.
+/// </summary>
 HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 {
 	OutputDebugString(L"Aquilinus : Init Project ");
@@ -345,7 +353,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 	case AQU_ProjectStage::WorkingAreaNew:
 		// create the working area class
 		g_pAQU_WorkingArea = new AQU_WorkingArea(hInstance, g_pAQU_TransferSite);
-
+		OutputDebugString(L"Working Area initialized.");
 		// set to working area stage
 		g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingArea;
 		break;
@@ -412,7 +420,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 			// now, ignore the injection techniques
 			DWORD dwSupportedInterfacesNumber;
 			sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-			sstrDataStream.ignore(dwSupportedInterfacesNumber * sizeof(int));
+			sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int64));
 
 			// read the number of nodes, resize node vector
 			UINT dwNodeNumber;
@@ -488,7 +496,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 				// and add the node
 				g_paNodes[i] = pNode;
-				delete pcData;
+				delete [] pcData;
 			}
 
 			delete pProvider;
@@ -572,10 +580,9 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 #pragma region VMT Threads
 
 #pragma region DirectX 9.0
-/**
-* Create D3D9 object detour.
-* Creates D3D9Ex device.
-***/
+/// <summary>
+/// => D3D9 Create D3D Detour
+/// </summary>
 IDirect3D9* WINAPI D3D9_Direct3DCreate9_Detour(UINT SDKVersion)
 {
 	OutputDebugString(L"Aquilinus : D3D9_Direct3DCreate9_Detour");
@@ -590,9 +597,9 @@ IDirect3D9* WINAPI D3D9_Direct3DCreate9_Detour(UINT SDKVersion)
 		return D3D9_Direct3DCreate9_Super(SDKVersion);
 }
 
-/**
-*
-***/
+/// <summary>
+/// => D3D9 Query Interface Detour
+/// </summary>
 HRESULT WINAPI D3D9_QueryInterface_Detour(LPDIRECT3D9 pcD3D, REFIID riid, void** ppvObj)
 {
 	if (!g_pAQU_TransferSite->m_bForceD3D)
@@ -606,7 +613,7 @@ HRESULT WINAPI D3D9_QueryInterface_Detour(LPDIRECT3D9 pcD3D, REFIID riid, void**
 			if (ppvObj == NULL)
 				return E_POINTER;
 
-			pcD3D->AddRef(); // NEED THIS ?
+			pcD3D->AddRef(); // TODO : NEED THIS ?
 			*ppvObj = NULL;
 			return E_NOINTERFACE;
 		}
@@ -615,9 +622,9 @@ HRESULT WINAPI D3D9_QueryInterface_Detour(LPDIRECT3D9 pcD3D, REFIID riid, void**
 	return D3D9_QueryInterface_Super(pcD3D, riid, ppvObj);
 }
 
-/**
-*
-***/
+/// <summary>
+/// D3D9 Method Detour
+/// </summary>
 HRESULT WINAPI D3D9_CheckDeviceType_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DevType, D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 {
 	static HRESULT nHr = S_OK;
@@ -626,9 +633,9 @@ HRESULT WINAPI D3D9_CheckDeviceType_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DD
 	return nHr;
 }
 
-/**
-* Detour for the device format validation method.
-***/
+/// <summary>
+/// D3D9 Method Detour
+/// </summary>
 HRESULT WINAPI D3D9_CheckDeviceFormat_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 {
 	static HRESULT nHr = S_OK;
@@ -636,33 +643,33 @@ HRESULT WINAPI D3D9_CheckDeviceFormat_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3
 	return nHr;
 }
 
-/**
-*
-***/
+/// <summary>
+/// D3D9 Method Detour
+/// </summary>
 HRESULT WINAPI D3D9_CheckDeviceMultiSampleType_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels)
 {
 	return D3D9_CheckDeviceMultiSampleType_Super(pcD3D, Adapter, DeviceType, SurfaceFormat, Windowed, MultiSampleType, pQualityLevels);
 }
 
-/**
-*
-***/
+/// <summary>
+/// D3D9 Method Detour
+/// </summary>
 HRESULT WINAPI D3D9_CheckDepthStencilMatch_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 {
 	return D3D9_CheckDepthStencilMatch_Super(pcD3D, Adapter, DeviceType, AdapterFormat, RenderTargetFormat, DepthStencilFormat);
 }
 
-/**
-* Detour for the device format conversion method.
-***/
+/// <summary>
+/// D3D9 Method Detour
+/// </summary>
 HRESULT WINAPI D3D9_CheckDeviceFormatConversion_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 {
 	return D3D9_CheckDeviceFormatConversion_Super(pcD3D, Adapter, DeviceType, SourceFormat, TargetFormat);
 }
 
-/**
-* Create device detour needed for DirectX 9.0.
-***/
+/// <summary>
+/// => D3D9 Create Device Detour
+/// </summary>
 HRESULT WINAPI D3D9_CreateDevice_Detour(
 	LPDIRECT3D9 pcD3D,
 	UINT Adapter,
@@ -763,9 +770,9 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 	return hr;
 }
 
-/**
-* Creates all data necessary for hooking and finally creates the repatching thread.
-***/
+/// <summary>
+/// => D3D9 Hook
+/// </summary>
 HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
 	// create the aquilinus detour class
@@ -1151,9 +1158,9 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	return hr;
 }
 
-/**
-* Thread detours the d3d9 object.
-***/
+/// <summary>
+/// => D3D9 Super methods
+/// </summary>
 DWORD WINAPI D3D9_Detour(LPVOID Param)
 {
 	D3D9_Direct3DCreate9_Super = (D3D9_Direct3DCreate9)DetourFunc((BYTE*)Direct3DCreate9, (BYTE*)D3D9_Direct3DCreate9_Detour, JMP32_SZ);
@@ -1228,9 +1235,10 @@ DWORD WINAPI D3D9_Detour(LPVOID Param)
 	return 0;
 }
 
-/**
-* Thread to get the d3d9 device by mask.
-***/
+/// <summary>
+/// => D3D9 VMT mask
+/// Thread to get the d3d9 device by mask.
+/// </summary>
 DWORD WINAPI D3D9_VMT_Mask(LPVOID Param)
 {
 	// time delay ?
@@ -1238,7 +1246,7 @@ DWORD WINAPI D3D9_VMT_Mask(LPVOID Param)
 		Sleep(g_pAquilinusConfig->dwDetourTimeDelay);
 
 #ifdef _WIN64
-	// TODO !! 64 bit !!
+	// TODO !! 64 bit ?? any know D3D9 games in 64 bit available ?
 #else
 	// get the root vmtable by pattern search
 	DWORD dwDXDevice = (DWORD)FindPattern((DWORD)GetModuleHandle(L"d3d9.dll"), 0x128000, (PBYTE)"\xC7\x06\x00\x00\x00\x00\x89\x86\x00\x00\x00\x00\x89\x86", "xx????xx????xx");
@@ -1267,23 +1275,25 @@ DWORD WINAPI D3D9_VMT_Mask(LPVOID Param)
 
 	if (D3D9_IDirect3DDevice9_VMTable)
 	{
+		// TODO ! C6011 pcDevice = nullptr; *pcDevice ??
 		// get a device pointer, create all
-		PUINT_PTR pcDevice = nullptr;
+		/*PUINT_PTR pcDevice = nullptr;
 		*pcDevice = (UINT_PTR)D3D9_IDirect3DDevice9_VMTable;
 		D3DPRESENT_PARAMETERS d3dpp;
 		ZeroMemory(&d3dpp, sizeof(d3dpp));
 		d3dpp.Windowed = FALSE;
 		d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
 		d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
-		D3D9_CreateAll(NULL, (LPDIRECT3DDEVICE9)pcDevice, &d3dpp);
+		D3D9_CreateAll(NULL, (LPDIRECT3DDEVICE9)pcDevice, &d3dpp);*/
 	}
 #endif
 	return D3D_OK;
 }
 
-/**
-* Thread to create the virtual method table for DirectX v9.0.
-***/
+/// <summary>
+/// => D3D9 VMT create
+/// Thread to create the virtual method table for DirectX v9.0.
+/// </summary>
 DWORD WINAPI D3D9_VMT_Create(LPVOID Param)
 {
 	UNREFERENCED_PARAMETER(Param);
@@ -1385,9 +1395,10 @@ DWORD WINAPI D3D9_VMT_Create(LPVOID Param)
 	return D3D_OK;
 }
 
-/**
-* Thread to set detour functions.
-***/
+/// <summary>
+/// => D3D9 VMT repatch
+/// Thread to set detour functions.
+/// </summary>
 DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 {
 	UNREFERENCED_PARAMETER(Param);
@@ -1998,74 +2009,6 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 ***/
 DWORD WINAPI D3D11_VMT_Create(LPVOID Param)
 {
-	/*ID3D11Device *pDevice;
-	ID3D11DeviceContext *pImmediateContext;
-
-	// find the window we want to inject
-	//HWND hWnd = FindWindow(NULL, AQU_WINDOW_NAME);
-	//while (!hWnd) hWnd = FindWindow(NULL, AQU_WINDOW_NAME);
-	HWND hWnd = GetForegroundWindow();
-
-	// create a sample device and swapchain
-	IDXGISwapChain* pSwapChain;
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-
-	swapChainDesc.BufferCount = 1;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.OutputWindow = hWnd;
-	swapChainDesc.Windowed = true;//((GetWindowLong(hWnd, GWL_STYLE) & WS_POPUP) != 0) ? false : true;
-
-	// TODO !! WINDOWED/FULLSCREEN SETTING
-
-	D3D_FEATURE_LEVEL  FeatureLevelsRequested = D3D_FEATURE_LEVEL_11_0;
-	UINT               numLevelsRequested = 1;
-	D3D_FEATURE_LEVEL  FeatureLevelsSupported;
-	if (FAILED(D3D11CreateDeviceAndSwapChain(
-	NULL,                    //_In_   IDXGIAdapter *pAdapter,
-	D3D_DRIVER_TYPE_HARDWARE,//_In_   D3D_DRIVER_TYPE DriverType,
-	NULL,                    //_In_   HMODULE Software,
-	0,                       //_In_   UINT Flags,
-	&FeatureLevelsRequested, //_In_   const D3D_FEATURE_LEVEL *pFeatureLevels,
-	numLevelsRequested,      //_In_   UINT FeatureLevels,
-	D3D11_SDK_VERSION,       //_In_   UINT SDKVersion,
-	&swapChainDesc,          //_In_   const DXGI_SWAP_CHAIN_DESC *pSwapChainDesc,
-	&pSwapChain,             //_Out_  IDXGISwapChain **ppSwapChain,
-	&pDevice,                //_Out_  ID3D11Device **ppDevice,
-	&FeatureLevelsSupported, //_Out_  D3D_FEATURE_LEVEL *pFeatureLevel,
-	&pImmediateContext       //_Out_  ID3D11DeviceContext **ppImmediateContext
-	)))
-	{
-	OutputDebug("Failed to create directX device and swapchain!");
-	return E_FAIL;
-	}
-
-	// set the VTable for the swapchain class
-	D3D10_IDXGISwapChain_VMTable = (UINT_PTR*)pSwapChain;
-	D3D10_IDXGISwapChain_VMTable = (UINT_PTR*)D3D10_IDXGISwapChain_VMTable[0];
-
-	// create the aquilinus detour classes
-	pDCL_ID3D11Device = new DCL_ID3D11Device(g_pAQU_TransferSite);
-	pDCL_IDXGISwapChain = new DCL_IDXGISwapChain(g_pAQU_TransferSite);
-	pDCL_ID3D11DeviceContext = new DCL_ID3D11DeviceContext(g_pAQU_TransferSite);
-
-	// set old function pointers
-	if (FAILED(pDCL_IDXGISwapChain->SetSuperFunctionPointers(D3D10_IDXGISwapChain_VMTable)))
-	OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
-
-	// TODO !! HANDLE FAILURE PROPERLY
-
-	pDevice->Release();
-	pSwapChain->Release();
-	pImmediateContext->Release();
-
-	// create the thread to override the virtual methods table
-	if (CreateThread(NULL, 0, D3D11_VMT_Repatch, NULL, 0, NULL) == NULL)
-	return E_FAIL;
-
-	return S_OK;*/
 	return E_NOTIMPL;
 }
 

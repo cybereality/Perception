@@ -27,6 +27,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 26495 )
+
 #include "AQU_GlobalTypes.h"
 #include "AQU_SupportedInterfaces.h"
 #include "AQU_Nodes.h"
@@ -40,11 +44,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 struct AQU_DataSheetEntry
 {
-	LPCWSTR m_szTitle;              /**< The title of the data shed entry. ***/
-	bool m_bIsOpen;                 /**< True if this entry is open, data shed will output the sub entries. ***/
-	DWORD m_dwSubEntriesNumber;     /**< The number of sub-entries this entry has. ***/
-	LPCWSTR * m_paSubEntries;       /**< The sub-entries array. Array size must match m_dwSubEntriesNumber. ***/
-	LONG m_lYHeight;                /**< The current on-screen height of the entry. In window-pixel space. ***/
+	std::wstring m_szTitle;                      /**< The title of the data shed entry. ***/
+	bool m_bIsOpen = false;                      /**< True if this entry is open, data shed will output the sub entries. ***/
+	DWORD m_dwSubEntriesNumber = 0;              /**< The number of sub-entries this entry has. ***/
+	std::vector<std::wstring> m_aacSubEntries;   /**< The sub-entries array. Array size must match m_dwSubEntriesNumber. ***/
+	LONG m_lYHeight = 0;                         /**< The current on-screen height of the entry. In window-pixel space. ***/
 };
 
 /**
@@ -52,9 +56,9 @@ struct AQU_DataSheetEntry
 ***/
 struct AQU_DataSheetCategory
 {
-	LPCWSTR m_szTitle;                            /**< The title of the data shed entry. ***/
-	bool m_bIsOpen;                               /**< True if this entry is open, data shed will output the sub entries. ***/
-	LONG m_lYHeight;                              /**< The current on-screen height of the entry. In window-pixel space. ***/
+	std::wstring m_szTitle;                       /**< The title of the data shed entry. ***/
+	bool m_bIsOpen = false;                       /**< True if this entry is open, data shed will output the sub entries. ***/
+	LONG m_lYHeight = 0;                          /**< The current on-screen height of the entry. In window-pixel space. ***/
 	std::vector<AQU_DataSheetEntry*> m_paEntries; /**< The entries for that category. ***/
 };
 
@@ -75,8 +79,8 @@ public:
 	void RegisterD3DNode(NOD_Basic* pNode, AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces eInterfaceIndex, int nMethodIndex);
 	void RegisterD3DNode(NOD_Basic* pNode, UINT dwID);
 	void UnregisterAllNodes();
-	void RegisterDataSheetVertexShader(LPCWSTR szName, LPCWSTR* pszEntries, UINT dwEntryCount, UINT dwHash);
-	void RegisterDataSheetPixelShader(LPCWSTR szName, LPCWSTR* pszEntries, UINT dwEntryCount, UINT dwHash);
+	void RegisterDataSheetVertexShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwEntryCount, UINT dwHash);
+	void RegisterDataSheetPixelShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwEntryCount, UINT dwHash);
 	bool VertexShaderPresent(UINT dwHash);
 	bool PixelShaderPresent(UINT dwHash);
 

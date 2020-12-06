@@ -27,6 +27,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 26495 )
+
 #ifndef AQU_NODES_STRUCTURES
 #define AQU_NODES_STRUCTURES
 
@@ -2109,9 +2113,10 @@ struct NOD_Decommander
 	/**
 	* The plug type of this decommander.
 	***/
-	int m_ePlugtype;
+	int m_ePlugtype = 0;
 	/**
 	* The title text of the commander.
+	* TODO !! use std::wstring
 	**/
 	LPCWSTR m_szTitle;
 	/**
@@ -2122,7 +2127,7 @@ struct NOD_Decommander
 	* Y Position on the node.
 	* To be determined by the nodes drawing method.
 	***/
-	LONG m_lNodeYPos;
+	LONG m_lNodeYPos = 0;
 	/**
 	* Vector to all connected commanders;
 	***/
@@ -2130,16 +2135,16 @@ struct NOD_Decommander
 	/**
 	* Pointer to input data, depending on type.
 	***/
-	void* m_pInput;
+	void* m_pInput = nullptr;
 	/**
 	* The index of the node this decommander belongs to.
 	***/
-	LONG m_lNodeIndex;
+	LONG m_lNodeIndex = 0;
 	/**
 	* The index of this decommander on the node.
 	* Must be set creating the node.
 	***/
-	LONG m_lDecommanderIndex;
+	LONG m_lDecommanderIndex = 0;
 };
 
 struct NOD_Invoker;

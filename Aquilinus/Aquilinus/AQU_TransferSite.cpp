@@ -314,15 +314,21 @@ void AQU_TransferSite::InitD3DNodes()
 	// ID3D11Device2
 	if(m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device2] != AQU_InjectionTechniques::NoInjection)
 	{
-		m_ppNOD_ID3D11Device2 = new NOD_Basic*[D3D11_ID3D11DEVICE2_METHODS_NUMBER];
-		ZeroMemory(&m_ppNOD_ID3D11Device2[0], sizeof(NOD_Basic*)*D3D11_ID3D11DEVICE2_METHODS_NUMBER);
+		if (D3D11_ID3D11DEVICE2_METHODS_NUMBER)
+		{
+			//m_ppNOD_ID3D11Device2 = new NOD_Basic * [D3D11_ID3D11DEVICE2_METHODS_NUMBER];
+			//ZeroMemory(&m_ppNOD_ID3D11Device2[0], sizeof(NOD_Basic*) * D3D11_ID3D11DEVICE2_METHODS_NUMBER);
+		}
 	}
 
 	// ID3D11Device3
 	if(m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device3] != AQU_InjectionTechniques::NoInjection)
 	{
-		m_ppNOD_ID3D11Device3 = new NOD_Basic*[D3D11_ID3D11DEVICE3_METHODS_NUMBER];
-		ZeroMemory(&m_ppNOD_ID3D11Device3[0], sizeof(NOD_Basic*)*D3D11_ID3D11DEVICE3_METHODS_NUMBER);
+		if (D3D11_ID3D11DEVICE3_METHODS_NUMBER)
+		{
+			//m_ppNOD_ID3D11Device3 = new NOD_Basic * [D3D11_ID3D11DEVICE3_METHODS_NUMBER];
+			//ZeroMemory(&m_ppNOD_ID3D11Device3[0], sizeof(NOD_Basic*) * D3D11_ID3D11DEVICE3_METHODS_NUMBER);
+		}
 	}
 
 	// IDXGISwapChain
@@ -340,17 +346,23 @@ void AQU_TransferSite::InitD3DNodes()
 	}
 
 	// IDXGISwapChain2
-	if(m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain2] != AQU_InjectionTechniques::NoInjection)
+	if (m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain2] != AQU_InjectionTechniques::NoInjection)
 	{
-		m_ppNOD_IDXGISwapChain2 = new NOD_Basic*[DXGI_IDXGISWAPCHAIN2_METHODS_NUMBER];
-		ZeroMemory(&m_ppNOD_IDXGISwapChain2[0], sizeof(NOD_Basic*)*DXGI_IDXGISWAPCHAIN2_METHODS_NUMBER);
+		if (DXGI_IDXGISWAPCHAIN2_METHODS_NUMBER)
+		{
+			//m_ppNOD_IDXGISwapChain2 = new NOD_Basic * [DXGI_IDXGISWAPCHAIN2_METHODS_NUMBER];
+			//ZeroMemory(&m_ppNOD_IDXGISwapChain2[0], sizeof(NOD_Basic*) * DXGI_IDXGISWAPCHAIN2_METHODS_NUMBER);
+		}
 	}
 
 	// IDXGISwapChain3
-	if(m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain3] != AQU_InjectionTechniques::NoInjection)
+	if (m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain3] != AQU_InjectionTechniques::NoInjection)
 	{
-		m_ppNOD_IDXGISwapChain3 = new NOD_Basic*[DXGI_IDXGISWAPCHAIN3_METHODS_NUMBER];
-		ZeroMemory(&m_ppNOD_IDXGISwapChain3[0], sizeof(NOD_Basic*)*DXGI_IDXGISWAPCHAIN3_METHODS_NUMBER);
+		if (DXGI_IDXGISWAPCHAIN3_METHODS_NUMBER)
+		{
+			//m_ppNOD_IDXGISwapChain3 = new NOD_Basic * [DXGI_IDXGISWAPCHAIN3_METHODS_NUMBER];
+			//ZeroMemory(&m_ppNOD_IDXGISwapChain3[0], sizeof(NOD_Basic*) * DXGI_IDXGISWAPCHAIN3_METHODS_NUMBER);
+		}
 	}
 
 	// ID3D11DeviceContext
@@ -368,17 +380,23 @@ void AQU_TransferSite::InitD3DNodes()
 	}
 
 	// ID3D11DeviceContext2
-	if(m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext2] != AQU_InjectionTechniques::NoInjection)
+	if (m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext2] != AQU_InjectionTechniques::NoInjection)
 	{
-		m_ppNOD_ID3D11DeviceContext2 = new NOD_Basic*[D3D11_ID3D11DEVICECONTEXT2_METHODS_NUMBER];
-		ZeroMemory(&m_ppNOD_ID3D11DeviceContext2[0], sizeof(NOD_Basic*)*D3D11_ID3D11DEVICECONTEXT2_METHODS_NUMBER);
+		if (D3D11_ID3D11DEVICECONTEXT2_METHODS_NUMBER)
+		{
+			//m_ppNOD_ID3D11DeviceContext2 = new NOD_Basic * [D3D11_ID3D11DEVICECONTEXT2_METHODS_NUMBER];
+			//ZeroMemory(&m_ppNOD_ID3D11DeviceContext2[0], sizeof(NOD_Basic*) * D3D11_ID3D11DEVICECONTEXT2_METHODS_NUMBER);
+		}
 	}
 
 	// ID3D11DeviceContext3
-	if(m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext3] != AQU_InjectionTechniques::NoInjection)
+	if (m_pConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext3] != AQU_InjectionTechniques::NoInjection)
 	{
-		m_ppNOD_ID3D11DeviceContext3 = new NOD_Basic*[D3D11_ID3D11DEVICECONTEXT3_METHODS_NUMBER];
-		ZeroMemory(&m_ppNOD_ID3D11DeviceContext3[0], sizeof(NOD_Basic*)*D3D11_ID3D11DEVICECONTEXT3_METHODS_NUMBER);
+		if (D3D11_ID3D11DEVICECONTEXT3_METHODS_NUMBER)
+		{
+			//m_ppNOD_ID3D11DeviceContext3 = new NOD_Basic * [D3D11_ID3D11DEVICECONTEXT3_METHODS_NUMBER];
+			//ZeroMemory(&m_ppNOD_ID3D11DeviceContext3[0], sizeof(NOD_Basic*) * D3D11_ID3D11DEVICECONTEXT3_METHODS_NUMBER);
+		}
 	}
 }
 
@@ -914,7 +932,7 @@ void AQU_TransferSite::RegisterD3DNode(NOD_Basic* pNode, UINT dwID)
 			break;
 		}
 	}
-	else if (dwID = D3DOPS_NODE_D3DX9)
+	else if (dwID == D3DOPS_NODE_D3DX9)
 	{
 		m_pNOD_D3DX9 = pNode;
 	}
@@ -1119,7 +1137,7 @@ void AQU_TransferSite::UnregisterAllNodes()
 /**
 * Registers a recorded vertex shader data sheet entry.
 ***/
-void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, LPCWSTR* pszEntries, UINT dwEntryCount, UINT dwHash)
+void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwEntryCount, UINT dwHash)
 {
 	if (m_nVertexShaderTabIndex < 0) return;
 
@@ -1128,7 +1146,7 @@ void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, LPCWSTR* ps
 	pEntry->m_bIsOpen = false;
 	pEntry->m_szTitle = szName;
 	pEntry->m_dwSubEntriesNumber = dwEntryCount;
-	pEntry->m_paSubEntries = pszEntries;
+	pEntry->m_aacSubEntries = pszEntries;
 
 	// add to vertex shader category and hash code table
 	m_paDataSheetCategories[m_nVertexShaderTabIndex]->m_paEntries.push_back(pEntry);
@@ -1138,7 +1156,7 @@ void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, LPCWSTR* ps
 /**
 * Registers a recorded pixel shader data sheet entry.
 ***/
-void AQU_TransferSite::RegisterDataSheetPixelShader(LPCWSTR szName, LPCWSTR* pszEntries, UINT dwEntryCount, UINT dwHash)
+void AQU_TransferSite::RegisterDataSheetPixelShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwEntryCount, UINT dwHash)
 {
 	if (m_nPixelShaderTabIndex < 0) return;
 
@@ -1147,7 +1165,7 @@ void AQU_TransferSite::RegisterDataSheetPixelShader(LPCWSTR szName, LPCWSTR* psz
 	pEntry->m_bIsOpen = false;
 	pEntry->m_szTitle = szName;
 	pEntry->m_dwSubEntriesNumber = dwEntryCount;
-	pEntry->m_paSubEntries = pszEntries;
+	pEntry->m_aacSubEntries = pszEntries;
 
 	// add to pixel shader category and hash code table
 	m_paDataSheetCategories[m_nPixelShaderTabIndex]->m_paEntries.push_back(pEntry);

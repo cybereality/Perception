@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NOD_PLUGIN
 #define NOD_PLUGIN
 
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 26495 )
+
 #include"NOD_Basic.h"
 #include"AQU_GlobalTypes.h"
 
@@ -39,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class NOD_Plugin : public NOD_Basic 
 { 
 public: 
-	NOD_Plugin(LONG nX, LONG nY, LPWSTR szFilePath);
+	NOD_Plugin(LONG nX, LONG nY, std::wstring szFilePath);
 	~NOD_Plugin();
 
 	/*** NOD_Basic public methods ***/

@@ -42,6 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define GLFW_INCLUDE_NONE
 
+#pragma warning( disable : 26812 )
+
 #include <windows.h>
 #include <windowsx.h>
 #include <tlhelp32.h>
@@ -135,10 +137,10 @@ int                       g_nRepeat = 0;                                        
 AQU_Version               g_eVersion;                                                /**< The current version of Aquilinus. Maybe we put that in the configuration... **/
 InicioWindows             g_eCurrentWindow;                                          /**< The current active window. ***/
 bool                      g_bWindowResize;                                           /**< True if main window ought to be resized. **/
-int	                      g_cp_x, g_cp_y;
-int                       g_offset_cpx, g_offset_cpy;
-int                       g_w_posx, g_w_posy;
-int                       g_buttonEvent, g_controlEvent;
+int	                      g_nCpX, g_nCpY;
+int                       g_nOffsetCpX, g_nOffsetCpY;
+int                       g_nWPosX, g_nWPosY;
+int                       g_nButtonEvent, g_nControlEvent;
 #endif
 
 /*** Inicio controls methods ***/
@@ -161,9 +163,9 @@ DWORD   WINAPI   InjectionThread(LPVOID Param);
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
 /*** GL callbacks ***/
-void             viewport_callback(GLFWwindow* window, int width, int height);
-void             cursor_position_callback(GLFWwindow* window, double x, double y);
-void             mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void             Viewport_callback(GLFWwindow* window, int width, int height);
+void             CursorPosition_callback(GLFWwindow* window, double x, double y);
+void             MouseButton_callback(GLFWwindow* window, int button, int action, int mods);
 
 #endif
 

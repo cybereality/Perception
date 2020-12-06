@@ -27,6 +27,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 26495 )
+
 #ifndef AQU_NODES
 #define AQU_NODES
 
@@ -561,9 +565,9 @@ public:
 		}
 	}
 
-	/**
-	* Provides the name of an elementary node.
-	***/
+	/// <summary>
+	///  Provides the name of an elementary node.
+	/// </summary>
 	LPCWSTR Get_Elementary_Node_Name(AQU_ElementaryNodes eName)
 	{
 		switch (eName)
@@ -596,6 +600,48 @@ public:
 			return L"Frame Decal D3D 9.x";
 		case AQU_ElementaryNodes::EN_D3DX9:
 			return L"D3DX9";
+		default:
+			break;
+		}
+
+		return L"Unknown Node Type";
+	}
+
+	/// <summary>
+	///  Provides the description of an elementary node.
+	/// </summary>
+	LPCWSTR Get_Elementary_Node_Desc(AQU_ElementaryNodes eName)
+	{
+		switch (eName)
+		{
+		case AQU_ElementaryNodes::EN_FALSE:
+			return L"Simply outputs false boolean";
+		case AQU_ElementaryNodes::EN_TRUE:
+			return L"Simply outputs true boolean";
+		case AQU_ElementaryNodes::EN_FIXEDFLOAT:
+			return L"A fixed float number created by clipboard";
+		case AQU_ElementaryNodes::EN_FIXEDWSTRING:
+			return L"A fixed string created by clipboard";
+		case AQU_ElementaryNodes::EN_FIXEDINT:
+			return L"A fixed int number created by clipboard";
+		case AQU_ElementaryNodes::EN_FIXEDPOINTER:
+			return L"A fixed cheat engine pointer created by clipboard";
+		case AQU_ElementaryNodes::EN_CONFIGURATION:
+			return L"The Aquilinus configuration - not fully implemented !";
+		case AQU_ElementaryNodes::EN_HELLOWORLDDX9:
+			return L"Text Output within game";
+		case AQU_ElementaryNodes::EN_HELLOWORLDDX10:
+			return L"Text Output within game";
+		case AQU_ElementaryNodes::EN_MATHLOOKAT:
+			return L"Convert euler matrix to lookat matrix";
+		case AQU_ElementaryNodes::EN_DEBUGD3DVECTOR:
+			return L"Debug Output (Vector)";
+		case AQU_ElementaryNodes::EN_DEBUGD3DMATRIX:
+			return L"Debug Output (Matrix)";
+		case AQU_ElementaryNodes::EN_FRAMEDECALDX9:
+			return L"Provides the backbuffer of the game";
+		case AQU_ElementaryNodes::EN_D3DX9:
+			return L"D3DX9 methods node";
 		default:
 			break;
 		}

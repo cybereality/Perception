@@ -28,14 +28,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#pragma warning( disable : 26812 )
+
 #pragma region AQU_WorkingArea include/define
 #include"AQU_WorkingArea.h"
 #include"AQU_2DData.h"
 #include "..\dependecies\imgui\imgui_helpers.h"
 
-
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%d", a); OutputDebugString(buf); }
+#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 
 #define TOP_MENU_FILE_SIZE 80
 #define TOP_MENU_OPTIONS_SIZE 100
@@ -47,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define ZOOM_CONTROL_RIGHT (m_nWindowWidth-20)
 #pragma endregion
 
+/// => Static fields
 #pragma region AQU_WorkingArea static fields
 WNDCLASSEX                                    AQU_WorkingArea::m_wc;
 HWND                                          AQU_WorkingArea::m_hwnd;
@@ -58,9 +61,9 @@ ImVec2                                        AQU_WorkingArea::m_sMouseCursor;
 std::vector<NOD_Basic*>                       AQU_WorkingArea::m_paNodes;
 AQU_WorkingAreaStatus                         AQU_WorkingArea::m_eWorkingAreaStatus;
 AQU_TransferSite* AQU_WorkingArea::m_pcTransferSite;
-std::vector<LPSTR>                            AQU_WorkingArea::m_vcPluginNames;
-std::vector<LPWSTR>                           AQU_WorkingArea::m_vcPluginCategories;
-std::vector<LPWSTR>                           AQU_WorkingArea::m_vcPluginFilePathes;
+std::vector<std::wstring>                     AQU_WorkingArea::m_vcPluginNames;
+std::vector<std::wstring>                     AQU_WorkingArea::m_vcPluginCategories;
+std::vector<std::wstring>                     AQU_WorkingArea::m_vcPluginFilePathes;
 std::vector<UINT>                             AQU_WorkingArea::m_vcPluginIDs;
 std::vector<AQU_Nodus*>                       AQU_WorkingArea::m_vcPlugins;
 std::vector<HMODULE>                          AQU_WorkingArea::m_vcPluginHandles;
@@ -68,19 +71,11 @@ int                                           AQU_WorkingArea::m_nDataSheetCateg
 int                                           AQU_WorkingArea::m_nDataSheetEntrySelection;
 #pragma endregion
 
+/// => Constructor / Destructor
 #pragma region AQU_WorkingArea con-/destructor
-/**
-* Small control helper.
-***/
-bool InRect(RECT rc, POINT pt)
-{
-	return (pt.x >= rc.left) && (pt.y >= rc.top) && (pt.x <= rc.right) && (pt.y <= rc.bottom);
-}
-
-/**
-* Constructor.
-* Sets screen and window size, then creates the workin area window.
-***/
+/// <summary>
+/// Constructor
+/// </summary>
 AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransferSite)
 {
 	// set window size
@@ -99,8 +94,9 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 	m_nDataSheetEntrySelection = -1;
 	m_nDataSheetCategorySelection = -1;
 
+	// TODO !! PLUGINS ENUMERATION
 	// enumerate plugins
-	s_EnumeratePlugins(pcTransferSite->m_pFileManager->GetPluginPath());
+	// s_EnumeratePlugins(pcTransferSite->m_pFileManager->GetPluginPath());
 
 	// clear nodes vector
 	m_paNodes.clear();
@@ -130,7 +126,7 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 			psCategory->m_bIsOpen = false;
 			psCategory->m_paEntries.clear();
 
-			int lenClass = (int)wcslen(psCategory->m_szTitle) + 2;
+			int lenClass = (int)psCategory->m_szTitle.length() + 2;
 
 			// loop through methods
 			for (int j = 0; j < (int)AQU_SUPPORTEDINTERFACES::g_sSupportedInterfaces[i].dwMethodsNumber; j++)
@@ -146,21 +142,12 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 
 					// set title
 					int len = (int)wcslen(pNode->m_szTitle) + 1 - lenClass;
-					if (len > 0)
-					{
-						pEntry->m_szTitle = new wchar_t[len];
-						CopyMemory((void*)&pEntry->m_szTitle[0], (void*)&pNode->m_szTitle[lenClass], len * sizeof(wchar_t));
-					}
+					pEntry->m_szTitle = std::wstring(pNode->m_szTitle, lenClass, len);
 
 					// create sub entries
-					pEntry->m_dwSubEntriesNumber = (DWORD)pNode->m_paCommanders.size();
-					pEntry->m_paSubEntries = new LPCWSTR[pEntry->m_dwSubEntriesNumber];
+					pEntry->m_dwSubEntriesNumber = (DWORD)pNode->m_paCommandersTemporary.size();
 					for (int k = 0; k < (int)pEntry->m_dwSubEntriesNumber; k++)
-					{
-						len = (int)wcslen(pNode->m_paCommanders[k]->m_szTitle) + 1;
-						pEntry->m_paSubEntries[k] = new wchar_t[len];
-						CopyMemory((void*)&pEntry->m_paSubEntries[k][0], (void*)&pNode->m_paCommanders[k]->m_szTitle[0], len * sizeof(wchar_t));
-					}
+						pEntry->m_aacSubEntries.push_back(std::wstring(pNode->m_paCommandersTemporary[k]->m_szTitle));
 
 					// delete node
 					delete pNode;
@@ -208,6 +195,8 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 
 		// get name
 		pEntry->m_szTitle = pProvider->Get_Elementary_Node_Name((AQU_ElementaryNodes)i);
+		pEntry->m_aacSubEntries.push_back(std::wstring(pProvider->Get_Elementary_Node_Desc((AQU_ElementaryNodes)i)));
+		pEntry->m_dwSubEntriesNumber = 1; // TODO !! get rid of this !
 
 		// add entry
 		psCategory->m_paEntries.push_back(pEntry);
@@ -232,7 +221,7 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 		for (int j = (int)m_pcTransferSite->m_nElementaryNodesTabIndex + 1; j < (int)m_pcTransferSite->m_paDataSheetCategories.size(); j++)
 		{
 			// compare name of the plugin enumeration category with the existing categories
-			if (wcscmp(m_vcPluginCategories[i], m_pcTransferSite->m_paDataSheetCategories[j]->m_szTitle) == 0)
+			if (m_vcPluginCategories[i].compare(m_pcTransferSite->m_paDataSheetCategories[j]->m_szTitle) == 0)
 			{
 				// set category index
 				dwCategoryIndex = (UINT)j;
@@ -241,21 +230,9 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 				m_pcTransferSite->m_aPluginCategoryIndices.push_back(dwCategoryIndex);
 				m_pcTransferSite->m_aPluginEntryIndices.push_back((UINT)m_pcTransferSite->m_paDataSheetCategories[j]->m_paEntries.size());
 
-				// create entry
+				// create and add entry
 				AQU_DataSheetEntry* pEntry = new AQU_DataSheetEntry();
-
-				// set title
-				int len = (int)strlen(m_vcPluginNames[i]) + 1;
-				if (len > 0)
-				{
-					pEntry->m_szTitle = new wchar_t[len];
-					std::string s(m_vcPluginNames[i]);
-					std::wstring sW = std::wstring(s.begin(), s.end());
-
-					CopyMemory((void*)&pEntry->m_szTitle[0], (void*)sW.c_str(), len * sizeof(wchar_t));
-				}
-
-				// add entry to category
+				pEntry->m_szTitle = m_vcPluginNames[i];
 				m_pcTransferSite->m_paDataSheetCategories[j]->m_paEntries.push_back(pEntry);
 			}
 		}
@@ -269,28 +246,13 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 
 			// create category
 			psCategory = new AQU_DataSheetCategory();
-			if (wcslen(m_vcPluginCategories[i]) == 0)
-				psCategory->m_szTitle = L"Uncategorized";
-			else
-				psCategory->m_szTitle = (LPCWSTR)m_vcPluginCategories[i];
+			psCategory->m_szTitle = m_vcPluginCategories[i];
 			psCategory->m_bIsOpen = false;
 			psCategory->m_paEntries.clear();
 
-			// create entry
+			// create and add entry
 			AQU_DataSheetEntry* pEntry = new AQU_DataSheetEntry();
-
-			// set title
-			int len = (int)strlen(m_vcPluginNames[i]) + 1;
-			if (len > 0)
-			{
-				pEntry->m_szTitle = new wchar_t[len];
-				std::string s(m_vcPluginNames[i]);
-				std::wstring sW = std::wstring(s.begin(), s.end());
-
-				CopyMemory((void*)&pEntry->m_szTitle[0], (void*)sW.c_str(), len * sizeof(wchar_t));
-			}
-
-			// add entry to category
+			pEntry->m_szTitle = m_vcPluginNames[i];
 			psCategory->m_paEntries.push_back(pEntry);
 
 			// add category
@@ -302,9 +264,9 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 	CreateThread(0, 0, s_WorkingAreaMsgThread, 0, 0, 0);
 }
 
-/**
-* Destructor.
-***/
+/// <summary>
+/// Destructor
+/// </summary>
 AQU_WorkingArea::~AQU_WorkingArea()
 {
 	m_vcPluginIDs.clear();
@@ -336,12 +298,16 @@ AQU_WorkingArea::~AQU_WorkingArea()
 }
 #pragma endregion
 
+/// => Methods
 #pragma region AQU_WorkingArea methods
-/**
-* Working area window thread.
-***/
+/// <summary>
+/// => Working Area main thread
+/// <param name="param">not used</param>
+/// </summary>
 DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 {
+	UNREFERENCED_PARAMETER(param);
+
 	// glfw: initialize and configure
 	if (!glfwInit()) { OutputDebugString(L"Inicio: GLFW Init fail !"); return 1; }
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -396,7 +362,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 	ImGui::StyleColorsByScheme(sScheme);
 	ImVec4 clear_color = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 
-	// render loop
+	// => <main> render loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// Poll and handle events, update window fields
@@ -424,11 +390,13 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth, (float)m_nWindowHeight), ImGuiCond_FirstUseEver);
 
-		// main window
+		// => <main loop> window
 		if (ImGui::Begin("Aquilinus", nullptr, window_flags))
 		{
+			// => <main loop window> menu bar
 #pragma region Main Menu Bar
 
+			// TODO Create main menu
 			// get small font, create main menu bar
 			ImGui::PushFont(psFontSmall);
 			if (ImGui::BeginMainMenuBar())
@@ -466,6 +434,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			}
 
 #pragma endregion
+			// => <main loop window> info text
 #pragma region Info Text Background
 
 			// get start y position, output description and a separator line... menu bar height ~ 1.2xFontSize
@@ -497,6 +466,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			}
 
 #pragma endregion
+			// => <main loop window> categories
 #pragma region Categories
 
 			// get last y position
@@ -539,7 +509,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 								// output sub-entries
 								for (int j = 0; j < (int)m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber; j++)
 								{
-									std::wstring acSubW(m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_paSubEntries[j]);
+									std::wstring acSubW(m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_aacSubEntries[j]);
 									std::string acSubA;
 									for (wchar_t c : acSubW) acSubA += (char)c;
 									ImGui::Text(acSubA.c_str());
@@ -588,6 +558,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			}
 
 #pragma endregion
+			// => <main loop window> node creation
 #pragma region Node creation (Drag n Drop Target)
 
 			// create a node editor canvas
@@ -690,7 +661,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							NOD_Plugin* pPlugin = new NOD_Plugin(
 								(LONG)sTargetPos.x,
 								(LONG)sTargetPos.y,
-								m_vcPluginFilePathes[dwIndex]);
+								m_vcPluginFilePathes[dwIndex].c_str());
 
 							// convert strings
 							pPlugin->ConvertStrings();
@@ -706,6 +677,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				ImGui::SetCursorPos(sPosOld);
 
 #pragma endregion
+			// => <main loop window> connectors + nodes
 #pragma region connectors + nodes
 
 				// update / draw the nodes
@@ -859,7 +831,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		}
 		ImGui::End();
 
-		// Rendering
+		// => <main loop> render
 		ImGui::Render();
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -871,7 +843,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 		glfwSwapBuffers(window);
 	}
 
-	// Cleanup ImGui + GL
+	// => <main> cleanup
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
@@ -889,9 +861,10 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 	return (DWORD)0;
 }
 
-/**
-* Loads all workspace data from the file specified in the aquilinus configuration.
-***/
+/// <summary>
+/// => Load work space
+/// Loads all workspace data from the file specified in the aquilinus configuration.
+/// </summary>
 HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 {
 	// set d3d override to true
@@ -931,7 +904,7 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 		// now, ignore the injection techniques
 		DWORD dwSupportedInterfacesNumber;
 		sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-		sstrDataStream.ignore(dwSupportedInterfacesNumber * sizeof(int));
+		sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int64));
 
 		// read the number of nodes, resize node vector
 		UINT dwNodeNumber;
@@ -1011,7 +984,7 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 
 			// and add the node
 			m_paNodes[i] = pNode;
-			delete pcData;
+			delete [] pcData;
 		}
 
 		delete pProvider;
@@ -1075,9 +1048,11 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 	return hr;
 }
 
-/**
-* Enumerates all Node-plugins.
-***/
+/// <summary>
+/// => Enumerate plugins
+/// Enumerates all Node-plugins.
+/// <param name="szDllPath">Aquilinus plugin path</param>
+/// </summary>
 HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 {
 	WIN32_FIND_DATA ffd;
@@ -1121,15 +1096,7 @@ HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 
 			// create plugin path and load module
 			wsprintf(szDllDir, L"%s%s", szDllPath, ffd.cFileName);
-
-			// convert to LPCSTR
-			int size = (int)wcslen(szDllDir);
-			size += 2;
-			char* szDll = (char*)malloc(size);
-			wcstombs_s(NULL, szDll, size,
-				szDllDir, size);
-
-			HMODULE hm = LoadLibraryA(szDll);
+			HMODULE hm = LoadLibraryW(szDllDir);
 
 			if (hm != NULL)
 			{
@@ -1158,18 +1125,12 @@ HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 					if (dwLen > MAX_PATH - 1) dwLen = MAX_PATH - 1;
 					CopyMemory((void*)szPathName, (void*)szDllDir, (dwLen + 1) * sizeof(wchar_t));
 
-					// get the category name
-					LPWSTR szCategoryName = new wchar_t[64];
-					LPWSTR szSrcNameW = pNodus->GetCategory();
-					dwLen = (UINT)wcslen(szSrcNameW);
-					if (dwLen > 64 - 1) dwLen = 64 - 1;
-					CopyMemory((void*)szCategoryName, (void*)szSrcNameW, (dwLen + 1) * sizeof(wchar_t));
-
 					// enumerate all necessary data
-					m_vcPluginNames.push_back(szName);
+					std::string acTmp = std::string(szName);
+					m_vcPluginNames.push_back(std::wstring(acTmp.begin(), acTmp.end()));
 					m_vcPluginFilePathes.push_back(szPathName);
 					m_vcPluginIDs.push_back(pNodus->GetNodeTypeId());
-					m_vcPluginCategories.push_back(szCategoryName);
+					m_vcPluginCategories.push_back(std::wstring(pNodus->GetCategory()));
 
 					// keep the prototypes to delete them at class destruction
 					m_vcPlugins.push_back(pNodus);
@@ -1186,9 +1147,9 @@ HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 	// output debug data
 	for (int i = 0; i < (int)m_vcPluginNames.size(); i++)
 	{
-		OutputDebugStringA(m_vcPluginNames[i]);
-		OutputDebugStringW(m_vcPluginFilePathes[i]);
-		OutputDebugStringW(m_vcPluginCategories[i]);
+		OutputDebugStringW(m_vcPluginNames[i].c_str());
+		OutputDebugStringW(m_vcPluginFilePathes[i].c_str());
+		OutputDebugStringW(m_vcPluginCategories[i].c_str());
 	}
 
 	return S_OK;

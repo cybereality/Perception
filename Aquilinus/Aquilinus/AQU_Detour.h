@@ -71,6 +71,7 @@ void *DetourFunc(BYTE *src, const BYTE *dst, const int len)
 
 	// allocate a place in memory for the bytes we are going to overwrite in the original, plus the size of a jump 
 	BYTE *jmp = (BYTE*)malloc(len+JMP32_SZ);
+	if (!jmp) return nullptr;
 
 	// allow read & write access to the memory at the original function
 	VirtualProtect(src, len, PAGE_READWRITE, &dwback);

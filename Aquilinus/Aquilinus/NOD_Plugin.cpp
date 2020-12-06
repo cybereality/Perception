@@ -32,18 +32,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-NOD_Plugin::NOD_Plugin(LONG nX, LONG nY, LPWSTR szFilePath) :NOD_Basic(nX, nY, 140, 100),
-//m_pcDrawer(nullptr),
+NOD_Plugin::NOD_Plugin(LONG nX, LONG nY, std::wstring szFilePath) :NOD_Basic(nX, nY, 140, 100),
 m_dwUpdateCounter(0)
 {
-	// convert to LPCSTR
-	int size = (int)wcslen(szFilePath);
-	size += 2;
-	char *szDll = (char *)malloc(size);
-	wcstombs_s(NULL, szDll, size,
-		szFilePath, size);
-
-	m_hm = LoadLibraryA(szDll);
+	// load library
+	m_hm = LoadLibraryW(szFilePath.c_str());
 
 	if (m_hm != NULL)
 	{
@@ -125,7 +118,7 @@ m_dwUpdateCounter(0)
 	else
 	{
 		OutputDebugString(L"Aquilinus : Failed to load plugin dll -");
-		OutputDebugString(szFilePath);
+		OutputDebugString(szFilePath.c_str());
 	}
 
 	// for plugins, the header size is constant 64 + 4 (border)

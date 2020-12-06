@@ -216,6 +216,8 @@ bool NOD_HelloWorldDx9::SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DM
 ***/
 void* NOD_HelloWorldDx9::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes)
 {
+	// TODO !! NODE VERY SLOW !!
+
 	// get node data... 
 	if (m_paDecommanders[0]->m_pInput != nullptr)
 	{

@@ -35,9 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
-/**
-* Main window control
-***/
+/// <summary>
+/// Main window control
+/// </summary>
 void ImGui_Main()
 {
 	ImVec2 sPos = { float(g_nMainWindowWidth) * .33f, float(g_nMainWindowHeight) * .45f };
@@ -266,9 +266,9 @@ void ImGui_Main()
 	ImGui::Text("v%d.%d.%d", g_eVersion.dwPrima, g_eVersion.dwSecondo, g_eVersion.dwTerzo);
 }
 
-/**
-* New project window control.
-***/
+/// <summary>
+/// New project window control.
+/// </summary>
 void ImGui_New()
 {
 	if (ImGui::CollapsingHeader("Select Game"))
@@ -387,9 +387,9 @@ void ImGui_New()
 	ImGui::Separator();
 }
 
-/**
-* Set ImGui style by Colorlovers color scheme.
-**/
+/// <summary>
+/// Set ImGui style by Colorlovers color scheme.
+/// </summary>
 void ImGui_StyleColorsByScheme()
 {
 	ImGui::ColorSchemeHex sScheme = {};
@@ -397,9 +397,9 @@ void ImGui_StyleColorsByScheme()
 	ImGui::StyleColorsByScheme(sScheme);
 }
 
-/**
-* ImGui Options.
-***/
+/// <summary>
+/// ImGui Options.
+/// </summary>
 void ImGui_Options(AquilinusCfg& sConfig)
 {
 	// set selection
@@ -466,9 +466,9 @@ void ImGui_Options(AquilinusCfg& sConfig)
 	}
 	}
 
-/**
-* Save the global config file.
-***/
+/// <summary>
+/// Save the global config file.
+/// </summary>
 void SaveConfig()
 {
 	// write file new
@@ -489,9 +489,9 @@ void SaveConfig()
 
 #pragma region Inicio methods
 
-/**
-* Inicio init.
-***/
+/// <summary>
+/// Inicio init.
+/// </summary>
 HRESULT InicioInit()
 {
 	// create config memory page
@@ -555,9 +555,9 @@ HRESULT InicioInit()
 	return S_OK;
 }
 
-/**
-* Inicio close.
-***/
+/// <summary>
+/// Inicio close.
+/// </summary>
 void InicioClose()
 {
 	ForceIdle();
@@ -566,9 +566,9 @@ void InicioClose()
 	CloseHandle(g_hConfigMapFile);
 }
 
-/**
-* Forces >Idle< state for Inicio closing any profile settings.
-***/
+/// <summary>
+/// Forces >Idle< state for Inicio closing any profile settings.
+/// </summary>
 void ForceIdle()
 {
 	// stop injection thread if running
@@ -578,9 +578,9 @@ void ForceIdle()
 	g_eInicioStatus = InicioStatus::Idle;
 }
 
-/**
-* Enumerates the game names in alphabetical order using the filemanager class.
-***/
+/// <summary>
+/// Enumerates the game names in alphabetical order using the filemanager class.
+/// </summary>
 HRESULT EnumerateGameNames()
 {
 	// clear vector
@@ -677,9 +677,9 @@ HRESULT EnumerateGameNames()
 	return S_OK;
 	}
 
-/**
-* Enumerate supported interface names.
-***/
+/// <summary>
+/// Enumerate supported interface names.
+/// </summary>
 HRESULT EnumerateSupportedInterfaces(LPWSTR*& pszEntries, DWORD& dwEntries)
 {
 	// loop and enumerate
@@ -694,11 +694,11 @@ HRESULT EnumerateSupportedInterfaces(LPWSTR*& pszEntries, DWORD& dwEntries)
 	return S_OK;
 }
 
-/**
-* @param hToken access token handle
-* @param lpszPrivilege name of privilege to enable or disable
-* @param bEnablePrivilege to enable or disable privilege
-***/
+/// <summary>
+/// <param name="hToken"> access token handle</param>
+/// <param name="lpszPrivilege"> name of privilege to enable or disable</param>
+/// <param name="bEnablePrivilege"> to enable or disable privilege</param>
+/// </summary>
 BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 {
 	TOKEN_PRIVILEGES tp;
@@ -748,10 +748,10 @@ BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 	return TRUE;
 }
 
-/**
-* Get the thread ID from the process name.
-* @param szProcName The name of the process.
-***/
+/// <summary>
+/// Get the thread ID from the process name.
+/// <param name="szProcName"> The name of the process.</param>
+/// </summary>
 DWORD GetTargetThreadID(wchar_t* szProcName)
 {
 	PROCESSENTRY32W pe32;
@@ -798,11 +798,11 @@ DWORD GetTargetThreadID(wchar_t* szProcName)
 	return 0;
 }
 
-/**
-* Inject a dll to a process.
-* @param dwID The thread ID of the process.
-* @param szDllName The full path name of the dll.
-***/
+/// => Inject a dll to a process.
+/// <summary>Inject a dll to a process.
+/// <param name="dwID">The thread ID of the process.</param>
+/// <param name="szDllName">The full path name of the dll.</param>
+/// </summary>
 HRESULT Inject(DWORD dwID, const wchar_t* szDllName)
 {
 	HANDLE hProc = nullptr;
@@ -899,9 +899,9 @@ HRESULT Inject(DWORD dwID, const wchar_t* szDllName)
 	return S_OK;
 }
 
-/**
-* Thread to inject.
-***/
+/// <summary>
+/// Thread to inject.
+/// </summary>
 DWORD WINAPI InjectionThread(LPVOID Param)
 {
 	// injection repeat...
@@ -1029,49 +1029,50 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
-/**
-* Viewport callback.
-***/
-void viewport_callback(GLFWwindow* window, int width, int height)
+/// <summary>
+/// Viewport callback.
+/// </summary>
+void Viewport_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
 
-/**
-* Cursor position callback.
-***/
-void cursor_position_callback(GLFWwindow* window, double x, double y) {
-	if ((g_buttonEvent == 1) && ((y < (double)22) || (g_buttonEvent == 1))) // TODO !! SET BY TOP BAR FONT SIZE
+/// <summary>
+/// Cursor position callback.
+/// </summary>
+void CursorPosition_callback(GLFWwindow* window, double x, double y) 
+{
+	if ((g_nButtonEvent == 1) && ((y < (double)ImGui::GetFontSize()) || (g_nButtonEvent == 1)))
 	{
-		g_offset_cpx = (int)x - g_cp_x;
-		g_offset_cpy = (int)y - g_cp_y;
+		g_nOffsetCpX = (int)x - g_nCpX;
+		g_nOffsetCpY = (int)y - g_nCpY;
 	}
 }
 
-/**
-* Mouse button callback.
-***/
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+/// <summary>
+/// Mouse button callback.
+/// </summary>
+void MouseButton_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
-		if (y < (double)22) // TODO !! SET BY TOP BAR FONT SIZE
+		if (y < (double)ImGui::GetFontSize())
 		{
-			g_cp_x = (int)floor(x);
-			g_cp_y = (int)floor(y);
-			g_buttonEvent = 1;
+			g_nCpX = (int)floor(x);
+			g_nCpY = (int)floor(y);
+			g_nButtonEvent = 1;
 		}
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-		g_buttonEvent = 0;
-		g_cp_x = 0;
-		g_cp_y = 0;
+		g_nButtonEvent = 0;
+		g_nCpX = 0;
+		g_nCpY = 0;
 	}
 }
 
-/**
-* Inicio main windows entry point.
-***/
+/// <summary>
+/// => Inicio main windows entry point.
+/// </summary>
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
 	// avoid double injection app window
@@ -1115,9 +1116,9 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	glfwSetWindowSizeLimits(window, g_nMainWindowWidth, g_nMainWindowHeight, g_nMainWindowWidth, g_nMainWindowHeight);
 	glfwSetWindowPos(window, (g_nScreenWidth / 2) - (g_nMainWindowWidth), (g_nScreenHeight / 8));
 	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, viewport_callback);
-	glfwSetCursorPosCallback(window, cursor_position_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetFramebufferSizeCallback(window, Viewport_callback);
+	glfwSetCursorPosCallback(window, CursorPosition_callback);
+	glfwSetMouseButtonCallback(window, MouseButton_callback);
 
 	// and init glew
 	bool err = glewInit() != GLEW_OK;
@@ -1213,7 +1214,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	ImGui_StyleColorsByScheme();
 	ImVec4 clear_color = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 
-	// render loop
+	// => <main> render loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// create the abort event
@@ -1297,13 +1298,13 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		// Poll and handle events, update window fields
 		glfwPollEvents();
-		glfwGetWindowPos(window, &g_w_posx, &g_w_posy);
-		glfwSetWindowPos(window, g_w_posx + g_offset_cpx, g_w_posy + g_offset_cpy);
-		g_controlEvent = 0;
-		g_offset_cpx = 0;
-		g_offset_cpy = 0;
-		g_cp_x += g_offset_cpx;
-		g_cp_y += g_offset_cpy;
+		glfwGetWindowPos(window, &g_nWPosX, &g_nWPosY);
+		glfwSetWindowPos(window, g_nWPosX + g_nOffsetCpX, g_nWPosY + g_nOffsetCpY);
+		g_nControlEvent = 0;
+		g_nOffsetCpX = 0;
+		g_nOffsetCpY = 0;
+		g_nCpX += g_nOffsetCpX;
+		g_nCpY += g_nOffsetCpY;
 
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -1322,6 +1323,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		// select window stage
 		static bool s_bOpen = true;
+		// => <main loop> Main Window
 		if (g_eCurrentWindow == InicioWindows::Main)
 		{
 			// window resize ??
@@ -1354,6 +1356,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 			if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
+		// => <main loop> New Project
 		else if (g_eCurrentWindow == InicioWindows::NewProject)
 		{
 			// window resize ??
@@ -1436,6 +1439,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			ImGui::End();
 
 		}
+		// => <main loop> Options
 		else if (g_eCurrentWindow == InicioWindows::Options)
 		{
 			// window resize ??
@@ -1505,6 +1509,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			ImGui::End();
 
 		}
+		// => <main loop> Info loop
 		else if (g_eCurrentWindow == InicioWindows::Info)
 		{
 			// window resize ??

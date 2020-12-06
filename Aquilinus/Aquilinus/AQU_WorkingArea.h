@@ -27,6 +27,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 26495 )
+
 #ifndef AQU_WORKINGAREA_CLASS
 #define AQU_WORKINGAREA_CLASS
 
@@ -160,11 +164,11 @@ private:
 	/**
 	* The plugin enumeration name vector.
 	***/
-	static std::vector<LPSTR> m_vcPluginNames;
+	static std::vector<std::wstring> m_vcPluginNames;
 	/**
 	* The plugin enumeration file path vector.
 	***/
-	static std::vector<LPWSTR> m_vcPluginFilePathes;
+	static std::vector<std::wstring> m_vcPluginFilePathes;
 	/**
 	* The plugin enumeration type id vector.
 	***/
@@ -172,7 +176,7 @@ private:
 	/**
 	* The plugin enumeration category name.
 	***/
-	static std::vector<LPWSTR> m_vcPluginCategories;
+	static std::vector<std::wstring> m_vcPluginCategories;
 	/**
 	* The enlisted plugin prototypes.
 	***/

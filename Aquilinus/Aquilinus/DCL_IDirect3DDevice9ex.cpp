@@ -3178,7 +3178,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 		else
 			wsprintf(szTitle, L"%I32u", dwSizeOfData);
 
-		LPCWSTR *paSubEntries = new LPCWSTR[dwEntryNumber];
+		std::vector<std::wstring> aapSubEntries;
 		UINT dwIndex = 0;
 		for(UINT i = 0; i < pDesc.Constants; i++)
 		{
@@ -3194,18 +3194,17 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 				// add constant name to sub entry array
 				std::string szName(aConstDesc[j].Name);
 				std::wstring szNameW(szName.begin(), szName.end());
-				paSubEntries[dwIndex] = new wchar_t[szNameW.size()+1];
-				CopyMemory((void*)&paSubEntries[dwIndex][0], szNameW.c_str(), (szNameW.size()+1)*sizeof(wchar_t));
+				aapSubEntries.push_back(szNameW);
 				dwIndex++;
 			}
-			// if (aConstDesc) delete [] aConstDesc; - how to release ??
+			// if (aConstDesc) delete [] aConstDesc; // TODO how to release ??
 		}
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, paSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, paSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;
@@ -3299,7 +3298,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThi
 		else
 			wsprintf(szTitle, L"%I32u", dwSizeOfData);
 
-		LPCWSTR *paSubEntries = new LPCWSTR[dwEntryNumber];
+		std::vector<std::wstring> aapSubEntries;
 		UINT dwIndex = 0;
 		for(UINT i = 0; i < pDesc.Constants; i++)
 		{
@@ -3315,8 +3314,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThi
 				// add constant name to sub entry array
 				std::string szName(aConstDesc[j].Name);
 				std::wstring szNameW(szName.begin(), szName.end());
-				paSubEntries[dwIndex] = new wchar_t[szNameW.size()+1];
-				CopyMemory((void*)&paSubEntries[dwIndex][0], szNameW.c_str(), (szNameW.size()+1)*sizeof(wchar_t));
+				aapSubEntries.push_back(szNameW);
 				dwIndex++;
 			}
 			// if (aConstDesc) delete [] aConstDesc; - how to release ??
@@ -3324,9 +3322,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThi
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, paSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, paSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;
@@ -3857,7 +3855,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 		else
 			wsprintf(szTitle, L"%I32u", dwSizeOfData);
 
-		LPCWSTR *paSubEntries = new LPCWSTR[dwEntryNumber];
+		std::vector<std::wstring> aapSubEntries;
 		UINT dwIndex = 0;
 		for(UINT i = 0; i < pDesc.Constants; i++)
 		{
@@ -3873,8 +3871,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 				// add constant name to sub entry array
 				std::string szName(aConstDesc[j].Name);
 				std::wstring szNameW(szName.begin(), szName.end());
-				paSubEntries[dwIndex] = new wchar_t[szNameW.size()+1];
-				CopyMemory((void*)&paSubEntries[dwIndex][0], szNameW.c_str(), (szNameW.size()+1)*sizeof(wchar_t));
+				aapSubEntries.push_back(szNameW);
 				dwIndex++;
 			}
 			// if (aConstDesc) delete [] aConstDesc; - how to release ??
@@ -3882,9 +3879,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, paSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, paSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;
@@ -3978,7 +3975,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis
 		else
 			wsprintf(szTitle, L"%I32u", dwSizeOfData);
 
-		LPCWSTR *paSubEntries = new LPCWSTR[dwEntryNumber];
+		std::vector<std::wstring> aapSubEntries;
 		UINT dwIndex = 0;
 		for(UINT i = 0; i < pDesc.Constants; i++)
 		{
@@ -3994,8 +3991,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis
 				// add constant name to sub entry array
 				std::string szName(aConstDesc[j].Name);
 				std::wstring szNameW(szName.begin(), szName.end());
-				paSubEntries[dwIndex] = new wchar_t[szNameW.size()+1];
-				CopyMemory((void*)&paSubEntries[dwIndex][0], szNameW.c_str(), (szNameW.size()+1)*sizeof(wchar_t));
+				aapSubEntries.push_back(szNameW);
 				dwIndex++;
 			}
 			// if (aConstDesc) delete [] aConstDesc; - how to release ??
@@ -4003,9 +3999,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, paSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, paSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;

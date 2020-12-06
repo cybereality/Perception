@@ -27,7 +27,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 26495 )
+
 #pragma region include
+
+#ifndef _NO_DIRECTXMATH
+#include<DirectXMath.h>
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3d10_1.lib")
+#pragma comment(lib, "d3d10.lib")
+#pragma comment(lib, "d3dx10.lib")
+#pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "d3dx9.lib")
+#pragma comment(lib, "DXGI.lib")
+#pragma comment(lib, "Dxgi.lib")
+#else
 #include <d3d11_1.h>
 #pragma comment(lib, "d3d11.lib")
 
@@ -54,6 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <dxgi1_2.h>
 #pragma comment(lib, "Dxgi.lib")
+#endif
 
 #include <stdio.h>
 #include "Resources.h"
@@ -545,7 +563,7 @@ UINT_PTR                             anD3D10_IDXGISwapChain1_VMTable[DXGI_SWAPCH
 UINT_PTR                             anD3D11_ID3D11Device_VMTable[D3D11_DEVICE_METHODS_NUMBER];
 #define                             D3D11_DEVICE1_METHODS_NUMBER 50
 UINT_PTR                             anD3D11_ID3D11Device1_VMTable[D3D11_DEVICE1_METHODS_NUMBER];
-#define                             D3D11_DEVICECONTEXT_METHODS_NUMBER 111
+#define                             D3D11_DEVICECONTEXT_METHODS_NUMBER 115
 UINT_PTR                             anD3D11_ID3D11DeviceContext_VMTable[D3D11_DEVICECONTEXT_METHODS_NUMBER];
 #define                             D3D11_DEVICECONTEXT1_METHODS_NUMBER 130
 UINT_PTR                             anD3D11_ID3D11DeviceContext1_VMTable[D3D11_DEVICECONTEXT1_METHODS_NUMBER];
