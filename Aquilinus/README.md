@@ -4,7 +4,7 @@ Aquilinus is an injected DLL that redirects GPU API calls to modify games for Vi
 
 It has a built-in, fully node-based working area. Any part of Vireio Perception (HDM APIs, Stereo Splitter, Matrix Modifier,....) actually is a Plugin-Node, these nodes eventually get connected to build the different Vireio Perception game profiles.
 
-####BUILD INSTRUCTIONS
+#### Build Instructions
 
 Build using Visual Studio 2019 (C++).
 
@@ -12,7 +12,7 @@ Download and install GL, GLEW, GLFW3, DirectXMath.
 
 You can use MS-VCPKG ( https://github.com/Microsoft/vcpkg ) to download the different packages.
 
-####Dear ImGui
+#### Dear ImGui
 
 Aquilinus uses Dear ImGui grapical user interface and the ImNodes extension.
 
