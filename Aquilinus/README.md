@@ -6,17 +6,12 @@ It has a built-in, fully node-based working area. Any part of Vireio Perception 
 
 #### Build Instructions
 
-Build using Visual Studio 2019 (C++).
+Created using [Visual Studio Community C++ 2019](https://visualstudio.microsoft.com/downloads/ "Microsoft") on Windows 10 64-bit.  
 
-Download and install GL, GLEW, GLFW3, DirectXMath.
+Download and install [GL](https://www.khronos.org/opengl/wiki/Getting_Started#Downloading_OpenGL), [GLEW](https://github.com/nigels-com/glew), [GLFW3](https://www.glfw.org/download.html), [DirectXMath](https://github.com/microsoft/DirectXMath) (if not already installed).
 
-You can use MS-VCPKG ( https://github.com/Microsoft/vcpkg ) to download the different packages.
+You can use [Microsoft vcpkg](https://github.com/Microsoft/vcpkg) to download the different packages.
 
 #### Dear ImGui
 
-Aquilinus uses Dear ImGui grapical user interface and the ImNodes extension.
-
-Go to 
-https://github.com/ocornut/imgui
-https://github.com/rokups/ImNodes/blob/master/ImNodes.h
-for further info.
+Vireio Perception uses Dear [Dear ImGui](https://github.com/ocornut/imgui) grapical user interface and the [ImNodes](https://github.com/rokups/ImNodes/blob/master/ImNodes.h) extension.

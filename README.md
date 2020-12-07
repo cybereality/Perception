@@ -20,19 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #### Build Instructions
 
-Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 10 64-bit.  
- 
+Created using [Visual Studio Community C++ 2019](https://visualstudio.microsoft.com/downloads/ "Microsoft") on Windows 10 64-bit.  
+
+Download and install [GL](https://www.khronos.org/opengl/wiki/Getting_Started#Downloading_OpenGL), [GLEW](https://github.com/nigels-com/glew), [GLFW3](https://www.glfw.org/download.html), [DirectXMath](https://github.com/microsoft/DirectXMath) (if not already installed).
+
+You can use [Microsoft vcpkg](https://github.com/Microsoft/vcpkg) to download the different packages. 
 
 #### Support
 
-If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](http://www.mtbs3d.com/phpBB/viewforum.php?f=141).
+If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](http://www.mtbs3d.com/phpBB/viewforum.php?f=141 "MEANT-TO-BE-SEEN").
 
 
 #### Dear ImGui
 
-Vireio Perception uses Dear ImGui grapical user interface and the ImNodes extension.
+Vireio Perception uses Dear [Dear ImGui](https://github.com/ocornut/imgui) grapical user interface and the [ImNodes](https://github.com/rokups/ImNodes/blob/master/ImNodes.h) extension.
 
-Go to 
-https://github.com/ocornut/imgui
-https://github.com/rokups/ImNodes/blob/master/ImNodes.h
-for further info.

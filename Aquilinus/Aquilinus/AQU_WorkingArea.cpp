@@ -923,71 +923,55 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 	// and decode the stream
 	if (SUCCEEDED(hr))
 	{
-		DEBUG_LINE;
 		// first, read the game name to see wether this is an empty profile
 		wchar_t szEntryName[MAX_JOLIET_FILENAME];
 		sstrDataStream.read((char*)szEntryName, ENTRY_SIZE);
-		DEBUG_LINE;
 
 		// empty profile ?
 		if (szEntryName[0] == 0)
 			m_pcTransferSite->m_pConfig->bEmptyProcess = TRUE;
 		else
 			m_pcTransferSite->m_pConfig->bEmptyProcess = FALSE;
-		DEBUG_LINE;
 
 		// now, ignore the size of the additional option data block
 		sstrDataStream.ignore(sizeof(unsigned __int32) * OPTIONS_RESERVED);
-		DEBUG_LINE;
 
 		// ignore picture boolean and the path if true
 		BOOL bPicture;
 		sstrDataStream.read((char*)&bPicture, sizeof(BOOL));
 		if (bPicture)
 			sstrDataStream.ignore(MAX_PATH * sizeof(wchar_t));
-		DEBUG_LINE;
 
 		// ignore the detour time delay and injection repetition
 		sstrDataStream.ignore(sizeof(unsigned __int32));
 		sstrDataStream.ignore(sizeof(unsigned __int32));
-		DEBUG_LINE;
 
 		// now, ignore the injection techniques
 		unsigned __int32 dwSupportedInterfacesNumber;
 		sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
-		DEBUG_UINT(dwSupportedInterfacesNumber);
 		sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int32));
-		DEBUG_LINE;
 
 		// read the number of nodes, resize node vector
-		DEBUG_LINE;
 		unsigned __int32 dwNodeNumber;
-		DEBUG_LINE;
 		sstrDataStream.read((char*)&dwNodeNumber, sizeof(unsigned __int32));
-		DEBUG_UINT(dwNodeNumber);
 		m_paNodes.resize(dwNodeNumber);
-		DEBUG_LINE;
 
 		// get a node provider
 		AQU_NodeProvider* pProvider = new AQU_NodeProvider();
-		DEBUG_LINE;
 
 		// loop through the nodes to add node data 
 		for (UINT i = 0; i != dwNodeNumber; i++)
 		{
-			DEBUG_LINE;
 			OutputDebugString(L"New Node!");
 
 			// get the node hash
 			unsigned __int32 id;
 			sstrDataStream.read((char*)&id, sizeof(unsigned __int32));
-			OutputDebugString(L"---------------------read_id");
-			DEBUG_UINT(id);
 
 			// get the node position
-			POINT pos;
-			sstrDataStream.read((char*)&pos.x, sizeof(LONG));
-			sstrDataStream.read((char*)&pos.y, sizeof(LONG));
+			ImVec2 sPos = {};
+			sstrDataStream.read((char*)&sPos.x, sizeof(float));
+			sstrDataStream.read((char*)&sPos.y, sizeof(float));
 
 			// load plugin info (if plugin node)
 			unsigned __int32 idPlugin = 0;
@@ -998,9 +982,7 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 				// and write to stream
 				sstrDataStream.read((char*)&idPlugin, sizeof(unsigned __int32));
 				sstrDataStream.read((char*)&szFileName[0], sizeof(wchar_t) * 64);
-
-				OutputDebugString(szFileName);
-
+				
 				// create full path
 				wsprintf(szFilePath, L"%s%s", m_pcTransferSite->m_pFileManager->GetPluginPath(), szFileName);
 
@@ -1016,9 +998,9 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 			if (dwDataSize)
 				sstrDataStream.read((char*)pcData, dwDataSize);
 
-			// get a node pointer
+			// get a node pointer... TODO !! NODE POSITION FLOAT
 			NOD_Basic* pNode;
-			if (FAILED(pProvider->Get_Node(pNode, id, pos.x, pos.y, idPlugin, szFilePath)))
+			if (FAILED(pProvider->Get_Node(pNode, id, (LONG)sPos.x, (LONG)sPos.y, idPlugin, szFilePath)))
 			{
 				// unregister all nodes
 				m_pcTransferSite->UnregisterAllNodes();

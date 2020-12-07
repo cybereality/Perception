@@ -353,7 +353,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 	case AQU_ProjectStage::WorkingAreaNew:
 		// create the working area class
 		g_pAQU_WorkingArea = new AQU_WorkingArea(hInstance, g_pAQU_TransferSite);
-		OutputDebugString(L"Working Area initialized.");
+		
 		// set to working area stage
 		g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingArea;
 		break;
@@ -363,7 +363,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 		// output debug information
 		OutputDebugString(g_pAQU_TransferSite->m_pFileManager->GetName(g_pAQU_TransferSite->m_pConfig->dwProcessIndex));
-		OutputDebugString(L"---------------------------------------WorkingAreaLoad");
+		
 		// load the workspace
 		g_pAQU_WorkingArea->s_LoadWorkSpace();
 
@@ -401,8 +401,8 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 			// first, ignore the game, process and window name
 			sstrDataStream.ignore(ENTRY_SIZE * 3);
 
-			// ignore the additional option block length (zero by now)
-			sstrDataStream.ignore(sizeof(DWORD));
+			// ignore the reserved option space
+			sstrDataStream.ignore(sizeof(unsigned __int32) * OPTIONS_RESERVED);
 
 			// ignore picture boolean and the path if true
 			BOOL bPicture;
@@ -414,17 +414,18 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 				sstrDataStream.ignore(nImageSize);
 			}
 
-			// ignore the detour time delay
-			sstrDataStream.ignore(sizeof(DWORD));
+			// ignore the detour time delay and injection repetition
+			sstrDataStream.ignore(sizeof(unsigned __int32));
+			sstrDataStream.ignore(sizeof(unsigned __int32));
 
 			// now, ignore the injection techniques
-			DWORD dwSupportedInterfacesNumber;
-			sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-			sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int64));
+			unsigned __int32 dwSupportedInterfacesNumber;
+			sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
+			sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int32));
 
 			// read the number of nodes, resize node vector
-			UINT dwNodeNumber;
-			sstrDataStream.read((char*)&dwNodeNumber, sizeof(UINT));
+			unsigned __int32 dwNodeNumber;
+			sstrDataStream.read((char*)&dwNodeNumber, sizeof(unsigned __int32));
 			g_paNodes.resize(dwNodeNumber);
 
 			// get a node provider
@@ -434,22 +435,22 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 			for (UINT i = 0; i != dwNodeNumber; i++)
 			{
 				// get the node hash
-				UINT id;
-				sstrDataStream.read((char*)&id, sizeof(UINT));
+				unsigned __int32 id;
+				sstrDataStream.read((char*)&id, sizeof(unsigned __int32));
 
 				// get the node position
-				POINT pos;
-				sstrDataStream.read((char*)&pos.x, sizeof(LONG));
-				sstrDataStream.read((char*)&pos.y, sizeof(LONG));
+				ImVec2 sPos = {};
+				sstrDataStream.read((char*)&sPos.x, sizeof(float));
+				sstrDataStream.read((char*)&sPos.y, sizeof(float));
 
 				// load plugin info (if plugin node)
-				UINT idPlugin = 0;
+				unsigned __int32 idPlugin = 0;
 				wchar_t szFileName[64];
 				wchar_t szFilePath[MAX_PATH];
 				if (id == ELEMENTARY_NODE_PLUGIN)
 				{
 					// and write to stream
-					sstrDataStream.read((char*)&idPlugin, sizeof(UINT));
+					sstrDataStream.read((char*)&idPlugin, sizeof(unsigned __int32));
 					sstrDataStream.read((char*)&szFileName[0], sizeof(wchar_t) * 64);
 
 					// create full path
@@ -459,8 +460,8 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 				}
 
 				// read node data
-				UINT dwDataSize = 0;
-				sstrDataStream.read((char*)&dwDataSize, sizeof(UINT));
+				unsigned __int32 dwDataSize = 0;
+				sstrDataStream.read((char*)&dwDataSize, sizeof(unsigned __int32));
 
 				// read the data
 				char* pcData = new char[dwDataSize];
@@ -469,7 +470,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 				// get a node pointer
 				NOD_Basic* pNode;
-				if (FAILED(pProvider->Get_Node(pNode, id, pos.x, pos.y, idPlugin, szFilePath)))
+				if (FAILED(pProvider->Get_Node(pNode, id, (LONG)sPos.x, (LONG)sPos.y, idPlugin, szFilePath)))
 				{
 					// unregister all nodes
 					g_pAQU_TransferSite->UnregisterAllNodes();
@@ -505,15 +506,15 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 			for (std::vector<NOD_Basic*>::size_type i = 0; i != g_paNodes.size(); i++)
 			{
 				// get the number of commanders
-				DWORD dwCommandersNumber;
-				sstrDataStream.read((char*)&dwCommandersNumber, sizeof(DWORD));
+				unsigned __int32 dwCommandersNumber;
+				sstrDataStream.read((char*)&dwCommandersNumber, sizeof(unsigned __int32));
 
 				// loop through commanders, get the number of connections and the connection indices
 				for (DWORD j = 0; j < dwCommandersNumber; j++)
 				{
 					// get the commander connections number
-					DWORD dwConnectionsNumber;
-					sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(DWORD));
+					unsigned __int32 dwConnectionsNumber;
+					sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 					// loop through decommanders, set indices
 					for (DWORD k = 0; k < dwConnectionsNumber; k++)
@@ -537,8 +538,8 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 				}
 
 				// get the provoker connections number
-				DWORD dwConnectionsNumber;
-				sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(DWORD));
+				unsigned __int32 dwConnectionsNumber;
+				sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 				// loop through decommanders, return indices
 				for (int j = 0; j < (int)dwConnectionsNumber; j++)
