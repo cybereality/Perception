@@ -1,3 +1,5 @@
+![](https://github.com/cybereality/Perception/raw/master/Perception_v3/Release/Perception/img/logo.bmp)
+
 # Vireio Perception v4
 
 WORK IN PROGRESS !!
@@ -28,7 +30,7 @@ You can use [Microsoft vcpkg](https://github.com/Microsoft/vcpkg) to download th
 
 #### Support
 
-If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](http://www.mtbs3d.com/phpBB/viewforum.php?f=141 "MEANT-TO-BE-SEEN").
+If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](https://www.mtbs3d.com/phpBB/viewforum.php?f=149 "MEANT-TO-BE-SEEN").
 
 
 #### Dear ImGui

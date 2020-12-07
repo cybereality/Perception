@@ -39,14 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%d", a); OutputDebugString(buf); }
 #define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 
-#define TOP_MENU_FILE_SIZE 80
-#define TOP_MENU_OPTIONS_SIZE 100
-#define SUB_MENU_FILE_SIZE 240
-#define SUB_MENU_OPTIONS_SIZE 200
-#define MINIMUM_WINDOW_WIDTH TOP_MENU_FILE_SIZE+TOP_MENU_OPTIONS_SIZE+300
-#define MINIMUM_WINDOW_HEIGHT 200
-#define ZOOM_CONTROL_LEFT (m_nWindowWidth-350)
-#define ZOOM_CONTROL_RIGHT (m_nWindowWidth-20)
 #pragma endregion
 
 /// => Static fields
@@ -606,7 +598,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 #pragma region Node creation (Drag n Drop Target)
 
 			// create a node editor canvas
-			static ImNodes::CanvasState canvas;
+			static ImNodes::CanvasState canvas = {};
 			ImVec2 sPosCanvas = sStart_rect_max;
 			sPosCanvas.x += 300.f;
 			ImGui::SetNextWindowPos(sPosCanvas, ImGuiCond_FirstUseEver);
@@ -614,6 +606,18 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			if (ImGui::Begin("ImNodes", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 			{
 				ImNodes::BeginCanvas(&canvas);
+
+				// draw a cross in the center of the canvas...
+				ImDrawList* draw_list = ImGui::GetWindowDrawList();
+				ImVec2 pos = ImGui::GetWindowPos();
+
+				// ...(canvas grid color is ImGuiCol_Separator, so set a much lighter color here)...
+				ImU32 grid_color = ImColor(ImGui::GetStyle().Colors[ImGuiCol_Text]);
+				draw_list->AddLine(ImVec2(canvas.offset.x, canvas.offset.y - 50.f) + pos, ImVec2(canvas.offset.x, canvas.offset.y + 50.f) + pos, grid_color);
+				draw_list->AddLine(ImVec2(canvas.offset.x - 50.f, canvas.offset.y) + pos, ImVec2(canvas.offset.x + 50.f, canvas.offset.y) + pos, grid_color);
+
+				// ...and a small circle (center by (+.5f,+.5f)?)
+				draw_list->AddCircle(canvas.offset + pos + ImVec2(.5f, .5f), 10.f, grid_color, 0, 2.f);
 
 				// get old position, set position by mouse cursor
 				ImVec2 sPosOld = ImGui::GetCursorPos();
