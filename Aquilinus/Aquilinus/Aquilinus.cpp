@@ -363,7 +363,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 		// output debug information
 		OutputDebugString(g_pAQU_TransferSite->m_pFileManager->GetName(g_pAQU_TransferSite->m_pConfig->dwProcessIndex));
-
+		OutputDebugString(L"---------------------------------------WorkingAreaLoad");
 		// load the workspace
 		g_pAQU_WorkingArea->s_LoadWorkSpace();
 

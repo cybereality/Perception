@@ -104,7 +104,8 @@ AQU_TransferSite::AQU_TransferSite(AquilinusCfg* pConfig) :
 	m_aVertexShaderHashcodes.clear();
 
 	// create file manager class
-	m_pFileManager = new AQU_FileManager(false);
+	OutputDebugString(L"Create file manager");
+	m_pFileManager = new AQU_FileManager(pConfig);
 
 	// set custom path if chosen in config
 	if (m_pConfig->bUseDllPath)
@@ -1137,7 +1138,7 @@ void AQU_TransferSite::UnregisterAllNodes()
 /**
 * Registers a recorded vertex shader data sheet entry.
 ***/
-void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwEntryCount, UINT dwHash)
+void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwHash)
 {
 	if (m_nVertexShaderTabIndex < 0) return;
 
@@ -1145,7 +1146,6 @@ void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, std::vector
 	AQU_DataSheetEntry* pEntry = new AQU_DataSheetEntry();
 	pEntry->m_bIsOpen = false;
 	pEntry->m_szTitle = szName;
-	pEntry->m_dwSubEntriesNumber = dwEntryCount;
 	pEntry->m_aacSubEntries = pszEntries;
 
 	// add to vertex shader category and hash code table
@@ -1156,7 +1156,7 @@ void AQU_TransferSite::RegisterDataSheetVertexShader(LPCWSTR szName, std::vector
 /**
 * Registers a recorded pixel shader data sheet entry.
 ***/
-void AQU_TransferSite::RegisterDataSheetPixelShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwEntryCount, UINT dwHash)
+void AQU_TransferSite::RegisterDataSheetPixelShader(LPCWSTR szName, std::vector<std::wstring> pszEntries, UINT dwHash)
 {
 	if (m_nPixelShaderTabIndex < 0) return;
 
@@ -1164,7 +1164,6 @@ void AQU_TransferSite::RegisterDataSheetPixelShader(LPCWSTR szName, std::vector<
 	AQU_DataSheetEntry* pEntry = new AQU_DataSheetEntry();
 	pEntry->m_bIsOpen = false;
 	pEntry->m_szTitle = szName;
-	pEntry->m_dwSubEntriesNumber = dwEntryCount;
 	pEntry->m_aacSubEntries = pszEntries;
 
 	// add to pixel shader category and hash code table

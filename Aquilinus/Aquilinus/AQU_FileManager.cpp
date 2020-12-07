@@ -29,12 +29,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 
 #define WORKSPACE_HEADER_SIZE 30
 #define PROFILE_HEADER_SIZE 30
 #define NODE_HASH_SIZE (sizeof(size_t))
-const char* szWHeader_v1_0_0 = "AQUILINUS_WORKING_AREA_V01.0.0";
-const char* szPHeader_v1_0_0 = "AQUILINUS_GAME_PROFILE_V01.0.0";
+const char* szWHeader_v1_0_0 = "VIREIO_AQ_WORKING_AREA_V01.0.0";
+const char* szPHeader_v1_0_0 = "VIREIO_AQ_GAME_PROFILE_V01.0.0";
 
 #include"AQU_FileManager.h"
 #include"AQU_GlobalTypes.h"
@@ -42,16 +43,15 @@ const char* szPHeader_v1_0_0 = "AQUILINUS_GAME_PROFILE_V01.0.0";
 /**
 * Constructor.
 * Creates user directories.
-* @param bCreate True if directories are to be created.
 ***/
-AQU_FileManager::AQU_FileManager(bool bCreate) :
+AQU_FileManager::AQU_FileManager(AquilinusCfg* psConfig) :
 	m_dwProcessListSize(0),
 	m_hSaveMapFile(nullptr),
 	m_pcProcesses(nullptr)
 {
 
-	// load process file.. TODO !!! DO NOT LOAD WITHIN AQUILINUS.DLL
-	this->LoadProcessListCSV();
+	// load process file.. TODO !!! DO NOT (FULLY) LOAD WITHIN AQUILINUS.DLL + SET CONFIG AS MAIN MEMBER HERE
+	this->LoadProcessListCSV(psConfig);
 }
 
 /**
@@ -69,10 +69,20 @@ AQU_FileManager::~AQU_FileManager()
 	}
 }
 
-/**
-* Loads the basic information from a working area file for the Inicio app.
-***/
-HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD& dwProcessIndex, DWORD& dwSupportedInterfacesNumber, int* pnInterfaceInjectionTechnique, LPWSTR szPicturePath, BOOL& bPicture, DWORD& dwDetourTimeDelay, bool bKeepProcessName)
+/// <summary>
+/// => Load working area basics
+/// Loads the basic information from a working area file for the Inicio app.
+/// TODO !! SIMPLIFY PARAMETERS
+/// </summary>
+HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, 
+	DWORD& dwProcessIndex, 
+	DWORD& dwSupportedInterfacesNumber, 
+	__int32* pnInterfaceInjectionTechnique,
+	LPWSTR szPicturePath, 
+	BOOL& bPicture, 
+	unsigned __int32& dwDetourTimeDelay,
+	__int32& nInjectionRepetition,
+	bool bKeepProcessName)
 {
 	OPENFILENAME ofn;
 	wchar_t szFileName[MAX_PATH] = L"";
@@ -122,12 +132,12 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD& dw
 				return E_FAIL;
 			}
 
-			DWORD dwInputHash;
+			unsigned __int32 dwInputHash;
 			char pData[256];
 			while (inFile.good())
 			{
 				// read hash and data
-				inFile.read((char*)&dwInputHash, sizeof(DWORD));
+				inFile.read((char*)&dwInputHash, sizeof(unsigned __int32));
 				inFile.read(pData, 256);
 
 				// get actual data size
@@ -137,7 +147,7 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD& dw
 				if (nActualSize > 0)
 				{
 					// get the hash for this data block
-					DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+					unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 					// compare hash, write data
 					if (dwHash == dwInputHash)
@@ -193,8 +203,8 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD& dw
 	}
 
 	// read the length of the additional option block (currently zero.. for future use)
-	DWORD dwAdditionalDataBlockLength = 0;
-	sstrDataStream.read((char*)&dwAdditionalDataBlockLength, sizeof(DWORD));
+	unsigned __int32 auAdditionalDataBlockLength[OPTIONS_RESERVED] = {};
+	sstrDataStream.read((char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32)* OPTIONS_RESERVED);
 
 	// read profile picture boolean and the path if true
 	sstrDataStream.read((char*)&bPicture, sizeof(BOOL));
@@ -204,19 +214,21 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD& dw
 	// TODO !! PICTURES FOR WORKING AREAS ARE SET OFF HERE....
 	bPicture = false;
 
-	// read the detour time delay
-	sstrDataStream.read((char*)&dwDetourTimeDelay, sizeof(DWORD));
+	// read the detour time delay, injection repetition
+	sstrDataStream.read((char*)&dwDetourTimeDelay, sizeof(unsigned __int32));
+	sstrDataStream.read((char*)&nInjectionRepetition, sizeof(__int32));
 
 	// get the injected classes booleans, first the number of supported interfaces
-	sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-	sstrDataStream.read((char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
+	sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
+	sstrDataStream.read((char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(__int32));
 
 	return S_OK;
 }
 
-/**
-* Loads the basic information from a profile file for the Inicio app.
-***/
+/// <summary>
+/// => Load profile basics
+/// Loads the basic information from a profile file for the Inicio app.
+/// </summary>
 HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* psConfig, DWORD& dwSupportedInterfacesNumber, BYTE*& paPictureData, DWORD& dwPictureSize)
 {
 	// set fields
@@ -278,12 +290,12 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 				return E_FAIL;
 			}
 
-			DWORD dwInputHash;
+			unsigned __int32 dwInputHash;
 			char pData[256];
 			while (inFile.good())
 			{
 				// read hash and data
-				inFile.read((char*)&dwInputHash, sizeof(DWORD));
+				inFile.read((char*)&dwInputHash, sizeof(unsigned __int32));
 				inFile.read(pData, 256);
 
 				// get actual data size
@@ -293,7 +305,7 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 				if (nActualSize > 0)
 				{
 					// get the hash for this data block
-					DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+					unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 					// compare hash, write data
 					if (dwHash == dwInputHash)
@@ -340,8 +352,8 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 		psConfig->bEmptyProcess = FALSE;
 
 	// read the length of the additional option block (currently zero.. for future use)
-	DWORD dwAdditionalDataBlockLength = 0;
-	sstrDataStream.read((char*)&dwAdditionalDataBlockLength, sizeof(DWORD));
+	unsigned __int32 auAdditionalDataBlockLength[OPTIONS_RESERVED] = {};
+	sstrDataStream.read((char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32)* OPTIONS_RESERVED);
 
 	// read profile picture boolean and the path if true
 	sstrDataStream.read((char*)&psConfig->bProfileWindow, sizeof(BOOL));
@@ -354,21 +366,23 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 		dwPictureSize = (DWORD)nImageSize;
 	}
 
-	// read the detour time delay
-	sstrDataStream.read((char*)&psConfig->dwDetourTimeDelay, sizeof(DWORD));
+	// read the detour time delay, injection repetition
+	sstrDataStream.read((char*)&psConfig->dwDetourTimeDelay, sizeof(unsigned __int32));
+	sstrDataStream.read((char*)&psConfig->nInjectionRepetition, sizeof(__int32));
 
 	// get the injected classes booleans, first the number of supported interfaces
-	sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-	sstrDataStream.read((char*)&psConfig->eInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
+	sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
+	sstrDataStream.read((char*)&psConfig->eInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(__int32));
 
 	return S_OK;
 }
 
-/**
-* Load working area to pure data stream.
-* @param szWorkspacePath The file path.
-* @param sstrDataStream The pure data stream.
-***/
+/// <summary>
+/// => Load working area (stream)
+///  Load working area to pure data stream.
+/// <param name="szWorkspacePath">The file path</param>
+/// <param name="sstrDataStream">The pure data stream</param>
+/// </summary>
 HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstream& sstrDataStream)
 {
 	// first, clear the data stream
@@ -399,12 +413,12 @@ HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstre
 			return E_FAIL;
 		}
 
-		DWORD dwInputHash;
+		unsigned __int32 dwInputHash;
 		char pData[256];
 		while (inFile.good())
 		{
 			// read hash and data
-			inFile.read((char*)&dwInputHash, sizeof(DWORD));
+			inFile.read((char*)&dwInputHash, sizeof(unsigned __int32));
 			inFile.read(pData, 256);
 
 			// get actual data size
@@ -414,7 +428,7 @@ HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstre
 			if (nActualSize > 0)
 			{
 				// get the hash for this data block
-				DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+				unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 				// compare hash, write data
 				if (dwHash == dwInputHash)
@@ -440,11 +454,12 @@ HRESULT AQU_FileManager::LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstre
 	return S_OK;
 }
 
-/**
-* Load profile to pure data stream.
-* @param szWorkspacePath The file path.
-* @param sstrDataStream The pure data stream.
-***/
+/// <summary>
+/// => Load profile (stream)
+///  Load profile to pure data stream.
+/// <param name="szWorkspacePath">The file path</param>
+/// <param name="sstrDataStream">The pure data stream</param>
+/// </summary>
 HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream& sstrDataStream)
 {
 	sstrDataStream.clear();
@@ -474,12 +489,12 @@ HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream& ss
 			return E_FAIL;
 		}
 
-		DWORD dwInputHash;
+		unsigned __int32 dwInputHash;
 		char pData[256];
 		while (inFile.good())
 		{
 			// read hash and data
-			inFile.read((char*)&dwInputHash, sizeof(DWORD));
+			inFile.read((char*)&dwInputHash, sizeof(unsigned __int32));
 			inFile.read(pData, 256);
 
 			// get actual data size
@@ -489,7 +504,7 @@ HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream& ss
 			if (nActualSize > 0)
 			{
 				// get the hash for this data block
-				DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+				unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 				// compare hash, write data
 				if (dwHash == dwInputHash)
@@ -513,23 +528,51 @@ HRESULT AQU_FileManager::LoadProfile(LPWSTR szProfilePath, std::stringstream& ss
 	return S_OK;
 }
 
-/**
-* Save working area.
-* Saves all nodes to a .aquw file.
-* @param psConfig Pointer to the Aquilinus configuration field.
-* @param (*ppaNodes) Vector of all workspace nodes.
-* @param dwSupportedInterfacesNumber The number of supported interfaces to create the interface injection table.
-***/
+/// <summary>
+/// => Save working area.
+/// Saves all nodes, options and additional data to a .aquw file.
+/// 
+/// Working Area file (.aquw)
+/// -------------------------
+/// 
+/// WORKSPACE_HEADER_SIZE.........................Workspace header
+/// ..............................................following data stream has an hash code every 256 bytes:
+/// ENTRY_SIZE....................................Game Name
+/// OPTIONS_RESERVED * sizeof(__int32)............reserved for future use
+/// sizeof(BOOL)..................................TRUE if picture is present
+/// ->MAX_PATH * sizeof(wchar_t)..................picture path (if picture is present)
+/// sizeof(unsigned __int32)......................detour time delay (option)
+/// sizeof(__int32)...............................injection repetition (option)
+/// sizeof(__int32)...............................number of supported interfaces by the current Aquilinus version
+/// ->sizeof(__int32) ............................injection technique enumeration for each (currently supported) interface (within enumeration)
+/// sizeof(unsigned __int32)..................................number of nodes
+/// ->sizeof(unsigned __int32)................................node type id
+/// ->Vector2(float,float)........................node position x,y
+/// -->sizeof(unsigned __int32)...............................node plugin id (if node is a plugin)
+/// -->sizeof(wchar_t) * 64.......................node plugin dll filename (if node is a plugin)
+/// ->sizeof(unsigned __int32)................................node data size (dwDataSize)
+/// -->dwDataSize.................................node data
+/// 0.............................................new loop (number of nodes)
+/// ->sizeof(unsigned __int32)...............................node commanders number
+/// -->sizeof(unsigned __int32)..............................node commander connections number (dwConnectionsNumber)
+/// --->sizeof(LONG) * 2 * dwConnectionsNumber...............node commander connection indices (out + in for each connection)
+/// ->sizeof(unsigned __int32)...............................node provoker connections number (dwConnectionsNumber)
+/// -->sizeof(unsigned __int32) * dwConnectionsNumber........node provoker connection indices
+/// 
+/// <param name="psConfig">Pointer to the Aquilinus configuration field</param>
+/// <param name="ppaNodes">Vector of all workspace nodes</param>
+/// <param name="dwSupportedInterfacesNumber">The number of supported interfaces to create the interface injection table</param>
+/// </summary>
 HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD_Basic*>* ppaNodes, DWORD dwSupportedInterfacesNumber)
 {
 	// get all necessary fields from the config
-	DWORD dwProcessIndex = psConfig->dwProcessIndex;
-	int* pnInterfaceInjectionTechnique = (int*)psConfig->eInjectionTechnique;
-	LPWSTR szPath = psConfig->szAquilinusPath;
+	unsigned __int32 dwProcessIndex = psConfig->dwProcessIndex;
+	__int32* pnInterfaceInjectionTechnique = (__int32*)psConfig->eInjectionTechnique;
 	LPWSTR szPicturePath = psConfig->szPictureFilePath;
 	BOOL bPicture = psConfig->bProfileWindow;
-	DWORD dwDetourTimeDelay = psConfig->dwDetourTimeDelay;
-	BOOL bEmptyProfile = psConfig->bEmptyProcess;
+	unsigned __int32 dwDetourTimeDelay = psConfig->dwDetourTimeDelay;
+	__int32 nInjectionRepetition = psConfig->nInjectionRepetition;
+	BOOL bEmptyProcess = psConfig->bEmptyProcess;
 
 	// create filename fields
 	OPENFILENAME ofn;
@@ -552,7 +595,7 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 		// get a binary stream
 		std::stringstream binaryStream;
 
-		if (bEmptyProfile)
+		if (bEmptyProcess)
 		{
 			// write down the game name entry 
 			wchar_t szEntryName[MAX_JOLIET_FILENAME];
@@ -563,35 +606,39 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 		{
 			// write down the game name entry 
 			wchar_t* szEntryName = GetName(dwProcessIndex);
+			if (!szEntryName) return E_FAIL;
 			binaryStream.write((const char*)&szEntryName[0], ENTRY_SIZE);
 		}
 
 		// write down the length of the additional option block (currently zero.. for future use)
-		DWORD dwAdditionalDataBlockLength = 0;
-		binaryStream.write((const char*)&dwAdditionalDataBlockLength, sizeof(DWORD));
+		unsigned __int32 auAdditionalDataBlockLength[OPTIONS_RESERVED] = {};
+		binaryStream.write((const char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32) * OPTIONS_RESERVED);
 
 		// write the profile picture boolean and the path if true
 		binaryStream.write((const char*)&bPicture, sizeof(BOOL));
 		if (bPicture)
 			binaryStream.write((const char*)&szPicturePath[0], MAX_PATH * sizeof(wchar_t));
 
-		// write down the detour time delay
-		binaryStream.write((const char*)&dwDetourTimeDelay, sizeof(DWORD));
+		// write down the detour time delay, injection repetition
+		binaryStream.write((const char*)&dwDetourTimeDelay, sizeof(unsigned __int32));
+		binaryStream.write((const char*)&nInjectionRepetition, sizeof(__int32));
 
 		// and the injected classes booleans, first the number of supported interfaces
-		binaryStream.write((const char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
+		binaryStream.write((const char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
+		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], (std::streamsize)dwSupportedInterfacesNumber * sizeof(__int32));
 
 		// and the node number ...
-		UINT dwNodeNumber = (UINT)(*ppaNodes).size();
-		binaryStream.write((const char*)&dwNodeNumber, sizeof(UINT));
+		unsigned __int32 dwNodeNumber = (unsigned __int32)(*ppaNodes).size();
+		binaryStream.write((const char*)&dwNodeNumber, sizeof(unsigned __int32));
 
 		// loop through the nodes to add node data 
 		for (std::vector<NOD_Basic*>::size_type i = 0; i != (*ppaNodes).size(); i++)
 		{
 			// add node type
-			UINT id = (*ppaNodes)[i]->GetNodeTypeId();
-			binaryStream.write((const char*)&id, sizeof(UINT));
+			unsigned __int32 id = (*ppaNodes)[i]->GetNodeTypeId();
+			binaryStream.write((const char*)&id, sizeof(unsigned __int32));
+			OutputDebugString(L"---------------------write_id");
+			DEBUG_UINT(id);
 
 			// add node position
 			ImVec2 pos = (*ppaNodes)[i]->GetNodePosition();
@@ -603,18 +650,18 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 			{
 				// get data (id + filename)
 				NOD_Plugin* pPlugin = (NOD_Plugin*)(*ppaNodes)[i];
-				UINT idPlugin = pPlugin->GetPluginNodeTypeId();
+				unsigned __int32 idPlugin = pPlugin->GetPluginNodeTypeId();
 				LPCWSTR szFileName = pPlugin->GetPluginNodeFileName();
 
 				// and write to stream
-				binaryStream.write((const char*)&idPlugin, sizeof(UINT));
+				binaryStream.write((const char*)&idPlugin, sizeof(unsigned __int32));
 				binaryStream.write((const char*)&szFileName[0], sizeof(wchar_t) * 64);
 			}
 
 			// add node data
-			UINT dwDataSize = 0;
+			unsigned __int32 dwDataSize = 0;
 			char* pcData = (*ppaNodes)[i]->GetSaveData(&dwDataSize);
-			binaryStream.write((const char*)&dwDataSize, sizeof(UINT));
+			binaryStream.write((const char*)&dwDataSize, sizeof(unsigned __int32));
 			if (dwDataSize)
 				binaryStream.write((const char*)pcData, dwDataSize);
 		}
@@ -623,15 +670,15 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 		for (std::vector<NOD_Basic*>::size_type i = 0; i != (*ppaNodes).size(); i++)
 		{
 			// write down the number of commanders
-			DWORD dwCommandersNumber = (DWORD)(*ppaNodes)[i]->m_paCommanders.size();
-			binaryStream.write((const char*)&dwCommandersNumber, sizeof(DWORD));
+			unsigned __int32 dwCommandersNumber = (unsigned __int32)(*ppaNodes)[i]->m_paCommanders.size();
+			binaryStream.write((const char*)&dwCommandersNumber, sizeof(unsigned __int32));
 
 			// loop through commanders, write down the number of connections and the connection indices
 			for (DWORD j = 0; j < dwCommandersNumber; j++)
 			{
 				// write the commander connections number
-				DWORD dwConnectionsNumber = (*ppaNodes)[i]->GetCommanderConnectionsNumber(j);
-				binaryStream.write((const char*)&dwConnectionsNumber, sizeof(DWORD));
+				unsigned __int32 dwConnectionsNumber = (*ppaNodes)[i]->GetCommanderConnectionsNumber(j);
+				binaryStream.write((const char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 				// write down the commander connection node indices
 				LONG* pnNodeIndices = (*ppaNodes)[i]->GetCommanderConnectionIndices(ppaNodes, j);
@@ -642,8 +689,8 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 			}
 
 			// write the provoker connections number
-			DWORD dwConnectionsNumber = (*ppaNodes)[i]->GetProvokerConnectionsNumber();
-			binaryStream.write((const char*)&dwConnectionsNumber, sizeof(DWORD));
+			unsigned __int32 dwConnectionsNumber = (*ppaNodes)[i]->GetProvokerConnectionsNumber();
+			binaryStream.write((const char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 			// write down the provoker connection node indices
 			LONG* pnNodeIndices = (*ppaNodes)[i]->GetProvokerConnectionIndices();
@@ -676,10 +723,10 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 				if (nActualSize > 0)
 				{
 					// get the hash for this data block
-					DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+					unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 					// write hash, then the data block
-					outFile.write((char*)&dwHash, sizeof(DWORD));
+					outFile.write((char*)&dwHash, sizeof(unsigned __int32));
 					outFile.write((char*)pData, nActualSize);
 				}
 			}
@@ -763,10 +810,10 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 					if (nActualSize > 0)
 					{
 						// get the hash for this data block
-						DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+						unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 						// write hash, then the data block
-						outFile.write((char*)&dwHash, sizeof(DWORD));
+						outFile.write((char*)&dwHash, sizeof(unsigned __int32));
 						outFile.write((char*)pData, nActualSize);
 					}
 				}
@@ -782,21 +829,20 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 		return E_FAIL;
 }
 
-/**
-* Compile a profile.
-* Saves all data to a .aqup file containing the PNG data for the profile window image.
-* File is encrypted.
-***/
+/// <summary>
+/// => Compile profile
+/// Saves all data to a .aqup file containing the PNG data for the profile window image.
+/// </summary> 
 HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_Basic*>* ppaNodes, DWORD dwSupportedInterfacesNumber)
 {
 	// get all necessary fields from the config
-	DWORD dwProcessIndex = psConfig->dwProcessIndex;
-	int* pnInterfaceInjectionTechnique = (int*)psConfig->eInjectionTechnique;
-	LPWSTR szPath = psConfig->szAquilinusPath;
+	unsigned __int32 dwProcessIndex = psConfig->dwProcessIndex;
+	__int32* pnInterfaceInjectionTechnique = (__int32*)psConfig->eInjectionTechnique;
 	LPWSTR szPicturePath = psConfig->szPictureFilePath;
 	BOOL bPicture = psConfig->bProfileWindow;
-	DWORD dwDetourTimeDelay = psConfig->dwDetourTimeDelay;
-	BOOL bEmptyProfile = psConfig->bEmptyProcess;
+	unsigned __int32 dwDetourTimeDelay = psConfig->dwDetourTimeDelay;
+	__int32 nInjectionRepetition = psConfig->nInjectionRepetition;
+	BOOL bEmptyProcess = psConfig->bEmptyProcess;
 
 	// get output fields
 	OPENFILENAME ofn;
@@ -842,7 +888,7 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 		// get a binary stream
 		std::stringstream binaryStream;
 
-		if (bEmptyProfile)
+		if (bEmptyProcess)
 		{
 			// write down the game name entry 
 			wchar_t szEntryName[MAX_JOLIET_FILENAME];
@@ -853,9 +899,10 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 		{
 			// write down the game name entry 
 			wchar_t* szEntryName = GetName(dwProcessIndex);
+			if (!szEntryName) return E_FAIL;
 			binaryStream.write((const char*)&szEntryName[0], ENTRY_SIZE);
 		}
-		if (bEmptyProfile)
+		if (bEmptyProcess)
 		{
 			// write down the window name
 			wchar_t szWindowName[MAX_JOLIET_FILENAME];
@@ -868,7 +915,7 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			wchar_t* szWindowName = GetWindowName(dwProcessIndex);
 			binaryStream.write((const char*)&szWindowName[0], ENTRY_SIZE);
 		}
-		if (bEmptyProfile)
+		if (bEmptyProcess)
 		{
 			// write down the game process
 			wchar_t szProcessName[MAX_JOLIET_FILENAME];
@@ -883,8 +930,8 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 		}
 
 		// write down the length of the additional option block (currently zero.. for future use)
-		DWORD dwAdditionalDataBlockLength = 0;
-		binaryStream.write((const char*)&dwAdditionalDataBlockLength, sizeof(DWORD));
+		unsigned __int32 auAdditionalDataBlockLength[OPTIONS_RESERVED] = {};
+		binaryStream.write((const char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32) * OPTIONS_RESERVED);
 
 		// write the profile picture boolean and the picture data (first, the size) if true
 		binaryStream.write((const char*)&bPicture, sizeof(BOOL));
@@ -895,23 +942,24 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			binaryStream.write((const char*)(&paImageBuffer[0]), nISize);
 		}
 
-		// write down the detour time delay
-		binaryStream.write((const char*)&dwDetourTimeDelay, sizeof(DWORD));
+		// write down the detour time delay, injection repeatition
+		binaryStream.write((const char*)&dwDetourTimeDelay, sizeof(unsigned __int32));
+		binaryStream.write((const char*)&nInjectionRepetition, sizeof(__int32));
 
 		// and the injected classes booleans, first the number of supported interfaces
-		binaryStream.write((const char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(int));
+		binaryStream.write((const char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
+		binaryStream.write((const char*)&pnInterfaceInjectionTechnique[0], dwSupportedInterfacesNumber * sizeof(__int32));
 
 		// and the node number ...
-		UINT dwNodeNumber = (UINT)(*ppaNodes).size();
-		binaryStream.write((const char*)&dwNodeNumber, sizeof(UINT));
+		unsigned __int32 dwNodeNumber = (unsigned __int32)(*ppaNodes).size();
+		binaryStream.write((const char*)&dwNodeNumber, sizeof(unsigned __int32));
 
 		// loop through the nodes to add node data 
 		for (std::vector<NOD_Basic*>::size_type i = 0; i != (*ppaNodes).size(); i++)
 		{
 			// add node type
-			UINT id = (*ppaNodes)[i]->GetNodeTypeId();
-			binaryStream.write((const char*)&id, sizeof(UINT));
+			unsigned __int32 id = (*ppaNodes)[i]->GetNodeTypeId();
+			binaryStream.write((const char*)&id, sizeof(unsigned __int32));
 
 			// add node position
 			ImVec2 pos = (*ppaNodes)[i]->GetNodePosition();
@@ -923,18 +971,18 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			{
 				// get data (id + filename)
 				NOD_Plugin* pPlugin = (NOD_Plugin*)(*ppaNodes)[i];
-				UINT idPlugin = pPlugin->GetPluginNodeTypeId();
+				unsigned __int32 idPlugin = pPlugin->GetPluginNodeTypeId();
 				LPCWSTR szFileName = pPlugin->GetPluginNodeFileName();
 
 				// and write to stream
-				binaryStream.write((const char*)&idPlugin, sizeof(UINT));
+				binaryStream.write((const char*)&idPlugin, sizeof(unsigned __int32));
 				binaryStream.write((const char*)&szFileName[0], sizeof(wchar_t) * 64);
 			}
 
 			// add node data
-			UINT dwDataSize = 0;
+			unsigned __int32 dwDataSize = 0;
 			char* pcData = (*ppaNodes)[i]->GetSaveData(&dwDataSize);
-			binaryStream.write((const char*)&dwDataSize, sizeof(UINT));
+			binaryStream.write((const char*)&dwDataSize, sizeof(unsigned __int32));
 			if (dwDataSize)
 				binaryStream.write((const char*)pcData, dwDataSize);
 		}
@@ -943,15 +991,15 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 		for (std::vector<NOD_Basic*>::size_type i = 0; i != (*ppaNodes).size(); i++)
 		{
 			// write down the number of commanders
-			DWORD dwCommandersNumber = (DWORD)(*ppaNodes)[i]->m_paCommanders.size();
-			binaryStream.write((const char*)&dwCommandersNumber, sizeof(DWORD));
+			unsigned __int32 dwCommandersNumber = (unsigned __int32)(*ppaNodes)[i]->m_paCommanders.size();
+			binaryStream.write((const char*)&dwCommandersNumber, sizeof(unsigned __int32));
 
 			// loop through commanders, write down the number of connections and the connection indices
 			for (DWORD j = 0; j < dwCommandersNumber; j++)
 			{
 				// write the commander connections number
-				DWORD dwConnectionsNumber = (*ppaNodes)[i]->GetCommanderConnectionsNumber(j);
-				binaryStream.write((const char*)&dwConnectionsNumber, sizeof(DWORD));
+				unsigned __int32 dwConnectionsNumber = (*ppaNodes)[i]->GetCommanderConnectionsNumber(j);
+				binaryStream.write((const char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 				// write down the commander connection node indices
 				LONG* pnNodeIndices = (*ppaNodes)[i]->GetCommanderConnectionIndices(ppaNodes, j);
@@ -962,8 +1010,8 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 			}
 
 			// write the provoker connections number
-			DWORD dwConnectionsNumber = (*ppaNodes)[i]->GetProvokerConnectionsNumber();
-			binaryStream.write((const char*)&dwConnectionsNumber, sizeof(DWORD));
+			unsigned __int32 dwConnectionsNumber = (*ppaNodes)[i]->GetProvokerConnectionsNumber();
+			binaryStream.write((const char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 			// write down the provoker connection node indices
 			LONG* pnNodeIndices = (*ppaNodes)[i]->GetProvokerConnectionIndices();
@@ -996,10 +1044,10 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 				if (nActualSize > 0)
 				{
 					// get the hash for this data block
-					DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+					unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 					// write hash, then the data block
-					outFile.write((char*)&dwHash, sizeof(DWORD));
+					outFile.write((char*)&dwHash, sizeof(unsigned __int32));
 					outFile.write((char*)pData, nActualSize);
 				}
 			}
@@ -1083,10 +1131,10 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 					if (nActualSize > 0)
 					{
 						// get the hash for this data block
-						DWORD dwHash = this->GetHash((BYTE*)pData, (DWORD)nActualSize);
+						unsigned __int32 dwHash = this->GetHash((BYTE*)pData, (unsigned __int32)nActualSize);
 
 						// write hash, then the data block
-						outFile.write((char*)&dwHash, sizeof(DWORD));
+						outFile.write((char*)&dwHash, sizeof(unsigned __int32));
 						outFile.write((char*)pData, nActualSize);
 					}
 				}
@@ -1230,9 +1278,9 @@ LPWSTR AQU_FileManager::GetProcessName(DWORD dwIndex)
 /**
 * Get hash code helper.
 ***/
-DWORD AQU_FileManager::GetHash(BYTE* pcData, DWORD dwSize)
+unsigned __int32 AQU_FileManager::GetHash(BYTE* pcData, unsigned __int32 dwSize)
 {
-	DWORD h = 0;
+	unsigned __int32 h = 0;
 
 	// create hash
 	for (DWORD i = 0; i < dwSize; i++)
@@ -1293,30 +1341,30 @@ HRESULT AQU_FileManager::AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR sz
 	return S_OK;
 }
 
-/**
-* Loads the process list from the readable .csv file.
-* Fully removes old process list !
-***/
-HRESULT AQU_FileManager::LoadProcessListCSV()
+/// <summary>
+/// Load process list (.csv)
+/// Loads the process list from the readable.csv file.
+/// </summary>
+HRESULT AQU_FileManager::LoadProcessListCSV(AquilinusCfg* psConfig)
 {
 	UINT uI = 0;
-	DEBUG_UINT(uI++);
+	
 	// clear old list
 	if (m_pcProcesses) free(m_pcProcesses);
 	m_pcProcesses = nullptr;
 	m_dwProcessListSize = 0;
-	DEBUG_UINT(uI++);
 
 	// open proc file
 	std::wifstream procFile;
+	std::wstringstream szFilePath;
 #ifdef _WIN64
-	procFile.open("proc_x64.csv", std::ios::in | std::ios::binary);
+	szFilePath << psConfig->szAquilinusPath << L"proc_x64.csv";
 #else
-	procFile.open("proc_x86.csv", std::ios::in | std::ios::binary);
+	szFilePath << psConfig->szAquilinusPath << L"proc_x86.csv";
 #endif
+	procFile.open(szFilePath.str().c_str(), std::ios::in | std::ios::binary);
 	if (procFile.is_open())
 	{
-		DEBUG_UINT(uI++);
 		// get the number of processes
 		DWORD dwNumber = 0;
 		std::wstring szLine;
@@ -1324,15 +1372,12 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 			++dwNumber;
 		procFile.clear();
 		procFile.seekg(0);
-		DEBUG_UINT(uI++);
 
 		// read line by line
 		for (DWORD i = 0; i < dwNumber; i++)
 		{
 			// read the line
 			std::getline(procFile, szLine);
-			OutputDebugString(L"Read line...");
-			OutputDebugString(szLine.c_str());
 
 			// parse
 			std::wstring delimiter = L",";
@@ -1343,30 +1388,24 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 			{
 				szName = szLine.substr(0, pos);
 				szLine.erase(0, pos + delimiter.length());
-				OutputDebugString(szName.c_str());
 			}
 			if ((pos = szLine.find(delimiter)) != std::wstring::npos)
 			{
 				szWinName = szLine.substr(0, pos);
 				szLine.erase(0, pos + delimiter.length());
-				OutputDebugString(szWinName.c_str());
 			}
-			OutputDebugString(szLine.c_str());
 
 			// and add the process
 			AddProcess(szName.c_str(), szWinName.c_str(), szLine.c_str());
 		}
-		DEBUG_UINT(uI++);
 	}
 	else
 	{
 		OutputDebugString(L"File not found : proc.csv");
 		return ERROR_FILE_NOT_FOUND;
 	}
-	DEBUG_UINT(uI++);
 
 	procFile.close();
-	DEBUG_UINT(uI++);
 
 	// output all process names for debug reasons
 	for (DWORD i = 0; i < this->GetProcessNumber(); i++)
@@ -1375,14 +1414,14 @@ HRESULT AQU_FileManager::LoadProcessListCSV()
 		OutputDebugString(this->GetWindowName(i));
 		OutputDebugString(this->GetProcessName(i));
 	}
-	DEBUG_UINT(uI++);
 
 	return S_OK;
 }
 
-/**
-* Saves the process list as readable .csv file.
-***/
+/// <summary>
+/// Save process list (.csv)
+/// Saves the process list as readable.csv file.
+/// </summary>
 HRESULT AQU_FileManager::SaveProcessListCSV()
 {
 	std::wofstream outfile;

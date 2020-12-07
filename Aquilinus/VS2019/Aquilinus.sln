@@ -8,8 +8,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Inicio", "..\Inicio\VS2019\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AquilinusRTE", "..\AquilinusRTE\VS2019\AquilinusRTE.vcxproj", "{08DE0036-DCA5-430C-9999-327D9D8DE387}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AquilinusClassGenerator", "..\AquilinusClassGenerator\VS2019\AquilinusClassGenerator.vcxproj", "{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -56,18 +54,6 @@ Global
 		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|Win32.Build.0 = Release|Win32
 		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|x64.ActiveCfg = Release|x64
 		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|x64.Build.0 = Release|x64
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Debug|Win32.ActiveCfg = Debug|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Debug|Win32.Build.0 = Debug|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Debug|x64.ActiveCfg = Debug|x64
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Debug|x64.Build.0 = Debug|x64
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Release|Win32.ActiveCfg = Release|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Release|Win32.Build.0 = Release|Win32
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Release|x64.ActiveCfg = Release|x64
-		{7FA160F4-11A0-4314-8AA2-E2438D7CEC34}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

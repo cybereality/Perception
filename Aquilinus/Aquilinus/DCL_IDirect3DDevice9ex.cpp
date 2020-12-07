@@ -3202,9 +3202,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;
@@ -3322,9 +3322,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThi
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;
@@ -3879,9 +3879,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;
@@ -3999,9 +3999,9 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis
 
 		// register the shader entry to the data sheet via the transfer site class
 		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwHash);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwHash);
 		else
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwEntryNumber, dwSizeOfData);
+			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwSizeOfData);
 
 		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
 		if (pData) delete[] pData;

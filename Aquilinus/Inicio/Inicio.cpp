@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AQUILINUS_RUNTIME_ENVIRONMENT
 
 /// <summary>
-/// Main window control
+/// => Main window control
 /// </summary>
 void ImGui_Main()
 {
@@ -91,6 +91,7 @@ void ImGui_Main()
 			g_pAquilinusConfig->szPictureFilePath,
 			g_pAquilinusConfig->bProfileWindow,
 			g_pAquilinusConfig->dwDetourTimeDelay,
+			g_pAquilinusConfig->nInjectionRepetition,
 			g_bKeepProcessName)))
 		{
 			// keep the "old" process name ?
@@ -187,6 +188,7 @@ void ImGui_Main()
 			if (g_hInjectionThread == NULL)
 				OutputDebugString(L"Aquilinus : Failed to create injection thread !");
 
+			// TODO !! THUMBNAILS ??
 			// thumbnail present ?
 			wchar_t szPNGPath[MAX_PATH];
 			size_t nLen = wcslen(g_pAquilinusConfig->szProfileFilePath);
@@ -267,7 +269,7 @@ void ImGui_Main()
 }
 
 /// <summary>
-/// New project window control.
+/// => New project window control.
 /// </summary>
 void ImGui_New()
 {
@@ -398,7 +400,7 @@ void ImGui_StyleColorsByScheme()
 }
 
 /// <summary>
-/// ImGui Options.
+/// => ImGui Options.
 /// </summary>
 void ImGui_Options(AquilinusCfg& sConfig)
 {
@@ -1145,7 +1147,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	OutputDebugString(L"Inicio : Aquilinus window creation succeeded !");
 
 	// create file manager
-	g_pFileManager = new AQU_FileManager(true);
+	g_pFileManager = new AQU_FileManager(g_pAquilinusConfig);
 
 	// load or create options file
 #ifdef _WIN64

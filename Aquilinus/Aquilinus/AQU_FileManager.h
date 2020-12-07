@@ -45,10 +45,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 #define PROCESS_ENTRY_SIZE 3*MAX_JOLIET_FILENAME*sizeof(wchar_t)
 /**
-* Cypher defines.
+* Size of reserved options (*sizeof(DWORD))
 ***/
-#define CYPHER_ONE "Integrated development environment"
-#define CYPHER_TWO "Attitudes across different computing platforms"
+#define OPTIONS_RESERVED 256
+
 
 #include <Windows.h>
 #include <string>
@@ -77,10 +77,10 @@ enum AQU_EncryptionMode
 class AQU_FileManager
 {
 public:
-	AQU_FileManager(bool bCreate);
+	AQU_FileManager(AquilinusCfg* psConfig);
 	~AQU_FileManager();
 
-	HRESULT LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD &dwProcessIndex, DWORD &dwSupportedInterfacesNumber, int* pnInterfaceInjectionTechnique, LPWSTR szPicturePath, BOOL &bPicture, DWORD &dwDetourTimeDelay, bool bKeepProcessName);
+	HRESULT LoadWorkingAreaBasics(LPWSTR szWorkspacePath, DWORD &dwProcessIndex, DWORD &dwSupportedInterfacesNumber, __int32* pnInterfaceInjectionTechnique, LPWSTR szPicturePath, BOOL &bPicture, unsigned __int32 &dwDetourTimeDelay, __int32 &nInjectionRepetition, bool bKeepProcessName);
 	HRESULT LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* psConfig, DWORD &dwSupportedInterfacesNumber, BYTE* &paPictureData, DWORD &dwPictureSize);
 	HRESULT LoadWorkingArea(LPWSTR szWorkspacePath, std::stringstream &sstrDataStream);
 	HRESULT LoadProfile(LPWSTR szProfilePath, std::stringstream &sstrDataStream);
@@ -95,9 +95,9 @@ public:
 	LPWSTR  GetName(DWORD dwIndex);
 	LPWSTR  GetWindowName(DWORD dwIndex);
 	LPWSTR  GetProcessName(DWORD dwIndex);
-	DWORD   GetHash(BYTE* pcData, DWORD dwSize);
+	unsigned __int32   GetHash(BYTE* pcData, unsigned __int32 dwSize);
 	HRESULT AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR szProcess);
-	HRESULT LoadProcessListCSV();
+	HRESULT LoadProcessListCSV(AquilinusCfg* psConfig);
 	HRESULT SaveProcessListCSV();
 	HRESULT SaveGameListTXT();
 

@@ -145,8 +145,7 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 					pEntry->m_szTitle = std::wstring(pNode->m_szTitle, lenClass, len);
 
 					// create sub entries
-					pEntry->m_dwSubEntriesNumber = (DWORD)pNode->m_paCommandersTemporary.size();
-					for (int k = 0; k < (int)pEntry->m_dwSubEntriesNumber; k++)
+					for (int k = 0; k < (int)pNode->m_paCommandersTemporary.size(); k++)
 						pEntry->m_aacSubEntries.push_back(std::wstring(pNode->m_paCommandersTemporary[k]->m_szTitle));
 
 					// delete node
@@ -196,7 +195,6 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 		// get name
 		pEntry->m_szTitle = pProvider->Get_Elementary_Node_Name((AQU_ElementaryNodes)i);
 		pEntry->m_aacSubEntries.push_back(std::wstring(pProvider->Get_Elementary_Node_Desc((AQU_ElementaryNodes)i)));
-		pEntry->m_dwSubEntriesNumber = 1; // TODO !! get rid of this !
 
 		// add entry
 		psCategory->m_paEntries.push_back(pEntry);
@@ -396,41 +394,87 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			// => <main loop window> menu bar
 #pragma region Main Menu Bar
 
-			// TODO Create main menu
 			// get small font, create main menu bar
 			ImGui::PushFont(psFontSmall);
 			if (ImGui::BeginMainMenuBar())
 			{
 				if (ImGui::BeginMenu("File"))
 				{
-					if (ImGui::MenuItem("Load", "CTRL+L")) {}
+					static bool s_bExtern = false;
+					if (ImGui::MenuItem("Save...", "CTRL+S"))
+					{
+						// set config bool
+						m_pcTransferSite->m_pConfig->bExternalSave = (BOOL)s_bExtern;
+
+						// and save...
+						m_pcTransferSite->m_pFileManager->SaveWorkingArea(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
+					}
+					if (ImGui::MenuItem("Compile...", "CTRL+C")) 
+					{
+						// set config bool
+						m_pcTransferSite->m_pConfig->bExternalSave = (BOOL)s_bExtern;
+
+						// compile profile
+						m_pcTransferSite->m_pFileManager->CompileProfile(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
+					}
+					ImGui::Separator();
+					ImGui::MenuItem("Extern Save", NULL, &s_bExtern);
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Edit"))
 				{
-					if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-					if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-					ImGui::Separator();
-					if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-					if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-					if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+					if (ImGui::MenuItem("Reinstate", "CTRL+Z")) 
+					{
+						CreateThread(NULL, 0, m_pcTransferSite->m_pD3D9ReinstateInterfaces, NULL, 0, NULL);
+						//CreateThread(NULL, 0, m_pcTransferSite->m_pD3D929ReinstateInterfaces, NULL, 0, NULL);
+						CreateThread(NULL, 0, m_pcTransferSite->m_pD3D10ReinstateInterfaces, NULL, 0, NULL);
+						CreateThread(NULL, 0, m_pcTransferSite->m_pD3D11ReinstateInterfaces, NULL, 0, NULL);
+					}
+					if (ImGui::MenuItem("Delete loose", "CTRL+Y")) 
+					{
+						// loop through nodes, delete all unconnected
+						for (UINT unI = 0; unI < (UINT)m_paNodes.size(); unI++)
+						{
+							bool bConnected = false;
+							// test all decommanders for connection
+							for (UINT unJ = 0; unJ < (UINT)m_paNodes[unI]->m_paDecommanders.size(); unJ++)
+								if (m_paNodes[unI]->m_paDecommanders[unJ]->m_paCommanders.size())
+									bConnected = true;
+							// test all commanders for connection
+							for (UINT unJ = 0; unJ < (UINT)m_paNodes[unI]->m_paCommanders.size(); unJ++)
+								if (m_paNodes[unI]->m_paCommanders[unJ]->m_paDecommanders.size())
+									bConnected = true;
+							// test provoker, invoker
+							if (m_paNodes[unI]->GetProvokerConnectionsNumber() || m_paNodes[unI]->GetInvokerConnectionsNumber())
+								bConnected = true;
+
+							// exchange index with last node
+							if ((!bConnected) && (unI < (m_paNodes.size() - 1)))
+							{
+								NOD_Basic* pcNodeToDelete = m_paNodes[unI];
+								NOD_Basic* pcNodeToKeep = m_paNodes[m_paNodes.size() - 1];
+
+								// set new index
+								pcNodeToKeep->SetNewIndex((DWORD)unI);
+
+								// set nodes new
+								m_paNodes[unI] = pcNodeToKeep;
+								m_paNodes[m_paNodes.size() - 1] = pcNodeToDelete;
+							}
+
+							if (!bConnected)
+							{
+								// delete last
+								m_paNodes.erase(m_paNodes.end() - 1);
+
+								// back one index to also verify the node to be kept
+								unI--;
+							}
+						}
+					}
 					ImGui::EndMenu();
 				}
 				ImGui::EndMainMenuBar();
-
-				/*case AQU_TopMenuBarFileEntries::SAVE_WORKING_AREA:
-					// and save...
-					m_pcTransferSite->m_pFileManager->SaveWorkingArea(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
-					break;
-				case AQU_TopMenuBarFileEntries::COMPILE_PROFILE:
-					m_pcTransferSite->m_pFileManager->CompileProfile(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
-					break;
-				case AQU_TopMenuBarFileEntries::SAVE_EXTERNALLY:
-					// set bool vice versa, do not kill the file menu so set back to file menu status
-					m_pcTransferSite->m_pConfig->bExternalSave = !m_pcTransferSite->m_pConfig->bExternalSave;
-					m_eWorkingAreaStatus = AQU_WorkingAreaStatus::TopMenuBar_File;
-				default:
-					break;*/
 			}
 
 #pragma endregion
@@ -499,7 +543,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						ImGui::Selectable(acSelectableA.c_str(), (m_nDataSheetEntrySelection == (int)i) && (m_nDataSheetCategorySelection == (int)h));
 
 						// sub entries ?
-						if (m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber > 0)
+						if (m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_aacSubEntries.size() > 0)
 						{
 							// output sub entries if hovered
 							if (ImGui::IsItemHovered())
@@ -507,7 +551,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 								ImGui::BeginTooltip();
 								ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
 								// output sub-entries
-								for (int j = 0; j < (int)m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_dwSubEntriesNumber; j++)
+								for (int j = 0; j < (int)m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_aacSubEntries.size(); j++)
 								{
 									std::wstring acSubW(m_pcTransferSite->m_paDataSheetCategories[h]->m_paEntries[i]->m_aacSubEntries[j]);
 									std::string acSubA;
@@ -879,49 +923,66 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 	// and decode the stream
 	if (SUCCEEDED(hr))
 	{
+		DEBUG_LINE;
 		// first, read the game name to see wether this is an empty profile
 		wchar_t szEntryName[MAX_JOLIET_FILENAME];
 		sstrDataStream.read((char*)szEntryName, ENTRY_SIZE);
+		DEBUG_LINE;
 
 		// empty profile ?
 		if (szEntryName[0] == 0)
 			m_pcTransferSite->m_pConfig->bEmptyProcess = TRUE;
 		else
 			m_pcTransferSite->m_pConfig->bEmptyProcess = FALSE;
+		DEBUG_LINE;
 
 		// now, ignore the size of the additional option data block
-		sstrDataStream.ignore(sizeof(DWORD));
+		sstrDataStream.ignore(sizeof(unsigned __int32) * OPTIONS_RESERVED);
+		DEBUG_LINE;
 
 		// ignore picture boolean and the path if true
 		BOOL bPicture;
 		sstrDataStream.read((char*)&bPicture, sizeof(BOOL));
 		if (bPicture)
 			sstrDataStream.ignore(MAX_PATH * sizeof(wchar_t));
+		DEBUG_LINE;
 
-		// ignore the detour time delay
-		sstrDataStream.ignore(sizeof(DWORD));
+		// ignore the detour time delay and injection repetition
+		sstrDataStream.ignore(sizeof(unsigned __int32));
+		sstrDataStream.ignore(sizeof(unsigned __int32));
+		DEBUG_LINE;
 
 		// now, ignore the injection techniques
-		DWORD dwSupportedInterfacesNumber;
-		sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(DWORD));
-		sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int64));
+		unsigned __int32 dwSupportedInterfacesNumber;
+		sstrDataStream.read((char*)&dwSupportedInterfacesNumber, sizeof(unsigned __int32));
+		DEBUG_UINT(dwSupportedInterfacesNumber);
+		sstrDataStream.ignore((std::streamsize)dwSupportedInterfacesNumber * (std::streamsize)sizeof(__int32));
+		DEBUG_LINE;
 
 		// read the number of nodes, resize node vector
-		UINT dwNodeNumber;
-		sstrDataStream.read((char*)&dwNodeNumber, sizeof(UINT));
+		DEBUG_LINE;
+		unsigned __int32 dwNodeNumber;
+		DEBUG_LINE;
+		sstrDataStream.read((char*)&dwNodeNumber, sizeof(unsigned __int32));
+		DEBUG_UINT(dwNodeNumber);
 		m_paNodes.resize(dwNodeNumber);
+		DEBUG_LINE;
 
 		// get a node provider
 		AQU_NodeProvider* pProvider = new AQU_NodeProvider();
+		DEBUG_LINE;
 
 		// loop through the nodes to add node data 
 		for (UINT i = 0; i != dwNodeNumber; i++)
 		{
+			DEBUG_LINE;
 			OutputDebugString(L"New Node!");
 
 			// get the node hash
-			UINT id;
-			sstrDataStream.read((char*)&id, sizeof(UINT));
+			unsigned __int32 id;
+			sstrDataStream.read((char*)&id, sizeof(unsigned __int32));
+			OutputDebugString(L"---------------------read_id");
+			DEBUG_UINT(id);
 
 			// get the node position
 			POINT pos;
@@ -929,13 +990,13 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 			sstrDataStream.read((char*)&pos.y, sizeof(LONG));
 
 			// load plugin info (if plugin node)
-			UINT idPlugin = 0;
+			unsigned __int32 idPlugin = 0;
 			wchar_t szFileName[64];
 			wchar_t szFilePath[MAX_PATH];
 			if (id == ELEMENTARY_NODE_PLUGIN)
 			{
 				// and write to stream
-				sstrDataStream.read((char*)&idPlugin, sizeof(UINT));
+				sstrDataStream.read((char*)&idPlugin, sizeof(unsigned __int32));
 				sstrDataStream.read((char*)&szFileName[0], sizeof(wchar_t) * 64);
 
 				OutputDebugString(szFileName);
@@ -947,8 +1008,8 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 			}
 
 			// read node data
-			UINT dwDataSize = 0;
-			sstrDataStream.read((char*)&dwDataSize, sizeof(UINT));
+			unsigned __int32 dwDataSize = 0;
+			sstrDataStream.read((char*)&dwDataSize, sizeof(unsigned __int32));
 
 			// read the data
 			char* pcData = new char[dwDataSize];
@@ -993,15 +1054,15 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 		for (std::vector<NOD_Basic*>::size_type i = 0; i != m_paNodes.size(); i++)
 		{
 			// get the number of commanders
-			DWORD dwCommandersNumber;
-			sstrDataStream.read((char*)&dwCommandersNumber, sizeof(DWORD));
+			unsigned __int32 dwCommandersNumber;
+			sstrDataStream.read((char*)&dwCommandersNumber, sizeof(unsigned __int32));
 
 			// loop through commanders, get the number of connections and the connection indices
 			for (DWORD j = 0; j < dwCommandersNumber; j++)
 			{
 				// get the commander connections number
-				DWORD dwConnectionsNumber;
-				sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(DWORD));
+				unsigned __int32 dwConnectionsNumber;
+				sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 				// loop through decommanders, set indices
 				for (DWORD k = 0; k < dwConnectionsNumber; k++)
@@ -1023,8 +1084,8 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 			}
 
 			// get the provoker connections number
-			DWORD dwConnectionsNumber;
-			sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(DWORD));
+			unsigned __int32 dwConnectionsNumber;
+			sstrDataStream.read((char*)&dwConnectionsNumber, sizeof(unsigned __int32));
 
 			// loop through decommanders, return indices
 			for (int j = 0; j < (int)dwConnectionsNumber; j++)
