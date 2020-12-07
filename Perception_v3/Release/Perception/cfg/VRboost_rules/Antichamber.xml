@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scanner>
+  <ScannerGroups>
+	<ScannerGroup>
+		<!-- FOV Group -->
+		<ID>0</ID>
+		<BaseAddress>100088E8</BaseAddress>
+		<MemIncrement>00010000</MemIncrement>
+		<MemIncCount>0000002FFF</MemIncCount>
+		<FailIfNotFound>False</FailIfNotFound>
+		<!-- WorldFOV doesn't affect Antichamber until user has used "fov X" in the console :( -->
+		<ScanRule>
+			<AxisName>WorldFOV</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>0.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>  <!-- Actually a copy of TrackerPitch -->
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>0000013C</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+				<Compare type="BetweenIncl">
+					<MinValue>00000000</MinValue>
+					<MaxValue>00003FFF</MaxValue>
+				</Compare>
+				<!-- OR -->
+				<Compare type="BetweenIncl">
+					<MinValue>0000C000</MinValue>
+					<MaxValue>0000FFFF</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>  <!-- Actually a copy of TrackerYaw -->
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000140</BaseAddressOffset>
+			<CheckForChanges>ChangesLoWordOnly</CheckForChanges>
+			<Comparisons>
+				<Compare type="NotEqual">
+					<MinValue>00000000</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>  <!-- Actually a copy of TrackerRoll -->
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000144</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>00000000</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+	</ScannerGroup>
+
+	<ScannerGroup>
+		<!-- Orientation Group -->
+		<ID>1</ID>
+		<BaseAddress>1000D260</BaseAddress>
+		<MemIncrement>00010000</MemIncrement>
+		<MemIncCount>0000002FFF</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
+		<ScanRule>
+			<AxisName>TrackerPitch</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatUnrealAxis</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+				<Compare type="BetweenIncl">
+					<MinValue>00000000</MinValue>
+					<MaxValue>00003FFF</MaxValue>
+				</Compare>
+				<!-- OR -->
+				<Compare type="BetweenIncl">
+					<MinValue>0000C000</MinValue>
+					<MaxValue>0000FFFF</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>TrackerYaw</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
+			<Comparisons>
+				<Compare type="NotEqual">
+					<MinValue>00000000</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>TrackerRoll</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatUnrealNegativeAxis</ModificationToApply>
+			<BaseAddressOffset>00000008</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>00000000</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+	</ScannerGroup>
+  </ScannerGroups>
+</Scanner>

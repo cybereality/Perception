@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule id="1" shaderCodeFindPattern="dp4 o0.x, %s, c0" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="2" shaderCodeFindPattern="dp4 o0.x, %s, c4" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="4" registerCount="4" transpose="true"/>
+		<rule id="8" shaderCodeFindPattern="dp4 r4.x, r0, c0" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="9" shaderCodeFindPattern="dp4 r0.x, r2, c0" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+
+		<!-- The following is basically the same rule, but the match criteria is slightly different due to a different possible variable v0 -->
+		<!-- %s will be replaced with possible variables -->
+		<rule id="3" shaderCodeFindPattern="dp4 o0.x, %s, c69" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="69" registerCount="4" transpose="true"/>
+		<rule id="4" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="2" startReg="69" registerCount="4" transpose="true"/>
+
+		<!-- Shader Specific Rules - Skybox: Not react to positional-->
+		<rule id="5" shaderCodeFindPattern="dp4 o0.x, r1, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
+		<rule id="6" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
+		<rule id="7" shaderCodeFindPattern="dp4 o0.x, r1, c4" constantType="MatrixC" modToApply="15" startReg="4" registerCount="4" transpose="true"/>
+		<!-- Stars -->
+		<rule id="10" shaderCodeFindPattern="dp4 o0.x, r0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
+		<!-- Moon -->
+		<rule id="11" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
+	</rules>
+
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="8" />
+		<ruleID id="9" />
+	</defaultRuleIDs>
+	
+	<!-- Don't let skybox or mountains be affected by positional tracking -->
+	<shaderSpecificRuleIDs shaderHash="1628388903"><ruleID id="5" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2145499317"><ruleID id="6" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="331649639"><ruleID id="7" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="221551103"><ruleID id="10" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="1490477037"><ruleID id="11" /></shaderSpecificRuleIDs>
+
+	<!-- Removes most dodgy shadows, can't believe how long this list is! -->
+	<shaderSpecificRuleIDs shaderHash="1660635056" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3388901281" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1284330534" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3380305637" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="578759246" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2103744669" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2500508736" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2472633357" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1571584672" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="707970652" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="739302123" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="810523533" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2907067565" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2007068218" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3615526838" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3784047586" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1920003194" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3444186826" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3639701086" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1369444560" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="436644605" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2439569728" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2440523048" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1726773818" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2185507776" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1446729854" ObjectType="Shadows"/>
+
+	<!-- Shadows only visible when moving (flickering horribleness) -->
+	<shaderSpecificRuleIDs shaderHash="3640932062" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="4249643688" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1556363810" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2092929951" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1067896468" ObjectType="Shadows"/>
+	
+	
+	
+	<!-- Naked People!! -->
+	<shaderSpecificRuleIDs shaderHash="3959869407" ObjectType="Clothes"/>
+  
+	<!-- HUD stuff -->
+	<shaderSpecificRuleIDs shaderHash="1837765858" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3096460848" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3437958084" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="4087433575" squishViewport="true"></shaderSpecificRuleIDs>      
+</shaderConfig>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="9" constantType="MatrixC" modToApply="2" startReg="17" transpose="false" />
+		<rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="0" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="2" constantType="MatrixC" modToApply="2" startReg="13" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="3" constantType="MatrixC" modToApply="2" startReg="238" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="4" constantType="MatrixC" modToApply="2" startReg="9" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="5" constantType="MatrixC" modToApply="2" startReg="234" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="6" constantType="MatrixC" modToApply="2" startReg="25" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="7" constantType="MatrixC" modToApply="2" startReg="5" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="8" constantType="MatrixC" modToApply="2" startReg="21" transpose="false" />
+		<rule constantName="Transform" partialName="true" id="11" constantType="MatrixC" modToApply="4" startReg="5" transpose="false" />
+    <rule constantName="ViewProjectionMatrix" partialName="true" id="12" constantType="MatrixC" modToApply="4" startReg="0" transpose="false" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+		<ruleID id="6" />
+		<ruleID id="7" />
+		<ruleID id="8" />
+		<ruleID id="9" />
+    <ruleID id="11" />
+	</defaultRuleIDs>
+  <!--<shaderSpecificRuleIDs shaderHash="957650611" squishViewport="true"></shaderSpecificRuleIDs>-->
+  <!--<shaderSpecificRuleIDs shaderHash="3925502172" squishViewport="true"></shaderSpecificRuleIDs>-->
+  <!--<shaderSpecificRuleIDs shaderHash="3513825117" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="629615154"><ruleID id="10" /></shaderSpecificRuleIDs>	
+  -->
+  <shaderSpecificRuleIDs shaderHash="957050611">
+    <ruleID id="12" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1900226361" ObjectType="Shadows"></shaderSpecificRuleIDs>
+  
+</shaderConfig>

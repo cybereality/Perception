@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="0" transpose="false" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+	</defaultRuleIDs>
+	
+	<shaderSpecificRuleIDs shaderHash="528253660" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2699333939" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2239730994" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3421632859" squishViewport="true"></shaderSpecificRuleIDs>
+	
+	<shaderSpecificRuleIDs shaderHash="1428736718" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2408123195" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2411790262" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2647307169" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3358535157" squishViewport="true"></shaderSpecificRuleIDs>
+	
+	<shaderSpecificRuleIDs shaderHash="4235086801" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2660612047" squishViewport="true"></shaderSpecificRuleIDs>
+	
+	
+	<shaderSpecificRuleIDs shaderHash="1226500403" ObjectType="Shadows"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3803583675" ObjectType="Shadows"></shaderSpecificRuleIDs>
+	<!--<shaderSpecificRuleIDs shaderHash="4282362826" ObjectType="Shadows"></shaderSpecificRuleIDs>-->
+</shaderConfig>

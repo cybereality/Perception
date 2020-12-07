@@ -1,12 +1,22 @@
 # Aquilinus - Vireio Perception 3D Modification Studio
 
+Aquilinus is an injected DLL that redirects GPU API calls to modify games for Vireio Perception v4. 
+
+It has a built-in, fully node-based working area. Any part of Vireio Perception (HDM APIs, Stereo Splitter, Matrix Modifier,....) actually is a Plugin-Node, these nodes eventually get connected to build the different Vireio Perception game profiles.
+
 ####BUILD INSTRUCTIONS
 
-Build using Visual Studio 2012-2019 (C++)
+Build using Visual Studio 2019 (C++).
 
-Download and install [Microsoft DirectX SDK (June 2010)](http://www.microsoft.com/en-au/download/details.aspx?id=6812 "Microsoft")
-Download and install GL, GLEW, GLFW3
+Download and install GL, GLEW, GLFW3, DirectXMath.
 
-Following Environment Variables needed : 
-GL_DIR               - OpenGL base directory
-DXSDK_DIR            - DirectX SDK (June 2010) directory
+You can use MS-VCPKG ( https://github.com/Microsoft/vcpkg ) to download the different packages.
+
+####Dear ImGui
+
+Aquilinus uses Dear ImGui grapical user interface and the ImNodes extension.
+
+Go to 
+https://github.com/ocornut/imgui
+https://github.com/rokups/ImNodes/blob/master/ImNodes.h
+for further info.

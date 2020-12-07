@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<shaderConfig>
+  <rules>
+    <rule id="1" constantType="MatrixC" modToApply="8" startReg="4" transpose="true" />
+    <rule id="2" constantType="MatrixC" modToApply="8" startReg="8" transpose="true" />
+    <rule id="3" constantType="MatrixC" modToApply="8" startReg="51" transpose="true" />
+    <rule id="4" constantType="Vector" modToApply="1" startReg="2" />
+    <rule id="5" constantType="MatrixC" modToApply="15" startReg="4" transpose="true" />
+    <rule id="6" constantType="MatrixC" modToApply="15" startReg="8" transpose="true" />
+  </rules>
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+  </defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="671997634">
+    <ruleID id="2" />
+    <ruleID id="4" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2909081192" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3141609077" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3482179733">
+    <ruleID id="1" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1941424022">
+    <ruleID id="5" />
+    <!--DRAWS FAR SCENE SURROUNDINGS - TURN OFF TO AVOID GRAPHICAL FLAWS-->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1922199043">
+    <ruleID id="6" />
+    <!--DRAWS FAR SCENE SURROUNDINGS - TURN OFF TO AVOID GRAPHICAL FLAWS-->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="973208371">
+    <ruleID id="6" />
+    <!--THIS BREAKS A POLE/SHADOW THING -->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="719017533">
+    <ruleID id="6" />
+    <!--DRAWS FLASHLIGHT SHADOWS - TURN OFF SINCE THEY DONT WORK-->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3546995421">
+    <ruleID id="6"></ruleID>
+    <!--DRAWS FLASHLIGHT SHADOWS - TURN OFF SINCE THEY DONT WORK-->
+  </shaderSpecificRuleIDs>
+</shaderConfig>

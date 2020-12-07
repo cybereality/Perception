@@ -1,41 +1,38 @@
-#VIREIO PERCEPTION
+#Vireio Perception v4
 
-####BUILD INSTRUCTIONS
+WORK IN PROGRESS !!
 
-Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 8 64-bit.  
-(Windows 8.1 users cant use the online installer, please use the ISO file instead)
+####Licence
 
-Built using the [Microsoft DirectX SDK (June 2010)](http://www.microsoft.com/en-au/download/details.aspx?id=6812 "Microsoft") (may work with newer versions)
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-Download libfreespace [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/+download)  
-Extract it to a folder
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-Download [Oculus SDK v0.6.0.1](https://developer.oculus.com/ "Oculus VR")
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Extract and copy LibOVR and LibOVRKernel to project directory.
 
-1. Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables
-Create environment variables:   
-    * FREESPACE : The folder for libfreespace (Hillcrest Labs SDK).
-    * DXSDK_DIR : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK)
-2. Open the VireioPerception.sln solution file. It contains all the projects with their dependencies set correctly. 
-3. Choose either Debug or Release. 
-4. Either Run or Build the solution. It should just work.  
-(There should be only two compiler warnings about the output directories not being the same as the target directory. That's deliberate.)
+####Build Instructions
 
-When you want to publish it, just build in Release mode and zip the contents of the Release folder. 
-But be careful because when running in Release mode, changing the separation, convergence or other settings in game will affect the files you will release.
-The Debug folder is automatically created from the files in the Release folder whenever you compile in Debug mode. 
+Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 10 64-bit.  
+ 
 
 ####Support
 
-If you want to view the debug prints from hooking the game, download and run [DebugView](http://technet.microsoft.com/en-au/sysinternals/bb896647.aspx "Microsoft") or [TraceSpy](http://tracespy.codeplex.com/). 
-Sometimes DebugView becomes unresponsive, in which case just continue what you were doing and look at it later.
-
-It makes sense to work with the DxProxy project mainly. The DxProxy project is the main meat of the application. Basically what it does is it proxies DirectX so the game loads this modified "d3d9.dll" file instead of the real "d3d9.dll". Mostly all the functions are just dumb pass-throughs, but a few key functions are modified. This allows us to alter a few things, like the view-projection matrix (which is modified to fake a 3D camera), or the present call (where we display a new 3D image). 
-
-The DxHijack project helps us to inject our modified dll into games, without having to place the proxy "d3d9.dll" file in the game folder (though some games don't work with this method, so we still have to copy the dll over as a last resort). 
-
-The Perception project is the GUI interface for the app. You probably will not need to touch this unless you are adding new options to the menu (ie a new tracking device).
-
 If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](http://www.mtbs3d.com/phpBB/viewforum.php?f=141).
+
+
+####Dear ImGui
+
+Vireio Perception uses Dear ImGui grapical user interface and the ImNodes extension.
+
+Go to 
+https://github.com/ocornut/imgui
+https://github.com/rokups/ImNodes/blob/master/ImNodes.h
+for further info.

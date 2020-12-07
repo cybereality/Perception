@@ -1,7 +1,0 @@
-LIBRARY HIJACKDLL
-SECTIONS .HookSection READ WRITE SHARED
-EXPORTS
-	InstallHook
-	RemoveHook
-	HookProc
-

@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<shaderConfig>
+  <rules>
+    <rule constantName="worldViewProj" partialName="true" id="1" constantType="MatrixC" modToApply="1" startReg="0" transpose="true" />
+    <rule constantName="worldViewProj" partialName="true" id="2" constantType="MatrixC" modToApply="1" startReg="5" transpose="true" />
+    <rule constantName="worldViewProj" partialName="true" id="3" constantType="MatrixC" modToApply="1" startReg="40" transpose="true" />
+    <rule constantName="NightVisionColorTransform" partialName="true" id="4" constantType="MatrixC" modToApply="1" startReg="0" transpose="true" />
+    <rule constantName="screenToShadowBuffer" partialName="true" id="5" constantType="MatrixC" modToApply="1" startReg="0" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="6" constantType="MatrixC" modToApply="1" startReg="21" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="7" constantType="MatrixC" modToApply="1" startReg="22" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="8" constantType="MatrixC" modToApply="1" startReg="20" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="9" constantType="MatrixC" modToApply="1" startReg="16" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="10" constantType="MatrixC" modToApply="1" startReg="14" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="11" constantType="MatrixC" modToApply="1" startReg="58" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="12" constantType="MatrixC" modToApply="1" startReg="56" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="13" constantType="MatrixC" modToApply="1" startReg="53" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="14" constantType="MatrixC" modToApply="1" startReg="51" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="15" constantType="MatrixC" modToApply="1" startReg="44" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="16" constantType="MatrixC" modToApply="1" startReg="9" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="17" constantType="MatrixC" modToApply="1" startReg="4" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="18" constantType="MatrixC" modToApply="1" startReg="52" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="19" constantType="MatrixC" modToApply="1" startReg="50" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="20" constantType="MatrixC" modToApply="1" startReg="19" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="21" constantType="MatrixC" modToApply="1" startReg="15" transpose="true" />
+    <rule constantName="reactiveTransform" partialName="true" id="22" constantType="MatrixC" modToApply="1" startReg="13" transpose="true" />
+  </rules>
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+    <ruleID id="4" />
+    <ruleID id="5" />
+    <ruleID id="6" />
+    <ruleID id="7" />
+    <ruleID id="8" />
+    <ruleID id="9" />
+    <ruleID id="10" />
+    <ruleID id="11" />
+    <ruleID id="12" />
+    <ruleID id="13" />
+    <ruleID id="14" />
+    <ruleID id="15" />
+    <ruleID id="16" />
+    <ruleID id="17" />
+    <ruleID id="18" />
+    <ruleID id="19" />
+    <ruleID id="20" />
+    <ruleID id="21" />
+    <ruleID id="22" />
+  </defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="150818656" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1851111157" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1861111157" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2207473808" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2180027923" squishViewport="true"></shaderSpecificRuleIDs>
+</shaderConfig>

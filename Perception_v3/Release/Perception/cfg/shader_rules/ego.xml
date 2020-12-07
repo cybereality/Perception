@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<shaderConfig>
+  <rules>
+    <rule id="1" constantType="MatrixC" modToApply="1" constantName ="Proj" partialName="true"/>
+    <rule id="2" constantType="MatrixC" modToApply="1" constantName ="proj" partialName="true"/>
+  </rules>
+
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+  </defaultRuleIDs>
+</shaderConfig>

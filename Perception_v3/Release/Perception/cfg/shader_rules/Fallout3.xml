@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<shaderConfig>
+  <rules>
+    <rule constantName="ModelViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+    <rule constantName="SkinModelViewProj" partialName="true" id="2" constantType="MatrixR" modToApply="2" startReg="1" transpose="true" />
+    <rule constantName="PrevModelViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="2" startReg="35" transpose="true" />
+    <rule constantName="SkinModelViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="2" startReg="4" transpose="true" />
+    <rule constantName="ModelViewProj" partialName="true" id="5" constantType="MatrixR" modToApply="2" startReg="9" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="6" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+    <rule constantName="SkinModelViewProj" partialName="true" id="7" constantType="MatrixR" modToApply="2" startReg="20" transpose="true" />
+    <rule constantName="PrevModelViewProj" partialName="true" id="8" constantType="MatrixR" modToApply="2" startReg="12" transpose="true" />
+    <rule constantName="ModelViewProj" partialName="true" id="9" constantType="MatrixR" modToApply="4" startReg="0" transpose="true" />
+  </rules>
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+    <ruleID id="4" />
+    <ruleID id="5" />
+    <ruleID id="6" />
+    <ruleID id="7" />
+    <ruleID id="8" />
+  </defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="70962678">
+    <ruleID id="9" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1138888547">
+    <ruleID id="9" />
+  </shaderSpecificRuleIDs>
+</shaderConfig>

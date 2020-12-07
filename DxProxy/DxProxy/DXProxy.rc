@@ -1,3 +1,0 @@
-#include "Resource.h"
-  
-IDB_IMAGE		BITMAP		"../../Release/Perception/img/logo.bmp" 

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scanner>
+  <ScannerGroups>
+	<ScannerGroup>
+		<ID>0</ID>
+		<BaseAddress>1000008C</BaseAddress>
+		<MemIncrement>00000100</MemIncrement>
+		<MemIncCount>00400000</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
+		<ScanRule>
+			<AxisName>TrackerPitch</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatUnrealAxisWithOffsets</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+			<Compare type="BetweenIncl">
+					<MinValue>0000C000</MinValue>
+					<MaxValue>0000FFFF</MaxValue>
+				</Compare>
+				<!-- OR -->
+				<Compare type="BetweenIncl">
+					<MinValue>00000001</MinValue>
+					<MaxValue>00003FFF</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>TrackerYaw</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
+			<Comparisons>
+				<Compare type="NotEqual">
+					<MinValue>00000000</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>TrackerRoll</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000008</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>00000000</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>WorldFOV</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>000004B0</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>120.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+	</ScannerGroup>
+  </ScannerGroups>
+</Scanner>

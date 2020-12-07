@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="8" startReg="0" transpose="false" />
+		<rule constantName="mvp" partialName="true" id="2" constantType="MatrixC" modToApply="8" startReg="6" transpose="true" />
+    <rule constantName="ProjectionMatrix" partialName="true" id="3" constantType="MatrixC" modToApply="1" startReg="235" transpose="false" />
+    <rule constantName="LocalToWorld" partialName="true" id="4" constantType="MatrixC" modToApply="0" startReg="6" transpose="false" />
+    <rule constantName="ViewProjectionMatrix" partialName="true" id="5" constantType="MatrixC" modToApply="1" startReg="0" transpose="false" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+    <ruleID id="3" />
+    
+  </defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="66497893" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="926414873" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="1253374534" squishViewport="true" />	
+	<shaderSpecificRuleIDs shaderHash="3217905465" squishViewport="true" />
+	<shaderSpecificRuleIDs shaderHash="3046832612" squishViewport="true" />
+	<shaderSpecificRuleIDs shaderHash="3182809627" squishViewport="true" />
+	<shaderSpecificRuleIDs shaderHash="2303454961" squishViewport="true" />
+	<shaderSpecificRuleIDs shaderHash="2768534183" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="1761855330" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="3129186717" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="2177211951" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="3662082258" squishViewport="true" />
+  
+  <shaderSpecificRuleIDs shaderHash="965342778"><ruleID id="4" />Lights</shaderSpecificRuleIDs>
+  
+  <!--Shadows Everywhere-->
+  <shaderSpecificRuleIDs shaderHash="3537484276"><ruleID id="5" /></shaderSpecificRuleIDs>
+  
+  <!--Shadows Under Car? What Mod (test at the moment)-->
+  <shaderSpecificRuleIDs shaderHash="3183579799" ObjectType="Shadows" ><ruleID id="3" /></shaderSpecificRuleIDs>
+  <!-- Fog outside the mansion has some awful occlusion culling going on, better not to draw it altogether, doesn't detract too much terrible ambience -->
+  <shaderSpecificRuleIDs shaderHash="493863985" ObjectType="Fog"/>  
+  <!--Camera (Offset Shader)-->
+  <shaderSpecificRuleIDs shaderHash="1810071918" ObjectType="Shadows" />
+  <!-- Player Shadow - Doesn't look great -->
+  <shaderSpecificRuleIDs shaderHash="3036913157" ObjectType="Shadows" />
+  <!-- Wall Motif that has differences between left and right eye, best not drawn -->
+  <shaderSpecificRuleIDs shaderHash="3254665677" ObjectType="DoNotDraw" />
+  <!--Fog?
+  <shaderSpecificRuleIDs shaderHash="4068380453" ObjectType="Fog" />-->
+</shaderConfig>

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="g_VS_ViewProjMatr" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="36" transpose="true" />
+    <rule constantName="vpMatrix" partialName="true" id="2" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="mViewProjPrev" partialName="true" id="3" constantType="MatrixR" modToApply="2" startReg="4" transpose="true" />
+		<rule constantName="SunShafts_ViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="2" startReg="4" transpose="true" />
+		<rule constantName="mViewProj" partialName="true" id="5" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="mViewProjI" partialName="true" id="6" constantType="MatrixR" modToApply="2" startReg="4" transpose="true" />
+		<rule constantName="g_VS_ViewProjZeroMatr" partialName="true" id="7" constantType="MatrixR" modToApply="1" startReg="25" transpose="true" />
+		<rule constantName="ObjWorldMatrix" partialName="true" id="8" constantType="MatrixR" modToApply="1" startReg="0" transpose="true" />
+
+		<rule constantName="g_VS_ViewProjZeroMatr" partialName="true" id="9" constantType="MatrixR" modToApply="9" startReg="25" transpose="true" />
+    <rule constantName="CompMatrix" partialName="true" id="10" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />    
+    <rule constantName="oceanMatrix" partialName="true" id="11" constantType="MatrixR" modToApply="2" startReg="12" transpose="true" />    
+    <rule constantName="mReflProj" partialName="true" id="12" constantType="MatrixR" modToApply="1" startReg="4" transpose="true" />        
+    <rule constantName="g_VS_ViewProjMatr" partialName="true" id="13" constantType="MatrixR" modToApply="7" startReg="36" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+		<ruleID id="6" />
+		<ruleID id="7" />
+		<ruleID id="8" />		
+		<ruleID id="11" />		
+		<ruleID id="12" />		
+	</defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="85882304">
+		<ruleID id="9" />Sort out skybox</shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="1177584787">
+		<ruleID id="9" />Sort out skybox</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2137077672">
+    <ruleID id="10" />Sky at Wrong Level
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="253255546">
+    <ruleID id="2" />Sky at Wrong Level
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="587607468">
+    <ruleID id="13" />Low Res Vegetation
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2475206242">
+    <ruleID id="12" />Reflection
+  </shaderSpecificRuleIDs>
+  <!-- HUD stuff -->
+	<shaderSpecificRuleIDs shaderHash="264140054" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3455458341" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3753878441" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="4200281762" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="357740431" ObjectType="Shadows"/>
+  <shaderSpecificRuleIDs shaderHash="12182343" ObjectType="Shadows"/>
+  <shaderSpecificRuleIDs shaderHash="1460636022" ObjectType="Shadows"/>
+  
+</shaderConfig>

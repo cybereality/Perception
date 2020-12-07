@@ -1,0 +1,49 @@
+#pragma once
+#include <windows.h>
+#include <WinUser.h>
+#include <XInput.h>
+#include "InputControls.h"
+
+class DirectXInputControls;
+
+class DirectXInputControlState
+	:public InputControlState
+{
+public:
+	DirectXInputControlState();
+	void Reset();
+	bool GetKeyState(int virtualKeyCode);
+	bool GetButtonState(int button);
+	float GetAxis(InputControls::GamepadAxis axis);
+	
+private:
+	/// XInput controller button statuses.
+	bool xButtonsStatus[16];
+	
+	/// XInput controller state.
+	XINPUT_STATE xInputState;
+	
+	/// Whether each of 256 keys (indexed by VK) is held
+	BYTE keyState[256];
+	
+	friend class DirectXInputControls;
+};
+
+class DirectXInputControls
+	:public InputControls
+{
+public:
+	DirectXInputControls();
+	virtual ~DirectXInputControls();
+	
+	void UpdateInputs();
+	void Reset();
+	
+	InputControlState *GetCurrentState();
+	InputControlState *GetPreviousState();
+	
+
+private:
+	DirectXInputControlState currentState;
+	DirectXInputControlState prevState;
+};

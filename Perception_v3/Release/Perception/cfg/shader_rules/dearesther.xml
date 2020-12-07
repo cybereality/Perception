@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="" partialName="false" id="1" constantType="MatrixC" modToApply="8" startReg="4" transpose="true" />
+		<rule constantName="" partialName="false" id="2" constantType="MatrixC" modToApply="8" startReg="8" transpose="true" />
+		<rule constantName="" partialName="false" id="3" constantType="MatrixC" modToApply="8" startReg="51" transpose="true" />
+		<rule constantName="" partialName="false" id="4" constantType="Vector" modToApply="1" startReg="2" transpose="false" />
+		<rule constantName="" partialName="false" id="5" constantType="MatrixC" modToApply="0" startReg="8" transpose="true" />
+		<rule constantName="" partialName="false" id="6" constantType="MatrixC" modToApply="4" startReg="8" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+	</defaultRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="671997634">
+		<ruleID id="5" />
+		<ruleID id="4" />
+	</shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="1299990081">
+		<ruleID id="6" />
+	</shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3866085665">
+		<ruleID id="6" />
+	</shaderSpecificRuleIDs>
+</shaderConfig>
