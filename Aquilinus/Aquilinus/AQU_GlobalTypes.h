@@ -189,7 +189,7 @@ struct AquilinusCfg
 	__int32                 nInjectionRepetition;                            /**< Repeat the injectin process for various times. (0..15) **/
 	BOOL                    bProfileWindow;                                   /**< True if a profile window is present for the current game profile. **/
 	BOOL                    bExternalSave;                                    /**< True if Inicio should save a file path stored in a memory data page. ***/
-	BOOL                    bUseDllPath;                                      /**< True if Aquilinus uses the dll path stored in this->szAquilinusPath, False if it uses the path in User//my games//Aquilnus **/
+	BOOL                    bUseDllPath;                                      /**< True if Aquilinus uses a custom dll path, False if it uses the path ".//plugin" **/
 	BOOL                    bCreateD3D9Ex;                                    /**< True if Aquilinus creates a D3D9Ex device instead of a D3D9 device. ***/
 	DWORD                   dwSizeOfExternalSaveFile;                         /**< The size of the file to be saved externally. ***/
 };

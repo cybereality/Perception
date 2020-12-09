@@ -86,9 +86,8 @@ AQU_WorkingArea::AQU_WorkingArea(HINSTANCE hInstance, AQU_TransferSite* pcTransf
 	m_nDataSheetEntrySelection = -1;
 	m_nDataSheetCategorySelection = -1;
 
-	// TODO !! PLUGINS ENUMERATION
 	// enumerate plugins
-	// s_EnumeratePlugins(pcTransferSite->m_pFileManager->GetPluginPath());
+	s_EnumeratePlugins(pcTransferSite->m_pFileManager->GetPluginPath());
 
 	// clear nodes vector
 	m_paNodes.clear();
@@ -1116,9 +1115,9 @@ HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 
 	// create plugins path
 	wsprintf(szDir, L"%s%s", szDllPath, L"*");
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	OutputDebugString(szDir);
-#endif
+//#endif
 
 	// find first file
 	hFind = FindFirstFile(szDir, &ffd);

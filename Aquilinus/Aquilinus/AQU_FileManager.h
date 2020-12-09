@@ -86,16 +86,14 @@ public:
 	HRESULT LoadProfile(LPWSTR szProfilePath, std::stringstream &sstrDataStream);
 	HRESULT SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD_Basic*>* ppaNodes, DWORD dwSupportedInterfacesNumber);
 	HRESULT CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_Basic*>* ppaNodes, DWORD dwSupportedInterfacesNumber);
-	HRESULT SetCustomDirectoryPath(LPCWSTR szPath);
 	LPCWSTR GetAquilinusPath();
+	HRESULT SetPluginPath(LPCWSTR szPath);
 	LPCWSTR GetPluginPath();
-	LPCWSTR GetProfilePath();
-	LPCWSTR GetProjectPath();
 	DWORD   GetProcessNumber();
 	LPWSTR  GetName(DWORD dwIndex);
 	LPWSTR  GetWindowName(DWORD dwIndex);
 	LPWSTR  GetProcessName(DWORD dwIndex);
-	unsigned __int32   GetHash(BYTE* pcData, unsigned __int32 dwSize);
+	unsigned __int32 GetHash(BYTE* pcData, unsigned __int32 dwSize);
 	HRESULT AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR szProcess);
 	HRESULT LoadProcessListCSV(AquilinusCfg* psConfig);
 	HRESULT SaveProcessListCSV();
@@ -103,45 +101,13 @@ public:
 
 private:
 	/**
-	* The Aquilinus working directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus".
-	***/
-	std::string m_szAquilinusPath;
-	/**
-	* The Aquilinus working directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus".
-	***/
-	wchar_t m_szAquilinusPathW[MAX_PATH]; 
-	/**
 	* The Aquilinus node directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus\My Nodes".
 	***/
 	std::string m_szPluginPath;
 	/**
 	* The Aquilinus node directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus\My Nodes".
 	***/
 	wchar_t m_szPluginPathW[MAX_PATH]; 
-	/**
-	* The Aquilinus profile directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus\My Profiles".
-	***/
-	std::string m_szProfilePath;
-	/**
-	* The Aquilinus profile directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus\My Profiles".
-	***/
-	wchar_t m_szProfilePathW[MAX_PATH]; 
-	/**
-	* The Aquilinus project directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus\My Projects".
-	***/
-	std::string m_szProjectPath;
-	/**
-	* The Aquilinus project directory path.
-	* Located in "%USERPROFILE%\Documents\My Games\Aquilinus\My Projects".
-	***/
-	wchar_t m_szProjectPathW[MAX_PATH];
 	/**
 	* The encrpyted process list.
 	* Contains Name, Window Name, Process. Each string is a MAX_PATH wchar_t entry.

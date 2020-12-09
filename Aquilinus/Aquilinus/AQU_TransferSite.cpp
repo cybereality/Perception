@@ -107,10 +107,16 @@ AQU_TransferSite::AQU_TransferSite(AquilinusCfg* pConfig) :
 	OutputDebugString(L"Create file manager");
 	m_pFileManager = new AQU_FileManager(pConfig);
 
-	// set custom path if chosen in config
-	if (m_pConfig->bUseDllPath)
+	// set custom path if chosen in config TODO !!
+	/*if (m_pConfig->bUseDllPath)
 	{
 		m_pFileManager->SetCustomDirectoryPath(m_pConfig->szAquilinusPath);
+	}
+	else*/
+	{
+		std::wstringstream szP = std::wstringstream();
+		szP << m_pConfig->szAquilinusPath << L"plugin\\";
+		m_pFileManager->SetPluginPath(szP.str().c_str());
 	}
 
 	// get number of CPUs present and create multithreading vector

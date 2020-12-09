@@ -16,4 +16,4 @@ You can use [Microsoft vcpkg](https://github.com/Microsoft/vcpkg) to download th
 
 #### Dear ImGui
 
-Vireio Perception uses Dear [Dear ImGui](https://github.com/ocornut/imgui) grapical user interface and the [ImNodes](https://github.com/rokups/ImNodes/blob/master/ImNodes.h) extension.
+Vireio Perception uses [Dear ImGui](https://github.com/ocornut/imgui) grapical user interface and its [ImNodes](https://github.com/rokups/ImNodes/blob/master/ImNodes.h) extension.

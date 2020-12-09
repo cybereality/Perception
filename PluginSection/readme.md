@@ -1,14 +1,13 @@
-#VIREIO PERCEPTION Plugins
+# Vireio Perception Plugins
 
-Created using [Visual C++ 2013 Express for Windows Desktop] 
-(VS2012 project files also available)
+Created using [Visual Studio Community C++ 2019](https://visualstudio.microsoft.com/downloads/ "Microsoft") on Windows 10 64-bit.
 
-####Environment Variables
+#### Environment Variables
 
     * FREESPACE      : The folder for libfreespace (Hillcrest Labs SDK).
     * DXSDK_DIR      : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK).
     * OVRSDKROOT     : Your Oculus SDK root directory.
-##### for OSVR-nodes:
+for OSVR-nodes:
     * BOOST_ROOT     : Boost needed for the OSVR render manager
     * OSVRRENDERMANAGER_INCLUDE_DIRS       : OSVR Render Manager include x64.
     * OSVRRENDERMANAGER_INCLUDE_DIRS_Win32 : OSVR Render Manager include Win32.
@@ -17,10 +16,9 @@ Created using [Visual C++ 2013 Express for Windows Desktop]
     * osvr_DIR       : Your OSVR core directory. (x64)
     * osvr_DIR_Win32 : Your OSVR core directory (Win32)
     
-
 (use the command "setx -m osvr_DIR %~dp0" - f.i. OSVR core x64 - as administrator to quickly set an environment variable for new directories)
 
-####Required dlls
+#### Required dlls
 
 For OSVR copy following dlls (from the OSVR render manager, differentiate between 32 or 64 bit) to the games executeable folder :
     
@@ -32,11 +30,11 @@ For OSVR copy following dlls (from the OSVR render manager, differentiate betwee
 	* SDL2.dll
 	* glew32.dll
 
-####Visual C++ Redistributables
+#### Visual C++ Redistributables
 
 Also, take care to have the latest Visual Studio Redistributables installed, download at https://www.microsoft.com/ . 
 
-####Plugin List
+#### Plugin List
 
     * Vireio Constructor - DevNr 2006 - PluginNr 32
     * Vireio Stereo Splitter - DevNr 2006 - PluginNr 64
@@ -50,6 +48,6 @@ Also, take care to have the latest Visual Studio Redistributables installed, dow
 	* Vireio HTC Vive Tracker - DevNr 2006 - PluginNr 320
 	* Vireio HTC Vive Direct Mode - DevNr 2006 - PluginNr 321
 
-####Known Aquilinus Plugins aside this repository:
+#### Known Aquilinus Plugins aside this repository:
 
     * VRBoost - DevNr 2006 - PluginNr 512

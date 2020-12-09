@@ -40,10 +40,10 @@ const char* szPHeader_v1_0_0 = "VIREIO_AQ_GAME_PROFILE_V01.0.0";
 #include"AQU_FileManager.h"
 #include"AQU_GlobalTypes.h"
 
-/**
-* Constructor.
-* Creates user directories.
-***/
+/// <summary> 
+/// Constructor.
+/// Creates (game) processes list.
+/// </summary>
 AQU_FileManager::AQU_FileManager(AquilinusCfg* psConfig) :
 	m_dwProcessListSize(0),
 	m_hSaveMapFile(nullptr),
@@ -54,9 +54,10 @@ AQU_FileManager::AQU_FileManager(AquilinusCfg* psConfig) :
 	this->LoadProcessListCSV(psConfig);
 }
 
-/**
-* Destructor. Empty.
-***/
+/// <summary> 
+/// Destructor.
+/// Releases the process list and the memory data file used for external save.
+/// </summary>
 AQU_FileManager::~AQU_FileManager()
 {
 	free(m_pcProcesses);
@@ -637,8 +638,6 @@ HRESULT AQU_FileManager::SaveWorkingArea(AquilinusCfg* psConfig, std::vector<NOD
 			// add node type
 			unsigned __int32 id = (*ppaNodes)[i]->GetNodeTypeId();
 			binaryStream.write((const char*)&id, sizeof(unsigned __int32));
-			OutputDebugString(L"---------------------write_id");
-			DEBUG_UINT(id);
 
 			// add node position
 			ImVec2 pos = (*ppaNodes)[i]->GetNodePosition();
@@ -1152,84 +1151,36 @@ HRESULT AQU_FileManager::CompileProfile(AquilinusCfg* psConfig, std::vector<NOD_
 		return E_FAIL;
 }
 
-/**
-* Set a custom Aquilinus path.
-***/
-HRESULT AQU_FileManager::SetCustomDirectoryPath(LPCWSTR szPath)
+/// <summary> 
+/// Set node plugin path.
+/// </summary>
+HRESULT AQU_FileManager::SetPluginPath(LPCWSTR szPath)
 {
 	// get a stringstream
 	std::wstringstream wsstm = std::wstringstream(szPath);
-
-	// set aquilinus path
-	CopyMemory(m_szAquilinusPathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
-	OutputDebugString(L"Set custom Aquilinus path : ");
-	OutputDebugString(m_szAquilinusPathW);
-
-	// set profile path
-	wsstm = std::wstringstream();
-	wsstm << m_szAquilinusPathW << "My Profiles\\";
-	CopyMemory(m_szProfilePathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
-
-	// set nodes path
-	wsstm = std::wstringstream();
-#ifdef _WIN64
-	wsstm << m_szAquilinusPathW << "My Nodes x64\\";
-#else
-	wsstm << m_szAquilinusPathW << "My Nodes Win32\\";
-#endif
 	CopyMemory(m_szPluginPathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
-
-	// set projects path
-	wsstm = std::wstringstream();
-	wsstm << m_szAquilinusPathW << "My Projects\\";
-	CopyMemory(m_szProjectPathW, wsstm.str().c_str(), sizeof(wchar_t) * MAX_PATH);
 
 	return S_OK;
 }
 
-/**
-* Returns Aquilinus path.
-***/
-LPCWSTR AQU_FileManager::GetAquilinusPath()
-{
-	return m_szAquilinusPathW;
-}
-
-/**
-* Returns Aquilinus path.
-***/
+/// <summary> 
+/// Returns Aquilinus node plugin path.
+/// </summary> 
 LPCWSTR AQU_FileManager::GetPluginPath()
 {
 	return m_szPluginPathW;
 }
 
-/**
-* Returns Aquilinus path.
-***/
-LPCWSTR AQU_FileManager::GetProfilePath()
-{
-	return m_szProfilePathW;
-}
-
-/**
-* Returns Aquilinus path.
-***/
-LPCWSTR AQU_FileManager::GetProjectPath()
-{
-	return m_szProjectPathW;
-}
-
-/**
-* Returns the current number of processes.
-***/
+/// <summary> 
+/// Returns the current number of processes.
+/// </summary> 
 DWORD AQU_FileManager::GetProcessNumber()
 {
 	return m_dwProcessListSize / (PROCESS_ENTRY_SIZE);
 }
 
-/**
-*
-***/
+/// <summary> 
+/// </summary>
 LPWSTR AQU_FileManager::GetName(DWORD dwIndex)
 {
 	if (!m_pcProcesses) return nullptr;
@@ -1243,9 +1194,8 @@ LPWSTR AQU_FileManager::GetName(DWORD dwIndex)
 	return ret;
 }
 
-/**
-*
-***/
+/// <summary> 
+/// </summary>
 LPWSTR AQU_FileManager::GetWindowName(DWORD dwIndex)
 {
 	if (!m_pcProcesses) return nullptr;
@@ -1259,9 +1209,8 @@ LPWSTR AQU_FileManager::GetWindowName(DWORD dwIndex)
 	return ret;
 }
 
-/**
-*
-***/
+/// <summary> 
+/// </summary>
 LPWSTR AQU_FileManager::GetProcessName(DWORD dwIndex)
 {
 	if (!m_pcProcesses) return nullptr;
@@ -1275,9 +1224,9 @@ LPWSTR AQU_FileManager::GetProcessName(DWORD dwIndex)
 	return ret;
 }
 
-/**
-* Get hash code helper.
-***/
+/// <summary> 
+/// Hash code helper
+/// </summary>
 unsigned __int32 AQU_FileManager::GetHash(BYTE* pcData, unsigned __int32 dwSize)
 {
 	unsigned __int32 h = 0;
@@ -1291,9 +1240,10 @@ unsigned __int32 AQU_FileManager::GetHash(BYTE* pcData, unsigned __int32 dwSize)
 	return h;
 }
 
-/**
-*
-***/
+/// <summary>
+/// Add a (game) process to the processes list.
+/// Used during game enumeration.
+/// </summary>
 HRESULT AQU_FileManager::AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR szProcess)
 {
 	if ((wcslen(szName) == 0) || (wcslen(szWindow) == 0) || (wcslen(szProcess) == 0)) return E_FAIL;
@@ -1454,9 +1404,9 @@ HRESULT AQU_FileManager::SaveProcessListCSV()
 	return S_OK;
 }
 
-/**
-* Saves the whole game list alphabetically as readable .txt file.
-***/
+/// <summary> 
+/// Saves the whole game list alphabetically as readable.txt file.
+/// </summary>
 HRESULT AQU_FileManager::SaveGameListTXT()
 {
 	std::vector<std::wstring> aszGameNames;

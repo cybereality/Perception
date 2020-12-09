@@ -209,3 +209,5 @@ LibOVRKernel
 /Aquilinus/VS2019/x64/Release/proc_x64.csv
 /Aquilinus/VS2019/.vs/Aquilinus/v16/TestStore/0
 /.vs/VSWorkspaceState.json
+/PluginSection/VirtualReality/VireioCinema/VireioCinema/VS2019/Release/VireioCinema.dll.recipe
+*.recipe
