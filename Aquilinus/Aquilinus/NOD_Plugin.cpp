@@ -147,25 +147,21 @@ NOD_Plugin::~NOD_Plugin()
 ***/
 HRESULT NOD_Plugin::Update()
 {
-	// draw the text or the logo
+	// draw the logo
 	if (m_hBitmapLogo)
 	{
+		// create GL texture
 		if (!m_dwLogoID)
-		{
 			ImGui::CreateTextureFromBitmap(m_hBitmapLogo, &m_dwLogoID, &m_sImageSize.nW, &m_sImageSize.nH);
-		}
-
 		
+		// draw image....reverse V
 		if (m_dwLogoID)
 		{
-			ImGui::Text("pointer = %p", m_dwLogoID);
-			ImGui::Text("size = %d x %d", m_sImageSize.nW, m_sImageSize.nH);
-			ImGui::Image((void*)(intptr_t)m_dwLogoID, ImVec2((float)m_sImageSize.nW, (float)m_sImageSize.nH));
+			const float fZoom = 0.25f;
+			ImGui::Image((void*)(intptr_t)m_dwLogoID, ImVec2((float)m_sImageSize.nW * fZoom, (float)m_sImageSize.nH * fZoom), ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
 		}
 
 	}
-
-	
 
 	return S_OK;
 }

@@ -34,21 +34,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AQU_NODES_STRUCTURES
 #define AQU_NODES_STRUCTURES
 
-/**
-* Node plug type enumeration.
-* 0x00000000....0x0000???? Standard wires.
-* 0x00010000....0x0001???? Wire cables.
-*                     ii   Interface.
-*                       mm Method.
-* 0x00020000....0x0002???? Plugin wire cables.
-***/
+/// <summary>
+/// Node plug type enumeration.
+/// 0x00000000....0x0000 ? ? ? ? Standard wires.
+/// 0x00010000....0x0001 ? ? ? ? Wire cables.
+/// ii   Interface.
+/// mm Method.
+/// 0x00020000....0x0002 ? ? ? ? Plugin wire cables.
+/// </summary>
 namespace NOD_Plugtype
 {
+	/// <returns>The minimum index for plugin connections</returns>
+	constexpr unsigned PluginRegister() { return 0x00020000; }
+
+	/// <param name="nInterface">D3D interface</param>
+	/// <param name="nMethod">D3D method</param>
+	/// <returns>Plugtype for the specified method</returns>
 	constexpr int WireCable(int nInterface, int nMethod)
 	{
 		return 0x00010000 + ((nInterface & 0xff) << 8) + (nMethod & 0xff);
 	}
 
+	/// <summary>
+	/// Static Aquilinus plugtypes
+	/// </summary>
 	enum NOD_Plugtype
 	{
 		// plugtypes can be used negative and positive, so zero is no connection

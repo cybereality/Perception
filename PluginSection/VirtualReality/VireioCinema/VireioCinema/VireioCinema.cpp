@@ -82,6 +82,10 @@ m_pcTexMenuRTV(nullptr),
 m_pcBlendState(nullptr),
 m_unMenuModelIndex(0)
 {
+	// commander / decommander
+	m_sCinemaData = {};
+	m_psTrackerData = nullptr;
+
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
 
@@ -209,14 +213,14 @@ m_unMenuModelIndex(0)
 	m_sImmersiveFullscreenSettings.fIPD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fIPD, "Stereo Presenter", "fIPD", szFilePathINI, bFileExists);
 	m_sImmersiveFullscreenSettings.fVSD = GetIniFileSetting(m_sImmersiveFullscreenSettings.fVSD, "Stereo Presenter", "fVSD", szFilePathINI, bFileExists);
 
+#pragma region /// => menu entries
+
 	// create the menu
 	ZeroMemory(&m_sMenu, sizeof(VireioSubMenu));
 	m_sMenu.strSubMenu = "Cinema - All FX from ShaderToy.com";
 
 	// this node requests hand pose data
 	m_sMenu.bHandPosesRequest = true;
-
-#pragma region FX
 	{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "FX Screen";
@@ -336,7 +340,6 @@ m_unMenuModelIndex(0)
 		}
 		m_sMenu.asEntries.push_back(sEntry);
 	}
-#pragma endregion
 	{
 		VireioMenuEntry sEntry = {};
 		sEntry.strEntry = "Screen Width";
@@ -509,7 +512,7 @@ m_unMenuModelIndex(0)
 		sEntry.fValue = m_sImmersiveFullscreenSettings.fVSD;
 		m_sMenu.asEntries.push_back(sEntry);
 	}
-
+#pragma endregion
 
 #pragma region color ambient
 	/*{
@@ -647,14 +650,8 @@ LPWSTR VireioCinema::GetCommanderName(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-		case LeftTexture11:
-			return L"Left Texture DX11";
-		case RightTexture11:
-			return L"Right Texture DX11";
-		case VRC_Commanders::MenuTexture:
-			return L"Menu Texture Input";
-		case VRC_Commanders::VireioMenu:
-			return L"Vireio Menu";
+	case VRC_Commanders::Cinema:
+		return VLink::Name(VLink::_L::CinemaData);
 	}
 
 	return L"x";
@@ -667,50 +664,8 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case LeftTexture11_In:
-			return L"Left Texture DX11";
-		case RightTexture11_In:
-			return L"Right Texture DX11";
-		case VRC_Decommanders::LeftTexture10_In:
-			break;
-		case RightTexture10_In:
-			break;
-		case LeftTexture9_In:
-			return L"Left Texture DX9";
-		case RightTexture9_In:
-			return L"Right Texture DX9";
-		case Pitch:
-			return L"Pitch";
-		case Yaw:
-			return L"Yaw";
-		case Roll:
-			return L"Roll";
-		case OrientationW:
-			break;
-		case OrientationX:
-			break;
-		case OrientationY:
-			break;
-		case OrientationZ:
-			break;
-		case PositionX:
-			return L"Position X";
-		case PositionY:
-			return L"Position Y";
-		case PositionZ:
-			return L"Position Z";
-		case View:
-			return L"View";
-		case World:
-			return L"World";
-		case ResolutionWidth:
-			return L"Resolution Width";
-		case ResolutionHeight:
-			return L"Resolution Height";
-		case ProjectionLeft:
-			return L"Projection Left";
-		case ProjectionRight:
-			return L"Projection Right";
+	case VRC_Decommanders::Tracker:
+		return VLink::Name(VLink::_L::TrackerData);
 	}
 
 	return L"x";
@@ -723,13 +678,8 @@ DWORD VireioCinema::GetCommanderType(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-		case LeftTexture11:
-		case RightTexture11:
-			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case VRC_Commanders::MenuTexture:
-			return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
-		case VRC_Commanders::VireioMenu:
-			return NOD_Plugtype::AQU_VOID;
+	case VRC_Commanders::Cinema:
+		return VLink::Link(VLink::_L::CinemaData);
 	}
 
 	return 0;
@@ -742,38 +692,8 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case LeftTexture11_In:
-		case RightTexture11_In:
-			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case LeftTexture10_In:
-			break;
-		case RightTexture10_In:
-			break;
-		case LeftTexture9_In:
-		case RightTexture9_In:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
-			break;
-		case Pitch:
-		case Yaw:
-		case Roll:
-		case OrientationW:
-		case OrientationX:
-		case OrientationY:
-		case OrientationZ:
-		case PositionX:
-		case PositionY:
-		case PositionZ:
-			return NOD_Plugtype::AQU_FLOAT;
-		case View:
-		case World:
-			return NOD_Plugtype::AQU_D3DMATRIX;
-			break;
-		case ResolutionWidth:
-		case ResolutionHeight:
-			return NOD_Plugtype::AQU_UINT;
-		case ProjectionLeft:
-		case ProjectionRight:
-			return NOD_Plugtype::AQU_D3DMATRIX;
+	case VRC_Decommanders::Tracker:
+		return VLink::Link(VLink::_L::TrackerData);
 	}
 
 	return 0;
@@ -786,7 +706,9 @@ void* VireioCinema::GetOutputPointer(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-		case LeftTexture11:
+	case VRC_Commanders::Cinema:
+		return (void*)&m_sCinemaData;
+		/*case LeftTexture11:
 			return (void*)&m_pcTex11DrawSRV[0];
 		case RightTexture11:
 			return (void*)&m_pcTex11DrawSRV[1];
@@ -795,7 +717,7 @@ void* VireioCinema::GetOutputPointer(DWORD dwCommanderIndex)
 		case VRC_Commanders::VireioMenu:
 			return (void*)&m_sMenu;
 		default:
-			break;
+			break;*/
 	}
 
 	return nullptr;
@@ -808,7 +730,10 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case LeftTexture11:
+	case VRC_Decommanders::Tracker:
+		m_psTrackerData = (HMDTrackerData*)pData;
+		break;
+		/*case LeftTexture11:
 			m_ppcTex11InputSRV[0] = (ID3D11ShaderResourceView**)pData;
 			break;
 		case RightTexture11:
@@ -866,7 +791,7 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case ProjectionRight:
 			m_psProjection[1] = (D3DMATRIX*)pData;
-			break;
+			break;*/
 	}
 }
 
@@ -882,9 +807,9 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 		if (((nD3DInterface == INTERFACE_IDIRECT3DDEVICE9) &&
 			(nD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT)) ||
 			((nD3DInterface == INTERFACE_IDIRECT3DDEVICE9) &&
-			(nD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE)) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE)) ||
 			((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
-			(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)))
+				(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)))
 			return true;
 	}
 	else
@@ -949,41 +874,41 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 					{
 						switch (nIx)
 						{
-							case 0: // screen
-								SAFE_RELEASE(m_pcPSGeometry11);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Screen))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
-							case 1: // wall front
-								SAFE_RELEASE(m_asRenderModels[m_unWallFModelIndex].pcEffect);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallFModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
-							case 2: // wall back
-								SAFE_RELEASE(m_asRenderModels[m_unWallBModelIndex].pcEffect);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallBModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
-							case 3: // wall left
-								SAFE_RELEASE(m_asRenderModels[m_unWallLModelIndex].pcEffect);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallLModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
-							case 4: // wall right
-								SAFE_RELEASE(m_asRenderModels[m_unWallRModelIndex].pcEffect);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallRModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
-							case 5: // floor
-								SAFE_RELEASE(m_asRenderModels[m_unFloorModelIndex].pcEffect);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unFloorModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[1]))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
-							case 6: // ceiling
-								SAFE_RELEASE(m_asRenderModels[m_unCeilingModelIndex].pcEffect);
-								if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unCeilingModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[0]))))
-									OutputDebugString(L"[CIN] Failed to create pixel shader. !");
-								break;
+						case 0: // screen
+							SAFE_RELEASE(m_pcPSGeometry11);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Screen))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
+						case 1: // wall front
+							SAFE_RELEASE(m_asRenderModels[m_unWallFModelIndex].pcEffect);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallFModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
+						case 2: // wall back
+							SAFE_RELEASE(m_asRenderModels[m_unWallBModelIndex].pcEffect);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallBModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
+						case 3: // wall left
+							SAFE_RELEASE(m_asRenderModels[m_unWallLModelIndex].pcEffect);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallLModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
+						case 4: // wall right
+							SAFE_RELEASE(m_asRenderModels[m_unWallRModelIndex].pcEffect);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unWallRModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
+						case 5: // floor
+							SAFE_RELEASE(m_asRenderModels[m_unFloorModelIndex].pcEffect);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unFloorModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[1]))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
+						case 6: // ceiling
+							SAFE_RELEASE(m_asRenderModels[m_unCeilingModelIndex].pcEffect);
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_asRenderModels[m_unCeilingModelIndex].pcEffect, m_sCinemaRoomSetup.GetTechnique(m_sCinemaRoomSetup.ePixelShaderFX_Floor[0]))))
+								OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+							break;
 						}
 					}
 					if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
@@ -1056,108 +981,108 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	// render cinema for specified D3D version
 	switch (m_eD3DVersion)
 	{
-		case D3D_Undefined:
-			// D3D version not defined ?
-			switch (eD3DInterface)
-			{
-				case INTERFACE_IDIRECT3DDEVICE9:
-				case INTERFACE_IDIRECT3DSWAPCHAIN9:
-					m_eD3DVersion = D3D_9;
-					break;
-				case INTERFACE_IDXGISWAPCHAIN:
-					if (m_eD3DVersion == D3D_Undefined)
-					{
-						// get device
-						IUnknown* pcDevice = nullptr;
-						((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
-						if (pcDevice)
-						{
-							m_eD3DVersion = D3D_10;
-							pcDevice->Release();
-							return nullptr;
-						}
-						// get device
-						((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-						if (pcDevice)
-						{
-							m_eD3DVersion = D3D_11;
-							pcDevice->Release();
-							return nullptr;
-						}
-						// no device ?
-						OutputDebugString(L"[CIN] Could not resolve which D3D device is in use !");
-					}
-					break;
-			}
-			break;
-		case D3D_9:
+	case D3D_Undefined:
+		// D3D version not defined ?
+		switch (eD3DInterface)
 		{
-
-			// get device 
-			LPDIRECT3DDEVICE9 pcDevice = nullptr;
-			bool bReleaseDevice = false;
-			if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+		case INTERFACE_IDIRECT3DDEVICE9:
+		case INTERFACE_IDIRECT3DSWAPCHAIN9:
+			m_eD3DVersion = D3D_9;
+			break;
+		case INTERFACE_IDXGISWAPCHAIN:
+			if (m_eD3DVersion == D3D_Undefined)
 			{
-				pcDevice = (LPDIRECT3DDEVICE9)pThis;
-			}
-			else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
-			{
-				LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
-				if (!pSwapChain)
+				// get device
+				IUnknown* pcDevice = nullptr;
+				((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
+				if (pcDevice)
 				{
-					OutputDebugString(L"[CIN] No swapchain !");
+					m_eD3DVersion = D3D_10;
+					pcDevice->Release();
 					return nullptr;
 				}
-				pSwapChain->GetDevice(&pcDevice);
-				bReleaseDevice = true;
-			}
-			if (!pcDevice)
-			{
-				OutputDebugString(L"[CIN] No device !");
-				return nullptr;
-			}
-
-			if (m_asRenderModels.size())
-				// render
-				RenderD3D9(pcDevice);
-			else
-				// ...or init all stuff
-				InitD3D9(pcDevice);
-
-			// release device if provided by swapchain
-			if (bReleaseDevice) pcDevice->Release();
-		}
-		break;
-		case D3D_10:
-			break;
-		case D3D_11:
-		{
-			// get device
-			ID3D11Device* pcDevice = nullptr;
-			((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-			if (pcDevice)
-			{
-				// get context
-				ID3D11DeviceContext* pcContext = nullptr;
-				pcDevice->GetImmediateContext(&pcContext);
-				if (pcContext)
+				// get device
+				((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+				if (pcDevice)
 				{
-					if (m_asRenderModels.size())
-						// render
-						RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
-					else
-						// ...or init all stuff
-						InitD3D11(pcDevice, pcContext);
-
-					pcContext->Release();
+					m_eD3DVersion = D3D_11;
+					pcDevice->Release();
+					return nullptr;
 				}
-				pcDevice->Release();
-				return nullptr;
+				// no device ?
+				OutputDebugString(L"[CIN] Could not resolve which D3D device is in use !");
 			}
+			break;
 		}
 		break;
-		default:
-			break;
+	case D3D_9:
+	{
+
+		// get device 
+		LPDIRECT3DDEVICE9 pcDevice = nullptr;
+		bool bReleaseDevice = false;
+		if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+		{
+			pcDevice = (LPDIRECT3DDEVICE9)pThis;
+		}
+		else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+		{
+			LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
+			if (!pSwapChain)
+			{
+				OutputDebugString(L"[CIN] No swapchain !");
+				return nullptr;
+			}
+			pSwapChain->GetDevice(&pcDevice);
+			bReleaseDevice = true;
+		}
+		if (!pcDevice)
+		{
+			OutputDebugString(L"[CIN] No device !");
+			return nullptr;
+		}
+
+		if (m_asRenderModels.size())
+			// render
+			RenderD3D9(pcDevice);
+		else
+			// ...or init all stuff
+			InitD3D9(pcDevice);
+
+		// release device if provided by swapchain
+		if (bReleaseDevice) pcDevice->Release();
+	}
+	break;
+	case D3D_10:
+		break;
+	case D3D_11:
+	{
+		// get device
+		ID3D11Device* pcDevice = nullptr;
+		((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+		if (pcDevice)
+		{
+			// get context
+			ID3D11DeviceContext* pcContext = nullptr;
+			pcDevice->GetImmediateContext(&pcContext);
+			if (pcContext)
+			{
+				if (m_asRenderModels.size())
+					// render
+					RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+				else
+					// ...or init all stuff
+					InitD3D11(pcDevice, pcContext);
+
+				pcContext->Release();
+			}
+			pcDevice->Release();
+			return nullptr;
+		}
+	}
+	break;
+	default:
+		break;
 	}
 	return nullptr;
 }
@@ -1733,48 +1658,48 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				int eEffect = 0;
 				switch (unI)
 				{
-					case 0:
-						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0];
-						m_unWallLModelIndex = (UINT)m_asRenderModels.size();
-						break;
-					case 1:
-						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1];
-						m_unWallRModelIndex = (UINT)m_asRenderModels.size();
-						break;
-					case 2:
-						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0];
-						m_unWallFModelIndex = (UINT)m_asRenderModels.size();
-						break;
-					case 3:
-						eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1];
-						m_unWallBModelIndex = (UINT)m_asRenderModels.size();
-						break;
+				case 0:
+					eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0];
+					m_unWallLModelIndex = (UINT)m_asRenderModels.size();
+					break;
+				case 1:
+					eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1];
+					m_unWallRModelIndex = (UINT)m_asRenderModels.size();
+					break;
+				case 2:
+					eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0];
+					m_unWallFModelIndex = (UINT)m_asRenderModels.size();
+					break;
+				case 3:
+					eEffect = m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1];
+					m_unWallBModelIndex = (UINT)m_asRenderModels.size();
+					break;
 				}
 
 				// create wall effect by cinema room setup
 				PixelShaderTechnique eTechnique = PixelShaderTechnique::Worley01;
 				switch (eEffect)
 				{
-					case CinemaRoomSetup::Wall_Bubbles:
-						eTechnique = PixelShaderTechnique::Bubbles;
-						break;
-					case VireioCinema::CinemaRoomSetup::Wall_Planets:
-						eTechnique = PixelShaderTechnique::Planets;
-						break;
-					case CinemaRoomSetup::Wall_StringTheory:
-						eTechnique = PixelShaderTechnique::StringTheory;
-						break;
-					case CinemaRoomSetup::Wall_ToonCloud:
-						eTechnique = PixelShaderTechnique::ToonCloud;
-						break;
-					case CinemaRoomSetup::Wall_WaterCaustic:
-						eTechnique = PixelShaderTechnique::WaterCaustic;
-						break;
-					case CinemaRoomSetup::Wall_Worley01:
-						eTechnique = PixelShaderTechnique::Worley01;
-					case VireioCinema::CinemaRoomSetup::Wall_VoronoiSmooth:
-						eTechnique = PixelShaderTechnique::VoronoiSmooth;
-						break;
+				case CinemaRoomSetup::Wall_Bubbles:
+					eTechnique = PixelShaderTechnique::Bubbles;
+					break;
+				case VireioCinema::CinemaRoomSetup::Wall_Planets:
+					eTechnique = PixelShaderTechnique::Planets;
+					break;
+				case CinemaRoomSetup::Wall_StringTheory:
+					eTechnique = PixelShaderTechnique::StringTheory;
+					break;
+				case CinemaRoomSetup::Wall_ToonCloud:
+					eTechnique = PixelShaderTechnique::ToonCloud;
+					break;
+				case CinemaRoomSetup::Wall_WaterCaustic:
+					eTechnique = PixelShaderTechnique::WaterCaustic;
+					break;
+				case CinemaRoomSetup::Wall_Worley01:
+					eTechnique = PixelShaderTechnique::Worley01;
+				case VireioCinema::CinemaRoomSetup::Wall_VoronoiSmooth:
+					eTechnique = PixelShaderTechnique::VoronoiSmooth;
+					break;
 				}
 				ID3D11PixelShader* pcEffect = nullptr;
 				CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
@@ -1882,79 +1807,79 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 {
 	switch (m_eD3DVersion)
 	{
-		case VireioCinema::D3D_Undefined:
+	case VireioCinema::D3D_Undefined:
+		return;
+	case VireioCinema::D3D_9:
+		if ((m_pcTexCopy11SRV[0]) && (m_pcTexCopy11SRV[1]))
+		{
+			// set srv
+			m_apcTex11InputSRV[0] = m_pcTexCopy11SRV[0];
+			m_apcTex11InputSRV[1] = m_pcTexCopy11SRV[1];
+		}
+		else
+		{
+			DEBUG_HEX(m_pcTexCopy11SRV[0]);
+			DEBUG_HEX(m_pcTexCopy11SRV[1]);
 			return;
-		case VireioCinema::D3D_9:
-			if ((m_pcTexCopy11SRV[0]) && (m_pcTexCopy11SRV[1]))
+		}
+	case VireioCinema::D3D_10:
+		break;
+	case VireioCinema::D3D_11:
+		if ((!m_ppcTex11InputSRV[0]) || (!m_ppcTex11InputSRV[1]))
+		{
+			// get back buffer
+			ID3D11Texture2D* pcBackBuffer = NULL;
+			pcSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+			if (pcBackBuffer)
 			{
-				// set srv
-				m_apcTex11InputSRV[0] = m_pcTexCopy11SRV[0];
-				m_apcTex11InputSRV[1] = m_pcTexCopy11SRV[1];
-			}
-			else
-			{
-				DEBUG_HEX(m_pcTexCopy11SRV[0]);
-				DEBUG_HEX(m_pcTexCopy11SRV[1]);
-				return;
-			}
-		case VireioCinema::D3D_10:
-			break;
-		case VireioCinema::D3D_11:
-			if ((!m_ppcTex11InputSRV[0]) || (!m_ppcTex11InputSRV[1]))
-			{
-				// get back buffer
-				ID3D11Texture2D* pcBackBuffer = NULL;
-				pcSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
-				if (pcBackBuffer)
+				if (m_pcBackBufferCopy)
 				{
-					if (m_pcBackBufferCopy)
-					{
-						pcContext->CopyResource(m_pcBackBufferCopy, pcBackBuffer);
-					}
-					else
-					{
-						// create back buffer copy texture
-						D3D11_TEXTURE2D_DESC sDesc;
-						pcBackBuffer->GetDesc(&sDesc);
-						sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-						if (SUCCEEDED(pcDevice->CreateTexture2D(&sDesc, NULL, &m_pcBackBufferCopy)))
-						{
-							D3D11_SHADER_RESOURCE_VIEW_DESC sDescSR11 = {};
-							sDescSR11.Format = sDesc.Format;
-							sDescSR11.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-							sDescSR11.Texture2D.MipLevels = 1;
-							sDescSR11.Texture2D.MostDetailedMip = 0;
-							if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView(m_pcBackBufferCopy, &sDescSR11, &m_pcBackBufferCopySR)))
-							{
-								OutputDebugString(L"[CIN] Failed to create sr view !");
-								m_pcBackBufferCopy->Release(); m_pcBackBufferCopy = nullptr;
-								pcBackBuffer->Release();
-								return;
-							}
-						}
-					}
-
-					// set left/right mono and instantly release
-					m_apcTex11InputSRV[0] = m_pcBackBufferCopySR;
-					m_apcTex11InputSRV[1] = m_pcBackBufferCopySR;
-
-					pcBackBuffer->Release();
+					pcContext->CopyResource(m_pcBackBufferCopy, pcBackBuffer);
 				}
 				else
 				{
-					OutputDebugString(L"[CIN] No back buffer !!");
-					return;
+					// create back buffer copy texture
+					D3D11_TEXTURE2D_DESC sDesc;
+					pcBackBuffer->GetDesc(&sDesc);
+					sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+					if (SUCCEEDED(pcDevice->CreateTexture2D(&sDesc, NULL, &m_pcBackBufferCopy)))
+					{
+						D3D11_SHADER_RESOURCE_VIEW_DESC sDescSR11 = {};
+						sDescSR11.Format = sDesc.Format;
+						sDescSR11.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+						sDescSR11.Texture2D.MipLevels = 1;
+						sDescSR11.Texture2D.MostDetailedMip = 0;
+						if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView(m_pcBackBufferCopy, &sDescSR11, &m_pcBackBufferCopySR)))
+						{
+							OutputDebugString(L"[CIN] Failed to create sr view !");
+							m_pcBackBufferCopy->Release(); m_pcBackBufferCopy = nullptr;
+							pcBackBuffer->Release();
+							return;
+						}
+					}
 				}
+
+				// set left/right mono and instantly release
+				m_apcTex11InputSRV[0] = m_pcBackBufferCopySR;
+				m_apcTex11InputSRV[1] = m_pcBackBufferCopySR;
+
+				pcBackBuffer->Release();
 			}
 			else
 			{
-				// set stereo input textures
-				m_apcTex11InputSRV[0] = *m_ppcTex11InputSRV[0];
-				m_apcTex11InputSRV[1] = *m_ppcTex11InputSRV[1];
-			};
-			break;
-		default:
-			break;
+				OutputDebugString(L"[CIN] No back buffer !!");
+				return;
+			}
+		}
+		else
+		{
+			// set stereo input textures
+			m_apcTex11InputSRV[0] = *m_ppcTex11InputSRV[0];
+			m_apcTex11InputSRV[1] = *m_ppcTex11InputSRV[1];
+		};
+		break;
+	default:
+		break;
 	}
 
 
@@ -2462,7 +2387,7 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 	D3D11_BUFFER_DESC sVertexBufferDesc;
 	ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
 	sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	sVertexBufferDesc.ByteWidth = sizeof(TexturedNormalVertex)* unVertexCount;
+	sVertexBufferDesc.ByteWidth = sizeof(TexturedNormalVertex) * unVertexCount;
 	sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	sVertexBufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA sInitData;
@@ -2475,7 +2400,7 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 	D3D11_BUFFER_DESC sIndexBufferDesc;
 	ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
 	sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	sIndexBufferDesc.ByteWidth = sizeof(WORD)* unTriangleCount * 3;
+	sIndexBufferDesc.ByteWidth = sizeof(WORD) * unTriangleCount * 3;
 	sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	sIndexBufferDesc.CPUAccessFlags = 0;
 	ZeroMemory(&sInitData, sizeof(sInitData));
