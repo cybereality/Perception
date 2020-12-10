@@ -78,6 +78,7 @@ public:
 			pD->m_ePlugtype = NOD_Plugtype::AQU_FLOAT;
 			pD->m_pInput = nullptr;
 			pD->m_szTitle = L"Euler X";
+			pD->m_lDecommanderIndex = (LONG)m_paDecommanders.size();
 			m_paDecommanders.push_back(pD);
 		}
 		{
@@ -86,6 +87,7 @@ public:
 			pD->m_ePlugtype = NOD_Plugtype::AQU_FLOAT;
 			pD->m_pInput = nullptr;
 			pD->m_szTitle = L"Euler Y";
+			pD->m_lDecommanderIndex = (LONG)m_paDecommanders.size();
 			m_paDecommanders.push_back(pD);
 		}
 		{
@@ -94,6 +96,7 @@ public:
 			pD->m_ePlugtype = NOD_Plugtype::AQU_FLOAT;
 			pD->m_pInput = nullptr;
 			pD->m_szTitle = L"Euler Z";
+			pD->m_lDecommanderIndex = (LONG)m_paDecommanders.size();
 			m_paDecommanders.push_back(pD);
 		}
 

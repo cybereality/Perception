@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"NOD_Basic.h"
 #include"AQU_GlobalTypes.h"
+#include <GL/glew.h>
 
 /**
 * Plugin node.
@@ -46,10 +47,8 @@ public:
 	~NOD_Plugin();
 
 	/*** NOD_Basic public methods ***/
-	virtual HRESULT          Draw(POINT vcOrigin);
-	virtual AQU_NodeBehavior WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual HRESULT          Update();
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
-	// TODO !! CONNECTION METHODS NEW !!
 	virtual void             ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
 	virtual void             AlignData(LONG nDecommanderIndex, void* pData) { m_pNodus->SetInputPointer((DWORD)nDecommanderIndex, pData); NOD_Basic::AlignData(nDecommanderIndex, pData); }
 	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
@@ -83,14 +82,13 @@ private:
 	***/
 	HBITMAP m_hBitmapControl;
 	/**
-	* Aquilinus drawer class backup.
-	* Only used to release the bitmap IDs.
-	****/
-	//AQU_Drawer* m_pcDrawer;
-	/**
 	* The logo Bitmap ID.
 	***/
-	UINT m_dwLogoID;
+	GLuint m_dwLogoID;
+	/**
+	* Image size
+	**/
+	struct { int nW, nH; } m_sImageSize;
 	/**
 	* The control Bitmap ID.
 	***/

@@ -28,6 +28,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 #include"NOD_Plugin.h"
+#include "..\dependecies\imgui\imgui_helpers.h"
+
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%d", a); OutputDebugString(buf); }
+#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 
 /**
 * Constructor.
@@ -84,8 +89,8 @@ m_dwUpdateCounter(0)
 
 		// get logo bitmap, control bitmap is always null at start
 		m_hBitmapLogo = m_pNodus->GetLogo();
-		m_hBitmapControl = nullptr;
 		m_dwLogoID = NULL;
+		m_hBitmapControl = nullptr;
 		m_dwControlID = NULL;
 		ZeroMemory(&m_rcControl, sizeof(RECT));
 
@@ -130,11 +135,6 @@ m_dwUpdateCounter(0)
 ***/
 NOD_Plugin::~NOD_Plugin()
 {
-	/*if (m_pcDrawer)
-	{
-		m_pcDrawer->ReleaseBitmap(m_dwControlID);
-		m_pcDrawer->ReleaseBitmap(m_dwLogoID);
-	}*/
 	FreeLibrary(m_hm);
 	m_hm = NULL;
 }
@@ -145,214 +145,29 @@ NOD_Plugin::~NOD_Plugin()
 * @param pcDrawer The aquilinus drawing interface.
 * @param vcOrigin The origin vector for the drawing call, in pixel space.
 ***/
-HRESULT NOD_Plugin::Draw(POINT vcOrigin)
+HRESULT NOD_Plugin::Update()
 {
-	/*DWORD dwWidth;
-
-	// backup the drawer
-	if (!m_pcDrawer) m_pcDrawer = pcDrawer;
-
-	// clear node background
-	pcDrawer->DrawHLine(m_vecPos, vcOrigin, m_vecSize.cx, m_vecSize.cy, AquilinusColor::Color1, fZoom);
-
-	// draw the border
-	POINT pt = m_vecPos;
-	pcDrawer->DrawHLine(pt, vcOrigin, m_vecSize.cx, 4, AquilinusColor::Color3, fZoom);
-
-	pt = m_vecPos;
-	pt.y += m_vecSize.cy - 4;
-	pcDrawer->DrawHLine(pt, vcOrigin, m_vecSize.cx, 4, AquilinusColor::Color3, fZoom);
-
-	pt = m_vecPos;
-	pcDrawer->DrawVLine(pt, vcOrigin, m_vecSize.cy, 4, AquilinusColor::Color3, fZoom);
-
-	pt = m_vecPos;
-	pt.x += m_vecSize.cx - 4;
-	pcDrawer->DrawVLine(pt, vcOrigin, m_vecSize.cy, 4, AquilinusColor::Color3, fZoom);
-
 	// draw the text or the logo
 	if (m_hBitmapLogo)
 	{
 		if (!m_dwLogoID)
-			m_dwLogoID = pcDrawer->RegisterBitmap(m_hBitmapLogo);
+		{
+			ImGui::CreateTextureFromBitmap(m_hBitmapLogo, &m_dwLogoID, &m_sImageSize.nW, &m_sImageSize.nH);
+		}
 
+		
 		if (m_dwLogoID)
 		{
-			// get size of bitmap
-			BITMAP bm;
-			GetObject(m_hBitmapLogo, sizeof(bm), &bm);
-
-			// clamp size
-			if (m_vecSize.cx < ((bm.bmWidth >> 2) + 8)) m_vecSize.cx = (bm.bmWidth >> 2) + 8;
-			if (m_vecSize.cy < ((bm.bmHeight >> 2) + 32)) m_vecSize.cy = (bm.bmHeight >> 2) + 32;
-
-			// draw bitmap
-			RECT rcDest;
-			pt = m_vecPos;
-			pt.y += 4;
-			pt.x += 4;
-			SetRect(&rcDest, (int)pt.x, (int)pt.y, (int)pt.x + (bm.bmWidth >> 2), (int)pt.y + (bm.bmHeight >> 2));
-			pcDrawer->DrawBitmap(m_dwLogoID, rcDest, vcOrigin, fZoom);
-			pt.y += (bm.bmHeight >> 2) + 8;
-		}
-	}
-	else
-	{
-		// get text width and render text
-		dwWidth = pcDrawer->GetTextWidth(m_szTitle, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-		pt = m_vecPos;
-		pt.y += 16;
-		pt.x += (m_vecSize.cx >> 1) - ((LONG)dwWidth >> 1);
-		pcDrawer->RenderText(m_szTitle, pt.x, pt.y, vcOrigin, AquilinusColor::Color2, AquilinusColor::Color1, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-		pt.y += 24;
-
-		// clamp node size
-		if (m_vecSize.cx < (LONG)(dwWidth + 8)) m_vecSize.cx = dwWidth + 8;
-	}
-
-	// any bitmap updates for the control ?
-	m_hBitmapControl = m_pNodus->GetControl();
-	if (m_hBitmapControl)
-	{
-		if (!m_dwControlID)
-			m_dwControlID = pcDrawer->RegisterBitmap(m_hBitmapControl);
-		else
-		{
-			
-			pcDrawer->UpdateBitmap(m_hBitmapControl, m_dwControlID);
-			
+			ImGui::Text("pointer = %p", m_dwLogoID);
+			ImGui::Text("size = %d x %d", m_sImageSize.nW, m_sImageSize.nH);
+			ImGui::Image((void*)(intptr_t)m_dwLogoID, ImVec2((float)m_sImageSize.nW, (float)m_sImageSize.nH));
 		}
 
-		// get size of bitmap
-		BITMAP bm;
-		GetObject(m_hBitmapControl, sizeof(bm), &bm);
-
-		// clamp size
-		if (m_vecSize.cx < ((bm.bmWidth >> 2) + 8)) m_vecSize.cx = (bm.bmWidth >> 2) + 8;
-		if (m_vecSize.cy < ((bm.bmHeight >> 2) + pt.y - 4 - m_vecPos.y)) m_vecSize.cy = (bm.bmHeight >> 2) + pt.y - 4 - m_vecPos.y;
-
-		// set image rectangle
-		SetRect(&m_rcControl, 0, 0, (int)bm.bmWidth, (int)bm.bmHeight);
 	}
 
-	if (m_dwControlID)
-	{
-		// render the surface
-		pt.y -= 8;
-		RECT rcDest;
-		SetRect(&rcDest, (int)pt.x, (int)pt.y, (int)pt.x + (m_rcControl.right >> 2), (int)pt.y + (m_rcControl.bottom >> 2));
-
-		pcDrawer->DrawBitmap(m_dwControlID, rcDest, vcOrigin, fZoom);
-		pt.y += 8;
-	}
-
-	// draw the decommanders
-	for (std::vector<NOD_Decommander*>::size_type i = 0; i != m_paDecommanders.size(); i++)
-	{
-		// draw the joint
-		pt.x = m_vecPos.x;
-		pcDrawer->DrawHLine(pt, vcOrigin, 8, 4, AquilinusColor::Color4, fZoom);
-
-		// set the decommander y pos
-		m_paDecommanders[i]->m_lNodeYPos = pt.y - m_vecPos.y;
-
-		// draw text only if no control present
-		if (!m_dwControlID)
-		{
-			// get text width, set x pos
-			dwWidth = pcDrawer->GetTextWidth(m_paDecommanders[i]->m_szTitle, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-			pt.y -= 2;
-			pt.x += 12;
-
-			// verify node width
-			if (m_vecSize.cx < ((LONG)dwWidth + 24)) m_vecSize.cx = (LONG)dwWidth + 24;
-
-			pcDrawer->RenderText(m_paDecommanders[i]->m_szTitle, pt.x, pt.y, vcOrigin, AquilinusColor::Color3, AquilinusColor::Color1, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-		}
-
-		pt.y += 16;
-	}
-
-	// draw the commanders
-	for (std::vector<NOD_Commander*>::size_type i = 0; i != m_paCommanders.size(); i++)
-	{
-		// draw the joint
-		pt.x = m_vecPos.x + m_vecSize.cx - 8;
-		pcDrawer->DrawHLine(pt, vcOrigin, 8, 4, AquilinusColor::Color4, fZoom);
-
-		// set the decommander y pos
-		m_paCommanders[i]->m_lNodeYPos = pt.y - m_vecPos.y;
-
-		// draw text only if no control present
-		if (!m_dwControlID)
-		{
-			// get text width, set x pos
-			dwWidth = pcDrawer->GetTextWidth(m_paCommanders[i]->m_szTitle, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-			pt.y -= 2;
-			pt.x = m_vecPos.x + m_vecSize.cx - (LONG)dwWidth - 16;
-
-			// verify node width
-			if (m_vecSize.cx < ((LONG)dwWidth + 24)) m_vecSize.cx = (LONG)dwWidth + 24;
-
-			pcDrawer->RenderText(m_paCommanders[i]->m_szTitle, pt.x, pt.y, vcOrigin, AquilinusColor::Color3, AquilinusColor::Color1, AQUILINUS_TINY_TEXT_SIZE, fZoom);
-		}
-
-		pt.y += 16;
-	}
-
-	if ((m_eNodeProvokingType == AQU_NodeProvokingType::OnlyInvoker) || (m_eNodeProvokingType == AQU_NodeProvokingType::Both))
-	{
-		// draw the invoker joint
-		pt.x = m_vecPos.x;
-		pcDrawer->DrawHLine(pt, vcOrigin, 8, 4, AquilinusColor::Color2, fZoom);
-	}
-
-	if ((m_eNodeProvokingType == AQU_NodeProvokingType::OnlyProvoker) || (m_eNodeProvokingType == AQU_NodeProvokingType::Both))
-	{
-		// draw the provoker joint
-		pt.x = m_vecPos.x + m_vecSize.cx - 8;
-		pcDrawer->DrawHLine(pt, vcOrigin, 8, 4, AquilinusColor::Color2, fZoom);
-	}
-
-	if (m_eNodeProvokingType != AQU_NodeProvokingType::None)
-	{
-		// set provoker/invoker y pos
-		m_cInvoker.m_lNodeYPos = pt.y - m_vecPos.y;
-		m_cProvoker.m_lNodeYPos = pt.y - m_vecPos.y;
-
-		pt.y += 16;
-	}
-
-	// draw text only if no control present
-	if (!m_dwControlID)
-	{
-		// verify node height
-		if (m_vecSize.cy < (pt.y - m_vecPos.y + 16)) m_vecSize.cy = pt.y - m_vecPos.y + 16;
-	}*/
+	
 
 	return S_OK;
-}
-
-/**
-* Window event for that node.
-***/
-AQU_NodeBehavior NOD_Plugin::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
-{
-// update the names of commander/decommanders
-	for (DWORD i = 0; i < (DWORD)m_paCommanders.size(); i++)
-		m_paCommanders[i]->m_szTitle = m_pNodus->GetCommanderName(i);
-	for (DWORD i = 0; i < (DWORD)m_paDecommanders.size(); i++)
-		m_paDecommanders[i]->m_szTitle = m_pNodus->GetDecommanderName(i);
-	
-	// get the local mouse as lParam
-	LPARAM lParamLocal = (LPARAM)(m_vecLocalMouseCursor.x & 0xffff) + (((m_vecLocalMouseCursor.y - (LONG)m_dwHeaderSize) & 0xffff) << 16);
-
-	// call plugin method
-	if (m_vecLocalMouseCursor.y >= (LONG)m_dwHeaderSize)
-		m_pNodus->WindowsEvent(msg, wParam, lParamLocal);
-
-	// .. and return super method
-	return NOD_Basic::WindowsEvent(msg, wParam, lParam);
 }
 
 /**
@@ -453,5 +268,6 @@ void NOD_Plugin::VerifyConnections(std::vector<NOD_Basic*>* ppaNodes)
 		m_pNodus->SetInputPointer((DWORD)i, m_paDecommanders[i]->m_pInput);
 	}
 }
+
 
 

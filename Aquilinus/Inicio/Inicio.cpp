@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Inicio.h"
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%d", a); OutputDebugString(buf); }
+#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 
 #pragma region Inicio GUI methods
 
@@ -1429,6 +1431,25 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					g_eCurrentWindow = InicioWindows::Main;
 					g_bWindowResize = true;
 				}
+
+				/*static HBITMAP hBitmap = nullptr;
+				const wchar_t* filename = L"fruits.bmp";
+				if (!hBitmap) hBitmap = (HBITMAP)LoadImage(NULL, filename,
+					IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTSIZE | LR_LOADFROMFILE);
+
+				static int nImageWidth = 0;
+				static int nImageHeight = 0;
+				static GLuint image_texture = 0;
+				if (!image_texture)
+				{
+					bool ret = ImGui::CreateTextureFromBitmap(hBitmap, &image_texture, &nImageWidth, &nImageHeight);
+					IM_ASSERT(ret);
+				}
+
+				ImGui::Text("pointer = %p", image_texture);
+				ImGui::Text("size = %d x %d", nImageWidth, nImageHeight);
+				ImGui::Image((void*)(intptr_t)image_texture, ImVec2((float)nImageWidth, (float)nImageHeight));*/
+
 				ImGui::PopFont();
 
 				if (!s_bOpen) glfwSetWindowShouldClose(window, GLFW_TRUE);

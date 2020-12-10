@@ -83,8 +83,7 @@ enum class AQU_NodeBehavior
 	Inactive,
 	Translate,
 	ConnectCommander,
-	ConnectProvoker,
-	WindowsEvent
+	ConnectProvoker
 };
 
 /**
@@ -150,7 +149,7 @@ public:
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData) { (dwDecommanderIndex); (pData); }
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)  { return false; }
 	virtual void*           Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	{ (pcThis); (eD3D); (eD3DInterface); (eD3DMethod); (dwNumberConnected); (nProvokerIndex); return nullptr; }
-	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam) {}
+	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam) {} // TODO !! DEPRECATED !!
 };
 
 /**
@@ -171,7 +170,6 @@ public:
 	virtual DWORD            GetProvokerConnectionsNumber();
 	virtual DWORD            GetInvokerConnectionsNumber();
 	virtual void             SetNewIndex(DWORD unIndex);
-	virtual AQU_NodeBehavior WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
 	virtual void             InputSlot(const char* title, int kind);
 	virtual void             OutputSlot(const char* title, int kind);

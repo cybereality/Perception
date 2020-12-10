@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Windows.h>
 #include "imgui.h"
+#include <GL/glew.h>
 
 namespace ImGui
 {
@@ -68,7 +69,7 @@ namespace ImGui
 	/**
 	* Set ImGui style by 5 HEX colors.
 	**/
-	void StyleColorsByScheme(ColorSchemeHex sScheme)
+	inline void StyleColorsByScheme(ColorSchemeHex sScheme)
 	{
 		ImGuiStyle* style = &ImGui::GetStyle();
 		ImVec4* colors = style->Colors;
@@ -153,6 +154,103 @@ namespace ImGui
 		colors[ImGuiCol_NavWindowingHighlight] = asColor[0]; colors[ImGuiCol_NavWindowingHighlight].w = .9f;
 		colors[ImGuiCol_NavWindowingDimBg] = ImLerp(asColor[0], asColor[4], 0.8f); colors[ImGuiCol_NavWindowingDimBg].w = .2f;
 		colors[ImGuiCol_ModalWindowDimBg] = ImLerp(asColor[0], asColor[4], 0.8f); colors[ImGuiCol_ModalWindowDimBg].w = .35f;
+	}
+
+	/// <summary>
+	/// Converts HBITMAP to raw pixel data
+	/// </summary>
+	/// <param name="hBitmap">Handle to the Bitmap</param>
+	/// <param name="nWidth">Returns image width</param>
+	/// <param name="nHeight">Returns image height</param>
+	/// <returns>Vector to raw pixel data.</returns>
+	inline std::vector<unsigned char> BitmapToPixel(HBITMAP pBitmap, int& nWidth, int& nHeight)
+	{
+		BITMAP sBmp = {};
+		BITMAPINFO sInfo = {};
+		std::vector<unsigned char> acPixels = std::vector<unsigned char>();
+
+		// get bitmap description
+		HDC pDC = CreateCompatibleDC(NULL);
+		HBITMAP pOldBitmap = (HBITMAP)SelectObject(pDC, pBitmap);
+		GetObject(pBitmap, sizeof(sBmp), &sBmp);
+
+		// fill info structure
+		sInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		sInfo.bmiHeader.biWidth = nWidth = sBmp.bmWidth;
+		sInfo.bmiHeader.biHeight = nHeight = sBmp.bmHeight;
+		sInfo.bmiHeader.biPlanes = 1;
+		sInfo.bmiHeader.biBitCount = sBmp.bmBitsPixel;
+		sInfo.bmiHeader.biCompression = BI_RGB;
+		sInfo.bmiHeader.biSizeImage = ((nWidth * sBmp.bmBitsPixel + 31) / 32) * 4 * nHeight;
+
+		// resize and fill vector
+		acPixels.resize(sInfo.bmiHeader.biSizeImage);
+		GetDIBits(pDC, pBitmap, 0, nHeight, &acPixels[0], &sInfo, DIB_RGB_COLORS);
+		SelectObject(pDC, pOldBitmap);
+
+		// convert RGBA->RGB ?
+		if (sBmp.bmBitsPixel == 32)
+		{
+			int iCountIn = 4;
+			int iCountOut = 0;
+			for (; iCountIn < (int)(sInfo.bmiHeader.biSizeImage - 3); iCountIn += 4)
+			{
+				acPixels[iCountOut] = acPixels[iCountIn];
+				acPixels[iCountOut + 1] = acPixels[iCountIn + 1];
+				acPixels[iCountOut + 2] = acPixels[iCountIn + 2];
+				iCountOut += 3;
+			}
+		}
+
+		nHeight = std::abs(nHeight);
+		DeleteDC(pDC);
+		return acPixels;
+	}
+
+	/// <summary>
+	/// Simple helper function to load a bitmap into a OpenGL texture with common settings
+	/// </summary>
+	/// <param name="hBitmap">Input bitmap handle</param>
+	/// <param name="pnTexture">Returns the GL texture identifier</param>
+	/// <param name="pnWidth">Returns image width</param>
+	/// <param name="pnHeight">Returns image height</param>
+	/// <returns>True if succeed</returns>
+	inline bool CreateTextureFromBitmap(HBITMAP hBitmap, GLuint* pnTexture, int* pnWidth, int* pnHeight)
+	{
+		// Load from file
+		int nImageWidth = 0;
+		int nImageHeight = 0;
+
+		// get raw pixel data
+		std::vector<unsigned char> acImage_data = BitmapToPixel(hBitmap, nImageWidth, nImageHeight);
+		if ((!acImage_data.size()) || (!nImageWidth) || (!nImageHeight)) return false;
+
+		// Create a OpenGL texture identifier
+		GLuint nImageTexture;
+		glGenTextures(1, &nImageTexture);
+		glBindTexture(GL_TEXTURE_2D, nImageTexture);
+
+		// Setup filtering parameters for display
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+
+		// Upload pixels into texture
+#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+#endif
+
+		// check input format
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, acImage_data.data());
+
+		*pnTexture = nImageTexture;
+		*pnWidth = nImageWidth;
+		*pnHeight = nImageHeight;
+
+		glDisable(GL_TEXTURE_2D);
+
+		return true;
 	}
 }
 

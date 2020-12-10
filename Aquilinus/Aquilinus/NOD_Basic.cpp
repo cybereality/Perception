@@ -218,16 +218,6 @@ void NOD_Basic::SetNewIndex(DWORD unIndex)
 }
 
 /**
-* Window Message event function.
-* Called whenever the mouse pointer is within the nodes working range.
-***/
-AQU_NodeBehavior NOD_Basic::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
-{
-
-	return m_NodeBehavior;
-}
-
-/**
 * True if this Node supports the requested D3D method call.
 * @param Direct3D version to be used by the calling provoker. Equates AQU_Direct3DVersion.
 * @param Direct3D interface index. Equates ITA_D3D9Interfaces, ITA_D3D10Interfaces, .... depending on the D3D version defined in eD3D.
@@ -371,8 +361,8 @@ void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::s
 			// connect commander of this node
 			psCommander->m_paDecommanders.push_back(psDecommander);
 
-			// set connection node data if it has no provoker !
-			psDecommander->m_pInput = psCommander->m_pOutput;
+			// align data
+			pNode->AlignData((LONG)psDecommander->m_lDecommanderIndex, psCommander->m_pOutput);
 		}
 	}
 }
@@ -401,8 +391,8 @@ void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, DWORD 
 		// connect commander of this node
 		m_paCommanders[dwCommanderIndex]->m_paDecommanders.push_back(pNode->m_paDecommanders[dwDecommanderIndex]);
 
-		// set connection node data if it has no provoker !
-		pNode->m_paDecommanders[dwDecommanderIndex]->m_pInput = m_paCommanders[dwCommanderIndex]->m_pOutput;
+		// align data...
+		pNode->AlignData((LONG)dwDecommanderIndex, m_paCommanders[dwCommanderIndex]->m_pOutput);
 	}
 }
 
