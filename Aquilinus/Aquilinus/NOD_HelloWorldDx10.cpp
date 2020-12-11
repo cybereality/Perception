@@ -293,11 +293,7 @@ void* NOD_HelloWorldDx10::Provoke(void* pcThis, int eD3D, int eD3DInterface, int
 			// and render, pass first frame by creating tex
 			if (false)//!m_pcTexture)
 			{
-#ifdef _WIN64
-				HMODULE hModule = GetModuleHandle(L"Aquilinus_x64.dll");
-#else
-				HMODULE hModule = GetModuleHandle(L"Aquilinus_Win32.dll");
-#endif
+				HMODULE hModule = GetModuleHandle(L"Aquilinus.dll");
 				HBITMAP hbFont = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_FONT02));
 				if(hbFont)
 				{
@@ -559,11 +555,7 @@ void* NOD_HelloWorldDx10::Provoke(void* pcThis, int eD3D, int eD3DInterface, int
 			// and render, pass first frame by creating tex
 			if (!m_pcTexture11)
 			{
-#ifdef _WIN64
-				HMODULE hModule = GetModuleHandle(L"Aquilinus_x64.dll");
-#else
-				HMODULE hModule = GetModuleHandle(L"Aquilinus_Win32.dll");
-#endif
+				HMODULE hModule = GetModuleHandle(L"Aquilinus.dll");
 				HBITMAP hbFont = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_FONT02));
 				if(hbFont)
 				{

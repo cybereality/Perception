@@ -438,11 +438,7 @@ void NOD_HelloWorldDx9::CreateVertexBuffer(LPDIRECT3DDEVICE9 pcDevice)
 void NOD_HelloWorldDx9::CreateFontTexture(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// create font texture by resource font image
-#ifdef _WIN64
-	HMODULE hModule = GetModuleHandle(L"Aquilinus_x64.dll");
-#else
-	HMODULE hModule = GetModuleHandle(L"Aquilinus_Win32.dll");
-#endif
+	HMODULE hModule = GetModuleHandle(L"Aquilinus.dll");
 	HBITMAP hbFont = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_FONT02));
 	if(hbFont)
 	{

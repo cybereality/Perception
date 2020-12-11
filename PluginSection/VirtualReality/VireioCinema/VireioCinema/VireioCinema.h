@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include<vector>
 
+
 #include<Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -72,14 +73,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define INT_PLUG_TYPE                                  7 
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_D3DMATRIX_PLUG_TYPE                     2017
-#define PNT_VECTOR3F_PLUG_TYPE                      2061
-#define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
-
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                         1
+#define NUMBER_OF_DECOMMANDERS                         2
 
 /// <summary>
 /// Node Commander Enumeration.
@@ -87,10 +82,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 enum class VRC_Commanders
 {
 	Cinema
-	/*LeftTexture11,
-	RightTexture11,
-	MenuTexture,
-	VireioMenu*/
 };
 
 /// <summary>
@@ -98,29 +89,8 @@ enum class VRC_Commanders
 /// </summary>
 enum class VRC_Decommanders
 {
+	Splitter,
 	Tracker
-	/*LeftTexture11_In,
-	RightTexture11_In,
-	LeftTexture10_In,
-	RightTexture10_In,
-	LeftTexture9_In,
-	RightTexture9_In,
-	Pitch,
-	Yaw,
-	Roll,
-	OrientationW,
-	OrientationX,
-	OrientationY,
-	OrientationZ,
-	PositionX,
-	PositionY,
-	PositionZ,
-	View,
-	World,
-	ResolutionWidth,
-	ResolutionHeight,
-	ProjectionLeft,
-	ProjectionRight,*/
 };
 
 /// <summary>
@@ -171,154 +141,71 @@ private:
 	/// All data incoming from Tracker (Oculus, OpenVR,...)
 	/// </summary>
 	HMDTrackerData* m_psTrackerData;
+	/// <summary>
+	/// [IN] Stereo Splitter Data
+	/// All data incoming from Stereo Splitter
+	/// </summary>
+	SplitterData* m_psSplitterData;
 #pragma endregion
 #pragma region VireioCinema D3D9/D3D10 private fields
-	/**
-	* D3D11 device to be used in D3D9/D3D10 games.
-	***/
+	/// <summary>D3D11 device to be used in D3D9/D3D10 games</summary>
 	ID3D11Device* m_pcD3D11Device;
-	/**
-	* D3D11 device context to be used in D3D9/D3D10 games.
-	***/
+	/// <summary>D3D11 device context to be used in D3D9/D3D10 games.</summary>
 	ID3D11DeviceContext* m_pcD3D11Context;
-	/**
-	* Dummy window for the d3d11 device.
-	***/
+	/// <summary>Dummy window for the d3d11 device.</summary>
 	HWND m_hDummy;
-	/**
-	* The input textures left/right (D3D9).
-	***/
-	IDirect3DTexture9** m_ppcTex9Input[2];
-	/**
-	* The lockable copy textures left/right (D3D9).
-	***/
+	/// <summary>The lockable copy textures left/right (D3D9).	</summary>
 	IDirect3DTexture9* m_pcTex9Copy[2];
-	/**
-	* The shared D3D11 textures.
-	***/
+	/// <summary>The shared D3D11 textures.</summary>
 	ID3D11Texture2D* m_pcSharedTexture[2];
-	/**
-	* Input texture SR views left/right.
-	***/
+	/// <summary>Input texture SR views left/right.</summary>
 	ID3D11Texture2D* m_pcTexCopy11[2];
-	/**
-	* Input texture SR views left/right.
-	***/
+	/// <summary>Input texture SR views left/right.</summary>
 	ID3D11ShaderResourceView* m_pcTexCopy11SRV[2];
 #pragma endregion
 #pragma region VireioCinema D3D11 private fields
-	/**
-	* Drawing textures left/right.
-	***/
-	ID3D11Texture2D* m_pcTex11Draw[2];
-	/**
-	* Drawing texture RT views left/right.
-	***/
-	ID3D11RenderTargetView* m_pcTex11DrawRTV[2];
-	/**
-	* Drawing texture SR views left/right.
-	***/
-	ID3D11ShaderResourceView* m_pcTex11DrawSRV[2]; // TODO !! move to cinema data structure
-	/**
-	* Input texture SR views left/right.
-	***/
-	ID3D11ShaderResourceView** m_ppcTex11InputSRV[2];
-	/**
-	* Back buffer copy texture for mono cinema screen.
-	***/
+	/// <summary>Back buffer copy texture for mono cinema screen.</summary>
 	ID3D11Texture2D* m_pcBackBufferCopy;
-	/**
-	* Back buffer copy texture SRV for mono cinema screen.
-	***/
+	/// <summary>Back buffer copy texture SRV for mono cinema screen.</summary>
 	ID3D11ShaderResourceView* m_pcBackBufferCopySR;
-	/**
-	* Basic sampler state.
-	***/
+	/// <summary>Basic sampler state</summary>
 	ID3D11SamplerState* m_pcSamplerState;
-	/**
-	* The 3D vertex shader for the openVR models.
-	***/
+	/// <summary>The 3D vertex shader for the openVR models.</summary>
 	ID3D11VertexShader* m_pcVSGeometry11;
-	/**
-	* The 3D pixel shader for the screen.
-	***/
+	/// <summary>The 3D pixel shader for the screen.</summary>
 	ID3D11PixelShader* m_pcPSGeometry11;
-	/**
-	* The 3D pixel shader for the menu.
-	***/
+	/// <summary>The 3D pixel shader for the menu.</summary>
 	ID3D11PixelShader* m_pcPSMenuScreen11;
-	/**
-	* The 3D vertex layout for the openVR models.
-	***/
+	/// <summary>The 3D vertex layout for the openVR models.</summary>
 	ID3D11InputLayout* m_pcVLGeometry11;
-	/**
-	* The depth stencil DX11 left/right.
-	***/
+	/// <summary>The depth stencil DX11 left/right.</summary>
 	ID3D11Texture2D* m_pcDSGeometry11[2];
-	/**
-	* The depth stencil view DX11.
-	***/
+	/// <summary>The depth stencil view DX11.</summary>
 	ID3D11DepthStencilView* m_pcDSVGeometry11[2];
-	/**
-	* The d3d11 sampler.
-	***/
+	/// <summary>The d3d11 sampler.</summary>
 	ID3D11SamplerState* m_pcSampler11;
-	/**
-	* Blend state for alpha blending.
-	***/
+	/// <summary>Blend state for alpha blending.</summary>
 	ID3D11BlendState* m_pcBlendState;
-	/**
-	* Constant buffer data structure.
-	***/
+	/// <summary>Constant buffer data structure.</summary>
 	GeometryConstantBuffer m_sGeometryConstants;
-	/**
-	* The constant buffer for geometry shaders.
-	***/
+	/// <summary>The constant buffer for geometry shaders.</summary>
 	ID3D11Buffer* m_pcConstantBufferGeometry;
-	/**
-	* Current view matrix.
-	***/
+	/// <summary>Current view matrix.</summary>
 	D3DXMATRIX m_sView;
-	/**
-	* Current eye pose matrix left/right.
-	***/
+	/// <summary>Current eye pose matrix left/right.</summary>
 	D3DXMATRIX m_sToEye[2];
-	/**
-	* Current projection matrix left/right.
-	***/
+	/// <summary>Current projection matrix left/right.</summary>
 	D3DXMATRIX m_sProj[2];
-	/**
-	* Vector of all models to render.
-	***/
+	/// <summary>Vector of all models to render.</summary>
 	std::vector<RenderModel_D3D11> m_asRenderModels;
-	/**
-	* Indices of render models.
-	***/
+	/// <summary>Indices of render models.</summary>
 	UINT m_unScreenModelIndex, m_unFloorModelIndex, m_unCeilingModelIndex, m_unWallFModelIndex, m_unWallBModelIndex, m_unWallLModelIndex, m_unWallRModelIndex, m_unMenuModelIndex;
-	/**
-	* Default rasterizer state.
-	***/
+	/// <summary>Default rasterizer state.</summary>
 	ID3D11RasterizerState* m_pcRS;
-	/**
-	* Shader resource view placeholders left/right.
-	***/
-	ID3D11ShaderResourceView* m_apcTex11InputSRV[2];
-	/**
-	* Menu texture.
-	***/
-	ID3D11Texture2D* m_pcTexMenu;
-	/**
-	* Menu texture srv.
-	***/
-	ID3D11ShaderResourceView* m_pcTexMenuSRV;
-	/**
-	* Menu texture rtv.
-	***/
-	ID3D11RenderTargetView* m_pcTexMenuRTV;
+	/// <summary>Shader resource view placeholders left/right.</summary>
+	ID3D11ShaderResourceView* m_apcTex11InputSRV[2];	
 #pragma endregion
-	/**
-	* D3D version used in game
-	**/
+	/// <summary>D3D version used in game</summary>
 	enum D3DVersion
 	{
 		D3D_Undefined,
@@ -326,75 +213,13 @@ private:
 		D3D_10,
 		D3D_11,
 	} m_eD3DVersion;
-	/**
-	* Yaw angle pointer.
-	***/
-	float* m_pfYaw;
-	/**
-	* Pitch angle pointer.
-	***/
-	float* m_pfPitch;
-	/**
-	* Roll angle pointer.
-	***/
-	float* m_pfRoll;
-	/**
-	* Yaw angle.
-	***/
-	float m_fYaw;
-	/**
-	* Pitch angle.
-	***/
-	float m_fPitch;
-	/**
-	* Roll angle.
-	***/
-	float m_fRoll;
-	/**
-	* Position X pointer.
-	***/
-	float* m_pfPositionX;
-	/**
-	* Position Y pointer.
-	***/
-	float* m_pfPositionY;
-	/**
-	* Position X pointer.
-	***/
-	float* m_pfPositionZ;
-	/**
-	* Projection pointers left/right.
-	***/
-	D3DMATRIX* m_psProjection[2];
-	/**
-	* View pointers left/right.
-	***/
-	D3DMATRIX* m_psView;
-	/**
-	* Position in cinema.
-	***/
-	D3DVECTOR m_sPositionVector;
-	/**
-	* Texture resolution width.
-	* Each stereo output texture will have this width.
-	***/
-	UINT32* m_punTexResolutionWidth;
-	/**
-	* Texture resolution Height.
-	* Each stereo output texture will have this height.
-	***/
-	UINT32* m_punTexResolutionHeight;
-	/**
-	* Render FOV aspect ratio.
-	***/
+	/// <summary>Render FOV aspect ratio.</summary>
 	float m_fAspectRatio;
-	/**
-	* Max tick count to show mouse when not moved.
-	***/
+	/// <summary>Max tick count to show mouse when not moved.</summary>
 	UINT m_unMouseTickCount;
-	/**
-	* Cinema room setup structure.
-	***/
+	/// <summary>
+	/// Cinema room setup structure.
+	/// </summary>
 	struct CinemaRoomSetup
 	{
 		D3DXCOLOR sColorAmbient;
@@ -588,27 +413,21 @@ private:
 		bool bPerformanceMode;     /**< True if performance mode is on ***/
 		bool bImmersiveMode;       /**< True if full immersive mode is on ***/
 	} m_sCinemaRoomSetup;
-	/**
-	* User settings for immersive fullscreen rendering.
-	***/
+	/// <summary>User settings for immersive fullscreen rendering.</summary>
 	struct ImmersiveFullscreenSettings
 	{
 		float fIPD;                    /**< Interpupillary distance, to be read from Stereo Presenter node **/
 		float fVSD;                    /**< Virtual screen distance, to be read from Stereo Presenter node **/
 	} m_sImmersiveFullscreenSettings;
-	/**
-	* Cinema in-game menu.
-	***/
+	/// <summary>Cinema in-game menu.</summary>
 	VireioSubMenu m_sMenu;
-	/**
-	* Frames to save the ini file.
-	***/
+	/// <summary>Frames to save the ini file.</summary>
 	INT m_nIniFrameCount;
 };
 
-/**
-* Exported Constructor Method.
-***/
+/// <summary>
+/// Exported Constructor Method.
+/// </summary>
 extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
 {
 	VireioCinema* pVireioCinema = new VireioCinema();

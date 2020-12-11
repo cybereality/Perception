@@ -477,11 +477,8 @@ void SaveConfig()
 {
 	// write file new
 	std::ofstream configWrite;
-#ifdef _WIN64
-	configWrite.open("Aquilinus_x64.cfg");
-#else
-	configWrite.open("Aquilinus_Win32.cfg");
-#endif
+	configWrite.open("Aquilinus.cfg");
+	
 	configWrite << "dwColorSchemeIndex = " << g_dwColorSchemeIndex << "\n";
 	configWrite << "bCreateD3DEx = " << g_pAquilinusConfig->bCreateD3D9Ex << "\n";
 	configWrite.close();
@@ -541,17 +538,12 @@ HRESULT InicioInit()
 	wchar_t buf[MAX_PATH] = { 0 };
 
 	// Get the dll's full path name  
-#ifdef _WIN64
-	GetFullPathName(L"Aquilinus_x64.dll", MAX_PATH, buf, NULL);
+	GetFullPathName(L"Aquilinus.dll", MAX_PATH, buf, NULL);
+
 	// set Aquilinus path in the configuration
 	ZeroMemory((PVOID)g_pAquilinusConfig->szAquilinusPath, MAX_PATH * sizeof(wchar_t));
-	CopyMemory((PVOID)g_pAquilinusConfig->szAquilinusPath, buf, ((wcslen(buf) - 17) * sizeof(wchar_t)));
-#else
-	GetFullPathName(L"Aquilinus_Win32.dll", MAX_PATH, buf, NULL);
-	// set Aquilinus path in the configuration
-	ZeroMemory((PVOID)g_pAquilinusConfig->szAquilinusPath, MAX_PATH * sizeof(wchar_t));
-	CopyMemory((PVOID)g_pAquilinusConfig->szAquilinusPath, buf, ((wcslen(buf) - 19) * sizeof(wchar_t)));
-#endif
+	CopyMemory((PVOID)g_pAquilinusConfig->szAquilinusPath, buf, ((wcslen(buf) - 13) * sizeof(wchar_t)));
+	
 	OutputDebugString(L"Aquilinus path:");
 	OutputDebugString(g_pAquilinusConfig->szAquilinusPath);
 	OutputDebugString(buf);
@@ -982,11 +974,7 @@ DWORD WINAPI InjectionThread(LPVOID Param)
 	wchar_t buf[MAX_PATH] = { 0 };
 
 	// Get the dll's full path name
-#ifdef _WIN64
-	GetFullPathName(L"Aquilinus_x64.dll", MAX_PATH, buf, NULL);
-#else
-	GetFullPathName(L"Aquilinus_Win32.dll", MAX_PATH, buf, NULL);
-#endif
+	GetFullPathName(L"Aquilinus.dll", MAX_PATH, buf, NULL);
 	OutputDebugString(buf);
 
 	if (dwID != NULL)
@@ -1152,11 +1140,8 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	g_pFileManager = new AQU_FileManager(g_pAquilinusConfig);
 
 	// load or create options file
-#ifdef _WIN64
-	std::ifstream configRead("Aquilinus_x64.cfg");
-#else
-	std::ifstream configRead("Aquilinus_Win32.cfg");
-#endif
+	std::ifstream configRead("Aquilinus.cfg");
+	
 	bool bFileGood = false;
 	if (configRead.good())
 	{

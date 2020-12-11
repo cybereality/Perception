@@ -38,9 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..//..//Aquilinus/Aquilinus//AQU_NodesStructures.h"
 #include"..\..\..\Include\VireioMenu.h"
 
-/**
-* Plugin flags.
-**/
+/// <summary>
+/// Plugin flags
+/// </summary>
 enum AQU_PluginFlags
 {
 	DoubleCallFlag = 512,       /** Double call : call D3D method -> provoke -> call D3D method **/
@@ -57,8 +57,9 @@ namespace VLink
 	/// </summary>
 	enum class _L
 	{
+		TrackerData,
+		SplitterData,
 		CinemaData,
-		TrackerData
 	};
 
 	/// <summary>
@@ -80,10 +81,13 @@ namespace VLink
 	{
 		switch (nLink)
 		{
-		case _L::CinemaData:
-			return L"Cinema Data";
 		case _L::TrackerData:
-			return L"TrackerData";
+			return L"Tracker";
+		case _L::SplitterData:
+			return L"Splitter";
+		case _L::CinemaData:
+			return L"Cinema";
+
 		default:
 			break;
 		}
@@ -93,10 +97,12 @@ namespace VLink
 };
 
 #pragma region ini file helpers
-/**
-* Provides the keyboard code by initialization string.
-* Also returns WM_MOUSEMOVE code by string.
-***/
+/// <summary>
+/// Provides the keyboard code by initialization string.
+/// Also returns WM_MOUSEMOVE code by string.
+/// </summary>
+/// <param name="szCode">String name</param>
+/// <returns>VK code</returns>
 UINT GetVkCodeByString(std::string szCode)
 {
 	// 0...9 or A...Z ??
@@ -451,22 +457,105 @@ struct VireioPluginData
 };
 
 /// <summary>
-/// All data from the Vireio cinema.
+/// All data from the HMD tracker (Oculus, OpenVR, ... )
 /// </summary>
-struct VireioCinemaData : public VireioPluginData
+struct HMDTrackerData : public VireioPluginData
 {
+	/// <summary>
+	/// Euler angles
+	/// </summary>
+	struct _Vec3Eu
+	{
+		float fYaw, fPitch, fRoll;
+	} sEu;
+
+	/// <summary>
+	/// Position
+	/// </summary>
+	struct _Vec3Po
+	{
+		float fX, fY, fZ;
+	} sPo;
+
+	/// <summary>
+	/// Projection left/right
+	/// </summary>
+	D3DMATRIX sProj[2];
+
+	/// <summary>
+	/// View
+	/// </summary>
+	D3DMATRIX sView;
+
+	/// <summary>
+	/// Texture resolution.
+	/// </summary>
+	struct _Vec2Tx
+	{
+		UINT32 fW, fH;
+	} sTx;
+
 	/// <returns>Link identifier for this structure</returns>
 	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::CinemaData); }
 };
 
 /// <summary>
-/// All data from the HMD tracker (Oculus, OpenVR, ... )
+/// All data from the Stereo Splitter
 /// </summary>
-struct HMDTrackerData : public VireioPluginData
+struct SplitterData : public VireioPluginData
 {
+	/// <summary>
+	/// Texture data based on D3D version l/r
+	/// </summary>
+	union
+	{
+		IDirect3DTexture9* pcTex9Input[2];
+		ID3D11ShaderResourceView* pcTex11InputSRV[2];
+	};
+
 	/// <returns>Link identifier for this structure</returns>
 	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::CinemaData); }
 };
+
+/// <summary>
+/// All data from the Vireio cinema.
+/// </summary>
+struct VireioCinemaData : public VireioPluginData
+{
+	/// <summary>
+	/// Draw tex l/r
+	/// </summary>
+	ID3D11Texture2D* pcTex11Draw[2];
+
+	/// <summary>
+	/// Draw tex RTV l/r
+	/// </summary>
+	ID3D11RenderTargetView* pcTex11DrawRTV[2];
+
+	/// <summary>
+	///  Draw tex SRV l/r
+	/// </summary>
+	ID3D11ShaderResourceView* pcTex11DrawSRV[2];
+
+	/// <summary>
+	/// Menu texture
+	/// </summary>
+	ID3D11Texture2D* pcTexMenu;
+
+	/// <summary>
+	/// Menu texture SRV
+	/// </summary>
+	ID3D11ShaderResourceView* pcTexMenuSRV;
+
+	/// <summary>
+	/// Menu texture RTV
+	/// </summary>
+	ID3D11RenderTargetView* pcTexMenuRTV;
+
+	/// <returns>Link identifier for this structure</returns>
+	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::CinemaData); }
+};
+
 
 #pragma endregion
 
