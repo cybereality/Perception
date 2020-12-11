@@ -4,7 +4,6 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioStereoPresenter.h" />
-    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\Include\VireioMenu.h" />
   </ItemGroup>
   <ItemGroup>
@@ -12,7 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioStereoPresenter.cpp" />
-    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\VireioStereoPresenter_Resources.rc" />

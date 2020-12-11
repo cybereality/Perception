@@ -682,6 +682,15 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
 	if (!bValid) return nullptr;
 
+	// set this nodes sub menu pointer
+	// TODO !! CREATE ALL NODES SUB MENU INDICES VECTOR
+	if (m_sCinemaData.aasMenu)
+	{
+		if (!((*m_sCinemaData.aasMenu)[0]))
+			(*m_sCinemaData.aasMenu)[0] = &m_sMenu;
+	}
+
+
 	// save ini file ?
 	if (m_nIniFrameCount)
 	{

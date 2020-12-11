@@ -51,43 +51,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ENTRY_FONT 0
 
-#pragma region helper
-/**
-* Small helper to filter out inactive menu entries.
-* @returns: The actual index of the sub menu entry.
-***/
-UINT GetSelection(VireioSubMenu* psSubMenu, UINT unPrimalSelection)
-{
-	UINT unIxPrimal = unPrimalSelection;
-	UINT unIx = 0;
-	for (UINT unI = 0; unI < psSubMenu->asEntries.size(); unI++)
-	{
-		// menu error ?
-		if (unIx >= (UINT)psSubMenu->asEntries.size())
-		{
-			OutputDebugString(L"[STP] Fatal menu structure error ! Empty menu ??");
-			// m_sMenuControl.unSelection = 0;
-			unIx = 0;
-			break;
-		}
-
-		// set back index runner if inactive entry
-		if (!psSubMenu->asEntries[unIx].bIsActive) { unIxPrimal++; }
-
-		// caught selection ?
-		if (unIx == unIxPrimal) break;
-
-		// increment index
-		unIx++;
-	}
-	return unIx;
-}
-#pragma endregion
-
-/**
-* Constructor.
-***/
+/// <summary>
+/// Constructor
+/// </summary>
 StereoPresenter::StereoPresenter() :AQU_Nodus(),
+m_psCinemaData(nullptr),
 m_pcBackBufferView(nullptr),
 m_pcVertexShader10(nullptr),
 m_pcPixelShader10(nullptr),
@@ -102,11 +70,8 @@ m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
 m_bMenu(false),
 m_bMenuHotkeySwitch(false),
 m_pcFontSegeo128(nullptr),
-m_ppcTexViewMenu(nullptr),
 m_pbCinemaMode(nullptr)
 {
-	m_ppcTexView11[0] = nullptr;
-	m_ppcTexView11[1] = nullptr;
 	m_strFontName = std::string("PassionOne");
 	m_unFontSelection = 0;
 
@@ -121,10 +86,11 @@ m_pbCinemaMode(nullptr)
 	m_strFontName = GetIniFileSetting(m_strFontName, "Stereo Presenter", "strFontName", szFilePathINI, bFileExists);
 
 	// TODO !! LOOP THROUGH AVAILABLE MENUES, SET SECONDARY VALUE ! (IN FIRST PROVOKING CALL)
-	ZeroMemory(&m_apsSubMenues[0], sizeof(VireioSubMenu*));
+	m_asSubMenu = std::vector<VireioSubMenu*>();
+	m_asSubMenu.resize(32);
 	ZeroMemory(&m_sMenuControl, sizeof(MenuControl));
 	m_sMenuControl.nMenuIx = -1; // -1 = main menu
-	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
+	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent) * (int)VireioMenuEvent::NumberOfEvents);
 
 	// create the main menu
 	ZeroMemory(&m_sMainMenu, sizeof(VireioSubMenu));
@@ -169,7 +135,6 @@ m_pbCinemaMode(nullptr)
 		{ std::string strEnum = "SegoeUI128"; sEntry.astrValueEnumeration.push_back(strEnum); }
 		{ std::string strEnum = "UltimateGameplayer"; sEntry.astrValueEnumeration.push_back(strEnum); }
 		{ std::string strEnum = "Videophreak"; sEntry.astrValueEnumeration.push_back(strEnum); }
-		// TODO !! LOOP THROUGH SELECTIONS
 		sEntry.punValue = &m_unFontSelection;
 		sEntry.unValue = *sEntry.punValue;
 		m_sSubMenu.asEntries.push_back(sEntry);
@@ -177,9 +142,9 @@ m_pbCinemaMode(nullptr)
 #pragma endregion
 }
 
-/**
-* Destructor.
-***/
+/// <summary>
+/// Destructor
+/// </summary>
 StereoPresenter::~StereoPresenter()
 {
 	if (m_pcFontSegeo128) delete m_pcFontSegeo128;
@@ -195,17 +160,17 @@ StereoPresenter::~StereoPresenter()
 	SAFE_RELEASE(m_pcConstantBufferDirect10);
 }
 
-/**
-* Return the name of the  Stereo Presenter node.
-***/
+/// <summary>
+/// Return the name of the  Stereo Presenter node
+/// </summary>
 const char* StereoPresenter::GetNodeType()
 {
 	return "Stereo Presenter";
 }
 
-/**
-* Returns a global unique identifier for the Stereo Presenter node.
-***/
+/// <summary>
+///Returns a global unique identifier for the Stereo Presenter node.
+/// </summary>
 UINT StereoPresenter::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
@@ -213,17 +178,17 @@ UINT StereoPresenter::GetNodeTypeId()
 	return ((DEVELOPER_IDENTIFIER << 16) + MY_PLUGIN_IDENTIFIER);
 }
 
-/**
-* Returns the name of the category for the Stereo Presenter node.
-***/
+/// <summary>
+///Returns the name of the category for the Stereo Presenter node.
+/// </summary>
 LPWSTR StereoPresenter::GetCategory()
 {
 	return L"Vireio Core";
 }
 
-/**
-* Returns a logo to be used for the Stereo Presenter node.
-***/
+/// <summary>
+///Returns a logo to be used for the Stereo Presenter node.
+/// </summary>
 HBITMAP StereoPresenter::GetLogo()
 {
 	HMODULE hModule = GetModuleHandle(L"VireioStereoPresenter.dll");
@@ -231,229 +196,84 @@ HBITMAP StereoPresenter::GetLogo()
 	return hBitmap;
 }
 
-/**
-* Returns the updated control for the Stereo Presenter node.
-* Allways return >nullptr< if there is no update for the control !!
-***/
+/// <summary>
+/// Returns the updated control for the Stereo Presenter node.
+/// Allways return >nullptr< if there is no update for the control !!
+/// </summary>
 HBITMAP StereoPresenter::GetControl()
 {
 	return nullptr;
 }
 
-/**
-* Provides the name of the requested commander.
-***/
+/// <summary>
+/// Provides the name of the requested commander.
+/// </summary>
 LPWSTR StereoPresenter::GetCommanderName(DWORD dwCommanderIndex)
 {
 	return L"UNTITLED";
 }
 
-/**
-* Provides the name of the requested decommander.
-***/
+/// <summary>
+/// Provides the name of the requested decommander.
+/// </summary>
 LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
-		case STP_Decommanders::LeftTexture11:
-			return L"Left Texture DX11";
-		case STP_Decommanders::RightTexture11:
-			return L"Right Texture DX11";
-		case STP_Decommanders::MenuTexture:
-			return L"Menu Texture";
-		case VireioSubMenu00:
-			return L"Sub Menu 0";
-		case VireioSubMenu01:
-			return L"Sub Menu 1";
-		case VireioSubMenu02:
-			return L"Sub Menu 2";
-		case VireioSubMenu03:
-			return L"Sub Menu 3";
-		case VireioSubMenu04:
-			return L"Sub Menu 4";
-		case VireioSubMenu05:
-			return L"Sub Menu 5";
-		case VireioSubMenu06:
-			return L"Sub Menu 6";
-		case VireioSubMenu07:
-			return L"Sub Menu 7";
-		case VireioSubMenu08:
-			return L"Sub Menu 8";
-		case VireioSubMenu09:
-			return L"Sub Menu 9";
-		case VireioSubMenu10:
-			return L"Sub Menu 10";
-		case VireioSubMenu11:
-			return L"Sub Menu 11";
-		case VireioSubMenu12:
-			return L"Sub Menu 12";
-		case VireioSubMenu13:
-			return L"Sub Menu 13";
-		case VireioSubMenu14:
-			return L"Sub Menu 14";
-		case VireioSubMenu15:
-			return L"Sub Menu 15";
-		case VireioSubMenu16:
-			return L"Sub Menu 16";
-		case VireioSubMenu17:
-			return L"Sub Menu 17";
-		case VireioSubMenu18:
-			return L"Sub Menu 18";
-		case VireioSubMenu19:
-			return L"Sub Menu 19";
-		case VireioSubMenu20:
-			return L"Sub Menu 20";
-		case VireioSubMenu21:
-			return L"Sub Menu 21";
-		case VireioSubMenu22:
-			return L"Sub Menu 22";
-		case VireioSubMenu23:
-			return L"Sub Menu 23";
-		case VireioSubMenu24:
-			return L"Sub Menu 24";
-		case VireioSubMenu25:
-			return L"Sub Menu 25";
-		case VireioSubMenu26:
-			return L"Sub Menu 26";
-		case VireioSubMenu27:
-			return L"Sub Menu 27";
-		case VireioSubMenu28:
-			return L"Sub Menu 28";
-		case VireioSubMenu29:
-			return L"Sub Menu 29";
-		case VireioSubMenu30:
-			return L"Sub Menu 30";
-		case VireioSubMenu31:
-			return L"Sub Menu 31";
+	case STP_Decommanders::Cinema:
+		return VLink::Name(VLink::_L::CinemaData);
 	}
 
 	return L"";
 }
 
-/**
-* Provides the type of the requested commander.
-***/
+/// <summary>
+/// Provides the type of the requested commander.
+/// </summary>
 DWORD StereoPresenter::GetCommanderType(DWORD dwCommanderIndex)
 {
 	return 0;
 }
 
-/**
-* Returns the plug type for the requested decommander.
-***/
+/// <summary>
+/// Returns the plug type for the requested decommander.
+/// </summary>
 DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
-		case STP_Decommanders::LeftTexture11:
-		case STP_Decommanders::RightTexture11:
-			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case STP_Decommanders::MenuTexture:
-			return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
-		case VireioSubMenu00:
-		case VireioSubMenu01:
-		case VireioSubMenu02:
-		case VireioSubMenu03:
-		case VireioSubMenu04:
-		case VireioSubMenu05:
-		case VireioSubMenu06:
-		case VireioSubMenu07:
-		case VireioSubMenu08:
-		case VireioSubMenu09:
-		case VireioSubMenu10:
-		case VireioSubMenu11:
-		case VireioSubMenu12:
-		case VireioSubMenu13:
-		case VireioSubMenu14:
-		case VireioSubMenu15:
-		case VireioSubMenu16:
-		case VireioSubMenu17:
-		case VireioSubMenu18:
-		case VireioSubMenu19:
-		case VireioSubMenu20:
-		case VireioSubMenu21:
-		case VireioSubMenu22:
-		case VireioSubMenu23:
-		case VireioSubMenu24:
-		case VireioSubMenu25:
-		case VireioSubMenu26:
-		case VireioSubMenu27:
-		case VireioSubMenu28:
-		case VireioSubMenu29:
-		case VireioSubMenu30:
-		case VireioSubMenu31:
-			return NOD_Plugtype::AQU_VOID;
-			break;
+	case STP_Decommanders::Cinema:
+		return VLink::Link(VLink::_L::CinemaData);
 	}
 
 	return 0;
 }
 
-/**
-* Provides the output pointer for the requested commander.
-***/
+/// <summary>
+///Provides the output pointer for the requested commander.
+/// </summary>
 void* StereoPresenter::GetOutputPointer(DWORD dwCommanderIndex)
 {
 	return nullptr;
 }
 
-/**
-* Sets the input pointer for the requested decommander.
-***/
+/// <summary>
+///Sets the input pointer for the requested decommander.
+/// </summary>
 void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
-		case STP_Decommanders::LeftTexture11:
-			m_ppcTexView11[0] = (ID3D11ShaderResourceView**)pData;
-			break;
-		case STP_Decommanders::RightTexture11:
-			m_ppcTexView11[1] = (ID3D11ShaderResourceView**)pData;
-			break;
-		case STP_Decommanders::MenuTexture:
-			m_ppcTexViewMenu = (ID3D11RenderTargetView**)pData;
-			break;
-		case VireioSubMenu00:
-		case VireioSubMenu01:
-		case VireioSubMenu02:
-		case VireioSubMenu03:
-		case VireioSubMenu04:
-		case VireioSubMenu05:
-		case VireioSubMenu06:
-		case VireioSubMenu07:
-		case VireioSubMenu08:
-		case VireioSubMenu09:
-		case VireioSubMenu10:
-		case VireioSubMenu11:
-		case VireioSubMenu12:
-		case VireioSubMenu13:
-		case VireioSubMenu14:
-		case VireioSubMenu15:
-		case VireioSubMenu16:
-		case VireioSubMenu17:
-		case VireioSubMenu18:
-		case VireioSubMenu19:
-		case VireioSubMenu20:
-		case VireioSubMenu21:
-		case VireioSubMenu22:
-		case VireioSubMenu23:
-		case VireioSubMenu24:
-		case VireioSubMenu25:
-		case VireioSubMenu26:
-		case VireioSubMenu27:
-		case VireioSubMenu28:
-		case VireioSubMenu29:
-		case VireioSubMenu30:
-		case VireioSubMenu31:
-			m_apsSubMenues[dwDecommanderIndex - 3] = (VireioSubMenu*)pData;
-			break;
+	case STP_Decommanders::Cinema:
+		m_psCinemaData = (VireioCinemaData*)pData;
+		break;
 	}
 }
 
-/**
-* Stereo Presenter supports any call since it is on the end of the line.
-* (verifies for supported methods in provoke call)
-***/
+/// <summary>
+///Stereo Presenter supports any call since it is on the end of the line.
+///(verifies for supported methods in provoke call)
+/// </summary>
 bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
 	//if ((nD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
@@ -462,14 +282,20 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 	//return false;
 }
 
-/**
-* Handle Stereo Drawing.
-***/
+/// <summary>
+/// Handle Stereo Drawing.
+/// </summary>
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
 #ifdef _DEBUG_STP
 	{ wchar_t buf[128]; wsprintf(buf, L"[STP] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
+
+	// only present accepted
+	bool bValid = false;
+	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||
+		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
+	if (!bValid) return nullptr;
 
 	// update our global time
 	static float fGlobalTime = 0.0f;
@@ -479,14 +305,15 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		dwTimeStart = dwTimeCur;
 	fGlobalTime = (dwTimeCur - dwTimeStart) / 1000.0f;
 
-	// only present accepted
-	bool bValid = false;
-	if (((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)) ||
-		((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && (eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT))) bValid = true;
-	if (!bValid) return nullptr;
+	// menu vector initialized within cinema connection ?
+	if (m_psCinemaData)
+	{
+		if (!m_psCinemaData->aasMenu)
+			m_psCinemaData->aasMenu = &m_asSubMenu;
+	}
 
 	// clear all previous menu events
-	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent)* (int)VireioMenuEvent::NumberOfEvents);
+	ZeroMemory(&m_abMenuEvents[0], sizeof(VireioMenuEvent) * (int)VireioMenuEvent::NumberOfEvents);
 
 	// main menu update ?
 	if ((m_sMainMenu.bOnChanged) && (!m_sMenuControl.eSelectionMovement))
@@ -536,10 +363,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
 					else
 					{
-						if (m_ppcTexView11[0])
+						if (m_psCinemaData)
 						{
-							if (*(m_ppcTexView11[0]))
-								(*(m_ppcTexView11[0]))->GetDevice(&pcDevice);
+							if (m_psCinemaData->pcTex11DrawSRV[0])
+								m_psCinemaData->pcTex11DrawSRV[0]->GetDevice(&pcDevice);
 							if (pcDevice)
 								pcDevice->GetImmediateContext(&pcContext);
 							else nHr = E_FAIL;
@@ -551,11 +378,13 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					if (SUCCEEDED(nHr))
 					{
 						HRESULT nHr;
-						// get base directory
-						std::string strVireioPath = GetBaseDir();
+						// get base directory and convert to wchar_t string
+						std::wstring strVireioPathW = GetBaseDir();
+						std::string strVireioPath;
+						for (wchar_t c : strVireioPathW) strVireioPath += (char)c;
 
 						// add file path
-						strVireioPath += "font//";
+						strVireioPath += "..//..//font//";
 						strVireioPath += m_sSubMenu.asEntries[nIx].astrValueEnumeration[m_sSubMenu.asEntries[nIx].unValue];
 						strVireioPath += ".spritefont";
 						OutputDebugStringA(strVireioPath.c_str());
@@ -608,9 +437,9 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		for (UINT unIx = 0; unIx < 32; unIx++)
 		{
 			// set menu bool event
-			if (m_apsSubMenues[unIx])
+			if (m_asSubMenu[unIx])
 			{
-				if (m_apsSubMenues[unIx]->bOnBack)
+				if (m_asSubMenu[unIx]->bOnBack)
 				{
 					// main menu ? exit
 					if ((m_sMenuControl.nMenuIx == -1) && (!m_sMenuControl.eSelectionMovement))
@@ -618,23 +447,23 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					else
 						m_abMenuEvents[VireioMenuEvent::OnExit] = TRUE;
 
-					m_apsSubMenues[unIx]->bOnBack = false;
+					m_asSubMenu[unIx]->bOnBack = false;
 				}
 
 				// hand poses ?
-				if (m_apsSubMenues[unIx]->bHandPosesPresent)
+				if (m_asSubMenu[unIx]->bHandPosesPresent)
 					uIxHandPoses = unIx;
-				if (m_apsSubMenues[unIx]->bHandPosesRequest)
+				if (m_asSubMenu[unIx]->bHandPosesRequest)
 					uIxPoseRequest = unIx;
 			}
 		}
-		if ((m_apsSubMenues[uIxHandPoses]) && (m_apsSubMenues[uIxPoseRequest]))
+		if ((m_asSubMenu[uIxHandPoses]) && (m_asSubMenu[uIxPoseRequest]))
 		{
 			// copy the hand pose data to the request node
-			m_apsSubMenues[uIxPoseRequest]->sPoseMatrix[0] = m_apsSubMenues[uIxHandPoses]->sPoseMatrix[0];
-			m_apsSubMenues[uIxPoseRequest]->sPoseMatrix[1] = m_apsSubMenues[uIxHandPoses]->sPoseMatrix[1];
-			m_apsSubMenues[uIxPoseRequest]->sPosition[0] = m_apsSubMenues[uIxHandPoses]->sPosition[0];
-			m_apsSubMenues[uIxPoseRequest]->sPosition[1] = m_apsSubMenues[uIxHandPoses]->sPosition[1];
+			m_asSubMenu[uIxPoseRequest]->sPoseMatrix[0] = m_asSubMenu[uIxHandPoses]->sPoseMatrix[0];
+			m_asSubMenu[uIxPoseRequest]->sPoseMatrix[1] = m_asSubMenu[uIxHandPoses]->sPoseMatrix[1];
+			m_asSubMenu[uIxPoseRequest]->sPosition[0] = m_asSubMenu[uIxHandPoses]->sPosition[0];
+			m_asSubMenu[uIxPoseRequest]->sPosition[1] = m_asSubMenu[uIxHandPoses]->sPosition[1];
 		}
 
 		// static hotkeys :  LCTRL+Q - toggle vireio menu
@@ -645,30 +474,30 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			m_bHotkeySwitch = true;
 		}
 		else
-		if (s_bOnMenu)
-		{
-			m_bMenuHotkeySwitch = true;
-		}
-		else
-		if (m_bMenuHotkeySwitch)
-		{
-			m_bMenuHotkeySwitch = false;
-			m_bMenu = !m_bMenu;
-			for (UINT unIx = 0; unIx < 32; unIx++)
+			if (s_bOnMenu)
 			{
-				// set sub menu active if menu is active
-				if (m_apsSubMenues[unIx])
-					m_apsSubMenues[unIx]->bIsActive = m_bMenu;
+				m_bMenuHotkeySwitch = true;
 			}
-		}
-		else
-		if (m_bHotkeySwitch)
-		{
-			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
-			m_bHotkeySwitch = false;
-		}
-		else
-			bReleased = true;
+			else
+				if (m_bMenuHotkeySwitch)
+				{
+					m_bMenuHotkeySwitch = false;
+					m_bMenu = !m_bMenu;
+					for (UINT unIx = 0; unIx < 32; unIx++)
+					{
+						// set sub menu active if menu is active
+						if (m_asSubMenu[unIx])
+							m_asSubMenu[unIx]->bIsActive = m_bMenu;
+					}
+				}
+				else
+					if (m_bHotkeySwitch)
+					{
+						if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
+						m_bHotkeySwitch = false;
+					}
+					else
+						bReleased = true;
 
 		// handle full immersive switch, first on gamepad
 		static bool bFullImmersiveSwitch = false, bFullImmersiveSwitchKb = false;
@@ -679,16 +508,16 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				bFullImmersiveSwitch = true;
 			}
 			else
-			if (bFullImmersiveSwitch)
-			{
-				bFullImmersiveSwitch = false;
-				// loop through sub menues
-				for (UINT unIx = 0; unIx < 32; unIx++)
+				if (bFullImmersiveSwitch)
 				{
-					// set bool events
-					if (m_apsSubMenues[unIx]) m_apsSubMenues[unIx]->bOnFullImmersive = true;
+					bFullImmersiveSwitch = false;
+					// loop through sub menues
+					for (UINT unIx = 0; unIx < 32; unIx++)
+					{
+						// set bool events
+						if (m_asSubMenu[unIx]) m_asSubMenu[unIx]->bOnFullImmersive = true;
+					}
 				}
-			}
 		}
 
 		// ...then on keyboard (F11)
@@ -697,16 +526,16 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			bFullImmersiveSwitchKb = true;
 		}
 		else
-		if (bFullImmersiveSwitchKb)
-		{
-			bFullImmersiveSwitchKb = false;
-			// loop through sub menues
-			for (UINT unIx = 0; unIx < 32; unIx++)
+			if (bFullImmersiveSwitchKb)
 			{
-				// set bool events
-				if (m_apsSubMenues[unIx]) m_apsSubMenues[unIx]->bOnFullImmersive = true;
+				bFullImmersiveSwitchKb = false;
+				// loop through sub menues
+				for (UINT unIx = 0; unIx < 32; unIx++)
+				{
+					// set bool events
+					if (m_asSubMenu[unIx]) m_asSubMenu[unIx]->bOnFullImmersive = true;
+				}
 			}
-		}
 
 #pragma endregion
 #pragma region menu events
@@ -739,21 +568,21 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			for (UINT unIx = 0; unIx < 32; unIx++)
 			{
 				// set bool events
-				if (m_apsSubMenues[unIx])
+				if (m_asSubMenu[unIx])
 				{
-					if (m_apsSubMenues[unIx]->bOnUp) m_abMenuEvents[VireioMenuEvent::OnUp] = TRUE;
-					if (m_apsSubMenues[unIx]->bOnDown) m_abMenuEvents[VireioMenuEvent::OnDown] = TRUE;
-					if (m_apsSubMenues[unIx]->bOnLeft) m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
-					if (m_apsSubMenues[unIx]->bOnRight) m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
-					if (m_apsSubMenues[unIx]->bOnAccept) m_abMenuEvents[VireioMenuEvent::OnAccept] = TRUE;
+					if (m_asSubMenu[unIx]->bOnUp) m_abMenuEvents[VireioMenuEvent::OnUp] = TRUE;
+					if (m_asSubMenu[unIx]->bOnDown) m_abMenuEvents[VireioMenuEvent::OnDown] = TRUE;
+					if (m_asSubMenu[unIx]->bOnLeft) m_abMenuEvents[VireioMenuEvent::OnLeft] = TRUE;
+					if (m_asSubMenu[unIx]->bOnRight) m_abMenuEvents[VireioMenuEvent::OnRight] = TRUE;
+					if (m_asSubMenu[unIx]->bOnAccept) m_abMenuEvents[VireioMenuEvent::OnAccept] = TRUE;
 
 					// clear events
-					m_apsSubMenues[unIx]->bOnUp = false;
-					m_apsSubMenues[unIx]->bOnDown = false;
-					m_apsSubMenues[unIx]->bOnLeft = false;
-					m_apsSubMenues[unIx]->bOnRight = false;
-					m_apsSubMenues[unIx]->bOnAccept = false;
-					m_apsSubMenues[unIx]->bOnBack = false;
+					m_asSubMenu[unIx]->bOnUp = false;
+					m_asSubMenu[unIx]->bOnDown = false;
+					m_asSubMenu[unIx]->bOnLeft = false;
+					m_asSubMenu[unIx]->bOnRight = false;
+					m_asSubMenu[unIx]->bOnAccept = false;
+					m_asSubMenu[unIx]->bOnBack = false;
 				}
 			}
 #pragma endregion
@@ -770,10 +599,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
 			else
 			{
-				if (m_ppcTexView11[0])
+				if (m_psCinemaData)
 				{
-					if (*(m_ppcTexView11[0]))
-						(*(m_ppcTexView11[0]))->GetDevice(&pcDevice);
+					if (m_psCinemaData->pcTex11DrawSRV[0])
+						m_psCinemaData->pcTex11DrawSRV[0]->GetDevice(&pcDevice);
 					if (pcDevice)
 						pcDevice->GetImmediateContext(&pcContext);
 					else nHr = E_FAIL;
@@ -842,13 +671,12 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			ClearContextState(pcContext);
 
 			// set the menu texture (if present)
-			if (m_ppcTexViewMenu)
+			if (m_psCinemaData)
 			{
-				if (*m_ppcTexViewMenu)
+				if (m_psCinemaData->pcTexMenuRTV)
 				{
 					// set render target
-					ID3D11RenderTargetView* pcRTView = *m_ppcTexViewMenu;
-					pcContext->OMSetRenderTargets(1, &pcRTView, NULL);
+					pcContext->OMSetRenderTargets(1, &m_psCinemaData->pcTexMenuRTV, NULL);
 
 					// set viewport
 					D3D11_VIEWPORT sViewport = {};
@@ -862,50 +690,52 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 					// clear render target...zero alpha
 					FLOAT afColorRgba[4] = { 0.5f, 0.4f, 0.2f, 0.4f };
-					pcContext->ClearRenderTargetView(*m_ppcTexViewMenu, afColorRgba);
+					pcContext->ClearRenderTargetView(m_psCinemaData->pcTexMenuRTV, afColorRgba);
 				}
 			}
 			else
-			if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
-			{
-				// set first active render target - the stored back buffer - get the stored private data view
-				ID3D11Texture2D* pcBackBuffer = nullptr;
-				((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
-				ID3D11RenderTargetView* pcView = nullptr;
-				UINT dwSize = sizeof(pcView);
-				pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
-				if (dwSize)
+				if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 				{
-					pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, m_pcDSVGeometry11);
-					pcView->Release();
-				}
-				else
-				{
-					// create render target view for the back buffer
-					ID3D11RenderTargetView* pcRTV = nullptr;
-					pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
-					if (pcRTV)
+					// set first active render target - the stored back buffer - get the stored private data view
+					ID3D11Texture2D* pcBackBuffer = nullptr;
+					((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+					ID3D11RenderTargetView* pcView = nullptr;
+					UINT dwSize = sizeof(pcView);
+					pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
+					if (dwSize)
 					{
-						pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
-						pcRTV->Release();
+						pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, m_pcDSVGeometry11);
+						pcView->Release();
 					}
-				}
-				pcContext->RSSetViewports(dwNumViewports, psViewport);
-				pcBackBuffer->Release();
+					else
+					{
+						// create render target view for the back buffer
+						ID3D11RenderTargetView* pcRTV = nullptr;
+						pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
+						if (pcRTV)
+						{
+							pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
+							pcRTV->Release();
+						}
+					}
+					pcContext->RSSetViewports(dwNumViewports, psViewport);
+					pcBackBuffer->Release();
 
-				// clear the depth stencil
-				pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
-			}
+					// clear the depth stencil
+					pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
+				}
 
 			// create the font class if not present 
 			nHr = S_OK;
 			if (!m_pcFontSegeo128)
 			{
-				// get base directory
-				std::string strVireioPath = GetBaseDir();
+				// get base directory and convert to wchar_t string
+				std::wstring strVireioPathW = GetBaseDir();
+				std::string strVireioPath;
+				for (wchar_t c : strVireioPathW) strVireioPath += (char)c;
 
 				// add file path
-				strVireioPath += "font//";
+				strVireioPath += "..//..//font//";
 				strVireioPath += m_strFontName;
 				strVireioPath += ".spritefont";
 				OutputDebugStringA(strVireioPath.c_str());
@@ -925,7 +755,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if (m_sMenuControl.eSelectionMovement == MenuControl::SelectionMovement::Accepted)
 				{
 					float fActionTimeElapsed = (fGlobalTime - m_sMenuControl.fActionStartTime) / m_sMenuControl.fActionTime;
-					fDepthTremble = sin(fActionTimeElapsed*PI_F) * -3.0f;
+					fDepthTremble = sin(fActionTimeElapsed * PI_F) * -3.0f;
 				}
 
 				m_pcFontSegeo128->ToRender(pcContext, fGlobalTime, m_sMenuControl.fYOrigin, 30.0f, fDepthTremble);
@@ -946,7 +776,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		if ((m_eStereoMode) && (eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 		{
 			// DX 11
-			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+			if (m_psCinemaData)
 			{
 				// get device and context
 				ID3D11Device* pcDevice = nullptr;
@@ -1058,7 +888,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 						// set texture
-						pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[nEye]);
+						pcContext->PSSetShaderResources(0, 1, &m_psCinemaData->pcTex11DrawSRV[nEye]);
 
 						// set shaders
 						pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
@@ -1082,9 +912,9 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	return nullptr;
 }
 
-/**
-* Menu render method.
-***/
+/// <summary>
+/// Menu render method.
+/// </summary>
 void StereoPresenter::RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext)
 {
 	// main menu ?
@@ -1094,24 +924,24 @@ void StereoPresenter::RenderMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pc
 	}
 	else
 		// connected sub menu ?
-	if ((m_sMenuControl.nMenuIx >= 0) && (m_sMenuControl.nMenuIx < 32))
-	{
-		if (!m_apsSubMenues[m_sMenuControl.nMenuIx])
-			OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
+		if ((m_sMenuControl.nMenuIx >= 0) && (m_sMenuControl.nMenuIx < 32))
+		{
+			if (!m_asSubMenu[m_sMenuControl.nMenuIx])
+				OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
+			else
+				RenderSubMenu(pcDevice, pcContext, m_asSubMenu[m_sMenuControl.nMenuIx]);
+		}
 		else
-			RenderSubMenu(pcDevice, pcContext, m_apsSubMenues[m_sMenuControl.nMenuIx]);
-	}
-	else
-		// stereo presenter sub menu ?
-	if (m_sMenuControl.nMenuIx == 32)
-		RenderSubMenu(pcDevice, pcContext, &m_sSubMenu);
-	else
-		OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
+			// stereo presenter sub menu ?
+			if (m_sMenuControl.nMenuIx == 32)
+				RenderSubMenu(pcDevice, pcContext, &m_sSubMenu);
+			else
+				OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
 }
 
-/**
-* Renders a sub menu.
-***/
+/// <summary>
+/// Renders a sub menu.
+/// </summary>
 void StereoPresenter::RenderSubMenu(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, VireioSubMenu* psSubMenu)
 {
 	// render title
@@ -1131,36 +961,36 @@ void StereoPresenter::RenderSubMenu(ID3D11Device* pcDevice, ID3D11DeviceContext*
 		// switch by entry type
 		switch (psSubMenu->asEntries[nEntryIx].eType)
 		{
-			case VireioMenuEntry::Entry_Bool:
-				if (psSubMenu->asEntries[nEntryIx].bValue)
-					strOutput << " - True ";
-				else
-					strOutput << " - False ";
-				break;
-			case VireioMenuEntry::Entry_Int:
-				strOutput << " : " << psSubMenu->asEntries[nEntryIx].nValue;
-				break;
-			case VireioMenuEntry::Entry_UInt:
-				if (psSubMenu->asEntries[nEntryIx].bValueEnumeration)
-				{
-					// render the enumeration string
-					UINT unIx = psSubMenu->asEntries[nEntryIx].unValue;
-					if (unIx < (UINT)psSubMenu->asEntries[nEntryIx].astrValueEnumeration.size())
-						strOutput << " : " << psSubMenu->asEntries[nEntryIx].astrValueEnumeration[unIx];
-				}
-				else
-				{
-					strOutput << " : " << psSubMenu->asEntries[nEntryIx].unValue;
-				}
-				break;
-			case VireioMenuEntry::Entry_Float:
-				strOutput << " : " << psSubMenu->asEntries[nEntryIx].fValue;
-				break;
-			case VireioMenuEntry::Entry:
-				break;
-			default:
-				strOutput << "ERROR";
-				break;
+		case VireioMenuEntry::Entry_Bool:
+			if (psSubMenu->asEntries[nEntryIx].bValue)
+				strOutput << " - True ";
+			else
+				strOutput << " - False ";
+			break;
+		case VireioMenuEntry::Entry_Int:
+			strOutput << " : " << psSubMenu->asEntries[nEntryIx].nValue;
+			break;
+		case VireioMenuEntry::Entry_UInt:
+			if (psSubMenu->asEntries[nEntryIx].bValueEnumeration)
+			{
+				// render the enumeration string
+				UINT unIx = psSubMenu->asEntries[nEntryIx].unValue;
+				if (unIx < (UINT)psSubMenu->asEntries[nEntryIx].astrValueEnumeration.size())
+					strOutput << " : " << psSubMenu->asEntries[nEntryIx].astrValueEnumeration[unIx];
+			}
+			else
+			{
+				strOutput << " : " << psSubMenu->asEntries[nEntryIx].unValue;
+			}
+			break;
+		case VireioMenuEntry::Entry_Float:
+			strOutput << " : " << psSubMenu->asEntries[nEntryIx].fValue;
+			break;
+		case VireioMenuEntry::Entry:
+			break;
+		default:
+			strOutput << "ERROR";
+			break;
 		}
 
 		// render the text line
@@ -1168,9 +998,9 @@ void StereoPresenter::RenderSubMenu(ID3D11Device* pcDevice, ID3D11DeviceContext*
 	}
 }
 
-/**
-* Update sub menu based on menu index.
-***/
+/// <summary>
+/// Update sub menu based on menu index.
+/// </summary>
 void StereoPresenter::UpdateMenu(float fGlobalTime)
 {
 	// main menu ?
@@ -1180,24 +1010,24 @@ void StereoPresenter::UpdateMenu(float fGlobalTime)
 	}
 	else
 		// connected sub menu ?
-	if ((m_sMenuControl.nMenuIx >= 0) && (m_sMenuControl.nMenuIx < 32))
-	{
-		if (!m_apsSubMenues[m_sMenuControl.nMenuIx])
-			OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
+		if ((m_sMenuControl.nMenuIx >= 0) && (m_sMenuControl.nMenuIx < 32))
+		{
+			if (!m_asSubMenu[m_sMenuControl.nMenuIx])
+				OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
+			else
+				UpdateSubMenu(m_asSubMenu[m_sMenuControl.nMenuIx], fGlobalTime);
+		}
 		else
-			UpdateSubMenu(m_apsSubMenues[m_sMenuControl.nMenuIx], fGlobalTime);
-	}
-	else
-		// stereo presenter sub menu ?
-	if (m_sMenuControl.nMenuIx == 32)
-		UpdateSubMenu(&m_sSubMenu, fGlobalTime);
-	else
-		OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
+			// stereo presenter sub menu ?
+			if (m_sMenuControl.nMenuIx == 32)
+				UpdateSubMenu(&m_sSubMenu, fGlobalTime);
+			else
+				OutputDebugString(L"[STP] Fatal menu error -> wrong menu index !!");
 }
 
-/**
-* Updates a sub menu.
-***/
+/// <summary>
+/// Updates a sub menu.
+/// </summary>
 void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 {
 	// update the main menu entries by connected sub menues
@@ -1205,10 +1035,10 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 	{
 		for (UINT unIx = 0; unIx < 32; unIx++)
 		{
-			if ((m_apsSubMenues[unIx]) && (!m_sMainMenu.asEntries[unIx].bIsActive))
+			if ((m_asSubMenu[unIx]) && (!m_sMainMenu.asEntries[unIx].bIsActive))
 			{
 				m_sMainMenu.asEntries[unIx].bIsActive = true;
-				m_sMainMenu.asEntries[unIx].strEntry = m_apsSubMenues[unIx]->strSubMenu;
+				m_sMainMenu.asEntries[unIx].strEntry = m_asSubMenu[unIx]->strSubMenu;
 			}
 		}
 	}
@@ -1238,7 +1068,7 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 
 		// compute the movement origin
 		float fOldOrigin = -2.8f + (float)m_sMenuControl.unSelectionFormer * -1.4f;
-		float fYOriginMovement = (fOldOrigin - m_sMenuControl.fYOrigin) * (1.0f - sin(fActionTimeElapsed*PI_F*0.5f));
+		float fYOriginMovement = (fOldOrigin - m_sMenuControl.fYOrigin) * (1.0f - sin(fActionTimeElapsed * PI_F * 0.5f));
 		m_sMenuControl.fYOrigin += fYOriginMovement;
 	}
 	else
@@ -1284,57 +1114,57 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			// type ?
 			switch (psSubMenu->asEntries[unIx].eType)
 			{
-				case VireioMenuEntry::EntryType::Entry_Float:
+			case VireioMenuEntry::EntryType::Entry_Float:
+				// change value, set event
+				*psSubMenu->asEntries[unIx].pfValue += psSubMenu->asEntries[unIx].fChangeSize;
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+				psSubMenu->bOnChanged = true;
+
+				// clamp value
+				if (*psSubMenu->asEntries[unIx].pfValue > psSubMenu->asEntries[unIx].fMaximum)
+					*psSubMenu->asEntries[unIx].pfValue = psSubMenu->asEntries[unIx].fMaximum;
+
+				// set the menu entry value
+				psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
+				break;
+			case VireioMenuEntry::EntryType::Entry_UInt:
+				if (!psSubMenu->asEntries[unIx].bValueEnumeration)
+				{
 					// change value, set event
-					*psSubMenu->asEntries[unIx].pfValue += psSubMenu->asEntries[unIx].fChangeSize;
+					*psSubMenu->asEntries[unIx].punValue += psSubMenu->asEntries[unIx].unChangeSize;
 					psSubMenu->asEntries[unIx].bOnChanged = true;
 					psSubMenu->bOnChanged = true;
 
 					// clamp value
-					if (*psSubMenu->asEntries[unIx].pfValue > psSubMenu->asEntries[unIx].fMaximum)
-						*psSubMenu->asEntries[unIx].pfValue = psSubMenu->asEntries[unIx].fMaximum;
+					if (*psSubMenu->asEntries[unIx].punValue > psSubMenu->asEntries[unIx].unMaximum)
+						*psSubMenu->asEntries[unIx].punValue = psSubMenu->asEntries[unIx].unMaximum;
 
 					// set the menu entry value
-					psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
-					break;
-				case VireioMenuEntry::EntryType::Entry_UInt:
-					if (!psSubMenu->asEntries[unIx].bValueEnumeration)
-					{
-						// change value, set event
-						*psSubMenu->asEntries[unIx].punValue += psSubMenu->asEntries[unIx].unChangeSize;
-						psSubMenu->asEntries[unIx].bOnChanged = true;
-						psSubMenu->bOnChanged = true;
+					psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
+				}
+				break;
+			case VireioMenuEntry::EntryType::Entry_Int:
+				// change value, set event
+				*psSubMenu->asEntries[unIx].pnValue += psSubMenu->asEntries[unIx].nChangeSize;
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+				psSubMenu->bOnChanged = true;
 
-						// clamp value
-						if (*psSubMenu->asEntries[unIx].punValue > psSubMenu->asEntries[unIx].unMaximum)
-							*psSubMenu->asEntries[unIx].punValue = psSubMenu->asEntries[unIx].unMaximum;
+				// clamp value
+				if (*psSubMenu->asEntries[unIx].pnValue > psSubMenu->asEntries[unIx].nMaximum)
+					*psSubMenu->asEntries[unIx].pnValue = psSubMenu->asEntries[unIx].nMaximum;
 
-						// set the menu entry value
-						psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
-					}
-					break;
-				case VireioMenuEntry::EntryType::Entry_Int:
-					// change value, set event
-					*psSubMenu->asEntries[unIx].pnValue += psSubMenu->asEntries[unIx].nChangeSize;
-					psSubMenu->asEntries[unIx].bOnChanged = true;
-					psSubMenu->bOnChanged = true;
+				// set the menu entry value
+				psSubMenu->asEntries[unIx].nValue = *psSubMenu->asEntries[unIx].pnValue;
+				break;
+			case VireioMenuEntry::EntryType::Entry_Bool:
+				// change value, set event
+				*psSubMenu->asEntries[unIx].pbValue = !(*psSubMenu->asEntries[unIx].pbValue);
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+				psSubMenu->bOnChanged = true;
 
-					// clamp value
-					if (*psSubMenu->asEntries[unIx].pnValue > psSubMenu->asEntries[unIx].nMaximum)
-						*psSubMenu->asEntries[unIx].pnValue = psSubMenu->asEntries[unIx].nMaximum;
-
-					// set the menu entry value
-					psSubMenu->asEntries[unIx].nValue = *psSubMenu->asEntries[unIx].pnValue;
-					break;
-				case VireioMenuEntry::EntryType::Entry_Bool:
-					// change value, set event
-					*psSubMenu->asEntries[unIx].pbValue = !(*psSubMenu->asEntries[unIx].pbValue);
-					psSubMenu->asEntries[unIx].bOnChanged = true;
-					psSubMenu->bOnChanged = true;
-
-					// set the menu entry value
-					psSubMenu->asEntries[unIx].bValue = *psSubMenu->asEntries[unIx].pbValue;
-					break;
+				// set the menu entry value
+				psSubMenu->asEntries[unIx].bValue = *psSubMenu->asEntries[unIx].pbValue;
+				break;
 			}
 		}
 
@@ -1355,57 +1185,57 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 			// type ?
 			switch (psSubMenu->asEntries[unIx].eType)
 			{
-				case VireioMenuEntry::EntryType::Entry_Float:
+			case VireioMenuEntry::EntryType::Entry_Float:
+				// change value, set event
+				*psSubMenu->asEntries[unIx].pfValue -= psSubMenu->asEntries[unIx].fChangeSize;
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+				psSubMenu->bOnChanged = true;
+
+				// clamp value
+				if (*psSubMenu->asEntries[unIx].pfValue < psSubMenu->asEntries[unIx].fMinimum)
+					*psSubMenu->asEntries[unIx].pfValue = psSubMenu->asEntries[unIx].fMinimum;
+
+				// set the menu entry value
+				psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
+				break;
+			case VireioMenuEntry::EntryType::Entry_UInt:
+				if (!psSubMenu->asEntries[unIx].bValueEnumeration)
+				{
 					// change value, set event
-					*psSubMenu->asEntries[unIx].pfValue -= psSubMenu->asEntries[unIx].fChangeSize;
+					*psSubMenu->asEntries[unIx].punValue -= psSubMenu->asEntries[unIx].unChangeSize;
 					psSubMenu->asEntries[unIx].bOnChanged = true;
 					psSubMenu->bOnChanged = true;
 
 					// clamp value
-					if (*psSubMenu->asEntries[unIx].pfValue < psSubMenu->asEntries[unIx].fMinimum)
-						*psSubMenu->asEntries[unIx].pfValue = psSubMenu->asEntries[unIx].fMinimum;
+					if (*psSubMenu->asEntries[unIx].punValue > psSubMenu->asEntries[unIx].unMaximum)
+						*psSubMenu->asEntries[unIx].punValue = psSubMenu->asEntries[unIx].unMaximum;
 
 					// set the menu entry value
-					psSubMenu->asEntries[unIx].fValue = *psSubMenu->asEntries[unIx].pfValue;
-					break;
-				case VireioMenuEntry::EntryType::Entry_UInt:
-					if (!psSubMenu->asEntries[unIx].bValueEnumeration)
-					{
-						// change value, set event
-						*psSubMenu->asEntries[unIx].punValue -= psSubMenu->asEntries[unIx].unChangeSize;
-						psSubMenu->asEntries[unIx].bOnChanged = true;
-						psSubMenu->bOnChanged = true;
+					psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
+				}
+				break;
+			case VireioMenuEntry::EntryType::Entry_Int:
+				// change value, set event
+				*psSubMenu->asEntries[unIx].pnValue -= psSubMenu->asEntries[unIx].nChangeSize;
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+				psSubMenu->bOnChanged = true;
 
-						// clamp value
-						if (*psSubMenu->asEntries[unIx].punValue > psSubMenu->asEntries[unIx].unMaximum)
-							*psSubMenu->asEntries[unIx].punValue = psSubMenu->asEntries[unIx].unMaximum;
+				// clamp value
+				if (*psSubMenu->asEntries[unIx].pnValue > psSubMenu->asEntries[unIx].nMaximum)
+					*psSubMenu->asEntries[unIx].pnValue = psSubMenu->asEntries[unIx].nMaximum;
 
-						// set the menu entry value
-						psSubMenu->asEntries[unIx].unValue = *psSubMenu->asEntries[unIx].punValue;
-					}
-					break;
-				case VireioMenuEntry::EntryType::Entry_Int:
-					// change value, set event
-					*psSubMenu->asEntries[unIx].pnValue -= psSubMenu->asEntries[unIx].nChangeSize;
-					psSubMenu->asEntries[unIx].bOnChanged = true;
-					psSubMenu->bOnChanged = true;
+				// set the menu entry value
+				psSubMenu->asEntries[unIx].nValue = *psSubMenu->asEntries[unIx].pnValue;
+				break;
+			case VireioMenuEntry::EntryType::Entry_Bool:
+				// change value, set event
+				*psSubMenu->asEntries[unIx].pbValue = !(*psSubMenu->asEntries[unIx].pbValue);
+				psSubMenu->asEntries[unIx].bOnChanged = true;
+				psSubMenu->bOnChanged = true;
 
-					// clamp value
-					if (*psSubMenu->asEntries[unIx].pnValue > psSubMenu->asEntries[unIx].nMaximum)
-						*psSubMenu->asEntries[unIx].pnValue = psSubMenu->asEntries[unIx].nMaximum;
-
-					// set the menu entry value
-					psSubMenu->asEntries[unIx].nValue = *psSubMenu->asEntries[unIx].pnValue;
-					break;
-				case VireioMenuEntry::EntryType::Entry_Bool:
-					// change value, set event
-					*psSubMenu->asEntries[unIx].pbValue = !(*psSubMenu->asEntries[unIx].pbValue);
-					psSubMenu->asEntries[unIx].bOnChanged = true;
-					psSubMenu->bOnChanged = true;
-
-					// set the menu entry value
-					psSubMenu->asEntries[unIx].bValue = *psSubMenu->asEntries[unIx].pbValue;
-					break;
+				// set the menu entry value
+				psSubMenu->asEntries[unIx].bValue = *psSubMenu->asEntries[unIx].pbValue;
+				break;
 			}
 		}
 
@@ -1462,15 +1292,15 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 				// only bool entries accept value change here
 				switch (psSubMenu->asEntries[unIx].eType)
 				{
-					case VireioMenuEntry::EntryType::Entry_Bool:
-						psSubMenu->asEntries[unIx].bValue = !psSubMenu->asEntries[unIx].bValue;
-						(*(psSubMenu->asEntries[unIx].pbValue)) = psSubMenu->asEntries[unIx].bValue;
-						break;
-					case VireioMenuEntry::EntryType::Entry_Int:
-					case VireioMenuEntry::EntryType::Entry_UInt:
-					case VireioMenuEntry::EntryType::Entry_Float:
-					default:
-						break;
+				case VireioMenuEntry::EntryType::Entry_Bool:
+					psSubMenu->asEntries[unIx].bValue = !psSubMenu->asEntries[unIx].bValue;
+					(*(psSubMenu->asEntries[unIx].pbValue)) = psSubMenu->asEntries[unIx].bValue;
+					break;
+				case VireioMenuEntry::EntryType::Entry_Int:
+				case VireioMenuEntry::EntryType::Entry_UInt:
+				case VireioMenuEntry::EntryType::Entry_Float:
+				default:
+					break;
 				}
 			}
 		}
@@ -1493,8 +1323,8 @@ void StereoPresenter::UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime)
 				for (UINT unIx = 0; unIx < 32; unIx++)
 				{
 					// set sub menu active if menu is active
-					if (m_apsSubMenues[unIx])
-						m_apsSubMenues[unIx]->bIsActive = m_bMenu;
+					if (m_asSubMenu[unIx])
+						m_asSubMenu[unIx]->bIsActive = m_bMenu;
 				}
 			}
 			// ...otherwise go back to main menu

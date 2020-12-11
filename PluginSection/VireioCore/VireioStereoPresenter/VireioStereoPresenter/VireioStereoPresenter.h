@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
-#include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
+// #include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
 
 #include<Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
@@ -79,192 +79,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-#include"..\..\..\Include\VireioMenu.h"
 
 #define NUMBER_OF_COMMANDERS                           0
-#define NUMBER_OF_DECOMMANDERS                         35
+#define NUMBER_OF_DECOMMANDERS                         1
 
-#pragma region registry helpers
-/**
-* Small debug helper quickly imported from Vireio v3.
-***/
-void debugf(const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	char buf[8192];
-	vsnprintf_s(buf, 8192, fmt, args);
-	va_end(args);
-	OutputDebugStringA(buf);
-}
+#define DEBUG_F(fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
 
-/**
-* Reads a string from registry.
-* @param hKey Registry key handle.
-* @param szValueName Name of the value to be read.
-* @param lpszResult The string result.
-***/
-HRESULT RegGetString(HKEY hKey, LPCSTR szValueName, LPSTR * lpszResult) {
-
-	// Given a HKEY and value name returns a string from the registry.
-	// Upon successful return the string should be freed using free()
-	// eg. RegGetString(hKey, TEXT("my value"), &szString);
-
-	DWORD dwType = 0, dwDataSize = 0, dwBufSize = 0;
-	LONG lResult;
-
-	// Incase we fail set the return string to null...
-	if (lpszResult != NULL) *lpszResult = NULL;
-
-	// Check input parameters...
-	if (hKey == NULL || lpszResult == NULL) return E_INVALIDARG;
-
-	// Get the length of the string in bytes (placed in dwDataSize)...
-	lResult = RegQueryValueExA(hKey, szValueName, 0, &dwType, NULL, &dwDataSize);
-
-	// Check result and make sure the registry value is a string(REG_SZ)...
-	if (lResult != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lResult);
-	else if (dwType != REG_SZ)    return DISP_E_TYPEMISMATCH;
-
-	// Allocate memory for string - We add space for a null terminating character...
-	dwBufSize = dwDataSize + (1 * sizeof(CHAR));
-	*lpszResult = (LPSTR)malloc(dwBufSize);
-
-	if (*lpszResult == NULL) return E_OUTOFMEMORY;
-
-	// Now get the actual string from the registry...
-	lResult = RegQueryValueExA(hKey, szValueName, 0, &dwType, (LPBYTE)*lpszResult, &dwDataSize);
-
-	// Check result and type again.
-	// If we fail here we must free the memory we allocated...
-	if (lResult != ERROR_SUCCESS) { free(*lpszResult); return HRESULT_FROM_WIN32(lResult); }
-	else if (dwType != REG_SZ) { free(*lpszResult); return DISP_E_TYPEMISMATCH; }
-
-	// We are not guaranteed a null terminated string from RegQueryValueEx.
-	// Explicitly null terminate the returned string...
-	(*lpszResult)[(dwBufSize / sizeof(CHAR)) - 1] = TEXT('\0');
-
-	return NOERROR;
-}
-
-/**
-* Reads a string from registry.
-* @param hKey Registry key handle.
-* @param szValueName Name of the value to be read.
-* @param resultStr The string result.
-***/
-HRESULT RegGetString(HKEY hKey, LPCSTR szValueName, std::string &resultStr)
-{
-	char *cstr = NULL;
-	HRESULT success = RegGetString(hKey, szValueName, &cstr);
-	if (cstr != NULL)
-	{
-		resultStr = cstr;
-		free(cstr);
-	}
-	else
-	{
-		resultStr = "";
-	}
-	return success;
-}
-#pragma endregion
-
-/**
-* Returns the name of the Vireio Perception base directory read from registry.
-* Saved to registry by InitConfig() in Main.cpp.
-* Original method found in Vireio v3 class ProxyHelper.
-***/
-std::string GetBaseDir()
-{
-	static char* baseDirCache = nullptr;
-
-	if (baseDirCache != nullptr)
-	{
-		return baseDirCache;
-	}
-
-	HKEY hKey;
-	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
-
-	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE, &hKey);
-
-	if (openRes != ERROR_SUCCESS)
-	{
-		OutputDebugString(L"PxHelp: Error opening key.\n");
-		return "";
-	}
-
-	static std::string baseDir = "";
-	HRESULT hr = RegGetString(hKey, "BasePath", baseDir);
-	if (FAILED(hr))
-	{
-		OutputDebugString(L"Error getting BasePath from registry.\n");
-		return "";
-	}
-	else
-	{
-		debugf("%s\n", baseDir.c_str());
-		baseDirCache = _strdup(baseDir.c_str());
-	}
-
-	return baseDir;
-}
-
-/**
-* Node Commander Enumeration.
-***/
+/// <summary>Node decommander enumeration</summary>
 enum STP_Decommanders
 {
-	LeftTexture11,
-	RightTexture11,
-	MenuTexture,
-	VireioSubMenu00,
-	VireioSubMenu01,
-	VireioSubMenu02,
-	VireioSubMenu03,
-	VireioSubMenu04,
-	VireioSubMenu05,
-	VireioSubMenu06,
-	VireioSubMenu07,
-	VireioSubMenu08,
-	VireioSubMenu09,
-	VireioSubMenu10,
-	VireioSubMenu11,
-	VireioSubMenu12,
-	VireioSubMenu13,
-	VireioSubMenu14,
-	VireioSubMenu15,
-	VireioSubMenu16,
-	VireioSubMenu17,
-	VireioSubMenu18,
-	VireioSubMenu19,
-	VireioSubMenu20,
-	VireioSubMenu21,
-	VireioSubMenu22,
-	VireioSubMenu23,
-	VireioSubMenu24,
-	VireioSubMenu25,
-	VireioSubMenu26,
-	VireioSubMenu27,
-	VireioSubMenu28,
-	VireioSubMenu29,
-	VireioSubMenu30,
-	VireioSubMenu31,
+	Cinema
 };
 
-/**
-* Available stereo output modes (only monitor modes here).
-***/
+/// <summary>Available stereo output modes (only monitor modes here) </summary>
 enum VireioMonitorStereoModes
 {
 	Vireio_Mono = 0,
 	Vireio_SideBySide = 1,
 };
 
-/**
-* Possible menu events.
-***/
+/// <summary>Possible menu events</summary>
 enum VireioMenuEvent
 {
 	OnLeft,
@@ -276,10 +110,10 @@ enum VireioMenuEvent
 	NumberOfEvents = 6
 };
 
-/**
-* Vireio Stereo Presenter Node Plugin (Direct3D 9).
-* Vireio Perception Stereo Drawing Handler.
-***/
+/// <summary>
+/// Vireio Stereo Presenter Node Plugin(Direct3D 9).
+/// Vireio Perception Stereo Drawing Handler.
+/// </summary>
 class StereoPresenter : public AQU_Nodus
 {
 public:
@@ -312,130 +146,127 @@ private:
 	void                    UpdateMenu(float fGlobalTime);
 	void                    UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime);
 
-	/**
-	* Stereo Textures input. (DX11)
-	***/
-	ID3D11ShaderResourceView** m_ppcTexView11[2];
-	/**
-	* Menu texture view pointer
-	***/
-	ID3D11RenderTargetView** m_ppcTexViewMenu;
-	/**
-	* True if a stereo mode is selected.
-	***/
+	/// <summary>
+	/// Cinema data input pointer
+	/// </summary>
+	VireioCinemaData* m_psCinemaData;
+	/// <summary>
+	/// True if a stereo mode is selected.
+	/// </summary>
 	VireioMonitorStereoModes m_eStereoMode;
-	/**
-	* Hotkey switch.
-	***/
+	/// <summary>
+	/// Hotkey switch.
+	/// </summary>
 	bool m_bHotkeySwitch;
-	/**
-	* Menu hotkey switch.
-	***/
+	/// <summary>
+	/// Menu hotkey switch.
+	/// </summary>
 	bool m_bMenuHotkeySwitch;
-	/**
-	* True if Menu is shown.
-	***/
+	/// <summary>
+	/// True if Menu is shown.
+	/// </summary>
 	bool m_bMenu;
-	/**
-	* The back buffer render target view (DX11).
-	***/
+	/// <summary>
+	/// The back buffer render target view (DX11).
+	/// </summary>
 	ID3D11RenderTargetView* m_pcBackBufferView;
-	/**
-	* The 2D vertex shader.
-	***/
+	/// <summary>
+	/// The 2D vertex shader.
+	/// </summary>
 	union
 	{
 		ID3D10VertexShader* m_pcVertexShader10;
 		ID3D11VertexShader* m_pcVertexShader11;
 	};
-	/**
-	* The 2D pixel shader.
-	***/
+	/// <summary>
+	/// The 2D pixel shader.
+	/// </summary>
 	union
 	{
 		ID3D10PixelShader* m_pcPixelShader10;
 		ID3D11PixelShader* m_pcPixelShader11;
 	};
-	/**
-	* The 2D vertex layout.
-	***/
+	/// <summary>
+	/// The 2D vertex layout.
+	/// </summary>
 	union
 	{
 		ID3D10InputLayout* m_pcVertexLayout10;
 		ID3D11InputLayout* m_pcVertexLayout11;
 	};
-	/**
-	* The 2D vertex buffer.
-	***/
+	/// <summary>
+	/// The 2D vertex buffer.
+	/// </summary>
 	union
 	{
 		ID3D10Buffer* m_pcVertexBuffer10;
 		ID3D11Buffer* m_pcVertexBuffer11;
 	};
-	/**
-	* The d3d11 sampler.
-	***/
+	/// <summary>
+	/// The d3d11 sampler.
+	/// </summary>
 	ID3D11SamplerState* m_pcSampler11;
-	/**
-	* The constant buffer.
-	***/
+	/// <summary>
+	/// The constant buffer.
+	/// </summary>
 	union
 	{
 		ID3D10Buffer* m_pcConstantBufferDirect10;
 		ID3D11Buffer* m_pcConstantBufferDirect11;
 	};
-	/**
-	* The depth stencil DX11.
-	***/
+	/// <summary>
+	/// The depth stencil DX11.
+	/// </summary>
 	union
 	{
 		ID3D10Texture2D* m_pcDSGeometry10;
 		ID3D11Texture2D* m_pcDSGeometry11;
 	};
-	/**
-	* The depth stencil view DX11.
-	***/
+	/// <summary>
+	/// The depth stencil view DX11.
+	/// </summary>
 	union
 	{
 		ID3D10DepthStencilView* m_pcDSVGeometry10;
 		ID3D11DepthStencilView* m_pcDSVGeometry11;
 	};
-	/**
-	* Constant buffer data structure.
-	***/
+	/// <summary>
+	/// Constant buffer data structure.
+	/// </summary>
 	GeometryConstantBuffer m_sGeometryConstants;
-	/**
-	* Cinema mode pointer bool.
-	***/
+	/// <summary>
+	/// Cinema mode pointer bool.
+	/// </summary>
 	bool *m_pbCinemaMode;
-	/**
-	* Menu basic font.
-	***/
+	/// <summary>
+	/// Menu basic font.
+	/// </summary>
 	VireioFont* m_pcFontSegeo128;
-	/**
-	* Font file name.
-	* File must have extension ".spritefont", string must NOT have the extension attached.
-	***/
+	/// <summary>
+	/// Font file name.
+	/// File must have extension ".spritefont", string must NOT have the extension attached.
+	/// </summary>
 	std::string m_strFontName;
-	/**
-	* The sub menu for the main menu.
-	***/
+	/// <summary>
+	/// The sub menu for the main menu.
+	/// </summary>
 	VireioSubMenu m_sMainMenu;
-	/**
-	* The sub menu for the presenter node.
-	***/
+	/// <summary>
+	/// The sub menu for the presenter node.
+	/// </summary>
 	VireioSubMenu m_sSubMenu;
-	/**
-	* The sub menu pointers.
-	***/
-	VireioSubMenu* m_apsSubMenues[32];
-	/**
-	* Font selection value.
-	***/
+	/// <summary>
+	/// The sub menu pointer vector.
+	/// Will be resized to 32 (max sub menues)
+	/// </summary>
+	std::vector<VireioSubMenu*> m_asSubMenu;
+	/// <summary>
+	/// Font selection value.
+	/// </summary>
 	UINT m_unFontSelection;
-	/**
-	* Menu control structure.
-	***/
+	/// <summary>
+	/// Menu control structure.
+	/// </summary>
 	struct MenuControl
 	{
 		INT nMenuIx;            /**< Current sub menu index, -1 for main menu. ***/
@@ -455,15 +286,15 @@ private:
 		float fActionStartTime; /**< The start time of the action. **/
 		float fYOrigin;         /**< The y origin for the menu to be drawn. **/
 	} m_sMenuControl;
-	/**
-	* Possible menu events.
-	***/
+	/// <summary>
+	/// Possible menu events.
+	/// </summary>
 	BOOL m_abMenuEvents[VireioMenuEvent::NumberOfEvents];
 };
 
-/**
-* Exported Constructor Method.
-***/
+/// <summary>
+/// Exported Constructor Method.
+/// </summary>
 extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
 {
 	StereoPresenter* pStereoPresenter = new StereoPresenter();

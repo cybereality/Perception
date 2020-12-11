@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include<string>
 #include<vector>
+#include"..\..\Aquilinus\Aquilinus\AQU_GlobalTypes.h"
 
 /**
 * Vireio menu entry structure.
@@ -198,3 +199,82 @@ struct VireioSubMenu
 	**/
 	D3DXVECTOR3 sPosition[2];
 };
+
+#pragma region helper
+/// <summary>
+/// Small helper to filter out inactive menu entries.
+/// </summary>
+/// <param name="psSubMenu">The menu pointer</param>
+/// <param name="unPrimalSelection">Selection index to be found</param>
+/// <returns>The actual index of the sub menu entry</returns>
+inline UINT GetSelection(VireioSubMenu* psSubMenu, UINT unPrimalSelection)
+{
+	UINT unIxPrimal = unPrimalSelection;
+	UINT unIx = 0;
+	for (UINT unI = 0; unI < psSubMenu->asEntries.size(); unI++)
+	{
+		// menu error ?
+		if (unIx >= (UINT)psSubMenu->asEntries.size())
+		{
+			OutputDebugString(L"[STP] Fatal menu structure error ! Empty menu ??");
+			// m_sMenuControl.unSelection = 0;
+			unIx = 0;
+			break;
+		}
+
+		// set back index runner if inactive entry
+		if (!psSubMenu->asEntries[unIx].bIsActive) { unIxPrimal++; }
+
+		// caught selection ?
+		if (unIx == unIxPrimal) break;
+
+		// increment index
+		unIx++;
+	}
+	return unIx;
+}
+
+/// <summary>
+/// Provides the Vireio base directory through the Aquilinus configuration.
+/// </summary>
+/// <returns>Vireio Perception base directory</returns>
+inline std::wstring GetBaseDir()
+{
+	// Aquilinus fields, cfg imported from AQU_GlobalTypes.h
+	const TCHAR szMemoryPageName[] = TEXT("AquilinusCfg");
+	HANDLE hConfigMapFile;
+	AquilinusCfg* pAquilinusConfig;
+	std::wstring acRet = std::wstring();
+
+	// get the config map handle
+	hConfigMapFile = OpenFileMapping(
+		FILE_MAP_ALL_ACCESS,   // read/write access
+		FALSE,                 // do not inherit the name
+		szMemoryPageName);   // name of the Aquilinus config
+
+	// return if failed
+	if (hConfigMapFile == NULL)
+	{
+		OutputDebugString(TEXT("Aquilinus : Could not create file mapping object.\n"));
+		return acRet;
+	}
+
+	// create map view
+	pAquilinusConfig = (AquilinusCfg*)MapViewOfFile(hConfigMapFile, FILE_MAP_ALL_ACCESS, NULL, NULL, sizeof(AquilinusCfg));
+
+	// return if failed
+	if (pAquilinusConfig == NULL)
+	{
+		OutputDebugString(TEXT("Aquilinus : Could not map view of file.\n"));
+		CloseHandle(hConfigMapFile);
+		return acRet;
+	}
+
+	// get path and close memory file
+	acRet = std::wstring(pAquilinusConfig->szAquilinusPath);
+	UnmapViewOfFile((LPCVOID)pAquilinusConfig);
+	CloseHandle(hConfigMapFile);
+
+	return acRet;
+}
+#pragma endregion

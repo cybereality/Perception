@@ -68,7 +68,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\$(Configuration)\Perception\bin\$(Platform)\plugin\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -76,11 +76,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\$(Configuration)\Perception\bin\$(Platform)\plugin\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\$(Configuration)\Perception\bin\$(Platform)\plugin\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -88,7 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\$(Configuration)\Perception\bin\$(Platform)\plugin\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -109,7 +109,8 @@
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32\$(TargetName)$(TargetExt)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +131,8 @@
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -155,7 +157,8 @@
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32\$(TargetName)$(TargetExt)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -180,18 +183,17 @@
       <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\Include\VireioMenu.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioStereoPresenter.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
     <ClCompile Include="..\VireioStereoPresenter.cpp" />
   </ItemGroup>
   <ItemGroup>

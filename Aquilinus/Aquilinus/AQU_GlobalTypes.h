@@ -33,6 +33,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AQU_GLOBALTYPES
 #define AQU_GLOBALTYPES
 
+/**
+* The joliet specification only allows filenames to be up to 64 Unicode characters in length.
+* We use that as limit for the process list.
+***/
+#define MAX_JOLIET_FILENAME 64
+
+/** Max 256 interfaces */
+#define MAX_INTERFACES_NUMBER 256
+
+#ifndef AQU_INCLUDE_CONFIG_ONLY
+
 /*** Aquilinus global defines ***/
 #define DIRECTX_8_0 80
 #define	DIRECTX_8_0A 81	
@@ -85,8 +96,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3D11_ID3D11DEVICECONTEXT2_METHODS_NUMBER 0
 #define D3D11_ID3D11DEVICECONTEXT3_METHODS_NUMBER 0
 
-#define MAX_INTERFACES_NUMBER 256
-
 #define ELEMENTARY_NODE_FALSE            0xFFFF0000
 #define ELEMENTARY_NODE_TRUE             0xFFFF0001
 #define ELEMENTARY_NODE_FIXED_FLOAT      0xFFFF0002
@@ -105,28 +114,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DOPS_NODE_FRAMEDECAL           0xFFFF1000
 #define D3DOPS_NODE_D3DX9                0xFFFF2000
 
-/**
-* The joliet specification only allows filenames to be up to 64 Unicode characters in length.
-* We use that as limit for the process list.
-***/
-#define MAX_JOLIET_FILENAME 64
-
 /*** Aquilinus global types ***/
-
-/**
-* The current stage of the project.
-***/
-enum class AQU_ProjectStage
-{
-	NoProject = 0,
-	BrokenProject = 1,
-	WorkingArea = 2,
-	WorkingAreaNew = 3,
-	WorkingAreaLoad = 4,
-	Complemented = 5,
-	ComplementedInjected = 6,
-	Closed = 7
-};
 
 /**
 * The supported Direct3D Versions.
@@ -162,6 +150,23 @@ enum AQU_InjectionTechniques
 	VMTable,
 	Detour,
 	Proxy
+};
+
+#endif
+
+/**
+* The current stage of the project.
+***/
+enum class AQU_ProjectStage
+{
+	NoProject = 0,
+	BrokenProject = 1,
+	WorkingArea = 2,
+	WorkingAreaNew = 3,
+	WorkingAreaLoad = 4,
+	Complemented = 5,
+	ComplementedInjected = 6,
+	Closed = 7
 };
 
 /**
