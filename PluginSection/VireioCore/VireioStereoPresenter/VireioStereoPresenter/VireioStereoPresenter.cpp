@@ -55,7 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// Constructor
 /// </summary>
 StereoPresenter::StereoPresenter() :AQU_Nodus(),
-m_psCinemaData(nullptr),
+m_psStereoData(nullptr),
 m_pcBackBufferView(nullptr),
 m_pcVertexShader10(nullptr),
 m_pcPixelShader10(nullptr),
@@ -221,7 +221,7 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
 	case STP_Decommanders::Cinema:
-		return VLink::Name(VLink::_L::CinemaData);
+		return VLink::Name(VLink::_L::StereoData);
 	}
 
 	return L"";
@@ -243,7 +243,7 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
 	case STP_Decommanders::Cinema:
-		return VLink::Link(VLink::_L::CinemaData);
+		return VLink::Link(VLink::_L::StereoData);
 	}
 
 	return 0;
@@ -265,7 +265,7 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
 	case STP_Decommanders::Cinema:
-		m_psCinemaData = (VireioCinemaData*)pData;
+		m_psStereoData = (StereoData*)pData;
 		break;
 	}
 }
@@ -306,10 +306,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	fGlobalTime = (dwTimeCur - dwTimeStart) / 1000.0f;
 
 	// menu vector initialized within cinema connection ?
-	if (m_psCinemaData)
+	if (m_psStereoData)
 	{
-		if (!m_psCinemaData->aasMenu)
-			m_psCinemaData->aasMenu = &m_asSubMenu;
+		if (!m_psStereoData->aasMenu)
+			m_psStereoData->aasMenu = &m_asSubMenu;
 	}
 
 	// clear all previous menu events
@@ -363,10 +363,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
 					else
 					{
-						if (m_psCinemaData)
+						if (m_psStereoData)
 						{
-							if (m_psCinemaData->pcTex11DrawSRV[0])
-								m_psCinemaData->pcTex11DrawSRV[0]->GetDevice(&pcDevice);
+							if (m_psStereoData->pcTex11DrawSRV[0])
+								m_psStereoData->pcTex11DrawSRV[0]->GetDevice(&pcDevice);
 							if (pcDevice)
 								pcDevice->GetImmediateContext(&pcContext);
 							else nHr = E_FAIL;
@@ -599,10 +599,10 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				nHr = GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext);
 			else
 			{
-				if (m_psCinemaData)
+				if (m_psStereoData)
 				{
-					if (m_psCinemaData->pcTex11DrawSRV[0])
-						m_psCinemaData->pcTex11DrawSRV[0]->GetDevice(&pcDevice);
+					if (m_psStereoData->pcTex11DrawSRV[0])
+						m_psStereoData->pcTex11DrawSRV[0]->GetDevice(&pcDevice);
 					if (pcDevice)
 						pcDevice->GetImmediateContext(&pcContext);
 					else nHr = E_FAIL;
@@ -671,12 +671,12 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			ClearContextState(pcContext);
 
 			// set the menu texture (if present)
-			if (m_psCinemaData)
+			if (m_psStereoData)
 			{
-				if (m_psCinemaData->pcTexMenuRTV)
+				if (m_psStereoData->pcTexMenuRTV)
 				{
 					// set render target
-					pcContext->OMSetRenderTargets(1, &m_psCinemaData->pcTexMenuRTV, NULL);
+					pcContext->OMSetRenderTargets(1, &m_psStereoData->pcTexMenuRTV, NULL);
 
 					// set viewport
 					D3D11_VIEWPORT sViewport = {};
@@ -690,7 +690,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 					// clear render target...zero alpha
 					FLOAT afColorRgba[4] = { 0.5f, 0.4f, 0.2f, 0.4f };
-					pcContext->ClearRenderTargetView(m_psCinemaData->pcTexMenuRTV, afColorRgba);
+					pcContext->ClearRenderTargetView(m_psStereoData->pcTexMenuRTV, afColorRgba);
 				}
 			}
 			else
@@ -776,7 +776,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		if ((m_eStereoMode) && (eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 		{
 			// DX 11
-			if (m_psCinemaData)
+			if (m_psStereoData)
 			{
 				// get device and context
 				ID3D11Device* pcDevice = nullptr;
@@ -888,7 +888,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 						// set texture
-						pcContext->PSSetShaderResources(0, 1, &m_psCinemaData->pcTex11DrawSRV[nEye]);
+						pcContext->PSSetShaderResources(0, 1, &m_psStereoData->pcTex11DrawSRV[nEye]);
 
 						// set shaders
 						pcContext->VSSetShader(m_pcVertexShader11, 0, 0);

@@ -56,9 +56,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 VireioCinema::VireioCinema() :AQU_Nodus(),
-m_sCinemaData{},
+m_sStereoData{},
 m_psTrackerData(nullptr),
-m_psSplitterData(nullptr),
+m_psStereoDataIn(nullptr),
 m_sGeometryConstants{},
 m_pcVSGeometry11(nullptr),
 m_pcVLGeometry11(nullptr),
@@ -560,8 +560,8 @@ LPWSTR VireioCinema::GetCommanderName(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-	case VRC_Commanders::Cinema:
-		return VLink::Name(VLink::_L::CinemaData);
+	case VRC_Commanders::Stereo_Cinema:
+		return VLink::Name(VLink::_L::StereoData);
 	}
 
 	return L"x";
@@ -574,8 +574,8 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-	case VRC_Decommanders::Splitter:
-		return VLink::Name(VLink::_L::SplitterData);
+	case VRC_Decommanders::Stereo_Splitter:
+		return VLink::Name(VLink::_L::StereoData);
 	case VRC_Decommanders::Tracker:
 		return VLink::Name(VLink::_L::TrackerData);
 	}
@@ -590,8 +590,8 @@ DWORD VireioCinema::GetCommanderType(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-	case VRC_Commanders::Cinema:
-		return VLink::Link(VLink::_L::CinemaData);
+	case VRC_Commanders::Stereo_Cinema:
+		return VLink::Link(VLink::_L::StereoData);
 	}
 
 	return 0;
@@ -604,8 +604,8 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-	case VRC_Decommanders::Splitter:
-		return VLink::Link(VLink::_L::SplitterData);
+	case VRC_Decommanders::Stereo_Splitter:
+		return VLink::Link(VLink::_L::StereoData);
 	case VRC_Decommanders::Tracker:
 		return VLink::Link(VLink::_L::TrackerData);
 	}
@@ -620,8 +620,8 @@ void* VireioCinema::GetOutputPointer(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-	case VRC_Commanders::Cinema:
-		return (void*)&m_sCinemaData;
+	case VRC_Commanders::Stereo_Cinema:
+		return (void*)&m_sStereoData;
 	}
 
 	return nullptr;
@@ -634,8 +634,8 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-	case VRC_Decommanders::Splitter:
-		m_psSplitterData = (SplitterData*)pData;
+	case VRC_Decommanders::Stereo_Splitter:
+		m_psStereoDataIn = (StereoData*)pData;
 	case VRC_Decommanders::Tracker:
 		m_psTrackerData = (HMDTrackerData*)pData;
 		break;
@@ -684,10 +684,10 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 
 	// set this nodes sub menu pointer
 	// TODO !! CREATE ALL NODES SUB MENU INDICES VECTOR
-	if (m_sCinemaData.aasMenu)
+	if (m_sStereoData.aasMenu)
 	{
-		if (!((*m_sCinemaData.aasMenu)[0]))
-			(*m_sCinemaData.aasMenu)[0] = &m_sMenu;
+		if (!((*m_sStereoData.aasMenu)[0]))
+			(*m_sStereoData.aasMenu)[0] = &m_sMenu;
 	}
 
 
@@ -960,7 +960,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// no splitter data connected ?
-	if (!m_psSplitterData)
+	if (!m_psStereoDataIn)
 	{
 		// get back buffer
 		IDirect3DSurface9* pcBackBuffer = nullptr;
@@ -1050,7 +1050,7 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 	else
 	{
 		// connected textures already initialized ?? return if not
-		if ((!(m_psSplitterData->pcTex9Input[0])) || (!(m_psSplitterData->pcTex9Input[1])))
+		if ((!(m_psStereoDataIn->pcTex9Input[0])) || (!(m_psStereoDataIn->pcTex9Input[1])))
 		{
 			static int nDummyCounter = 5;
 			if ((nDummyCounter--) <= 0)
@@ -1062,7 +1062,7 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 		{
 			// get the description and create the copy texture
 			D3DSURFACE_DESC sDescSurfaceD3D9 = {};
-			m_psSplitterData->pcTex9Input[unEye]->GetLevelDesc(0, &sDescSurfaceD3D9);
+			m_psStereoDataIn->pcTex9Input[unEye]->GetLevelDesc(0, &sDescSurfaceD3D9);
 
 			// copy texture created ?
 			if (!m_pcTex9Copy[unEye])
@@ -1082,7 +1082,7 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 			// copy d3d9 texture
 			IDirect3DSurface9* pcSurfaceSrc = nullptr;
 			IDirect3DSurface9* pcSurfaceDst = nullptr;
-			m_psSplitterData->pcTex9Input[unEye]->GetSurfaceLevel(0, &pcSurfaceSrc);
+			m_psStereoDataIn->pcTex9Input[unEye]->GetSurfaceLevel(0, &pcSurfaceSrc);
 			m_pcTex9Copy[unEye]->GetSurfaceLevel(0, &pcSurfaceDst);
 			pcDevice->GetRenderTargetData(pcSurfaceSrc, pcSurfaceDst);
 			if (pcSurfaceSrc) pcSurfaceSrc->Release();
@@ -1172,7 +1172,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create render targets
 	for (UINT unEye = 0; unEye < 2; unEye++)
 	{
-		if ((!m_sCinemaData.pcTex11Draw[unEye]) && (m_psTrackerData))
+		if ((!m_sStereoData.pcTex11Draw[unEye]) && (m_psTrackerData))
 		{
 			if (!(m_psTrackerData->sTx.fW) || !(m_psTrackerData->sTx.fH))
 			{
@@ -1195,22 +1195,22 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			sDescTex.MiscFlags = 0;
 
 			// create secondary render target
-			pcDevice->CreateTexture2D(&sDescTex, NULL, &m_sCinemaData.pcTex11Draw[unEye]);
-			if (m_sCinemaData.pcTex11Draw[unEye])
+			pcDevice->CreateTexture2D(&sDescTex, NULL, &m_sStereoData.pcTex11Draw[unEye]);
+			if (m_sStereoData.pcTex11Draw[unEye])
 			{
 				// create render target view
-				if (FAILED(pcDevice->CreateRenderTargetView(m_sCinemaData.pcTex11Draw[unEye], NULL, &m_sCinemaData.pcTex11DrawRTV[unEye])))
+				if (FAILED(pcDevice->CreateRenderTargetView(m_sStereoData.pcTex11Draw[unEye], NULL, &m_sStereoData.pcTex11DrawRTV[unEye])))
 					OutputDebugString(L"[CIN] Failed to create render target view.");
 
 				// create shader resource view
-				if (FAILED(pcDevice->CreateShaderResourceView(m_sCinemaData.pcTex11Draw[unEye], NULL, &m_sCinemaData.pcTex11DrawSRV[unEye])))
+				if (FAILED(pcDevice->CreateShaderResourceView(m_sStereoData.pcTex11Draw[unEye], NULL, &m_sStereoData.pcTex11DrawSRV[unEye])))
 					OutputDebugString(L"[CIN] Failed to create render target shader resource view.");
 
 				// TODO !! DELETE THIS (BOTH HERE AND IN PRESENTER) set this as private data interface to the shader resource views instead of texture here !!!!
-				if ((m_sCinemaData.pcTex11DrawRTV[unEye]) && (m_sCinemaData.pcTex11DrawSRV[unEye]))
+				if ((m_sStereoData.pcTex11DrawRTV[unEye]) && (m_sStereoData.pcTex11DrawSRV[unEye]))
 				{
-					m_sCinemaData.pcTex11DrawSRV[unEye]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, m_sCinemaData.pcTex11DrawRTV[unEye]);
-					m_sCinemaData.pcTex11DrawRTV[unEye]->Release();
+					m_sStereoData.pcTex11DrawSRV[unEye]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, m_sStereoData.pcTex11DrawRTV[unEye]);
+					m_sStereoData.pcTex11DrawRTV[unEye]->Release();
 				}
 			}
 			else OutputDebugString(L"[CIN] Failed to create render target !");
@@ -1328,7 +1328,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	}
 
 	// create menu texture
-	if (!m_sCinemaData.pcTexMenu)
+	if (!m_sStereoData.pcTexMenu)
 	{
 		// Initialize the render target texture description
 		D3D11_TEXTURE2D_DESC sDesc = {};
@@ -1344,7 +1344,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 		sDesc.MiscFlags = 0;
 
 		// Create the render target texture.
-		HRESULT nHr = pcDevice->CreateTexture2D(&sDesc, NULL, &m_sCinemaData.pcTexMenu);
+		HRESULT nHr = pcDevice->CreateTexture2D(&sDesc, NULL, &m_sStereoData.pcTexMenu);
 		if (FAILED(nHr))
 		{
 			OutputDebugString(L"[CIN] Failed to create menu texture !");
@@ -1358,7 +1358,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 		sDescRTV.Texture2D.MipSlice = 0;
 
 		// Create the render target view.
-		nHr = pcDevice->CreateRenderTargetView(m_sCinemaData.pcTexMenu, &sDescRTV, &m_sCinemaData.pcTexMenuRTV);
+		nHr = pcDevice->CreateRenderTargetView(m_sStereoData.pcTexMenu, &sDescRTV, &m_sStereoData.pcTexMenuRTV);
 		if (FAILED(nHr))
 		{
 			OutputDebugString(L"[CIN] Failed to create menu texture RTV !");
@@ -1373,7 +1373,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 		sDescSRV.Texture2D.MipLevels = 1;
 
 		// Create the shader resource view.
-		nHr = pcDevice->CreateShaderResourceView(m_sCinemaData.pcTexMenu, &sDescSRV, &m_sCinemaData.pcTexMenuSRV);
+		nHr = pcDevice->CreateShaderResourceView(m_sStereoData.pcTexMenu, &sDescSRV, &m_sStereoData.pcTexMenuSRV);
 		if (FAILED(nHr))
 		{
 			OutputDebugString(L"[CIN] Failed to create menu texture SRV !");
@@ -1382,7 +1382,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	}
 
 	// is all created ? only create render models if all things are created
-	if ((!m_pcConstantBufferGeometry) || (!m_pcSampler11) || (!m_pcSamplerState) || (!m_pcDSGeometry11[0]) || (!m_sCinemaData.pcTex11Draw[0]) || (!m_pcPSGeometry11) || (!m_pcVSGeometry11) || (!m_sCinemaData.pcTexMenuRTV)) return;
+	if ((!m_pcConstantBufferGeometry) || (!m_pcSampler11) || (!m_pcSamplerState) || (!m_pcDSGeometry11[0]) || (!m_sStereoData.pcTex11Draw[0]) || (!m_pcPSGeometry11) || (!m_pcVSGeometry11) || (!m_sStereoData.pcTexMenuRTV)) return;
 
 	// create render models...
 	if (!m_asRenderModels.size())
@@ -1674,7 +1674,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		break;
 	case VireioCinema::D3D_11:
 		// no splitter data ? set to mono output
-		if (!m_psSplitterData)
+		if (!m_psStereoDataIn)
 		{
 			// get back buffer
 			ID3D11Texture2D* pcBackBuffer = NULL;
@@ -1723,8 +1723,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		else
 		{
 			// set stereo input textures
-			m_apcTex11InputSRV[0] = m_psSplitterData->pcTex11InputSRV[0];
-			m_apcTex11InputSRV[1] = m_psSplitterData->pcTex11InputSRV[1];
+			m_apcTex11InputSRV[0] = m_psStereoDataIn->pcTex11InputSRV[0];
+			m_apcTex11InputSRV[1] = m_psStereoDataIn->pcTex11InputSRV[1];
 		};
 		break;
 	default:
@@ -1793,7 +1793,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 		// clear render target
 		FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		pcContext->ClearRenderTargetView(m_sCinemaData.pcTex11DrawRTV[nEye], afColorRgba);
+		pcContext->ClearRenderTargetView(m_sStereoData.pcTex11DrawRTV[nEye], afColorRgba);
 	}
 
 	// Initialize the view matrix
@@ -1963,7 +1963,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			if (!m_asRenderModels[unI].pcEffect)
 			{
 				if (m_unMenuModelIndex == unI)
-					pcContext->PSSetShaderResources(0, 1, &m_sCinemaData.pcTexMenuSRV);
+					pcContext->PSSetShaderResources(0, 1, &m_sStereoData.pcTexMenuSRV);
 				else
 					pcContext->PSSetShaderResources(0, 1, &m_apcTex11InputSRV[nEye]);
 			}
@@ -1980,7 +1980,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 			// set render target
-			pcContext->OMSetRenderTargets(1, &m_sCinemaData.pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
+			pcContext->OMSetRenderTargets(1, &m_sStereoData.pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
 
 			// draw
 			pcContext->DrawIndexed(m_asRenderModels[unI].unTriangleCount * 3, 0, 0);
@@ -2169,7 +2169,7 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 		pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 		// set render target
-		pcContext->OMSetRenderTargets(1, &m_sCinemaData.pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
+		pcContext->OMSetRenderTargets(1, &m_sStereoData.pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
 
 		// draw
 		pcContext->DrawIndexed(m_asRenderModels[0].unTriangleCount * 3, 0, 0);
@@ -2181,7 +2181,7 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 	// set menu parameters
 	pcContext->OMSetBlendState(m_pcBlendState, NULL, 0xffffffff);
 	pcContext->PSSetShader(m_pcPSMenuScreen11, NULL, 0);
-	pcContext->PSSetShaderResources(0, 1, &m_sCinemaData.pcTexMenuSRV);
+	pcContext->PSSetShaderResources(0, 1, &m_sStereoData.pcTexMenuSRV);
 	m_sGeometryConstants.sResolution.x = (float)m_asRenderModels[m_unMenuModelIndex].sResolution.unWidth;
 	m_sGeometryConstants.sResolution.y = (float)m_asRenderModels[m_unMenuModelIndex].sResolution.unHeight;
 
@@ -2210,7 +2210,7 @@ void VireioCinema::RenderFullscreenD3D11(ID3D11Device* pcDevice, ID3D11DeviceCon
 		pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 		// set render target
-		pcContext->OMSetRenderTargets(1, &m_sCinemaData.pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
+		pcContext->OMSetRenderTargets(1, &m_sStereoData.pcTex11DrawRTV[nEye], m_pcDSVGeometry11[nEye]);
 
 		// and draw
 		pcContext->DrawIndexed(m_asRenderModels[m_unMenuModelIndex].unTriangleCount * 3, 0, 0);

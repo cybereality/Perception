@@ -59,8 +59,8 @@ namespace VLink
 	enum class _L
 	{
 		TrackerData,
-		SplitterData,
-		CinemaData,
+		StereoData,
+		ModifierData
 	};
 
 	/// <summary>
@@ -83,11 +83,11 @@ namespace VLink
 		switch (nLink)
 		{
 		case _L::TrackerData:
-			return L"Tracker";
-		case _L::SplitterData:
-			return L"Splitter";
-		case _L::CinemaData:
-			return L"Cinema";
+			return L"Tracked";
+		case _L::StereoData:
+			return L"Stereo";
+		case _L::ModifierData:
+			return L"Modified";
 
 		default:
 			break;
@@ -443,6 +443,43 @@ UINT GetIniFileSettingKeyCode(std::string strDefault, LPCSTR szAppName, LPCSTR s
 
 #pragma region /// => Vireio plugin structures
 /// <summary>
+/// Simple left, right enumeration.
+/// </summary>
+enum RenderPosition
+{
+	// probably need an 'Original' here
+	Left = 1,
+	Right = 2
+};
+
+/**
+* Constant rule index DX9.
+* Stores register index and shader rule index.
+* For efficiency in DX9 we also store the modified constant data here.
+***/
+struct Vireio_Constant_Rule_Index_DX9
+{
+	UINT m_dwConstantRuleRegister;
+	UINT m_dwIndex;
+	UINT m_dwConstantRuleRegisterCount;
+
+	union
+	{
+		unsigned char m_acConstantDataLeft[4 * 4 * sizeof(float)]; /**< Constant data left in bytes. (max. sizeof(MATRIX 4*4)) **/
+		float m_afConstantDataLeft[4 * 4];                         /**< Constant data left in float. (max. sizeof(MATRIX 4*4)) **/
+		UINT32 m_aunConstantDataLeft[4 * 4];                       /**< Constant data left in unsigned int. (max. sizeof(MATRIX 4*4)) **/
+		D3DMATRIX m_asConstantDataLeft;
+	};
+	union
+	{
+		unsigned char m_acConstantDataRight[4 * 4 * sizeof(float)]; /**< Constant data right in bytes. (max. sizeof(MATRIX 4*4)) **/
+		float m_afConstantDataRight[4 * 4];                         /**< Constant data right in float. (max. sizeof(MATRIX 4*4)) **/
+		UINT32 m_aunConstantDataRight[4 * 4];                       /**< Constant data right in unsigned int. (max. sizeof(MATRIX 4*4)) **/
+		D3DMATRIX m_asConstantDataRight;
+	};
+};
+
+/// <summary>
 /// Base structure for all connections
 /// </summary>
 struct VireioPluginData
@@ -497,14 +534,39 @@ struct HMDTrackerData : public VireioPluginData
 	} sTx;
 
 	/// <returns>Link identifier for this structure</returns>
-	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::CinemaData); }
+	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::StereoData); }
 };
 
 /// <summary>
-/// All data from the Stereo Splitter
+/// All data from the Matrix Modifier
 /// </summary>
-struct SplitterData : public VireioPluginData
+struct ModifierData : public VireioPluginData
 {
+	/**
+	* The indices of the shader rules assigned to the active vertex shader.
+	***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasVSConstantRuleIndices;
+	/**
+	* The indices of the shader rules assigned to the active pixel shader.
+	***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasPSConstantRuleIndices;
+
+	/// <summary>
+	/// Current drawing side, only changed in StereoSplitter->SetDrawingSide().
+	/// </summary>
+	RenderPosition m_eCurrentRenderingSide;
+
+	/// <returns>Link identifier for this structure</returns>
+	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::StereoData); }
+};
+
+/// <summary>
+/// All data from the Vireio cinema.
+/// </summary>
+struct StereoData : public VireioPluginData
+{
+	/// TODO !! STORE DX11 DEVICE HERE !!
+
 	/// <summary>
 	/// Texture data based on D3D version l/r
 	/// </summary>
@@ -513,17 +575,6 @@ struct SplitterData : public VireioPluginData
 		IDirect3DTexture9* pcTex9Input[2];
 		ID3D11ShaderResourceView* pcTex11InputSRV[2];
 	};
-
-	/// <returns>Link identifier for this structure</returns>
-	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::CinemaData); }
-};
-
-/// <summary>
-/// All data from the Vireio cinema.
-/// </summary>
-struct VireioCinemaData : public VireioPluginData
-{
-	/// TODO !! STORE DX11 DEVICE HERE !!
 
 	/// <summary>
 	/// Draw tex l/r
@@ -556,7 +607,7 @@ struct VireioCinemaData : public VireioPluginData
 	ID3D11RenderTargetView* pcTexMenuRTV;
 
 	/// <returns>Link identifier for this structure</returns>
-	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::CinemaData); }
+	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::StereoData); }
 };
 
 

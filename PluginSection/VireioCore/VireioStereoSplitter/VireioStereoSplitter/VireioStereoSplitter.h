@@ -48,16 +48,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 
+#include <d3d11_1.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <D3DX11tex.h>
+#pragma comment(lib, "D3DX11.lib")
+
+#include <d3d10_1.h>
+#pragma comment(lib, "d3d10_1.lib")
+
+#include <d3d10.h>
+#pragma comment(lib, "d3d10.lib")
+
+#include <d3dx10.h>
+#pragma comment(lib, "d3dx10.lib")
+
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
-#include"..\..\..\Include\Vireio_GUI.h"
+#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-#include"..\..\..\Include\VireioMenu.h"
-#include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 #include"VireioStereoSplitter_Proxy.h"
 #include"D3D9Ex_D3DX9_Methods.h"
 #pragma endregion
@@ -86,183 +102,91 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FOURCC_ATI2N ((D3DFORMAT)MAKEFOURCC('A', 'T', 'I', '2'))
 #define RESZ_CODE 0x7fa05000
 
-#define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  7700
-#define GUI_CONTROL_BORDER                            64
-#define GUI_CONTROL_FONTSIZE                          64
-#define GUI_CONTROL_FONTBORDER                        16
-#define GUI_CONTROL_LINE                              92
-#define GUI_CONTROL_BUTTONSIZE                       488
-#define GUI_CONTROL_SPINSIZE                         980
-
-#define NUMBER_OF_COMMANDERS                           3
-#define NUMBER_OF_DECOMMANDERS                       115
-
-#define DUPLICATE_RENDERTARGET_POS_X                  16
-#define DUPLICATE_RENDERTARGET_POS_Y                  64
-#define DUPLICATE_DEPTHSTENCIL_POS_X                  16
-#define DUPLICATE_DEPTHSTENCIL_POS_Y                 256
-#define DUPLICATE_TEXTURE_POS_X                       16
-#define DUPLICATE_TEXTURE_POS_Y                      448
-#define DUPLICATE_CUBETEXTURE_POS_X                   16
-#define DUPLICATE_CUBETEXTURE_POS_Y                  640
-#define SAVE_RENDERSTATES_POS_X                       16
-#define SAVE_RENDERSTATES_POS_Y                      832
+#define NUMBER_OF_COMMANDERS                           1
+#define NUMBER_OF_DECOMMANDERS                        45
 
 #define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
 
 #define NO_PRIVATE_INTERFACE             (IUnknown*)0xf1                     /**< Arbitrary value set instead of an IUnknown interface as "verified" indicator. ***/
 #pragma endregion
 
-/**
-* Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15}
-***/
+/// <summary>
+/// Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15}
+/// </summary>
 #define D3D9_SIMULTANEAOUS_TEXTURE_COUNT                16
-/**
-* Maximum simultaneous displacement textures : 5 {D3DDMAPSAMPLER+D3DVERTEXTEXTURESAMPLER0..3}
-***/
+/// <summary>
+/// Maximum simultaneous displacement textures : 5 {D3DDMAPSAMPLER+D3DVERTEXTEXTURESAMPLER0..3}
+/// </summary>
 #define D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT   5
-/**
-* Maximum simultaneous render targets ?
-***/
+/// <summary>
+/// Maximum simultaneous render targets ?
+/// </summary>
 #define D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT            D3D_FL9_3_SIMULTANEOUS_RENDER_TARGET_COUNT 
 
-/**
-* Node Commander Enumeration.
-***/
+/// <summary>
+/// Node Commander Enumeration.
+/// </summary>
 enum STS_Commanders
 {
-	StereoTextureLeft,
-	StereoTextureRight,
-	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
+	StereoData
 };
 
-/**
-* Node Commander Enumeration.
-***/
-enum STS_Decommanders
+/// <summary>
+/// Node Commander Enumeration.
+/// </summary>
+enum class STS_Decommanders : int
 {
-	RenderTargetIndex,            /**< ->SetRenderTarget(), GetRenderTarget() render target index ***/
-	pRenderTarget,                /**< ->SetRenderTarget() render target ***/
-	ppRenderTarget,               /**< ->GetRenderTarget() render target **/
-	pNewZStencil,                 /**< ->SetDepthStencilSurface() stencil surface ***/
-	ppZStencilSurface,            /**< ->GetDepthStencilSurface() **/
-	Sampler,                      /**< ->SetTexture(), GetTexture() sampler index **/
-	pTexture,                     /**< ->SetTexture() texture pointer ***/
-	ppTextureGet,                 /**< ->GetTexture() ***/
-	pSourceSurface,               /**< ->UpdateSurface() source surface ***/
-	pSourceRect,                  /**< ->UpdateSurface() source rectangle ***/
-	pDestinationSurface,          /**< ->UpdateSurface() destination surface ***/
-	pDestPoint,                   /**< ->UpdateSurface() destination point ***/
-	pSourceTexture,               /**< ->UpdateTexture() source texture ***/
-	pDestinationTexture,          /**< ->UpdateTexture() destination texture ***/
-	pSurface,                     /**< ->ColorFill() surface pointer ***/
-	pRect,                        /**< ->ColorFill() destination rectangle ***/
-	color,                        /**< ->ColorFill() destination color ***/
-	pSourceSurface_StretchRect,   /**< ->StretchRect() source surface ***/
-	pSourceRect_StretchRect,      /**< ->StretchRect() source rectangle ***/
-	pDestSurface_StretchRect,     /**< ->StretchRect() destination surface ***/
-	pDestRect_StretchRect,        /**< ->StretchRect() destination rectangle ***/
-	Filter_StretchRect,           /**< ->StretchRect() filter ***/
-	State,                        /**< ->SetRenderState() State ***/
-	Value,                        /**< ->SetRenderState() Value ***/
-	pViewport,                    /**< ->SetViewport() Viewport ***/
-	pRenderTargetGetData,         /**< ->GetRenderTargetData() */
-	iSwapChain,                   /**< ->GetFrontBufferData(), GetBackBuffer(), GetSwapChain() */
-	pDestSurface,                 /**< ->GetRenderTargetData() + GetFrontBufferData() */
-	iBackBuffer,                  /**< ->GetBackBuffer() **/
-	Type,                         /**< ->GetBackBuffer() **/
-	ppBackBuffer,                 /**< ->GetBackBuffer() **/
-	Width,                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	Height,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	Length,
-	Depth,                        /**< ->CreateVolumeTexture() **/
-	EdgeLength,                   /**< ->CreateCubeTexture() **/
-	Levels,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
-	Usage,                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
-	Format,                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	FVF,
-	MultiSample,                  /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
-	MultisampleQuality,           /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
-	Discard,                      /**< ->CreateDepthStencilSurface() **/
-	Lockable,                     /**< ->CreateRenderTarget() **/
-	Pool,                         /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface() **/
-	ppTexture,                    /**< ->CreateTexture() **/
-	ppVolumeTexture,              /**< ->CreateVolumeTexture() **/
-	ppCubeTexture,                /**< ->CreateCubeTexture() **/
-	ppVertexBuffer,
-	ppIndexBuffer,
-	ppSurface,                    /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	pSharedHandle,                /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	SrcStartIndex,                /**< ->ProcessVertices() **/
-	DestIndex,                    /**< ->ProcessVertices() **/
-	VertexCount,                  /**< ->ProcessVertices() **/
-	pDestBuffer,                  /**< ->ProcessVertices() **/
-	pVertexDecl,                  /**< ->ProcessVertices() **/
-	Flags,                        /**< ->ProcessVertices() **/
-	StreamNumber,                 /**< ->SetStreamSource(), ->GetStreamSource() **/
-	pStreamData,                  /**< ->SetStreamSource(), **/
-	OffsetInBytes,                /**< ->SetStreamSource() **/
-	Stride,                       /**< ->SetStreamSource() **/
-	ppStreamData,                 /**< ->GetStreamSource() **/
-	pOffsetInBytes,               /**< ->GetStreamSource() **/
-	pStride,                      /**< ->GetStreamSource() **/
-	pIndexData,                   /**< ->SetIndices() **/
-	ppIndexData,                  /**< ->SetIndices() **/
-	peDrawingSide,                /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
-	pasVShaderConstantIndices,    /**< The constant rule indices for the actual vertex shader. ***/
-	pasPShaderConstantIndices,    /**< The constant rule indices for the actual pixel shader. ***/
-	pDestBox,                     /**< D3DX9 method types ***/
-	pSrcBox,
-	ColorKey,
-	SrcFormat,
-	DestFormat,
-	pSrcInfo,
-	Channel,
-	Filter,
-	MipFilter,
-	Amplitude,
-	hSrcModule,
-	pDestFile,
-	pSrcFile,
-	pSrcResource,
-	pSrcData,
-	pSrcMemory,
-	pDestFileW,
-	pSrcFileW,
-	pSrcResourceW,
-	ppDestBuf,
-	pFunction,
-	pTextureShader,
-	pBaseTexture,
-	pSrcTexture,
-	pCubeTexture,
-	pSrcSurface,
-	pTexture_D3DX,
-	pDestVolume,
-	pSrcVolume,
-	pVolumeTexture,
-	pData_Enum,
-	pDestPalette,
-	pPalette,
-	pSrcPalette,
-	pDestRect,
-	pSrcRect,
-	MipLevels,
-	Size,
-	SrcDataSize,
-	SrcLevel,
-	SrcPitch,
-	SrcRowPitch,
-	SrcSlicePitch,
-	pPresentationParameters,
-	pSwapChain
+	CreateAdditionalSwapchain,
+	GetSwapChain,
+	Reset,
+	Present,
+	GetBackbuffer,
+	CreateTexture,
+	CreateVolumeTexture,
+	CreateCubeTexture,
+	CreateVertexBuffer,
+	CreateIndexBuffer,
+	CreateRenderTarget,
+	CreateDepthStencilSurface,
+	UpdateSurfac,
+	UpdateTexture,
+	GetRenderTargetData,
+	GetFrontBufferData,
+	StretchRect,
+	Colorfill,
+	CreateOffscreenPlainSurface,
+	SetRenderTarget,
+	GetRenderTarget,
+	SetDepthStencilSurface,
+	GetDepthStencilSurface,
+	BeginScene,
+	EndScene,
+	Clear,
+	SetViewport,
+	SetRenderstate,
+	GetTexture,
+	SetTexture,
+	DrawPrimitive,
+	DrawIndexedPrimitive,
+	DrawPrimitiveUp,
+	DrawIndexedPrimitiveUp,
+	ProcessVertices,
+	SetStreamSource,
+	GetStremSource,
+	SetIndices,
+	GetIndices,
+	DrawRectPatch,
+	DrawTriPatch,
+	SC_Present,
+	SC_GetFrontBufferData,
+	SC_GetBackBuffer,
+	SB_Apply
 };
 
-/**
-* Methods table of D3DX9 methods.
-* Provided method ids by Aquilinus.
-***/
+/// <summary>
+/// Methods table of D3DX9 methods.
+/// Provided method ids by Aquilinus.
+/// </summary>
 enum MT_D3DX9
 {
 	D3D9_D3DXLoadSurfaceFromFileA,
@@ -331,20 +255,10 @@ enum MT_D3DX9
 	D3D9_D3DXComputeNormalMap,
 };
 
-/**
-* Simple left, right enumeration.
-***/
-enum RenderPosition
-{
-	// probably need an 'Original' here
-	Left = 1,
-	Right = 2
-};
-
-/**
-* All GUI pages for the Stereo Splitter.
-* Must be added in following order.
-***/
+/// <summary>
+/// All GUI pages for the Stereo Splitter.
+/// Must be added in following order.
+/// </summary>
 enum GUI_Pages
 {
 	MainPage = 0,
@@ -353,10 +267,10 @@ enum GUI_Pages
 	NumberOfPages = 3,
 };
 
-/**
-* Simple false/true enumeration prototype.
-***/
-typedef struct
+/// <summary>
+/// Simple false/true enumeration prototype.
+/// </summary>
+typedef struct _DetermineFalseTrue
 {
 	enum
 	{
@@ -366,9 +280,9 @@ typedef struct
 	};
 } DetermineFalseTrue;
 
-/**
-* Determines how to save render states for stereo view output.
-***/
+/// <summary>
+/// Determines how to save render states for stereo view output.
+/// </summary>
 enum DetermineSaveRenderStates
 {
 	DT_STATE_BLOCK = 0,
@@ -378,10 +292,10 @@ enum DetermineSaveRenderStates
 	DETERMINESAVERENDERSTATES_LAST
 };
 
-/**
-* Determines when to duplicate a render target or depth stencil.
-***/
-typedef struct : public DetermineFalseTrue
+/// <summary>
+/// Determines when to duplicate a render target or depth stencil.
+/// </summary>
+typedef struct _DetermineDuplicateRToDS : public DetermineFalseTrue
 {
 	enum
 	{
@@ -390,10 +304,10 @@ typedef struct : public DetermineFalseTrue
 	};
 } DetermineDuplicateRToDS;
 
-/**
-* Determines when to duplicate a base texture.
-***/
-typedef struct : public DetermineFalseTrue
+/// <summary>
+/// Determines when to duplicate a base texture.
+/// </summary>
+typedef struct _DetermineDuplicateBaseTexture : public DetermineFalseTrue
 {
 	enum : int
 	{
@@ -402,10 +316,10 @@ typedef struct : public DetermineFalseTrue
 	};
 } DetermineDuplicateBaseTexture;
 
-/**
-* Determines when to duplicate a texture.
-***/
-typedef struct : public DetermineDuplicateBaseTexture
+/// <summary>
+/// Determines when to duplicate a texture.
+/// </summary>
+typedef struct _DetermineDuplicateTexture : public DetermineDuplicateBaseTexture
 {
 	enum
 	{
@@ -414,10 +328,10 @@ typedef struct : public DetermineDuplicateBaseTexture
 	};
 } DetermineDuplicateTexture;
 
-/**
-* Determines when to duplicate a cube texture.
-***/
-typedef struct : public DetermineDuplicateBaseTexture
+/// <summary>
+/// Determines when to duplicate a cube texture.
+/// </summary>
+typedef struct _DetermineDuplicateCubeTexture : public DetermineDuplicateBaseTexture
 {
 	enum
 	{
@@ -425,10 +339,10 @@ typedef struct : public DetermineDuplicateBaseTexture
 	};
 } DetermineDuplicateCubeTexture;
 
-/**
-* Game type settings enumeration.
-* Contains all game specific stereo rendering settings.
-***/
+/// <summary>
+/// Game type settings enumeration.
+/// Contains all game specific stereo rendering settings.
+/// </summary>
 enum GameTypeEntry
 {
 	StateBlockSaveRestoreType,					// State Block Save/Restore type (DetermineSaveRenderStates enum)
@@ -441,10 +355,10 @@ enum GameTypeEntry
 	GAMETYPEENTRY_LAST
 };
 
-/**
-* Vireio Stereo Splitter Node Plugin (Direct3D 9).
-* Vireio Perception Stereo Render Target Handler.
-***/
+/// <summary>
+/// Vireio Stereo Splitter Node Plugin (Direct3D 9).
+/// Vireio Perception Stereo Render Target Handler.
+/// </summary>
 class StereoSplitter : public AQU_Nodus
 {
 public:
@@ -489,252 +403,140 @@ private:
 	IDirect3DSurface9*      VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pcSurface);
 	IDirect3DBaseTexture9*  VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, bool bDuplicate);
 	bool                    SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition side);
-	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
+	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_psModifierData) m_psModifierData->m_eCurrentRenderingSide = eSide; }
 	void                    CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, IDirect3DBaseTexture9** ppcStereoTwinTexture);
 	bool                    ShouldDuplicateRenderTarget(UINT unWidth, UINT unHeight, D3DFORMAT Format, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bLockable, bool bIsSwapChainBackBuffer);
 	bool                    ShouldDuplicateDepthStencilSurface(UINT unWidth, UINT unHeight, D3DFORMAT eFormat, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bDiscard);
 	bool                    ShouldDuplicateTexture(UINT unWidth, UINT unHeight, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool);
 	bool                    ShouldDuplicateCubeTexture(UINT unEdgeLength, UINT unLevels, DWORD unUsage, D3DFORMAT eFormat, D3DPOOL ePool);
 	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
-	void                    CreateGUI();
 	void                    UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	D3DFORMAT               GetD3D9ExFormat(D3DFORMAT eFormat);
 
-	/**
-	* Input pointers.
-	***/
-	DWORD*                                        m_punRenderTargetIndex;                            /**< ->SetRenderTarget(), GetRenderTarget() render target index ***/
-	IDirect3DSurface9**                           m_ppcRenderTarget;                                 /**< ->SetRenderTarget() render target ***/
-	IDirect3DSurface9***                          m_pppcRenderTarget;                                /**< ->GetRenderTarget() render target **/
-	IDirect3DSurface9**                           m_ppcNewZStencil;                                  /**< ->SetDepthStencilSurface() stencil surface ***/
-	IDirect3DSurface9***                          m_pppcZStencilSurface;                             /**< ->GetDepthStencilSurface() **/
-	DWORD*                                        m_punSampler;                                      /**< ->SetTexture(), GetTexture() sampler index **/
-	IDirect3DBaseTexture9**                       m_ppcTexture;                                      /**< ->SetTexture() texture pointer ***/
-	IDirect3DBaseTexture9***                      m_pppcTexture;                                     /**< ->GetTexture() texture pointer ***/
-	IDirect3DSurface9**                           m_ppSourceSurface;                                 /**< ->UpdateSurface() source surface ***/
-	RECT**                                        m_ppcSourceRect;                                   /**< ->UpdateSurface() source rectangle ***/
-	IDirect3DSurface9**                           m_ppcDestinationSurface;                           /**< ->UpdateSurface() destination surface ***/
-	POINT**                                       m_ppsDestPoint;                                    /**< ->UpdateSurface() destination point ***/
-	IDirect3DBaseTexture9**                       m_ppcSourceTexture;                                /**< ->UpdateTexture() source texture ***/
-	IDirect3DBaseTexture9**                       m_ppcDestinationTexture;                           /**< ->UpdateTexture() destination texture ***/
-	IDirect3DSurface9**                           m_ppcSurface;                                      /**< ->ColorFill() surface pointer ***/
-	RECT**                                        m_ppsRect;                                         /**< ->ColorFill() destination rectangle ***/
-	D3DCOLOR*                                     m_punColor;                                        /**< ->ColorFill() destination color ***/
-	IDirect3DSurface9**                           m_ppcSourceSurface_StretchRect;                    /**< ->StretchRect() source surface ***/
-	RECT**                                        m_ppcSourceRect_StretchRect;                       /**< ->StretchRect() source rectangle ***/
-	IDirect3DSurface9**                           m_ppcDestSurface_StretchRect;                      /**< ->StretchRect() destination surface ***/
-	RECT**                                        m_ppcDestRect_StretchRect;                         /**< ->StretchRect() destination rectangle ***/
-	D3DTEXTUREFILTERTYPE*                         m_peFilter_StretchRect;                            /**< ->StretchRect() filter ***/
-	D3DRENDERSTATETYPE*                           m_peState;                                         /**< ->SetRenderState() State ***/
-	DWORD*                                        m_punValue;                                        /**< ->SetRenderState() Value ***/
-	D3DVIEWPORT9**                                m_ppsViewport;                                     /**< ->SetViewport() Viewport ***/
-	IDirect3DSurface9**                           m_ppcRenderTargetGetData;                          /**< ->GetRenderTargetData() */
-	UINT*                                         m_punISwapChain;                                   /**< ->GetFrontBufferData(), GetBackBuffer()  */
-	IDirect3DSurface9**                           m_ppcDestSurface;                                  /**< ->GetRenderTargetData() + GetFrontBufferData() */
-	UINT*                                         m_punIBackBuffer;                                  /**< ->GetBackBuffer() **/
-	D3DBACKBUFFER_TYPE*                           m_peType;                                          /**< ->GetBackBuffer() **/
-	IDirect3DSurface9***                          m_pppcBackBuffer;                                  /**< ->GetBackBuffer() **/
-	UINT*                                         m_punWidth;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	UINT*                                         m_punHeight;                                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	UINT*                                         m_punEdgeLength;                                   /**< ->CreateCubeTexture() **/
-	UINT*                                         m_punLevels;                                       /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture() **/
-	UINT*                                         m_punDepth;                                        /**< ->CreateVolumeTexture() **/
-	DWORD*                                        m_punUsage;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateVertexBuffer(), CreateIndexBuffer() **/
-	D3DFORMAT*                                    m_peFormat;                                        /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface(), CreateIndexBuffer() **/
-	D3DMULTISAMPLE_TYPE*                          m_peMultiSample;                                   /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
-	DWORD*                                        m_punMultisampleQuality;                           /**< ->CreateRenderTarget(), CreateDepthStencilSurface() **/
-	BOOL*                                         m_pnDiscard;                                       /**< ->CreateDepthStencilSurface() **/
-	BOOL*                                         m_pnLockable;                                      /**< ->CreateRenderTarget() **/
-	D3DPOOL*                                      m_pePool;                                          /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateOffscreenPlainSurface(), CreateVertexBuffer(), CreateIndexBuffer() **/
-	IDirect3DTexture9***                          m_pppcTextureCreate;                               /**< ->CreateTexture() **/
-	IDirect3DVolumeTexture9***                    m_pppcVolumeTexture;                               /**< ->CreateVolumeTexture() **/
-	IDirect3DCubeTexture9***                      m_pppcCubeTexture;                                 /**< ->CreateCubeTexture() **/
-	IDirect3DSurface9***                          m_pppcSurfaceCreate;                               /**< ->CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface() **/
-	UINT*                                         m_punLength;                                       /**< ->CreateVertexBuffer(), CreateIndexBuffer() **/
-	DWORD*                                        m_punFVF;                                          /**< ->CreateVertexBuffer() **/
-	IDirect3DVertexBuffer9***                     m_pppcVertexBuffer;                                /**< ->CreateVertexBuffer() **/
-	IDirect3DIndexBuffer9***                      m_pppcIndexBuffer;                                 /**< ->CreateIndexBuffer() **/
-	HANDLE**                                      m_ppvSharedHandle;                                 /**< ->CreateTexture(), CreateVolumeTexture(), CreateCubeTexture(), CreateRenderTarget(), CreateDepthStencilSurface(), CreateOffscreenPlainSurface(), CreateVertexBuffer(), CreateIndexBuffer() **/
-	UINT*                                         m_punSrcStartIndex;                                /**< ->ProcessVertices() **/
-	UINT*                                         m_punDestIndex;                                    /**< ->ProcessVertices() **/
-	UINT*                                         m_punVertexCount;                                  /**< ->ProcessVertices() **/
-	IDirect3DVertexBuffer9**                      m_ppcDestBuffer;                                   /**< ->ProcessVertices() **/
-	IDirect3DVertexDeclaration9**                 m_ppcVertexDecl;                                   /**< ->ProcessVertices() **/
-	DWORD*                                        m_punFlags;                                        /**< ->ProcessVertices() **/
-	UINT*                                         m_punStreamNumber;                                 /**< ->SetStreamSource(), ->GetStreamSource() **/
-	IDirect3DVertexBuffer9**                      m_ppcStreamData;                                   /**< ->SetStreamSource(), **/
-	UINT*                                         m_punOffsetInBytes;                                /**< ->SetStreamSource() **/
-	UINT*                                         m_punStride;                                       /**< ->SetStreamSource() **/
-	IDirect3DVertexBuffer9***                     m_pppcStreamData;                                  /**< ->GetStreamSource() **/
-	UINT**                                        m_ppunOffsetInBytes;                               /**< ->GetStreamSource() **/
-	UINT**                                        m_ppunStride;                                      /**< ->GetStreamSource() **/
-	IDirect3DIndexBuffer9**                       m_ppcIndexData;                                    /**< ->SetIndices() **/
-	IDirect3DIndexBuffer9***                      m_pppcIndexData;                                   /**< ->GetIndices() **/
-	RenderPosition*                               m_peDrawingSide;                                   /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
-	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current vertex shader ***/
-	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices;                       /**< Pointer to the constant rule indices for the current pixel shader ***/
-	D3DBOX** m_ppsDestBox;
-	D3DBOX** m_ppsSrcBox;
-	D3DCOLOR* m_punColorKey;
-	D3DFORMAT* m_peSrcFormat;
-	D3DXIMAGE_FILEFORMAT* m_peDestFormat;
-	D3DXIMAGE_INFO** m_ppsSrcInfo;
-	DWORD* m_punChannel;
-	DWORD* m_punFilter;
-	DWORD* m_punMipFilter;
-	FLOAT* m_pfAmplitude;
-	HMODULE* m_ppsSrcModule;
-	LPCSTR* m_pszSrcFile;
-	LPCSTR* m_pszSrcResource;
-	LPCVOID* m_ppSrcData;
-	LPCVOID* m_ppSrcMemory;
-	LPCWSTR* m_pszDestFile;
-	LPCWSTR* m_pszSrcFileW;
-	LPCWSTR* m_pszSrcResourceW;
-	LPD3DXBUFFER** m_pppcDestBuf;
-	LPD3DXFILL2D* m_ppFunction;
-	LPD3DXTEXTURESHADER* m_ppcTextureShader;
-	LPDIRECT3DBASETEXTURE9* m_ppcBaseTexture;
-	LPDIRECT3DBASETEXTURE9* m_ppcSrcBaseTexture;
-	LPDIRECT3DCUBETEXTURE9* m_ppcCubeTexture;
-	LPDIRECT3DSURFACE9* m_ppcSrcSurface;
-	LPDIRECT3DTEXTURE9* m_ppcTexture_D3DX;
-	LPDIRECT3DVOLUME9* m_ppcDestVolume;
-	LPDIRECT3DVOLUME9* m_ppcSrcVolume;
-	LPDIRECT3DVOLUMETEXTURE9* m_ppcVolumeTexture;
-	LPVOID* m_ppData;
-	PALETTEENTRY** m_ppsDestPalette;
-	PALETTEENTRY** m_ppsPalette;
-	PALETTEENTRY** m_ppsSrcPalette;
-	RECT** m_ppsDestRect;
-	RECT** m_ppsSrcRect;
-	UINT* m_punSize;
-	UINT* m_punSrcDataSize;
-	UINT* m_punSrcLevel;
-	UINT* m_punSrcPitch;
-	UINT* m_punSrcRowPitch;
-	UINT* m_punSrcSlicePitch;
-	D3DPRESENT_PARAMETERS** m_ppsPresentationParams;
-	IDirect3DSwapChain9*** m_pppcSwapChain;
+	/// <summary>
+	/// Input pointers.
+	/// </summary>
+	void* m_ppInput[NUMBER_OF_DECOMMANDERS];
 
-	/**
-	* Active stored render target views.
-	* The render targets that are currently in use.
-	* DX9 :
-	* 0--------------------------------------------> D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
-	* D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
-	***/
-	std::vector<IDirect3DSurface9*> m_apcActiveRenderTargets;
-	/**
-	* Active stored textures.
-	* The textures that are currently in use.
-	* DX9 :
-	* 0--------------------------------------> D3D9_SIMULTANEOUS_TEXTURE_COUNT ----- Left render target views
-	* D3D9_SIMULTANEOUS_TEXTURE_COUNT -------> D3D9_SIMULTANEOUS_TEXTURE_COUNT * 2 - Right render target views
-	***/
-	std::vector<IDirect3DBaseTexture9*> m_apcActiveTextures;
-	/**
-	* Active stored displacement textures.
-	* The displacement textures that are currently in use.
-	* DX9 :
-	* 0----------------------------------------------> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT     ----- Left render target views
-	* D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT -> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT * 2 ----- Right render target views
-	***/
-	std::vector<IDirect3DBaseTexture9*> m_apcActiveTexturesDisplacement; 
-	/**
-	* Active stored depth stencil.
-	* The depth stencil surface that are currently in use.
-	* Left (0) / Right (1)
-	***/
-	IDirect3DSurface9* m_pcActiveDepthStencilSurface[2];
-	/**
-	* Active back buffer.
-	* The back buffer surface that is currently in use.
-	* Left (0) / Right (1)
-	***/
-	IDirect3DSurface9* m_pcActiveBackBufferSurface[2];
-	/**
-	* Active proxy back buffers. Only valid if D3D9Ex device is used.
-	* The back buffer surfaces stored for any swapchain. First index swapchain, second backbuffer.
-	***/
-	std::vector<std::vector<IDirect3DStereoSurface9*>> m_aapcActiveProxyBackBufferSurfaces;
-	/**
-	* Active stored swapchains. Only valid if D3D9Ex device is used.
-	* Note that any given device can support only one full-screen swap chain !!
-	* For a single adapter only ONE swapchain can be active !! (=index 0)
-	**/
-	std::vector<IDirect3DSwapChain9*> m_apcActiveSwapChains;
-	/**
-	* Active stored vertex buffers.
-	**/
-	std::unordered_map<UINT, IDirect3DProxyVertexBuffer9*> m_apcActiveVertexBuffers;
-	/**
-	* Number of set textures.
-	* Number of textures not set to NULL.
-	***/
-	DWORD m_unTextureNumber;
-	/**
-	* Number of render targets.
-	* Number of render targets not set to NULL.
-	***/
-	DWORD m_unRenderTargetNumber;
-	/**
-	* Current drawing side, only changed in SetDrawingSide().
-	**/
+#pragma region /// => Internal fields
+	/// <summary>
+	/// Matrix Modifier data.
+	/// Used both in Matrix Modifier and in Stereo Splitter.
+	/// </summary>
+	ModifierData* m_psModifierData;
+	/// <summary>
+	/// Current drawing side, only changed in StereoSplitter->SetDrawingSide().
+	/// </summary>
 	RenderPosition m_eCurrentRenderingSide;
-	/**
-	* True if active viewport is the default one.
-	* @see isViewportDefaultForMainRT()
-	**/
+	/// <summary>
+	/// Active stored render target views.
+	/// The render targets that are currently in use.
+	/// DX9 :
+	/// 0--------------------------------------------> D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
+	/// D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
+	/// </summary>
+	std::vector<IDirect3DSurface9*> m_apcActiveRenderTargets;
+	/// <summary>
+	/// Active stored textures.
+	/// The textures that are currently in use.
+	/// DX9 :
+	/// 0--------------------------------------> D3D9_SIMULTANEOUS_TEXTURE_COUNT ----- Left render target views
+	/// D3D9_SIMULTANEOUS_TEXTURE_COUNT -------> D3D9_SIMULTANEOUS_TEXTURE_COUNT * 2 - Right render target views
+	/// </summary>
+	std::vector<IDirect3DBaseTexture9*> m_apcActiveTextures;
+	/// <summary>
+	/// Active stored displacement textures.
+	/// The displacement textures that are currently in use.
+	/// DX9 :
+	/// 0----------------------------------------------> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT     ----- Left render target views
+	/// D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT -> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT * 2 ----- Right render target views
+	/// </summary>
+	std::vector<IDirect3DBaseTexture9*> m_apcActiveTexturesDisplacement; 
+	/// <summary>
+	/// Active stored depth stencil.
+	/// The depth stencil surface that are currently in use.
+	/// Left (0) / Right (1)
+	/// </summary>
+	IDirect3DSurface9* m_pcActiveDepthStencilSurface[2];
+	/// <summary>
+	/// Active back buffer.
+	/// The back buffer surface that is currently in use.
+	/// Left (0) / Right (1)
+	/// </summary>
+	IDirect3DSurface9* m_pcActiveBackBufferSurface[2];
+	/// <summary>
+	/// Active proxy back buffers. Only valid if D3D9Ex device is used.
+	/// The back buffer surfaces stored for any swapchain. First index swapchain, second backbuffer.
+	/// </summary>
+	std::vector<std::vector<IDirect3DStereoSurface9*>> m_aapcActiveProxyBackBufferSurfaces;
+	/// <summary>
+	/// Active stored swapchains. Only valid if D3D9Ex device is used.
+	/// Note that any given device can support only one full-screen swap chain !!
+	/// For a single adapter only ONE swapchain can be active !! (=index 0)
+	/// </summary>
+	std::vector<IDirect3DSwapChain9*> m_apcActiveSwapChains;
+	/// <summary>
+	/// Active stored vertex buffers.
+	/// </summary>
+	std::unordered_map<UINT, IDirect3DProxyVertexBuffer9*> m_apcActiveVertexBuffers;
+	/// <summary>
+	/// Number of set textures.
+	/// Number of textures not set to NULL.
+	/// </summary>
+	DWORD m_unTextureNumber;
+	/// <summary>
+	/// Number of render targets.
+	/// Number of render targets not set to NULL.
+	/// </summary>
+	DWORD m_unRenderTargetNumber;
+	/// <summary>
+	/// True if active viewport is the default one.
+	/// @see isViewportDefaultForMainRT()
+	/// </summary>
 	bool m_bActiveViewportIsDefault;
-	/**
-	* Last viewport backup.
-	**/
+	/// <summary>
+	/// Last viewport backup.
+	/// </summary>
 	D3DVIEWPORT9 m_sLastViewportSet;
-	/**
-	* The control bitmap.
-	***/
-	HBITMAP m_hBitmapControl;
-	/**
-	* The control update bool.
-	***/
-	bool m_bControlUpdate;
-	/**
-	* True if Present() was called at least once.
-	* Game can crash if Present() is not connected,
-	* so this is added for security.
-	***/
+#pragma endregion
+
+	enum class StereoTechnique
+	{
+		VERSION_3,
+		VERSION_4
+	} m_eTechnique;
+	/// <summary>
+	/// True if Present() was called at least once.
+	/// Game can crash if Present() is not connected,
+	/// so this is added for security.
+	/// </summary>
 	bool m_bPresent;
-	/**
-	* True if Apply() was called (IDirect3DStateBlock9).
-	***/
+	/// <summary>
+	/// True if Apply() was called (IDirect3DStateBlock9).
+	/// </summary>
 	bool m_bApply;
-	/**
-	* The font used.
-	***/
+	/// <summary>
+	/// The font used.
+	/// </summary>
 	HFONT m_hFont;
-	/**
-	* The output textures.
-	* Left (0) / Right (1)
-	***/
+	/// <summary>
+	/// The output textures.
+	/// Left (0) / Right (1)
+	/// </summary>
 	LPDIRECT3DTEXTURE9 m_pcStereoBuffer[2];
-	/**
-	* The output surface´s.
-	* Left (0) / Right (1)
-	***/
+	/// <summary>
+	/// The output surface´s.
+	/// Left (0) / Right (1)
+	/// </summary>
 	LPDIRECT3DSURFACE9 m_pcStereoBufferSurface[2];
-	/**
-	* Vireio Graphical User Interface class.
-	***/
-	Vireio_GUI* m_pcVireioGUI;
-	/**
-	* All GUI pages IDs.
-	***/
+	/// <summary>
+	/// All GUI pages IDs.
+	/// </summary>
 	std::vector<DWORD> m_aunPageIDs;
-	/**
-	* Game Settings page control IDs.
-	* Structure contains all control IDs for the game settings page.
-	***/
+	/// <summary>
+	/// Game Settings page control IDs.
+	/// Structure contains all control IDs for the game settings page.
+	/// </summary>
 	struct PageGameSettings
 	{
 		/*** PageGameSettings game configuration ***/
@@ -745,10 +547,10 @@ private:
 		UINT unSaveRenderStatesID;       /**< [Switch] Setting how to save render states for stereo rendering. **/
 		UINT unTextlist;                 /**< [Text] Text for all controls of this page. **/
 	} m_sPageGameSettings;
-	/**
-	* Game settings page.
-	* Structure contains all stereo game settings.
-	***/
+	/// <summary>
+	/// Game settings page.
+	/// Structure contains all stereo game settings.
+	/// </summary>
 	struct GameSettings
 	{
 		/*** GameSettings game configuration ***/
@@ -758,31 +560,27 @@ private:
 		int nDuplicateCubeTexture;   /**< [Switch] Setting which cube textures are to be duplicated. **/
 		int nSaveRenderStatesID;   /**< [Switch] Setting how to save render states for stereo rendering. **/
 	} m_sGameSettings;
-	/**
-	* Data buffer to save this node.
-	***/
+	/// <summary>
+	/// Data buffer to save this node.
+	/// </summary>
 	char m_acData[MAX_DATA_SIZE];
-	/**
-	* True if the Splitter used a D3D9Ex device.
-	***/
-	bool m_bUseD3D9Ex;
-	/**
-	* True if stereo images should be streched to monitor output.
-	***/
+	/// <summary>
+	/// True if stereo images should be streched to monitor output.
+	/// </summary>
 	bool m_bMonitorStereo;
-	/**
-	* Vireio menu.
-	***/
+	/// <summary>
+	/// Vireio menu.
+	/// </summary>
 	VireioSubMenu m_sMenu;
-	/**
-	* Frames to save the ini file.
-	***/
+	/// <summary>
+	/// Frames to save the ini file.
+	/// </summary>
 	INT m_nIniFrameCount;
 };
 
-/**
-* Exported Constructor Method.
-***/
+/// <summary>
+/// Exported Constructor Method.
+/// </summary>
 extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
 {
 	StereoSplitter* pStereoSplitter = new StereoSplitter();

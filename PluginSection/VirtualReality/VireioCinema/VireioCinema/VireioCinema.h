@@ -81,7 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// </summary>
 enum class VRC_Commanders
 {
-	Cinema
+	Stereo_Cinema
 };
 
 /// <summary>
@@ -89,7 +89,7 @@ enum class VRC_Commanders
 /// </summary>
 enum class VRC_Decommanders
 {
-	Splitter,
+	Stereo_Splitter,
 	Tracker
 };
 
@@ -135,7 +135,7 @@ private:
 	/// <summary>
 	/// [OUT] All data this node outputs
 	/// </summary>
-	VireioCinemaData m_sCinemaData;
+	StereoData m_sStereoData;
 	/// <summary>
 	/// [IN] HMD Tracker Data
 	/// All data incoming from Tracker (Oculus, OpenVR,...)
@@ -145,7 +145,7 @@ private:
 	/// [IN] Stereo Splitter Data
 	/// All data incoming from Stereo Splitter
 	/// </summary>
-	SplitterData* m_psSplitterData;
+	StereoData* m_psStereoDataIn;
 #pragma endregion
 #pragma region VireioCinema D3D9/D3D10 private fields
 	/// <summary>D3D11 device to be used in D3D9/D3D10 games</summary>

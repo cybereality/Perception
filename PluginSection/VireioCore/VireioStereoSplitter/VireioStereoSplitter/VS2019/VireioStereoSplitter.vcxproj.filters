@@ -4,7 +4,6 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioStereoSplitter.h" />
-    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\VireioStereoSplitter_Proxy.h" />
     <ClInclude Include="..\D3D9Ex_D3DX9_Methods.h" />
   </ItemGroup>
@@ -13,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioStereoSplitter.cpp" />
-    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\VireioStereoSplitter_Resources.rc" />

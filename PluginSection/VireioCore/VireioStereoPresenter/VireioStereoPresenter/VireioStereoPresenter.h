@@ -147,9 +147,9 @@ private:
 	void                    UpdateSubMenu(VireioSubMenu* psSubMenu, float fGlobalTime);
 
 	/// <summary>
-	/// Cinema data input pointer
+	/// Stereo data input pointer
 	/// </summary>
-	VireioCinemaData* m_psCinemaData;
+	StereoData* m_psStereoData;
 	/// <summary>
 	/// True if a stereo mode is selected.
 	/// </summary>
