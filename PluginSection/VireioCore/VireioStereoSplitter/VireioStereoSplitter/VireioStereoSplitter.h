@@ -72,6 +72,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D9Interfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DDevice9.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DSwapchain9.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DStateBlock9.h"
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"VireioStereoSplitter_Proxy.h"
@@ -103,7 +107,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RESZ_CODE 0x7fa05000
 
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        45
+#define NUMBER_OF_DECOMMANDERS                        46
 
 #define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
 
@@ -126,9 +130,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// <summary>
 /// Node Commander Enumeration.
 /// </summary>
-enum STS_Commanders
+enum class STS_Commanders :int
 {
-	StereoData
+	StereoData_Splitter
 };
 
 /// <summary>
@@ -136,11 +140,12 @@ enum STS_Commanders
 /// </summary>
 enum class STS_Decommanders : int
 {
+	Modifier,
 	CreateAdditionalSwapchain,
 	GetSwapChain,
 	Reset,
 	Present,
-	GetBackbuffer,
+	GetBackBuffer,
 	CreateTexture,
 	CreateVolumeTexture,
 	CreateCubeTexture,
@@ -148,12 +153,12 @@ enum class STS_Decommanders : int
 	CreateIndexBuffer,
 	CreateRenderTarget,
 	CreateDepthStencilSurface,
-	UpdateSurfac,
+	UpdateSurface,
 	UpdateTexture,
 	GetRenderTargetData,
 	GetFrontBufferData,
 	StretchRect,
-	Colorfill,
+	ColorFill,
 	CreateOffscreenPlainSurface,
 	SetRenderTarget,
 	GetRenderTarget,
@@ -163,16 +168,16 @@ enum class STS_Decommanders : int
 	EndScene,
 	Clear,
 	SetViewport,
-	SetRenderstate,
+	SetRenderState,
 	GetTexture,
 	SetTexture,
 	DrawPrimitive,
 	DrawIndexedPrimitive,
-	DrawPrimitiveUp,
-	DrawIndexedPrimitiveUp,
+	DrawPrimitiveUP,
+	DrawIndexedPrimitiveUP,
 	ProcessVertices,
 	SetStreamSource,
-	GetStremSource,
+	GetStreamSource,
 	SetIndices,
 	GetIndices,
 	DrawRectPatch,
@@ -371,7 +376,7 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
+	virtual DWORD           GetNodeWidth() { return 512; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetSaveDataSize();
 	virtual char*           GetSaveData(UINT* pdwSizeOfData);
@@ -412,9 +417,13 @@ private:
 	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
 	void                    UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	D3DFORMAT               GetD3D9ExFormat(D3DFORMAT eFormat);
-
+	
 	/// <summary>
-	/// Input pointers.
+	/// [OUT] All data this node outputs.
+	/// </summary>
+	StereoData m_sStereoData;
+	/// <summary>
+	/// [IN] Input pointers array.
 	/// </summary>
 	void* m_ppInput[NUMBER_OF_DECOMMANDERS];
 

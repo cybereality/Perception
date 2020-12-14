@@ -300,12 +300,6 @@ protected:
 	* -1 if no node to be verified.
 	***/
 	int m_nNodeIndexToVerify;
-	/**
-	* Size of the node header.
-	* If the mouse is within the border of the header, the user
-	* can move the node, if not this will be handled as window event.
-	***/
-	DWORD m_dwHeaderSize;
 	/*
 	* True after that node is drawn the first time.
 	**/

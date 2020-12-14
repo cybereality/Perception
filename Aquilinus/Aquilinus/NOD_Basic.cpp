@@ -69,7 +69,6 @@ NOD_Basic::NOD_Basic(LONG nX, LONG nY, LONG nWidth, LONG nHeight)
 	m_nCommanderIndex = 0;
 	m_vecConnectionOrigin.x = 0;
 	m_vecConnectionOrigin.y = 0;
-	m_dwHeaderSize = 40;
 
 	m_cProvoker.m_eD3D = -1;
 	m_cProvoker.m_eD3DInterface = -1;

@@ -126,8 +126,8 @@ m_dwUpdateCounter(0)
 		OutputDebugString(szFilePath.c_str());
 	}
 
-	// for plugins, the header size is constant 64 + 4 (border)
-	m_dwHeaderSize = 64 + 4;
+	// set slot space to zero, so the plugin itself creates the actual node size (x)
+	m_fSlotSpace = 0.f;
 }
 
 /**
@@ -157,7 +157,7 @@ HRESULT NOD_Plugin::Update()
 		// draw image....reverse V
 		if (m_dwLogoID)
 		{
-			const float fZoom = 0.25f;
+			const float fZoom = 0.5f;
 			ImGui::Image((void*)(intptr_t)m_dwLogoID, ImVec2((float)m_sImageSize.nW * fZoom, (float)m_sImageSize.nH * fZoom), ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
 		}
 

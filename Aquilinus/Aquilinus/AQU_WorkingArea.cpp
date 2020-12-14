@@ -738,11 +738,19 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						sSize.y = 0.f;
 						ImGui::ItemSize(sSize);
 
-						// set size state, center node title
+						// set size state
 						auto* storage = ImGui::GetStateStorage();
 						float node_width = sSize.x;
 						storage->SetFloat(ImGui::GetID("node-width"), node_width);
-						if (node_width > 0)
+
+						// for plugin nodes do not center (no title), other nodes center node title
+						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN) || (node_width <= 0))
+						{
+							// add 5 * standard ImGui Border size here
+							const float fBorderSize = 1.f;
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * fBorderSize);
+						}
+						else
 						{
 							// center node title
 							ImVec2 title_size = m_paNodes[i]->GetNodeHeaderTextSize();

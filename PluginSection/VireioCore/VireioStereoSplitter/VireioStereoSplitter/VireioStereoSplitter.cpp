@@ -44,56 +44,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"VireioStereoSplitter.h"
 
-#define INTERFACE_IDIRECT3DDEVICE9                           8
-#define INTERFACE_IDIRECT3DSTATEBLOCK9                      13
-#define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
-#define INTERFACE_D3DX9                                     29
-#define METHOD_IDIRECT3DDEVICE9_CREATEADDITIONALSWAPCHAIN   13
-#define METHOD_IDIRECT3DDEVICE9_GETSWAPCHAIN                14
-#define METHOD_IDIRECT3DDEVICE9_RESET                       16
-#define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
-#define METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER               18 
-#define METHOD_IDIRECT3DDEVICE9_CREATETEXTURE               23
-#define METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE         24
-#define METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE           25
-#define METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER          26
-#define METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER           27
-#define METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET          28
-#define METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE   29
-#define METHOD_IDIRECT3DDEVICE9_UPDATESURFACE               30 
-#define METHOD_IDIRECT3DDEVICE9_UPDATETEXTURE               31 
-#define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA         32
-#define METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA          33
-#define METHOD_IDIRECT3DDEVICE9_STRETCHRECT                 34 
-#define METHOD_IDIRECT3DDEVICE9_COLORFILL                   35 
-#define METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE 36
-#define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
-#define METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET             38 
-#define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39
-#define METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE      40 
-#define METHOD_IDIRECT3DDEVICE9_BEGINSCENE                  41
-#define METHOD_IDIRECT3DDEVICE9_ENDSCENE                    42
-#define METHOD_IDIRECT3DDEVICE9_CLEAR                       43
-#define METHOD_IDIRECT3DDEVICE9_SETVIEWPORT                 47
-#define METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE              57
-#define METHOD_IDIRECT3DDEVICE9_GETTEXTURE                  64 
-#define METHOD_IDIRECT3DDEVICE9_SETTEXTURE                  65
-#define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE               81
-#define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE        82 
-#define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP             83 
-#define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP      84
-#define METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES             85
-#define METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE            100
-#define METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE            101
-#define METHOD_IDIRECT3DDEVICE9_SETINDICES                 104
-#define METHOD_IDIRECT3DDEVICE9_GETINDICES                 105
-#define METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH              115 
-#define METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH               116
-#define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT                   3
-#define	METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA        4
-#define	METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER             5
-#define METHOD_IDIRECT3DSTATEBLOCK9_APPLY                    5
-
 /**
 * Constructor.
 ***/
@@ -327,8 +277,8 @@ LPWSTR StereoSplitter::GetCommanderName(DWORD unCommanderIndex)
 {
 	switch ((STS_Commanders)unCommanderIndex)
 	{
-	case StereoData:
-		break;
+	case STS_Commanders::StereoData_Splitter:
+		return VLink::Name(VLink::_L::StereoData);
 	default:
 		break;
 	}
@@ -343,98 +293,98 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 {
 	switch ((STS_Decommanders)unDecommanderIndex)
 	{
+	case STS_Decommanders::Modifier:
+		return L"Modifier";
 	case STS_Decommanders::CreateAdditionalSwapchain:
-		break;
+		return L"CreateAdditionalSwapchain";
 	case STS_Decommanders::GetSwapChain:
-		break;
+		return L"GetSwapChain";
 	case STS_Decommanders::Reset:
-		break;
+		return L"Reset";
 	case STS_Decommanders::Present:
-		break;
-	case STS_Decommanders::GetBackbuffer:
-		break;
+		return L"Present";
+	case STS_Decommanders::GetBackBuffer:
+		return L"GetBackBuffer";
 	case STS_Decommanders::CreateTexture:
-		break;
+		return L"CreateTexture";
 	case STS_Decommanders::CreateVolumeTexture:
-		break;
+		return L"CreateVolumeTexture";
 	case STS_Decommanders::CreateCubeTexture:
-		break;
+		return L"CreateCubeTexture";
 	case STS_Decommanders::CreateVertexBuffer:
-		break;
+		return L"CreateVertexBuffer";
 	case STS_Decommanders::CreateIndexBuffer:
-		break;
+		return L"CreateIndexBuffer";
 	case STS_Decommanders::CreateRenderTarget:
-		break;
+		return L"CreateRenderTarget";
 	case STS_Decommanders::CreateDepthStencilSurface:
-		break;
-	case STS_Decommanders::UpdateSurfac:
-		break;
+		return L"CreateDepthStencilSurface";
+	case STS_Decommanders::UpdateSurface:
+		return L"UpdateSurface";
 	case STS_Decommanders::UpdateTexture:
-		break;
+		return L"UpdateTexture";
 	case STS_Decommanders::GetRenderTargetData:
-		break;
+		return L"GetRenderTargetData";
 	case STS_Decommanders::GetFrontBufferData:
-		break;
+		return L"GetFrontBufferData";
 	case STS_Decommanders::StretchRect:
-		break;
-	case STS_Decommanders::Colorfill:
-		break;
+		return L"StretchRect";
+	case STS_Decommanders::ColorFill:
+		return L"ColorFill";
 	case STS_Decommanders::CreateOffscreenPlainSurface:
-		break;
+		return L"CreateOffscreenPlainSurface";
 	case STS_Decommanders::SetRenderTarget:
-		break;
+		return L"SetRenderTarget";
 	case STS_Decommanders::GetRenderTarget:
-		break;
+		return L"GetRenderTarget";
 	case STS_Decommanders::SetDepthStencilSurface:
-		break;
+		return L"SetDepthStencilSurface";
 	case STS_Decommanders::GetDepthStencilSurface:
-		break;
+		return L"GetDepthStencilSurface";
 	case STS_Decommanders::BeginScene:
-		break;
+		return L"BeginScene";
 	case STS_Decommanders::EndScene:
-		break;
+		return L"EndScene";
 	case STS_Decommanders::Clear:
-		break;
+		return L"Clear";
 	case STS_Decommanders::SetViewport:
-		break;
-	case STS_Decommanders::SetRenderstate:
-		break;
+		return L"SetViewport";
+	case STS_Decommanders::SetRenderState:
+		return L"SetRenderState";
 	case STS_Decommanders::GetTexture:
-		break;
+		return L"GetTexture";
 	case STS_Decommanders::SetTexture:
-		break;
+		return L"SetTexture";
 	case STS_Decommanders::DrawPrimitive:
-		break;
+		return L"DrawPrimitive";
 	case STS_Decommanders::DrawIndexedPrimitive:
-		break;
-	case STS_Decommanders::DrawPrimitiveUp:
-		break;
-	case STS_Decommanders::DrawIndexedPrimitiveUp:
-		break;
+		return L"DrawIndexedPrimitive";
+	case STS_Decommanders::DrawPrimitiveUP:
+		return L"DrawPrimitiveUP";
+	case STS_Decommanders::DrawIndexedPrimitiveUP:
+		return L"DrawIndexedPrimitiveUP";
 	case STS_Decommanders::ProcessVertices:
-		break;
+		return L"ProcessVertices";
 	case STS_Decommanders::SetStreamSource:
-		break;
-	case STS_Decommanders::GetStremSource:
-		break;
+		return L"SetStreamSource";
+	case STS_Decommanders::GetStreamSource:
+		return L"GetStreamSource";
 	case STS_Decommanders::SetIndices:
-		break;
+		return L"SetIndices";
 	case STS_Decommanders::GetIndices:
-		break;
+		return L"GetIndices";
 	case STS_Decommanders::DrawRectPatch:
-		break;
+		return L"DrawRectPatch";
 	case STS_Decommanders::DrawTriPatch:
-		break;
+		return L"DrawTriPatch";
 	case STS_Decommanders::SC_Present:
-		break;
+		return L"SC_Present";
 	case STS_Decommanders::SC_GetFrontBufferData:
-		break;
+		return L"SC_GetFrontBufferData";
 	case STS_Decommanders::SC_GetBackBuffer:
-		break;
+		return L"SC_GetBackBuffer";
 	case STS_Decommanders::SB_Apply:
-		break;
-	default:
-		break;
+		return L"SB_Apply";
 	}
 
 	return L"x";
@@ -447,8 +397,8 @@ DWORD StereoSplitter::GetCommanderType(DWORD unCommanderIndex)
 {
 	switch ((STS_Commanders)unCommanderIndex)
 	{
-	case StereoData:
-		break;
+	case STS_Commanders::StereoData_Splitter:
+		return VLink::Link(VLink::_L::StereoData);
 	default:
 		break;
 	}
@@ -463,99 +413,101 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 {
 	switch ((STS_Decommanders)unDecommanderIndex)
 	{
+	case STS_Decommanders::Modifier:
+		return VLink::Link(VLink::_L::ModifierData);
 	case STS_Decommanders::CreateAdditionalSwapchain:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::Present);
 	case STS_Decommanders::GetSwapChain:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetSwapChain);
 	case STS_Decommanders::Reset:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::Reset);
 	case STS_Decommanders::Present:
-		break;
-	case STS_Decommanders::GetBackbuffer:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::Present);
+	case STS_Decommanders::GetBackBuffer:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetBackBuffer);
 	case STS_Decommanders::CreateTexture:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateTexture);
 	case STS_Decommanders::CreateVolumeTexture:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateVolumeTexture);
 	case STS_Decommanders::CreateCubeTexture:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateCubeTexture);
 	case STS_Decommanders::CreateVertexBuffer:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateVertexBuffer);
 	case STS_Decommanders::CreateIndexBuffer:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateIndexBuffer);
 	case STS_Decommanders::CreateRenderTarget:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateRenderTarget);
 	case STS_Decommanders::CreateDepthStencilSurface:
-		break;
-	case STS_Decommanders::UpdateSurfac:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface);
+	case STS_Decommanders::UpdateSurface:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::UpdateSurface);
 	case STS_Decommanders::UpdateTexture:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::UpdateTexture);
 	case STS_Decommanders::GetRenderTargetData:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetRenderTargetData);
 	case STS_Decommanders::GetFrontBufferData:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetFrontBufferData);
 	case STS_Decommanders::StretchRect:
-		break;
-	case STS_Decommanders::Colorfill:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::StretchRect);
+	case STS_Decommanders::ColorFill:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::ColorFill);
 	case STS_Decommanders::CreateOffscreenPlainSurface:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface);
 	case STS_Decommanders::SetRenderTarget:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetRenderTarget);
 	case STS_Decommanders::GetRenderTarget:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetRenderTarget);
 	case STS_Decommanders::SetDepthStencilSurface:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface);
 	case STS_Decommanders::GetDepthStencilSurface:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface);
 	case STS_Decommanders::BeginScene:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::BeginScene);
 	case STS_Decommanders::EndScene:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::EndScene);
 	case STS_Decommanders::Clear:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::Clear);
 	case STS_Decommanders::SetViewport:
-		break;
-	case STS_Decommanders::SetRenderstate:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetViewport);
+	case STS_Decommanders::SetRenderState:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetRenderState);
 	case STS_Decommanders::GetTexture:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetTexture);
 	case STS_Decommanders::SetTexture:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetTexture);
 	case STS_Decommanders::DrawPrimitive:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::DrawPrimitive);
 	case STS_Decommanders::DrawIndexedPrimitive:
-		break;
-	case STS_Decommanders::DrawPrimitiveUp:
-		break;
-	case STS_Decommanders::DrawIndexedPrimitiveUp:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive);
+	case STS_Decommanders::DrawPrimitiveUP:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP);
+	case STS_Decommanders::DrawIndexedPrimitiveUP:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP);
 	case STS_Decommanders::ProcessVertices:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::ProcessVertices);
 	case STS_Decommanders::SetStreamSource:
-		break;
-	case STS_Decommanders::GetStremSource:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetStreamSource);
+	case STS_Decommanders::GetStreamSource:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetStreamSource);
 	case STS_Decommanders::SetIndices:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetIndices);
 	case STS_Decommanders::GetIndices:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetIndices);
 	case STS_Decommanders::DrawRectPatch:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::DrawRectPatch);
 	case STS_Decommanders::DrawTriPatch:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::DrawTriPatch);
 	case STS_Decommanders::SC_Present:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DSwapChain9, (int)VMT_IDIRECT3DSWAPCHAIN9::Present);
 	case STS_Decommanders::SC_GetFrontBufferData:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DSwapChain9, (int)VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData);
 	case STS_Decommanders::SC_GetBackBuffer:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DSwapChain9, (int)VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer);
 	case STS_Decommanders::SB_Apply:
-		break;
-	default:
-		break;
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DStateBlock9, (int)VMT_IDIRECT3DSTATEBLOCK9::Apply);
+
 	}
+
 
 	return 0;
 }
@@ -567,8 +519,8 @@ void* StereoSplitter::GetOutputPointer(DWORD unCommanderIndex)
 {
 	switch ((STS_Commanders)unCommanderIndex)
 	{
-	case StereoData:
-		break;
+	case STS_Commanders::StereoData_Splitter:
+		return (void*)&m_sStereoData;
 	default:
 		break;
 	}
@@ -581,101 +533,8 @@ void* StereoSplitter::GetOutputPointer(DWORD unCommanderIndex)
 ***/
 void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 {
-	switch ((STS_Decommanders)unDecommanderIndex)
-	{
-	case STS_Decommanders::CreateAdditionalSwapchain:
-		break;
-	case STS_Decommanders::GetSwapChain:
-		break;
-	case STS_Decommanders::Reset:
-		break;
-	case STS_Decommanders::Present:
-		break;
-	case STS_Decommanders::GetBackbuffer:
-		break;
-	case STS_Decommanders::CreateTexture:
-		break;
-	case STS_Decommanders::CreateVolumeTexture:
-		break;
-	case STS_Decommanders::CreateCubeTexture:
-		break;
-	case STS_Decommanders::CreateVertexBuffer:
-		break;
-	case STS_Decommanders::CreateIndexBuffer:
-		break;
-	case STS_Decommanders::CreateRenderTarget:
-		break;
-	case STS_Decommanders::CreateDepthStencilSurface:
-		break;
-	case STS_Decommanders::UpdateSurfac:
-		break;
-	case STS_Decommanders::UpdateTexture:
-		break;
-	case STS_Decommanders::GetRenderTargetData:
-		break;
-	case STS_Decommanders::GetFrontBufferData:
-		break;
-	case STS_Decommanders::StretchRect:
-		break;
-	case STS_Decommanders::Colorfill:
-		break;
-	case STS_Decommanders::CreateOffscreenPlainSurface:
-		break;
-	case STS_Decommanders::SetRenderTarget:
-		break;
-	case STS_Decommanders::GetRenderTarget:
-		break;
-	case STS_Decommanders::SetDepthStencilSurface:
-		break;
-	case STS_Decommanders::GetDepthStencilSurface:
-		break;
-	case STS_Decommanders::BeginScene:
-		break;
-	case STS_Decommanders::EndScene:
-		break;
-	case STS_Decommanders::Clear:
-		break;
-	case STS_Decommanders::SetViewport:
-		break;
-	case STS_Decommanders::SetRenderstate:
-		break;
-	case STS_Decommanders::GetTexture:
-		break;
-	case STS_Decommanders::SetTexture:
-		break;
-	case STS_Decommanders::DrawPrimitive:
-		break;
-	case STS_Decommanders::DrawIndexedPrimitive:
-		break;
-	case STS_Decommanders::DrawPrimitiveUp:
-		break;
-	case STS_Decommanders::DrawIndexedPrimitiveUp:
-		break;
-	case STS_Decommanders::ProcessVertices:
-		break;
-	case STS_Decommanders::SetStreamSource:
-		break;
-	case STS_Decommanders::GetStremSource:
-		break;
-	case STS_Decommanders::SetIndices:
-		break;
-	case STS_Decommanders::GetIndices:
-		break;
-	case STS_Decommanders::DrawRectPatch:
-		break;
-	case STS_Decommanders::DrawTriPatch:
-		break;
-	case STS_Decommanders::SC_Present:
-		break;
-	case STS_Decommanders::SC_GetFrontBufferData:
-		break;
-	case STS_Decommanders::SC_GetBackBuffer:
-		break;
-	case STS_Decommanders::SB_Apply:
-		break;
-	default:
-		break;
-	}
+	if (unDecommanderIndex < NUMBER_OF_DECOMMANDERS)
+		m_ppInput[unDecommanderIndex] = (pData);
 }
 
 /**
@@ -686,62 +545,62 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
 		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
 	{
-		if (nD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+		if (nD3DInterface == (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9)
 		{
-			if ((nD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CLEAR) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETTEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_UPDATESURFACE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_UPDATETEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_STRETCHRECT) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_COLORFILL) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETTEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_RESET) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_BEGINSCENE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVIEWPORT) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATETEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETINDICES) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETINDICES) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEADDITIONALSWAPCHAIN) ||
-				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSWAPCHAIN))
+			if ((nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::Present) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetRenderTarget) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::Clear) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetTexture) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::DrawPrimitive) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetBackBuffer) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::UpdateSurface) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::UpdateTexture) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::StretchRect) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::ColorFill) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetRenderTarget) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetTexture) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::Reset) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::BeginScene) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::EndScene) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::DrawRectPatch) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::DrawTriPatch) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetRenderState) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetViewport) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateTexture) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateVolumeTexture) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateCubeTexture) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateVertexBuffer) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateIndexBuffer) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateRenderTarget) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetRenderTargetData) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetFrontBufferData) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::ProcessVertices) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetStreamSource) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetStreamSource) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetIndices) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetIndices) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetSwapChain))
 				return true;
 		}
-		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+		else if (nD3DInterface == (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DSwapChain9)
 		{
-			if ((nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT) ||
-				(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER) ||
-				(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA)) return true;
+			if ((nD3DMethod == (int)VMT_IDIRECT3DSWAPCHAIN9::Present) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData)) return true;
 		}
-		else if (nD3DInterface == INTERFACE_IDIRECT3DSTATEBLOCK9)
+		else if (nD3DInterface == (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DStateBlock9)
 		{
-			if (nD3DMethod == METHOD_IDIRECT3DSTATEBLOCK9_APPLY) return true;
+			if (nD3DMethod == (int)VMT_IDIRECT3DSTATEBLOCK9::Apply) return true;
 		}
-		else if (nD3DInterface == INTERFACE_D3DX9) return true;
+		else if (nD3DInterface == (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::D3DX9) return true;
 	}
 	return false;
 }
@@ -803,12 +662,12 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	switch (eD3DInterface)
 	{
 #pragma region IDirect3DDevice9
-	case INTERFACE_IDIRECT3DDEVICE9:
+	case (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9:
 	{
 		switch (eD3DMethod)
 		{
 #pragma region Present
-		case METHOD_IDIRECT3DDEVICE9_PRESENT:
+		case (int)VMT_IDIRECT3DDEVICE9::Present:
 		{
 			static int s_nPresentStartCount = 3;
 			if (s_nPresentStartCount <= 0)
@@ -819,19 +678,19 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 #pragma endregion
 #pragma region BeginScene
-		case METHOD_IDIRECT3DDEVICE9_BEGINSCENE:
+		case (int)VMT_IDIRECT3DDEVICE9::BeginScene:
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 			return nullptr;
 #pragma endregion 
 #pragma region EndScene
-		case METHOD_IDIRECT3DDEVICE9_ENDSCENE:
+		case (int)VMT_IDIRECT3DDEVICE9::EndScene:
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 			return nullptr;
 #pragma endregion 
 #pragma region SetRenderTarget
-		case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
+		case (int)VMT_IDIRECT3DDEVICE9::SetRenderTarget:
 			/*if (!m_punRenderTargetIndex) return nullptr;
 			if (!m_ppcRenderTarget) return nullptr;
 
@@ -932,7 +791,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region SetDepthStencilSurface
-		case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
+		case (int)VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:
 
 			SHOW_CALL("SetDepthStencilSurface");
 
@@ -1043,7 +902,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region SetTexture
-		case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
+		case (int)VMT_IDIRECT3DDEVICE9::SetTexture:
 
 			SHOW_CALL("SetTexture");
 
@@ -1169,7 +1028,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region Clear
-		case METHOD_IDIRECT3DDEVICE9_CLEAR:
+		case (int)VMT_IDIRECT3DDEVICE9::Clear:
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -1191,7 +1050,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region DrawPrimitive
-		case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
+		case (int)VMT_IDIRECT3DDEVICE9::DrawPrimitive:
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -1213,7 +1072,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region DrawIndexedPrimitive
-		case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE:
+		case (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive:
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -1235,7 +1094,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region DrawPrimitiveUP
-		case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
+		case (int)VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP:
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -1257,7 +1116,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region DrawIndexedPrimitiveUP
-		case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP:
+		case (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP:
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -1279,7 +1138,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region UpdateSurface
-		case METHOD_IDIRECT3DDEVICE9_UPDATESURFACE:
+		case (int)VMT_IDIRECT3DDEVICE9::UpdateSurface:
 			/*if (!m_ppSourceSurface) return nullptr;
 			if (!m_ppcSourceRect) return nullptr;
 			if (!m_ppcDestinationSurface) return nullptr;
@@ -1347,7 +1206,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion  
 #pragma region UpdateTexture
-		case METHOD_IDIRECT3DDEVICE9_UPDATETEXTURE:
+		case (int)VMT_IDIRECT3DDEVICE9::UpdateTexture:
 			/*if (!m_ppcSourceTexture) return nullptr;
 			if (!m_ppcDestinationTexture) return nullptr;
 			if (!(*m_ppcSourceTexture)) return nullptr;
@@ -1416,7 +1275,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion   
 #pragma region StretchRect 
-		case METHOD_IDIRECT3DDEVICE9_STRETCHRECT:
+		case (int)VMT_IDIRECT3DDEVICE9::StretchRect:
 			/*if (!m_ppcSourceSurface_StretchRect) return nullptr;
 			if (!m_ppcSourceRect_StretchRect) return nullptr;
 			if (!m_ppcDestSurface_StretchRect) return nullptr;
@@ -1490,7 +1349,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion  
 #pragma region ColorFill
-		case METHOD_IDIRECT3DDEVICE9_COLORFILL:
+		case (int)VMT_IDIRECT3DDEVICE9::ColorFill:
 			/*if (!m_ppcSurface) return nullptr;
 			if (!m_ppsRect) return nullptr;
 			if (!m_punColor) return nullptr;
@@ -1523,7 +1382,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion 
 #pragma region GetBackBuffer
-		case METHOD_IDIRECT3DDEVICE9_GETBACKBUFFER:
+		case (int)VMT_IDIRECT3DDEVICE9::GetBackBuffer:
 			// D3D9Ex device used ? in case enumerate swapchains and create proxy back buffers on request
 			/*if (m_bUseD3D9Ex)
 			{
@@ -1558,7 +1417,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion 
 #pragma region GetRenderTarget
-		case METHOD_IDIRECT3DDEVICE9_GETRENDERTARGET:
+		case (int)VMT_IDIRECT3DDEVICE9::GetRenderTarget:
 			/*if (m_bUseD3D9Ex)
 			{
 				SHOW_CALL("GetRenderTarget");
@@ -1611,7 +1470,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion 
 #pragma region GetDepthStencilSurface
-		case METHOD_IDIRECT3DDEVICE9_GETDEPTHSTENCILSURFACE:
+		case (int)VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:
 			/*if (m_bUseD3D9Ex)
 			{
 				SHOW_CALL("GetDepthStencilSurface");
@@ -1649,7 +1508,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion  
 #pragma region GetTexture 
-		case METHOD_IDIRECT3DDEVICE9_GETTEXTURE:
+		case (int)VMT_IDIRECT3DDEVICE9::GetTexture:
 			/*if (m_bUseD3D9Ex)
 			{
 				SHOW_CALL("GetTexture");
@@ -1716,7 +1575,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion  
 #pragma region Reset
-		case METHOD_IDIRECT3DDEVICE9_RESET:
+		case (int)VMT_IDIRECT3DDEVICE9::Reset:
 			/*if (m_bUseD3D9Ex)
 			{
 				for (UINT unI = 0; unI < (UINT)m_apcActiveSwapChains.size(); unI++)
@@ -1768,17 +1627,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion 
 #pragma region DrawRectPatch
-		case METHOD_IDIRECT3DDEVICE9_DRAWRECTPATCH:
+		case (int)VMT_IDIRECT3DDEVICE9::DrawRectPatch:
 			// TODO !!
 			return nullptr;
 #pragma endregion  
 #pragma region DrawTriPatch
-		case METHOD_IDIRECT3DDEVICE9_DRAWTRIPATCH:
+		case (int)VMT_IDIRECT3DDEVICE9::DrawTriPatch:
 			// TODO !!
 			return nullptr;
 #pragma endregion 
 #pragma region SetRenderState
-		case METHOD_IDIRECT3DDEVICE9_SETRENDERSTATE:
+		case (int)VMT_IDIRECT3DDEVICE9::SetRenderState:
 			/*if (!m_peState) return nullptr;
 			if (!m_punValue) return nullptr;
 			else
@@ -1828,7 +1687,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region SetViewport
-		case METHOD_IDIRECT3DDEVICE9_SETVIEWPORT:
+		case (int)VMT_IDIRECT3DDEVICE9::SetViewport:
 			/*if (m_ppsViewport)
 			{
 				nHr = SetViewport((IDirect3DDevice9*)pThis, *m_ppsViewport);
@@ -1840,7 +1699,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateTexture
-		case METHOD_IDIRECT3DDEVICE9_CREATETEXTURE:
+		case (int)VMT_IDIRECT3DDEVICE9::CreateTexture:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punWidth) return nullptr;
@@ -1917,7 +1776,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateVolumeTexture
-		case  METHOD_IDIRECT3DDEVICE9_CREATEVOLUMETEXTURE:
+		case  (int)VMT_IDIRECT3DDEVICE9::CreateVolumeTexture:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punWidth) return nullptr;
@@ -1965,7 +1824,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateCubeTexture
-		case  METHOD_IDIRECT3DDEVICE9_CREATECUBETEXTURE:
+		case  (int)VMT_IDIRECT3DDEVICE9::CreateCubeTexture:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punEdgeLength) return nullptr;
@@ -2030,7 +1889,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateVertexBuffer
-		case  METHOD_IDIRECT3DDEVICE9_CREATEVERTEXBUFFER:
+		case  (int)VMT_IDIRECT3DDEVICE9::CreateVertexBuffer:
 			/*if (m_bUseD3D9Ex)
 			{
 				SHOW_CALL("CreateVertexBuffer");
@@ -2066,7 +1925,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateIndexBuffer
-		case  METHOD_IDIRECT3DDEVICE9_CREATEINDEXBUFFER:
+		case  (int)VMT_IDIRECT3DDEVICE9::CreateIndexBuffer:
 			/*if (m_bUseD3D9Ex)
 			{
 				SHOW_CALL("CreateIndexBuffer");
@@ -2085,7 +1944,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateRenderTarget
-		case  METHOD_IDIRECT3DDEVICE9_CREATERENDERTARGET:
+		case  (int)VMT_IDIRECT3DDEVICE9::CreateRenderTarget:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punWidth) return nullptr;
@@ -2177,7 +2036,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateDepthStencilSurface
-		case  METHOD_IDIRECT3DDEVICE9_CREATEDEPTHSTENCILSURFACE:
+		case  (int)VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punWidth) return nullptr;
@@ -2245,7 +2104,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region CreateOffscreenPlainSurface
-		case METHOD_IDIRECT3DDEVICE9_CREATEOFFSCREENPLAINSURFACE:
+		case (int)VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punWidth) return nullptr;
@@ -2295,7 +2154,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region GetRendertargetData
-		case  METHOD_IDIRECT3DDEVICE9_GETRENDERTARGETDATA:
+		case  (int)VMT_IDIRECT3DDEVICE9::GetRenderTargetData:
 			// use D3D9Ex device ? handle proxy surfaces instead of private interfaces.. code from driver <v3
 			/*if (m_bUseD3D9Ex)
 			{
@@ -2353,7 +2212,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region GetFrontBufferData
-		case METHOD_IDIRECT3DDEVICE9_GETFRONTBUFFERDATA:
+		case (int)VMT_IDIRECT3DDEVICE9::GetFrontBufferData:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punISwapChain) return nullptr;
@@ -2389,7 +2248,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ProcessVertices
-		case METHOD_IDIRECT3DDEVICE9_PROCESSVERTICES:
+		case (int)VMT_IDIRECT3DDEVICE9::ProcessVertices:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punSrcStartIndex) return nullptr; // ->ProcessVertices()
@@ -2409,7 +2268,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region SetStreamSource
-		case METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE:
+		case (int)VMT_IDIRECT3DDEVICE9::SetStreamSource:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punStreamNumber) return nullptr; // ->SetStreamSource(), ->GetStreamSource()
@@ -2465,7 +2324,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region GetStreamSource
-		case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE:
+		case (int)VMT_IDIRECT3DDEVICE9::GetStreamSource:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punStreamNumber) return nullptr;
@@ -2492,17 +2351,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region SetIndices
-		case METHOD_IDIRECT3DDEVICE9_SETINDICES:
+		case (int)VMT_IDIRECT3DDEVICE9::SetIndices:
 
 			return nullptr;
 #pragma endregion
 #pragma region GetIndices
-		case METHOD_IDIRECT3DDEVICE9_GETINDICES:
+		case (int)VMT_IDIRECT3DDEVICE9::GetIndices:
 
 			return nullptr;
 #pragma endregion
 #pragma region CreateAdditionalSwapChain
-		case METHOD_IDIRECT3DDEVICE9_CREATEADDITIONALSWAPCHAIN:
+		case (int)VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_ppsPresentationParams) return nullptr;
@@ -2527,7 +2386,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region GetSwapChain
-		case METHOD_IDIRECT3DDEVICE9_GETSWAPCHAIN:
+		case (int)VMT_IDIRECT3DDEVICE9::GetSwapChain:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punISwapChain) return nullptr;
@@ -2557,10 +2416,10 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	}
 #pragma endregion
 #pragma region IDirect3DSwapChain9
-	case INTERFACE_IDIRECT3DSWAPCHAIN9:
+	case (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DSwapChain9:
 		switch (eD3DMethod)
 		{
-		case METHOD_IDIRECT3DSWAPCHAIN9_PRESENT:
+		case (int)VMT_IDIRECT3DSWAPCHAIN9::Present:
 		{
 
 			// get the device and call present
@@ -2583,7 +2442,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			}*/
 		}
 		return nullptr;
-		case METHOD_IDIRECT3DSWAPCHAIN9_GETBACKBUFFER:
+		case (int)VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer:
 			/*if (m_bUseD3D9Ex)
 			{
 				if (!m_punIBackBuffer) return nullptr;
@@ -2601,7 +2460,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 			}*/
 			return nullptr;
-		case METHOD_IDIRECT3DSWAPCHAIN9_GETFRONTBUFFERDATA:
+		case (int)VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData:
 			/*if (m_bUseD3D9Ex)
 			{
 				SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
@@ -2645,10 +2504,10 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 #pragma endregion
 #pragma region IDirect3DStateBlock9
-	case INTERFACE_IDIRECT3DSTATEBLOCK9:
+	case (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DStateBlock9:
 		switch (eD3DMethod)
 		{
-		case METHOD_IDIRECT3DSTATEBLOCK9_APPLY:
+		case (int)VMT_IDIRECT3DSTATEBLOCK9::Apply:
 			Apply();
 			return nullptr;
 		}
@@ -3634,8 +3493,8 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 					wsprintf(buf, L"sDesc.MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
 					wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
 #endif
-				}
 			}
+		}
 			else
 				if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
 				{
@@ -3651,8 +3510,8 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 						wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
 #endif
 						pcStereoTwinSurface = nullptr;
-					}
 				}
+	}
 
 			// update resource and set private data
 			if (pcStereoTwinSurface)
@@ -3667,7 +3526,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				return pcStereoTwinSurface;
 			}
 			else OutputDebugString(L"[STS] No surface !!");
-		}
+}
 	}
 
 	return nullptr;
@@ -3840,7 +3699,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		rc.left = 10;
 		rc.right = 60;
 		pcDevice->ColorFill(m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT], &rc, D3DCOLOR_ARGB(255, 100, 200, 10));
-	}
+}
 #endif
 
 	// switch depth stencil to new side
@@ -3956,7 +3815,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				* ppcStereoTwinTexture = nullptr;
-			}
+		}
 			else
 			{
 				// update the texture
@@ -3988,7 +3847,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 
 				}
 			}
-		}
+	}
 	}
 	break;
 	case D3DRTYPE_VOLUMETEXTURE:
@@ -4047,7 +3906,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				* ppcStereoTwinTexture = nullptr;
-			}
+		}
 			else
 			{
 				// update the texture
@@ -4082,8 +3941,8 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 					}
 				}
 			}
-		}
 	}
+}
 	default:
 		break;
 	}

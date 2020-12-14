@@ -41,7 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
-// #include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
 
 #include<Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
@@ -126,7 +125,7 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
+	virtual DWORD           GetNodeWidth() { return 512; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }

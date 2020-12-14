@@ -55,7 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-VireioCinema::VireioCinema() :AQU_Nodus(),
+VireioCinema::VireioCinema() : AQU_Nodus(),
 m_sStereoData{},
 m_psTrackerData(nullptr),
 m_psStereoDataIn(nullptr),
