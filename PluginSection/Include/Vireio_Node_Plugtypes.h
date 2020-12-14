@@ -5,10 +5,10 @@ Copyright (C) 2012 Andres Hernandez
 File <Vireio_Node_Plugtypes.h> :
 Copyright (C) 2015 Denis Reischl
 
-The enumerations <AQU_PluginFlags> and <NOD_Plugtype> are public enumerations
-from the Aquilinus repository and permitted to be used for open source
-plugins of any kind.
-Read the Aquilinus documentation for further information.
+
+
+
+
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -17,6 +17,7 @@ v1.1.x 2013 by Primary Coding Author: Chris Drain
 Team Support: John Hicks, Phil Larkson, Neil Schneider
 v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown
 v2.0.4 onwards 2014 by Grant Bagwell, Simon Brown and Neil Schneider
+v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown and Neil Schneider
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by

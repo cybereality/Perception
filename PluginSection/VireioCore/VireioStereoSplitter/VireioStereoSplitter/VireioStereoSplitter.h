@@ -12,10 +12,6 @@ Copyright (C) 2015 Denis Reischl
 Parts of this class directly derive from Vireio source code originally
 authored by Chris Drain (v1.1.x 2013).
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus
-repository and permitted to be used for open source plugins of any kind.
-Read the Aquilinus documentation for further information.
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -23,6 +19,7 @@ v1.1.x 2013 by Primary Coding Author: Chris Drain
 Team Support: John Hicks, Phil Larkson, Neil Schneider
 v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown
 v2.0.4 onwards 2014 by Grant Bagwell, Simon Brown and Neil Schneider
+v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown and Neil Schneider
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -80,6 +77,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"VireioStereoSplitter_Proxy.h"
 #include"D3D9Ex_D3DX9_Methods.h"
+
 #pragma endregion
 
 #pragma region defines
@@ -371,7 +369,7 @@ public:
 	virtual ~StereoSplitter();
 
 	/*** AQU_Nodus public methods ***/
-	virtual const char*     GetNodeType();
+	virtual const char* GetNodeType();
 	virtual UINT            GetNodeTypeId();
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
@@ -379,7 +377,7 @@ public:
 	virtual DWORD           GetNodeWidth() { return 512; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetSaveDataSize();
-	virtual char*           GetSaveData(UINT* pdwSizeOfData);
+	virtual char* GetSaveData(UINT* pdwSizeOfData);
 	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
@@ -387,10 +385,10 @@ public:
 	virtual LPWSTR          GetDecommanderName(DWORD unDecommanderIndex);
 	virtual DWORD           GetCommanderType(DWORD unCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD unDecommanderIndex);
-	virtual void*           GetOutputPointer(DWORD unCommanderIndex);
+	virtual void* GetOutputPointer(DWORD unCommanderIndex);
 	virtual void            SetInputPointer(DWORD unDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
-	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex);
+	virtual void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex);
 	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:
@@ -405,8 +403,8 @@ private:
 	void                    Apply();
 
 	/*** StereoSplitter private methods ***/
-	IDirect3DSurface9*      VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pcSurface);
-	IDirect3DBaseTexture9*  VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, bool bDuplicate);
+	IDirect3DSurface9* VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pcSurface);
+	IDirect3DBaseTexture9* VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, bool bDuplicate);
 	bool                    SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition side);
 	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_psModifierData) m_psModifierData->m_eCurrentRenderingSide = eSide; }
 	void                    CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, IDirect3DBaseTexture9** ppcStereoTwinTexture);
@@ -417,7 +415,7 @@ private:
 	bool                    IsViewportDefaultForMainRT(CONST D3DVIEWPORT9* psViewport);
 	void                    UnWrapProxyTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	D3DFORMAT               GetD3D9ExFormat(D3DFORMAT eFormat);
-	
+
 	/// <summary>
 	/// [OUT] All data this node outputs.
 	/// </summary>
@@ -460,7 +458,7 @@ private:
 	/// 0----------------------------------------------> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT     ----- Left render target views
 	/// D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT -> D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT * 2 ----- Right render target views
 	/// </summary>
-	std::vector<IDirect3DBaseTexture9*> m_apcActiveTexturesDisplacement; 
+	std::vector<IDirect3DBaseTexture9*> m_apcActiveTexturesDisplacement;
 	/// <summary>
 	/// Active stored depth stencil.
 	/// The depth stencil surface that are currently in use.
@@ -508,7 +506,7 @@ private:
 	/// </summary>
 	D3DVIEWPORT9 m_sLastViewportSet;
 #pragma endregion
-
+#pragma region /// => Node fields
 	enum class StereoTechnique
 	{
 		VERSION_3,
@@ -585,12 +583,199 @@ private:
 	/// Frames to save the ini file.
 	/// </summary>
 	INT m_nIniFrameCount;
+#pragma endregion
+	
+#pragma region /// => Version 3 methods
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateAdditionalSwapchain_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetSwapChain_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT Reset_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT Present_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetBackBuffer_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateTexture_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateVolumeTexture_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateCubeTexture_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateVertexBuffer_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateIndexBuffer_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateRenderTarget_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateDepthStencilSurface_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT UpdateSurface_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT UpdateTexture_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetRenderTargetData_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetFrontBufferData_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT StretchRect_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT ColorFill_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT CreateOffscreenPlainSurface_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetRenderTarget_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetRenderTarget_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetDepthStencilSurface_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetDepthStencilSurface_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT BeginScene_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT EndScene_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT Clear_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetViewport_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetRenderState_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetTexture_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetTexture_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT DrawPrimitive_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT DrawIndexedPrimitive_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT DrawPrimitiveUP_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT DrawIndexedPrimitiveUP_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT ProcessVertices_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetStreamSource_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetStreamSource_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SetIndices_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT GetIndices_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT DrawRectPatch_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT DrawTriPatch_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SC_Present_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SC_GetFrontBufferData_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SC_GetBackBuffer_v3(int& nFlags);
+		/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+		HRESULT SB_Apply_v3(int& nFlags);
+#pragma endregion
+	
+#pragma region /// => Version 4 methods
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateAdditionalSwapchain_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetSwapChain_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT Reset_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT Present_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetBackBuffer_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateTexture_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateVolumeTexture_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateCubeTexture_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateVertexBuffer_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateIndexBuffer_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateRenderTarget_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateDepthStencilSurface_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT UpdateSurface_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT UpdateTexture_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetRenderTargetData_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetFrontBufferData_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT StretchRect_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT ColorFill_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateOffscreenPlainSurface_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetRenderTarget_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetRenderTarget_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetDepthStencilSurface_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetDepthStencilSurface_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT BeginScene_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT EndScene_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT Clear_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetViewport_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetRenderState_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetTexture_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetTexture_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT DrawPrimitive_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT DrawIndexedPrimitive_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT DrawPrimitiveUP_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT DrawIndexedPrimitiveUP_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT ProcessVertices_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetStreamSource_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetStreamSource_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetIndices_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetIndices_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT DrawRectPatch_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT DrawTriPatch_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SC_Present_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SC_GetFrontBufferData_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SC_GetBackBuffer_v4(int& nFlags);
+	/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SB_Apply_v4(int& nFlags);
+#pragma endregion
 };
 
 /// <summary>
 /// Exported Constructor Method.
 /// </summary>
-extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
+extern "C" __declspec(dllexport) AQU_Nodus * AQU_Nodus_Create()
 {
 	StereoSplitter* pStereoSplitter = new StereoSplitter();
 	return static_cast<AQU_Nodus*>(pStereoSplitter);

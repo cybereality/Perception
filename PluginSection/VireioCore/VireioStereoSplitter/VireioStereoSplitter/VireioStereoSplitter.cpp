@@ -12,10 +12,6 @@ Copyright (C) 2015 Denis Reischl
 Parts of this class directly derive from Vireio source code originally
 authored by Chris Drain (v1.1.x 2013).
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus
-repository and permitted to be used for open source plugins of any kind.
-Read the Aquilinus documentation for further information.
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -23,6 +19,7 @@ v1.1.x 2013 by Primary Coding Author: Chris Drain
 Team Support: John Hicks, Phil Larkson, Neil Schneider
 v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown
 v2.0.4 onwards 2014 by Grant Bagwell, Simon Brown and Neil Schneider
+v4.0.x 2015 by Denis Reischl, Grant Bagwell, Simon Brown and Neil Schneider
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -656,6 +653,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 	static HRESULT nHr = S_OK;
 
+	// the double call flag is only used within 
+	// drawing methods (for stereo drawing), so
+	// set it here anyway
 	if (m_bPresent)
 		nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
 
@@ -3493,8 +3493,8 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 					wsprintf(buf, L"sDesc.MultiSampleType %u", sDesc.MultiSampleType); OutputDebugString(buf);
 					wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
 #endif
+				}
 			}
-		}
 			else
 				if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
 				{
@@ -3510,8 +3510,8 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 						wsprintf(buf, L"sDesc.MultiSampleQuality %u", sDesc.MultiSampleQuality); OutputDebugString(buf);
 #endif
 						pcStereoTwinSurface = nullptr;
+					}
 				}
-	}
 
 			// update resource and set private data
 			if (pcStereoTwinSurface)
@@ -3526,7 +3526,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				return pcStereoTwinSurface;
 			}
 			else OutputDebugString(L"[STS] No surface !!");
-}
+		}
 	}
 
 	return nullptr;
@@ -3699,7 +3699,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		rc.left = 10;
 		rc.right = 60;
 		pcDevice->ColorFill(m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT], &rc, D3DCOLOR_ARGB(255, 100, 200, 10));
-}
+	}
 #endif
 
 	// switch depth stencil to new side
@@ -3815,7 +3815,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				* ppcStereoTwinTexture = nullptr;
-		}
+			}
 			else
 			{
 				// update the texture
@@ -3847,7 +3847,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 
 				}
 			}
-	}
+		}
 	}
 	break;
 	case D3DRTYPE_VOLUMETEXTURE:
@@ -3906,7 +3906,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				* ppcStereoTwinTexture = nullptr;
-		}
+			}
 			else
 			{
 				// update the texture
@@ -3941,8 +3941,8 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 					}
 				}
 			}
+		}
 	}
-}
 	default:
 		break;
 	}
@@ -4391,3 +4391,188 @@ D3DFORMAT StereoSplitter::GetD3D9ExFormat(D3DFORMAT eFormat)
 	}
 	return eFormat;
 }
+
+#pragma region /// => Version 3
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateAdditionalSwapchain_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetSwapChain_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::Reset_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::Present_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetBackBuffer_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateTexture_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateVolumeTexture_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateCubeTexture_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateVertexBuffer_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateIndexBuffer_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateRenderTarget_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateDepthStencilSurface_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::UpdateSurface_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::UpdateTexture_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetRenderTargetData_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetFrontBufferData_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::StretchRect_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::ColorFill_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateOffscreenPlainSurface_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetRenderTarget_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetRenderTarget_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetDepthStencilSurface_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetDepthStencilSurface_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::BeginScene_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::EndScene_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::Clear_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetViewport_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetRenderState_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetTexture_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetTexture_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawPrimitive_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawIndexedPrimitive_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawPrimitiveUP_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawIndexedPrimitiveUP_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::ProcessVertices_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetStreamSource_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetStreamSource_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetIndices_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetIndices_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawRectPatch_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawTriPatch_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SC_Present_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SC_GetFrontBufferData_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SC_GetBackBuffer_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 3 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SB_Apply_v3(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+#pragma endregion
+#pragma region /// => Version 4
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateAdditionalSwapchain_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetSwapChain_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::Reset_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::Present_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetBackBuffer_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateTexture_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateVolumeTexture_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateCubeTexture_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateVertexBuffer_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateIndexBuffer_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateRenderTarget_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateDepthStencilSurface_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::UpdateSurface_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::UpdateTexture_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetRenderTargetData_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetFrontBufferData_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::StretchRect_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::ColorFill_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::CreateOffscreenPlainSurface_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetRenderTarget_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetRenderTarget_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetDepthStencilSurface_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetDepthStencilSurface_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::BeginScene_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::EndScene_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::Clear_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetViewport_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetRenderState_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetTexture_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetTexture_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawPrimitive_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawIndexedPrimitive_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawPrimitiveUP_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawIndexedPrimitiveUP_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::ProcessVertices_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetStreamSource_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetStreamSource_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SetIndices_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::GetIndices_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawRectPatch_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::DrawTriPatch_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SC_Present_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SC_GetFrontBufferData_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SC_GetBackBuffer_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+/// <summary>Version 4 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT StereoSplitter::SB_Apply_v4(int& nFlags) { return ERROR_CALL_NOT_IMPLEMENTED; }
+#pragma endregion

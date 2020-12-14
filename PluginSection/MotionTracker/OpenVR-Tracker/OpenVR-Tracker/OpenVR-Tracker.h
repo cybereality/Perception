@@ -9,9 +9,7 @@ File <OpenVR-Tracker.h> and
 Class <OpenVR-Tracker> :
 Copyright (C) 2016 Denis Reischl
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus
-repository and permitted to be used for open source plugins of any kind.
-Read the Aquilinus documentation for further information.
+
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
