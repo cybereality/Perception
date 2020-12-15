@@ -106,7 +106,7 @@ public:
 	virtual UINT            GetNodeTypeId();
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
-	virtual DWORD           GetNodeWidth() { return 512; }
+	virtual DWORD           GetNodeWidth() { return g_uGlobalNodeWidth; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }

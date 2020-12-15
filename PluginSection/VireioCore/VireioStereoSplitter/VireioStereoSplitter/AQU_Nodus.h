@@ -9,10 +9,6 @@ File <AQU_Nodus.h> and
 Class <AQU_Nodus> :
 Copyright (C) 2015 Denis Reischl
 
- 
-
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider

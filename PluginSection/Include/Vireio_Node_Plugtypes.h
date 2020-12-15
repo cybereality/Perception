@@ -5,11 +5,6 @@ Copyright (C) 2012 Andres Hernandez
 File <Vireio_Node_Plugtypes.h> :
 Copyright (C) 2015 Denis Reischl
 
-
-
-
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -40,6 +35,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..//..//Aquilinus/Aquilinus//AQU_NodesStructures.h"
 #include"..\..\..\Include\VireioMenu.h"
 
+#pragma region global fields
+/// <summary>
+/// Global node width.
+/// Do NOT change that ! Bound to node drawing functionality !
+/// </summary>
+constexpr DWORD g_uGlobalNodeWidth = 512;
+
 /// <summary>
 /// Plugin flags
 /// </summary>
@@ -48,6 +50,7 @@ enum AQU_PluginFlags
 	DoubleCallFlag = 512,       /** Double call : call D3D method -> provoke -> call D3D method **/
 	ImmediateReturnFlag = 1024, /** Immediate return : D3D method call replaced by plugin **/
 };
+#pragma endregion
 
 /// <summary>
 /// All Vireio plugin connections identifiers

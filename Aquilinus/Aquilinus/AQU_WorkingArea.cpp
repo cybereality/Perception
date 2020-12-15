@@ -400,7 +400,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						// and save...
 						m_pcTransferSite->m_pFileManager->SaveWorkingArea(m_pcTransferSite->m_pConfig, &m_paNodes, MAX_INTERFACES_NUMBER);
 					}
-					if (ImGui::MenuItem("Compile...", "CTRL+C")) 
+					if (ImGui::MenuItem("Compile...", "CTRL+C"))
 					{
 						// set config bool
 						m_pcTransferSite->m_pConfig->bExternalSave = (BOOL)s_bExtern;
@@ -414,14 +414,14 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				}
 				if (ImGui::BeginMenu("Edit"))
 				{
-					if (ImGui::MenuItem("Reinstate", "CTRL+Z")) 
+					if (ImGui::MenuItem("Reinstate", "CTRL+Z"))
 					{
 						CreateThread(NULL, 0, m_pcTransferSite->m_pD3D9ReinstateInterfaces, NULL, 0, NULL);
 						//CreateThread(NULL, 0, m_pcTransferSite->m_pD3D929ReinstateInterfaces, NULL, 0, NULL);
 						CreateThread(NULL, 0, m_pcTransferSite->m_pD3D10ReinstateInterfaces, NULL, 0, NULL);
 						CreateThread(NULL, 0, m_pcTransferSite->m_pD3D11ReinstateInterfaces, NULL, 0, NULL);
 					}
-					if (ImGui::MenuItem("Delete loose", "CTRL+Y")) 
+					if (ImGui::MenuItem("Delete loose", "CTRL+Y"))
 					{
 						// loop through nodes, delete all unconnected
 						for (UINT unI = 0; unI < (UINT)m_paNodes.size(); unI++)
@@ -604,6 +604,43 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 			ImGui::SetNextWindowSize(ImVec2((float)m_nWindowWidth - sPosCanvas.x, (float)m_nWindowHeight - sPosCanvas.y), ImGuiCond_FirstUseEver);
 			if (ImGui::Begin("ImNodes", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
 			{
+				// show node controls if true
+				static bool s_bShowNodeControls = false;
+
+				// top left canvas buttons
+				if (ImGui::Button(" -><- "))
+				{
+					// center
+					canvas.offset = ImVec2(0.f, 0.f);
+				}
+				ImGui::SameLine();
+				
+				// toggle button main functionality.. put into method if needed more often
+				{
+					if (s_bShowNodeControls == true)
+					{
+						ImGui::PushID(" ... ");
+						ImVec4 sColB = ImGui::GetStyleColorVec4(ImGuiCol_Button); sColB.x = 1.f - sColB.x; sColB.y = 1.f - sColB.y; sColB.z = 1.f - sColB.z;
+						ImVec4 sColBH = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered); sColBH.x = 1.f - sColBH.x; sColBH.y = 1.f - sColBH.y; sColBH.z = 1.f - sColBH.z;
+						ImVec4 sColBA = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive); sColBA.x = 1.f - sColBA.x; sColBA.y = 1.f - sColBA.y; sColBA.z = 1.f - sColBA.z;
+						ImGui::PushStyleColor(ImGuiCol_Button, sColB);
+						ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sColBH);
+						ImGui::PushStyleColor(ImGuiCol_ButtonActive, sColBA);
+						ImGui::Button(" ... ");
+						if (ImGui::IsItemClicked(0))
+						{
+							s_bShowNodeControls = !s_bShowNodeControls;
+						}
+						ImGui::PopStyleColor(3);
+						ImGui::PopID();
+					}
+					else
+					{
+						if (ImGui::Button(" ... "))
+							s_bShowNodeControls = true;
+					}
+				}
+
 				ImNodes::BeginCanvas(&canvas);
 
 				// draw a cross in the center of the canvas...
@@ -724,7 +761,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				ImGui::SetCursorPos(sPosOld);
 
 #pragma endregion
-			// => <main loop window> connectors + nodes
+				// => <main loop window> connectors + nodes
 #pragma region connectors + nodes
 
 				// update / draw the nodes
@@ -811,6 +848,28 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						}
 						ImGui::EndGroup();
 
+						// reset cursor position
+						ImGui::SetCursorPos(sPos);
+
+						// draw controls ??
+						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN)  && (s_bShowNodeControls))
+						{
+							// add 5 * standard ImGui Border size here
+							const float fBorderSize = 1.f;
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * fBorderSize);
+
+							ImGui::BeginChild("Test Control", m_paNodes[i]->GetNodeSize());
+							ImGui::Text("This is a test control");
+							ImGui::Button("AAA"); ImGui::SameLine();
+							ImGui::Button("BBB"); ImGui::SameLine();
+							ImGui::Button("CCC");
+							const float values[5] = { 0.5f, 0.20f, 0.80f, 0.60f, 0.25f };
+							ImGui::PlotHistogram("##values", values, IM_ARRAYSIZE(values), 0, NULL, 0.0f, 1.0f, ImVec2(100.f, 50.f));
+							static int lines = 7;
+							ImGui::SliderInt("Lines", &lines, 1, 15);
+							ImGui::EndChild();
+						}
+
 						ImGui::EndGroup();
 						ImNodes::EndNode();
 					}
@@ -822,7 +881,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						{
 							// get destination node index and update connection
 							LONG lDestNodeIndex = m_paNodes[i]->m_paCommanders[j]->m_paDecommanders[k]->m_lNodeIndex;
-							ImNodes::Connection((void*)m_paNodes[lDestNodeIndex], m_paNodes[i]->m_paCommanders[j]->m_paDecommanders[k]->m_szTitleA, 
+							ImNodes::Connection((void*)m_paNodes[lDestNodeIndex], m_paNodes[i]->m_paCommanders[j]->m_paDecommanders[k]->m_szTitleA,
 								(void*)m_paNodes[i], m_paNodes[i]->m_paCommanders[j]->m_szTitleA);
 						}
 					}
@@ -846,7 +905,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					if ((!pNodeIn) || (!pcInput_slot) || (!pNodeOut) || (!pcOutput_slot)) break;
 					std::string acIn = std::string(pcInput_slot);
 					std::string acOut = std::string(pcOutput_slot);
-					
+
 					// get the input node index 
 					int nIx = -1;
 					for (int nI = 0; nI < (int)m_paNodes.size(); nI++)
@@ -993,7 +1052,7 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 				// and write to stream
 				sstrDataStream.read((char*)&idPlugin, sizeof(unsigned __int32));
 				sstrDataStream.read((char*)&szFileName[0], sizeof(wchar_t) * 64);
-				
+
 				// create full path
 				wsprintf(szFilePath, L"%s%s", m_pcTransferSite->m_pFileManager->GetPluginPath(), szFileName);
 
@@ -1038,7 +1097,7 @@ HRESULT AQU_WorkingArea::s_LoadWorkSpace()
 
 			// and add the node
 			m_paNodes[i] = pNode;
-			delete [] pcData;
+			delete[] pcData;
 		}
 
 		delete pProvider;
@@ -1123,11 +1182,11 @@ HRESULT AQU_WorkingArea::s_EnumeratePlugins(LPCWSTR szDllPath)
 
 	// create plugins path
 	wsprintf(szDir, L"%s%s", szDllPath, L"*");
-//#ifdef _DEBUG
+	//#ifdef _DEBUG
 	OutputDebugString(szDir);
-//#endif
+	//#endif
 
-	// find first file
+		// find first file
 	hFind = FindFirstFile(szDir, &ffd);
 
 	if (INVALID_HANDLE_VALUE == hFind)
