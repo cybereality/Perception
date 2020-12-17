@@ -12,8 +12,6 @@ Copyright (C) 2015 Denis Reischl
 Parts of this class directly derive from Vireio source code originally
 authored by Chris Drain (v1.1.x 2013).
 
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -146,9 +144,6 @@ m_adwPageIDs(0, 0),
 m_aunGlobalConstantRuleIndices(),
 #if defined(VIREIO_D3D9)
 m_asShaderSpecificRuleIndices(),
-m_ppfConstantData(nullptr),
-m_ppnConstantData(nullptr),
-m_ppbConstantData(nullptr),
 #endif
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
@@ -160,12 +155,6 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 
 	// init constant rule vector, otherwise pointer to vector may not work
 	m_asConstantRules = std::vector<Vireio_Constant_Modification_Rule>();
-
-	// Vireio GUI is always null at begin... since in a compiled profile it is never used
-	m_pcVireioGUI = nullptr;
-
-	// manually fill the HMD info here.... TODO !!
-	m_psHmdInfo = new HMDisplayInfo_OculusRift();
 
 	// at start, set the view adjustment class to basic config
 	ZeroMemory(&m_sGameConfiguration, sizeof(Vireio_GameConfiguration));
@@ -191,7 +180,7 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 	m_sGameConfiguration.fPositionYMultiplier = DEFAULT_POS_TRACKING_Y_MULT;
 	m_sGameConfiguration.fPositionZMultiplier = DEFAULT_POS_TRACKING_Z_MULT;
 	m_sGameConfiguration.bPFOVToggle = false;
-	m_pcShaderViewAdjustment = std::make_shared<ViewAdjustment>(m_psHmdInfo, &m_sGameConfiguration);
+	m_pcShaderElementCalculation = std::make_shared<ElementCalculation>(&m_sGameConfiguration);
 
 	// clear GUI page structures and tracker input array
 	ZeroMemory(&m_sPageDebug, sizeof(PageDebug));
@@ -349,7 +338,7 @@ m_eCurrentRenderingSide(RenderPosition::Left)
 ***/
 MatrixModifier::~MatrixModifier()
 {
-	m_pcShaderViewAdjustment.reset();
+	m_pcShaderElementCalculation.reset();
 }
 
 /**
@@ -406,11 +395,6 @@ HBITMAP MatrixModifier::GetLogo()
 ***/
 HBITMAP MatrixModifier::GetControl()
 {
-	// here we create the Vireio GUI.... if this runs under a compiled profile this method is never called
-	if (!m_pcVireioGUI)
-		CreateGUI();
-	else
-		return m_pcVireioGUI->GetGUI(false, true, false, false);
 
 	return nullptr;
 }
@@ -549,9 +533,9 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 					Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule(&sRuleNormalized);
 					{ wchar_t buf[128]; wsprintf(buf, L"[Vireio] Mod : %u Reg : %u RegCount : %u", sRule.m_dwOperationToApply, sRule.m_dwStartRegIndex, sRule.m_dwRegisterCount); OutputDebugString(buf); }
 					if (sRule.m_dwRegisterCount == 1)
-						sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+						sRule.m_pcModification = CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderElementCalculation);
 					else if (sRule.m_dwRegisterCount == 4)
-						sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+						sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderElementCalculation, sRule.m_bTranspose);
 					else sRule.m_pcModification = nullptr;
 					m_asConstantRules.push_back(sRule);
 
@@ -762,10 +746,10 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sMenu.asEntries.push_back(sEntry);
 	}
 
-	// init
-	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
-	m_pcShaderViewAdjustment->ComputeViewTransforms();
+	// TODO !!! Shader element calculation class !!
+	/*m_pcShaderElementCalculation->Load(m_sGameConfiguration);
+	m_pcShaderElementCalculation->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
+	m_pcShaderElementCalculation->ComputeViewTransforms();*/
 }
 
 /**
@@ -826,14 +810,10 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
-		case eDrawingSide:
-			return L"Stereo Drawing Side";
-		case pasVShaderConstantIndices:
-			return L"pasVShaderConstantIndices";
-		case pasPShaderConstantIndices:
-			return L"pasPShaderConstantIndices";
-		case VireioMenu:
-			return L"Vireio Menu";
+	case Modifier:
+		break;
+	default:
+		break;
 	}
 #endif
 
@@ -960,70 +940,50 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-		case pShader_Vertex:
-			return L"pShader_Vertex";
-		case pShader_Pixel:
-			return L"pShader_Pixel";
-		case State:
-			return L"State";
-		case pMatrix:
-			return L"pMatrix";
-		case State_Multiply:
-			return L"State_Multiply";
-		case pMatrix_Multiply:
-			return L"pMatrix_Multiply";
-		case StartRegister:
-			return L"StartRegister_VS";
-		case pConstantData:
-			return L"pConstantData_VS";
-		case Vector4fCount:
-			return L"Vector4fCount_VS";
-		case StreamNumber:
-			return L"StreamNumber";
-		case pStreamData:
-			return L"pStreamData";
-		case OffsetInBytes:
-			return L"OffsetInBytes";
-		case Stride:
-			return L"Stride";
-		case StreamNumber_Get:
-			return L"StreamNumber_Get";
-		case ppStreamData_Get:
-			return L"ppStreamData_Get";
-		case pOffsetInBytes_Get:
-			return L"pOffsetInBytes_Get";
-		case pStride_Get:
-			return L"pStride_Get";
-		case pFunction:
-			return L"pFunction";
-		case ppShader_Vertex:
-			return L"ppShader_Vertex";
-		case ppShader_Pixel:
-			return L"ppShader_Pixel";
-		case pnConstantData:
-			return L"pnConstantData";
-		case pbConstantData:
-			return L"pbConstantData";
-		case Pitch:
-			return L"Pitch";
-		case Yaw:
-			return L"Yaw";
-		case Roll:
-			return L"Roll";
-		case OrientationW:
-			return L"OrientationW";
-		case OrientationX:
-			return L"OrientationX";
-		case OrientationY:
-			return L"OrientationY";
-		case OrientationZ:
-			return L"OrientationZ";
-		case PositionX:
-			return L"PositionX";
-		case PositionY:
-			return L"PositionY";
-		case PositionZ:
-			return L"PositionZ";
+	case SetVertexShader:
+		break;
+	case SetPixelShader:
+		break;
+	case SetTransform:
+		break;
+	case MultiplyTransform:
+		break;
+	case SetVertexShaderConstantF:
+		break;
+	case GetVertexShaderConstantF:
+		break;
+	case SetVertexShaderConstantI:
+		break;
+	case GetVertexShaderConstantI:
+		break;
+	case SetVertexShaderConstantB:
+		break;
+	case GetVertexShaderConstantB:
+		break;
+	case SetPixelShaderConstantF:
+		break;
+	case GetPixelShaderConstantF:
+		break;
+	case SetPixelShaderConstantI:
+		break;
+	case GetPixelShaderConstantI:
+		break;
+	case SetPixelShaderConstantB:
+		break;
+	case GetPixelShaderConstantB:
+		break;
+	case SetStreamSource:
+		break;
+	case GetStreamSource:
+		break;
+	case CreateVertexShader:
+		break;
+	case CreatePixelShader:
+		break;
+	case VB_Apply:
+		break;
+	default:
+		break;
 	}
 #endif
 	return L"UNTITLED";
@@ -1079,12 +1039,10 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
-		case eDrawingSide:
-			return NOD_Plugtype::AQU_INT;
-		case pasVShaderConstantIndices:
-			return NOD_Plugtype::AQU_VOID;
-		case pasPShaderConstantIndices:
-			return NOD_Plugtype::AQU_VOID;
+	case Modifier:
+		break;
+	default:
+		break;
 	}
 #endif
 
@@ -1211,61 +1169,50 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-		case pShader_Vertex:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DVERTEXSHADER9;
-		case pShader_Pixel:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DPIXELSHADER9;
-		case State:
-			return NOD_Plugtype::AQU_D3DTRANSFORMSTATETYPE;
-		case pMatrix:
-			return NOD_Plugtype::AQU_PNT_D3DMATRIX;
-		case State_Multiply:
-			return NOD_Plugtype::AQU_D3DTRANSFORMSTATETYPE;
-		case pMatrix_Multiply:
-			return NOD_Plugtype::AQU_PNT_D3DMATRIX;
-		case StartRegister:
-			return NOD_Plugtype::AQU_UINT;
-		case pConstantData:
-			return NOD_Plugtype::AQU_PNT_FLOAT;
-		case Vector4fCount:
-			return NOD_Plugtype::AQU_UINT;
-		case StreamNumber:
-			return NOD_Plugtype::AQU_UINT;
-		case pStreamData:
-			return NOD_Plugtype::AQU_PNT_IDIRECT3DVERTEXBUFFER9;
-		case OffsetInBytes:
-			return NOD_Plugtype::AQU_UINT;
-		case Stride:
-			return NOD_Plugtype::AQU_UINT;
-		case StreamNumber_Get:
-			return NOD_Plugtype::AQU_UINT;
-		case ppStreamData_Get:
-			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXBUFFER9;
-		case pOffsetInBytes_Get:
-			return NOD_Plugtype::AQU_PNT_UINT;
-		case pStride_Get:
-			return NOD_Plugtype::AQU_PNT_UINT;
-		case pFunction:
-			return NOD_Plugtype::AQU_PNT_UINT;
-		case ppShader_Vertex:
-			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXSHADER9;
-		case ppShader_Pixel:
-			return NOD_Plugtype::AQU_PPNT_IDIRECT3DPIXELSHADER9;
-		case pnConstantData:
-			return NOD_Plugtype::AQU_PNT_INT;
-		case pbConstantData:
-			return NOD_Plugtype::AQU_PNT_BOOL;
-		case Pitch:
-		case Yaw:
-		case Roll:
-		case OrientationW:
-		case OrientationX:
-		case OrientationY:
-		case OrientationZ:
-		case PositionX:
-		case PositionY:
-		case PositionZ:
-			return NOD_Plugtype::AQU_FLOAT;
+	case SetVertexShader:
+		break;
+	case SetPixelShader:
+		break;
+	case SetTransform:
+		break;
+	case MultiplyTransform:
+		break;
+	case SetVertexShaderConstantF:
+		break;
+	case GetVertexShaderConstantF:
+		break;
+	case SetVertexShaderConstantI:
+		break;
+	case GetVertexShaderConstantI:
+		break;
+	case SetVertexShaderConstantB:
+		break;
+	case GetVertexShaderConstantB:
+		break;
+	case SetPixelShaderConstantF:
+		break;
+	case GetPixelShaderConstantF:
+		break;
+	case SetPixelShaderConstantI:
+		break;
+	case GetPixelShaderConstantI:
+		break;
+	case SetPixelShaderConstantB:
+		break;
+	case GetPixelShaderConstantB:
+		break;
+	case SetStreamSource:
+		break;
+	case GetStreamSource:
+		break;
+	case CreateVertexShader:
+		break;
+	case CreatePixelShader:
+		break;
+	case VB_Apply:
+		break;
+	default:
+		break;
 	}
 #endif
 	return 0;
@@ -1332,14 +1279,10 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
-		case eDrawingSide:
-			return (void*)&m_eCurrentRenderingSide;
-		case pasVShaderConstantIndices:
-			return (void*)&m_pasVSConstantRuleIndices;
-		case pasPShaderConstantIndices:
-			return (void*)&m_pasPSConstantRuleIndices;
-		case VireioMenu:
-			return (void*)&m_sMenu;
+	case Modifier:
+		break;
+	default:
+		break;
 	}
 #endif
 
@@ -1518,102 +1461,50 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-		case pShader_Vertex:
-			m_ppcShader_Vertex = (IDirect3DVertexShader9**)pData;
-			break;
-		case pShader_Pixel:
-			m_ppcShader_Pixel = (IDirect3DPixelShader9**)pData;
-			break;
-		case State:
-			m_psState = (D3DTRANSFORMSTATETYPE*)pData;
-			break;
-		case pMatrix:
-			m_ppsMatrix = (D3DMATRIX**)pData;
-			break;
-		case State_Multiply:
-			m_psState_Multiply = (D3DTRANSFORMSTATETYPE*)pData;
-			break;
-		case pMatrix_Multiply:
-			m_ppsMatrix_Multiply = (D3DMATRIX**)pData;
-			break;
-		case StartRegister:
-			m_pdwStartRegister = (UINT*)pData;
-			break;
-		case pConstantData:
-			m_ppfConstantData = (float**)pData;
-			break;
-		case Vector4fCount:
-			m_pdwVector4fCount = (UINT*)pData;
-			break;
-		case StreamNumber:
-			m_punStreamNumber = (UINT*)pData;
-			break;
-		case pStreamData:
-			m_ppcStreamData = (IDirect3DVertexBuffer9**)pData;
-			break;
-		case OffsetInBytes:
-			m_punOffsetInBytes = (UINT*)pData;
-			break;
-		case Stride:
-			m_punStride = (UINT*)pData;
-			break;
-		case StreamNumber_Get:
-			m_punStreamNumber_Get = (UINT*)pData;
-			break;
-		case ppStreamData_Get:
-			m_pppcStreamData_Get = (IDirect3DVertexBuffer9***)pData;
-			break;
-		case pOffsetInBytes_Get:
-			m_ppunOffsetInBytes_Get = (UINT**)pData;
-			break;
-		case pStride_Get:
-			m_ppunStride_Get = (UINT**)pData;
-			break;
-		case pFunction:
-			m_ppunFunction = (DWORD**)pData;
-			break;
-		case ppShader_Vertex:
-			m_pppcShader_Vertex = (IDirect3DVertexShader9***)pData;
-			break;
-		case ppShader_Pixel:
-			m_pppcShader_Pixel = (IDirect3DPixelShader9***)pData;
-			break;
-		case pnConstantData:
-			m_ppnConstantData = (INT**)pData;
-			break;
-		case pbConstantData:
-			m_ppbConstantData = (BOOL**)pData;
-			break;
-		case Pitch:
-			m_apfTrackerInput[0] = (float*)pData;
-			break;
-		case Yaw:
-			m_apfTrackerInput[1] = (float*)pData;
-			break;
-		case Roll:
-			m_apfTrackerInput[2] = (float*)pData;
-			break;
-		case OrientationW:
-			m_apfTrackerInput[3] = (float*)pData;
-			break;
-		case OrientationX:
-			m_apfTrackerInput[4] = (float*)pData;
-			break;
-		case OrientationY:
-			m_apfTrackerInput[5] = (float*)pData;
-			break;
-		case OrientationZ:
-			m_apfTrackerInput[6] = (float*)pData;
-			break;
-		case PositionX:
-			m_apfTrackerInput[7] = (float*)pData;
-			break;
-		case PositionY:
-			m_apfTrackerInput[8] = (float*)pData;
-			break;
-		case PositionZ:
-			m_apfTrackerInput[9] = (float*)pData;
-			break;
+	case SetVertexShader:
+		break;
+	case SetPixelShader:
+		break;
+	case SetTransform:
+		break;
+	case MultiplyTransform:
+		break;
+	case SetVertexShaderConstantF:
+		break;
+	case GetVertexShaderConstantF:
+		break;
+	case SetVertexShaderConstantI:
+		break;
+	case GetVertexShaderConstantI:
+		break;
+	case SetVertexShaderConstantB:
+		break;
+	case GetVertexShaderConstantB:
+		break;
+	case SetPixelShaderConstantF:
+		break;
+	case GetPixelShaderConstantF:
+		break;
+	case SetPixelShaderConstantI:
+		break;
+	case GetPixelShaderConstantI:
+		break;
+	case SetPixelShaderConstantB:
+		break;
+	case GetPixelShaderConstantB:
+		break;
+	case SetStreamSource:
+		break;
+	case GetStreamSource:
+		break;
+	case CreateVertexShader:
+		break;
+	case CreatePixelShader:
+		break;
+	case VB_Apply:
+		break;
+	default:
+		break;
 	}
 #endif
 }
@@ -1748,10 +1639,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		// loop through entries
 		// for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
 		{
-			// update view transform
-			m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-			m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-			m_pcShaderViewAdjustment->ComputeViewTransforms();
+			// update view transform ..... TODO 
+			/*m_pcShaderElementCalculation->Load(m_sGameConfiguration);
+			m_pcShaderElementCalculation->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+			m_pcShaderElementCalculation->ComputeViewTransforms();*/
 		}
 	}
 
@@ -1761,8 +1652,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	if ((*m_apfTrackerInput[2]) != s_fRoll)
 	{
 		s_fRoll = *m_apfTrackerInput[2];
-		m_pcShaderViewAdjustment->UpdateRoll(-s_fRoll);
-		m_pcShaderViewAdjustment->ComputeViewTransforms();
+		// TODO !!
+		// m_pcShaderElementCalculation->UpdateRoll(-s_fRoll);
+		// m_pcShaderElementCalculation->ComputeViewTransforms();
 	}
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -2865,7 +2757,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			{
 #pragma region SetVertexShader
 				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADER:
-					if (!m_ppcShader_Vertex) return nullptr;
+					/*if (!m_ppcShader_Vertex) return nullptr;
 					//if (m_pcActiveVertexShader == *m_ppcShader_Vertex) return nullptr;
 					if (!*m_ppcShader_Vertex)
 					{
@@ -2906,11 +2798,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					return (void*)&nHr;
+					return (void*)&nHr;*/
 #pragma endregion
 #pragma region SetPixelShader
 				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADER:
-					if (!m_ppcShader_Pixel) return nullptr;
+					/*if (!m_ppcShader_Pixel) return nullptr;
 					//if (m_pcActivePixelShader == *m_ppcShader_Pixel) return nullptr;
 					if (!*m_ppcShader_Pixel)
 					{
@@ -2947,11 +2839,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					return (void*)&nHr;
+					return (void*)&nHr;*/
 #pragma endregion
 #pragma region SetTransform
 				case METHOD_IDIRECT3DDEVICE9_SETTRANSFORM:
-					if (!m_psState) return nullptr;
+					/*if (!m_psState) return nullptr;
 					if (!m_ppsMatrix) return nullptr;
 
 					if ((*m_psState) == D3DTS_VIEW)
@@ -2979,8 +2871,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							else
 							{
 								// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
-								sMatTempLeft = sMatSource * m_pcShaderViewAdjustment->LeftViewTransform();
-								sMatTempRight = sMatSource * m_pcShaderViewAdjustment->RightViewTransform();
+								sMatTempLeft = sMatSource * m_pcShaderElementCalculation->LeftViewTransform();
+								sMatTempRight = sMatSource * m_pcShaderElementCalculation->RightViewTransform();
 
 								bIsTransformSetTemp = true;
 							}
@@ -3062,18 +2954,18 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						nHr = ((IDirect3DDevice9*)pThis)->SetTransform((*m_psState), psMatProjToSet);
 						return (void*)&nHr;
 					}
-					break;
+					break;*/
 #pragma endregion
 #pragma region MultiplyTransform
 				case METHOD_IDIRECT3DDEVICE9_MULTIPLYTRANSFORM:
-					if (!m_psState_Multiply) return nullptr;
-					if (!m_ppsMatrix_Multiply) return nullptr;
+					//if (!m_psState_Multiply) return nullptr;
+					//if (!m_ppsMatrix_Multiply) return nullptr;
 
 					break;
 #pragma endregion
 #pragma region SetVertexShaderConstantF
 				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTF:
-					if (!m_pdwStartRegister) return nullptr;
+					/*if (!m_pdwStartRegister) return nullptr;
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
@@ -3100,12 +2992,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
 						}
-					}
+					}*/
 					break;
 #pragma endregion
 #pragma region GetVertexShaderConstantF
 				case METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTF:
-					if (!m_pdwStartRegister) return nullptr;
+					/*if (!m_pdwStartRegister) return nullptr;
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
@@ -3124,14 +3016,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						return (void*)&nHr;
-					}
+					}*/
 					break;
 #pragma endregion
 #pragma region SetVertexShaderConstantI
 				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTI:
-					if (!m_pdwStartRegister) return nullptr;
+					/*if (!m_pdwStartRegister) return nullptr;
 					if (!m_ppnConstantData) return nullptr;
-					if (!m_pdwVector4fCount) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;*/
 
 					break;
 #pragma endregion
@@ -3141,9 +3033,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetVertexShaderConstantB
 				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTB:
-					if (!m_pdwStartRegister) return nullptr;
+					/*if (!m_pdwStartRegister) return nullptr;
 					if (!m_ppbConstantData) return nullptr;
-					if (!m_pdwVector4fCount) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;*/
 
 					break;
 #pragma endregion
@@ -3153,7 +3045,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetPixelShaderConstantF
 				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF:
-					if (!m_pdwStartRegister) return nullptr;
+					/*if (!m_pdwStartRegister) return nullptr;
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
@@ -3180,12 +3072,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 							return (void*)&nHr;
 						}
-					}
+					}*/
 					break;
 #pragma endregion
 #pragma region GetPixelShaderConstantF
 				case METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTF:
-					if (!m_pdwStartRegister) return nullptr;
+					/*if (!m_pdwStartRegister) return nullptr;
 					if (!m_ppfConstantData) return nullptr;
 					if (!m_pdwVector4fCount) return nullptr;
 
@@ -3204,7 +3096,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						return (void*)&nHr;
-					}
+					}*/
 					break;
 #pragma endregion
 #pragma region SetPixelShaderConstantI
@@ -3225,25 +3117,25 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetStreamSource
 				case METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE:
-					if (!m_punStreamNumber) return nullptr;
+					/*if (!m_punStreamNumber) return nullptr;
 					if (!m_ppcStreamData) return nullptr;
 					if (!m_punOffsetInBytes) return nullptr;
 					if (!m_punStride) return nullptr;
-
+					*/
 					break;
 #pragma endregion
 #pragma region GetStreamSource
 				case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE:
-					if (!m_punStreamNumber_Get) return nullptr;
+					/*if (!m_punStreamNumber_Get) return nullptr;
 					if (!m_pppcStreamData_Get) return nullptr;
 					if (!m_ppunOffsetInBytes_Get) return nullptr;
 					if (!m_ppunStride_Get) return nullptr;
-
+					*/
 					break;
 #pragma endregion
 #pragma region CreateVertexShader
 				case METHOD_IDIRECT3DDEVICE9_CREATEVERTEXSHADER:
-					if (!m_ppunFunction) return nullptr;
+					/*if (!m_ppunFunction) return nullptr;
 					if (!m_pppcShader_Vertex) return nullptr;
 					if (!*m_pppcShader_Vertex) return nullptr;
 					{
@@ -3298,11 +3190,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
-					return (void*)&nHr;
+					return (void*)&nHr;*/
 #pragma endregion
 #pragma region CreatePixelShader
 				case METHOD_IDIRECT3DDEVICE9_CREATEPIXELSHADER:
-					if (!m_ppunFunction) return nullptr;
+					/*if (!m_ppunFunction) return nullptr;
 					if (!m_pppcShader_Pixel) return nullptr;
 					if (!*m_pppcShader_Pixel) return nullptr;
 					{
@@ -3357,7 +3249,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
-					return (void*)&nHr;
+					return (void*)&nHr;*/
+					break;
 #pragma endregion
 #pragma region Apply
 #pragma endregion
@@ -3373,808 +3266,808 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 ***/
 void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// multiply mouse coords by 4 due to Aquilinus workspace architecture
-	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam, 4);
-	switch (sEvent.eType)
-	{
-		case NoEvent:
-			break;
-		case ChangedToNext:
-		case ChangedToPrevious:
-			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
-			{
-				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwShaderType)
-				{
-					// unselect all list boxes
-					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwHashCodes);
-					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentConstants);
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
-#endif
-
-					// set new value and the text list
-					m_eChosenShaderType = (Vireio_Supported_Shaders)sEvent.dwNewValue;
-					if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
-					{
-						m_pcVireioGUI->SetNewTextList(m_sPageShader.m_dwHashCodes, &m_aszVShaderHashCodes);
-					}
-					else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
-					{
-						m_pcVireioGUI->SetNewTextList(m_sPageShader.m_dwHashCodes, &m_aszPShaderHashCodes);
-					}
-				}
-			}
-			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
-			{
-				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRegisterCount)
-				{
-					if (sEvent.dwNewValue == 0)
-						m_sPageGameShaderRules.m_dwRegCountValue = 1;
-					else if (sEvent.dwNewValue == 1)
-						m_sPageGameShaderRules.m_dwRegCountValue = 2;
-					else if (sEvent.dwNewValue == 2)
-						m_sPageGameShaderRules.m_dwRegCountValue = 4;
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwOperationToApply)
-				{
-					m_sPageGameShaderRules.m_dwOperationValue = sEvent.dwNewValue;
-				}
-			}
-			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
-			{
-				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollImpl)
-					m_sGameConfiguration.nRollImpl = sEvent.nNewValue;
-
-				// update view transform
-				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-				m_pcShaderViewAdjustment->ComputeViewTransforms();
-			}
-			break;
-		case ChangedToValue:
-#pragma region ChangedToValue
-			// "Game Settings" page
-			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
-			{
-				// get new value from the control
-				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwGameSeparation)
-					m_sGameConfiguration.fWorldScaleFactor = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergence)
-					m_sGameConfiguration.fConvergence = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwAspectMultiplier)
-					m_sGameConfiguration.fAspectMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMinShaderCount)
-					m_sGameConfiguration.dwVRboostMinShaderCount = sEvent.dwNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMaxShaderCount)
-					m_sGameConfiguration.dwVRboostMaxShaderCount = sEvent.dwNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergenceEnabled)
-					m_sGameConfiguration.bConvergenceEnabled = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwYawMultiplier)
-					m_sGameConfiguration.fYawMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPitchMultiplier)
-					m_sGameConfiguration.fPitchMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollMultiplier)
-					m_sGameConfiguration.fRollMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionMultiplier)
-					m_sGameConfiguration.fPositionMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionXMultiplier)
-					m_sGameConfiguration.fPositionXMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionYMultiplier)
-					m_sGameConfiguration.fPositionYMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionZMultiplier)
-					m_sGameConfiguration.fPositionZMultiplier = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOV)
-					m_sGameConfiguration.fPFOV = sEvent.fNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOVToggle)
-					m_sGameConfiguration.bPFOVToggle = sEvent.bNewValue;
-
-				// update view transform
-				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-				m_pcShaderViewAdjustment->ComputeViewTransforms();
-			}
-			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
-			{
-				// which shader is chosen ?
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-				std::vector<Vireio_D3D11_Shader>* pasShaders;
-#elif defined(VIREIO_D3D9)
-				std::vector<Vireio_D3D9_Shader>* pasShaders;
-#endif
-				std::vector<std::wstring>* pasShaderHashCodes;
-				std::vector<UINT>* padwShaderHashCodes;
-				if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
-				{
-					pasShaders = &m_asVShaders;
-					pasShaderHashCodes = &m_aszVShaderHashCodes;
-					padwShaderHashCodes = &m_adwVShaderHashCodes;
-				}
-				else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
-				{
-					pasShaders = &m_asPShaders;
-					pasShaderHashCodes = &m_aszPShaderHashCodes;
-					padwShaderHashCodes = &m_adwPShaderHashCodes;
-				}
-				// "Sort Shader List" button
-				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwSort)
-				{
-					// set sorting bool
-					m_bSortShaderList = sEvent.bNewValue;
-				}
-				// "Hash Codes" - List
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwHashCodes)
-				{
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwHashCodes);
-
-					if ((nSelection >= 0) && (nSelection < (INT)(*padwShaderHashCodes).size()))
-						m_dwCurrentChosenShaderHashCode = (*padwShaderHashCodes)[nSelection];
-					else
-						m_dwCurrentChosenShaderHashCode = 0;
-
-					// fill current shader data lists, first unselect a possible selection
-					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentConstants);
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
-#endif
-					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
-					m_aszShaderBuffersizes = std::vector<std::wstring>();
-
-					if (m_dwCurrentChosenShaderHashCode)
-					{
-						// find the hash code in the shader list
-						UINT dwIndex = 0;
-						for (UINT dwI = 0; dwI < (UINT)(*pasShaders).size(); dwI++)
-						{
-							if (m_dwCurrentChosenShaderHashCode == (*pasShaders)[dwI].dwHashCode)
-							{
-								dwIndex = dwI;
-								dwI = (UINT)(*pasShaders).size();
-							}
-						}
-
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-						// add all constant names to the current shader constant list
-						for (UINT dwJ = 0; dwJ < (UINT)(*pasShaders)[dwIndex].asBuffers.size(); dwJ++)
-						{
-							std::wstringstream szSize; szSize << (*pasShaders)[dwIndex].asBuffers[dwJ].dwSize;
-							m_aszShaderBuffersizes.push_back(szSize.str());
-
-							for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asBuffers[dwJ].asVariables.size(); dwK++)
-							{
-								// convert to wstring
-								std::string szNameA = std::string((*pasShaders)[dwIndex].asBuffers[dwJ].asVariables[dwK].szName);
-								std::wstring szName(szNameA.begin(), szNameA.end());
-
-								m_aszShaderConstantsCurrent.push_back(szName);
-							}
-						}
-
-						m_aszShaderBuffersizes.push_back(std::wstring(L">-----unaccounted:"));
-
-						// add all unaccounted buffer sizes to the buffer sizes list
-						for (UINT dwI = 0; dwI < (UINT)(*pasShaders)[dwIndex].asBuffersUnaccounted.size(); dwI++)
-						{
-							std::wstringstream szReg; szReg << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwI].dwRegister;
-							m_aszShaderBuffersizes.push_back(szReg.str());
-							std::wstringstream szSize; szSize << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwI].dwSize;
-							m_aszShaderBuffersizes.push_back(szSize.str());
-						}
-#elif defined(VIREIO_D3D9)
-						// add all constant names to the current shader constant list
-						for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asConstantDescriptions.size(); dwK++)
-						{
-							// convert to wstring
-							std::string szNameA = std::string((*pasShaders)[dwIndex].asConstantDescriptions[dwK].Name);
-							std::wstring szName(szNameA.begin(), szNameA.end());
-
-							m_aszShaderConstantsCurrent.push_back(szName);
-						}
-#endif
-					}
-				}
-				// "Shader Constants" - List
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwCurrentConstants)
-				{
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentConstants);
-
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
-					{
-						// unselect and clear buffer size list
-						m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
-						m_aszShaderBuffersizes = std::vector<std::wstring>();
-
-						// get a number vector
-						std::vector<UINT> adwBufferSizes;
-
-						// loop through buffers, compare all entries
-						for (UINT dwI = 0; dwI < (UINT)(*pasShaders).size(); dwI++)
-						{
-							for (UINT dwJ = 0; dwJ < (UINT)(*pasShaders)[dwI].asBuffers.size(); dwJ++)
-							{
-								if (nSelection < (INT)(*pasShaders)[dwI].asBuffers[dwJ].asVariables.size())
-								{
-									// compare the two strings, first convert to wstring
-									std::string szNameA = std::string((*pasShaders)[dwI].asBuffers[dwJ].asVariables[nSelection].szName);
-									std::wstring szName(szNameA.begin(), szNameA.end());
-									if (szName.compare(m_aszShaderConstantsCurrent[nSelection]) == 0)
-									{
-										UINT dwSize = (*pasShaders)[dwI].asBuffers[dwJ].dwSize;
-										// add buffer size to list if not present
-										if (std::find(adwBufferSizes.begin(), adwBufferSizes.end(), dwSize) == adwBufferSizes.end())
-											adwBufferSizes.push_back(dwSize);
-									}
-								}
-							}
-						}
-
-						// fill the buffer sizes entries new
-						for (UINT dwJ = 0; dwJ < (UINT)adwBufferSizes.size(); dwJ++)
-						{
-							std::wstringstream szSize; szSize << adwBufferSizes[dwJ];
-							m_aszShaderBuffersizes.push_back(szSize.str());
-						}
-					}
-#endif
-				}
-			}
-			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
-			{
-				// "Rule Indices" list
-				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRuleIndices)
-				{
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
-
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
-					{
-						// call the method to fill the rule data
-						FillShaderRuleData((UINT)nSelection);
-					}
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwConstantName)
-				{
-					m_sPageGameShaderRules.m_bConstantName = sEvent.bNewValue;
-
-					// if true -> get string from clipboard
-					if (sEvent.bNewValue)
-					{
-						std::string szClipboard = GetClipboardText();
-						m_sPageGameShaderRules.m_szConstantName = std::wstring(szClipboard.begin(), szClipboard.end());
-					}
-					// if false -> delete current value
-					else
-					{
-						m_sPageGameShaderRules.m_szConstantName = std::wstring();
-					}
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwPartialName)
-				{
-					m_sPageGameShaderRules.m_bPartialName = sEvent.bNewValue;
-
-					// if true -> get string from clipboard
-					if (sEvent.bNewValue)
-					{
-						std::string szClipboard = GetClipboardText();
-						m_sPageGameShaderRules.m_szPartialName = std::wstring(szClipboard.begin(), szClipboard.end());
-					}
-					// if false -> delete current value
-					else
-					{
-						m_sPageGameShaderRules.m_szPartialName = std::wstring();
-					}
-				}
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndex)
-				{
-					// set new value and delete the buffer index sizes debug vector
-					m_sPageGameShaderRules.m_bBufferIndex = sEvent.bNewValue;
-					m_aunBufferIndexSizesDebug = std::vector<UINT>();
-
-					// if true -> try to parse a number from the clipboard
-					if (sEvent.bNewValue)
-					{
-						// get the clipboard text as a stream
-						std::wstringstream szClipboard;
-						szClipboard << GetClipboardText().c_str();
-
-						// parse to a number
-						UINT dwValue = 0;
-						szClipboard >> dwValue;
-
-						// delete the stream, parse the number back to the stream
-						szClipboard = std::wstringstream();
-						szClipboard << dwValue;
-
-						// and set the text
-						m_sPageGameShaderRules.m_szBufferIndex = szClipboard.str();
-					}
-					// if false -> delete current value
-					else
-					{
-						m_sPageGameShaderRules.m_szBufferIndex = std::wstring();
-					}
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferSize)
-				{
-					m_sPageGameShaderRules.m_bBufferSize = sEvent.bNewValue;
-
-					// if true -> try to parse a number from the clipboard
-					if (sEvent.bNewValue)
-					{
-						// get the clipboard text as a stream
-						std::wstringstream szClipboard;
-						szClipboard << GetClipboardText().c_str();
-
-						// parse to a number
-						UINT dwValue = 0;
-						szClipboard >> dwValue;
-
-						// delete the stream, parse the number back to the stream
-						szClipboard = std::wstringstream();
-						szClipboard << dwValue;
-
-						// and set the text
-						m_sPageGameShaderRules.m_szBufferSize = szClipboard.str();
-					}
-					// if false -> delete current value
-					else
-					{
-						m_sPageGameShaderRules.m_szBufferSize = std::wstring();
-					}
-				}
-#endif
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwStartRegIndex)
-				{
-					// set new value
-					m_sPageGameShaderRules.m_bStartRegIndex = sEvent.bNewValue;
-
-					// if true -> try to parse a number from the clipboard
-					if (sEvent.bNewValue)
-					{
-						// get the clipboard text as a stream
-						std::wstringstream szClipboard;
-						szClipboard << GetClipboardText().c_str();
-
-						// parse to a number
-						UINT dwValue = 0;
-						szClipboard >> dwValue;
-
-						// delete the stream, parse the number back to the stream
-						szClipboard = std::wstringstream();
-						szClipboard << dwValue;
-
-						// and set the text
-						m_sPageGameShaderRules.m_szStartRegIndex = szClipboard.str();
-					}
-					// if false -> delete current value
-					else
-					{
-						m_sPageGameShaderRules.m_szStartRegIndex = std::wstring();
-					}
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwTranspose)
-					m_sPageGameShaderRules.m_bTranspose = sEvent.bNewValue;
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndexDebug)
-				{
-					// set new value
-					m_bBufferIndexDebug = sEvent.bNewValue;
-				}
-#endif
-			}
-			break;
-#pragma endregion
-		case ChangedToText:
-			break;
-		case Pressed:
-#pragma region Pressed:
-			// "Debug" page
-			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::DebugPage])
-			{
-				if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwGrab)
-				{
-					// set the grab debug bool to true
-					m_bGrabDebug = true;
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwClear)
-				{
-					// clear debug string list
-					m_aszDebugTrace = std::vector<std::wstring>();
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwOptions)
-				{
-					// new debug option chosen
-					m_eDebugOption = (Debug_Grab_Options)sEvent.dwNewValue;
-				}
-			}
-			// "Shaders" page
-			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
-			{
-				// which shader is chosen ?
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-				std::vector<Vireio_D3D11_Shader>* pasShaders;
-#elif defined(VIREIO_D3D9)
-				std::vector<Vireio_D3D9_Shader>* pasShaders;
-#endif
-				std::vector<std::wstring>* pasShaderHashCodes;
-				std::vector<UINT>* padwShaderHashCodes;
-				if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
-				{
-					pasShaders = &m_asVShaders;
-					pasShaderHashCodes = &m_aszVShaderHashCodes;
-					padwShaderHashCodes = &m_adwVShaderHashCodes;
-				}
-				else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
-				{
-					pasShaders = &m_asPShaders;
-					pasShaderHashCodes = &m_aszPShaderHashCodes;
-					padwShaderHashCodes = &m_adwPShaderHashCodes;
-				}
-
-				// "Update Shader Hash Code List" - Button
-				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwUpdate)
-				{
-					// test the shader constant list for updates...
-					if ((*pasShaderHashCodes).size() < (*pasShaders).size())
-					{
-						// loop through new shaders
-						for (UINT dwI = (UINT)(*pasShaderHashCodes).size(); dwI < (UINT)(*pasShaders).size(); dwI++)
-						{
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-							// loop through shader buffers
-							for (UINT dwJ = 0; dwJ < (UINT)(*pasShaders)[dwI].asBuffers.size(); dwJ++)
-							{
-								for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asBuffers[dwJ].asVariables.size(); dwK++)
-								{
-									// convert to wstring
-									std::string szNameA = std::string((*pasShaders)[dwI].asBuffers[dwJ].asVariables[dwK].szName);
-									std::wstring szName(szNameA.begin(), szNameA.end());
-
-									// constant available in list ?
-									if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
-									{
-										m_aszShaderConstants.push_back(szName);
-										m_aszShaderConstantsA.push_back(szNameA);
-									}
-								}
-							}
-#elif defined(VIREIO_D3D9)
-							// loop through constant descriptions for that shader
-							for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asConstantDescriptions.size(); dwK++)
-							{
-								// convert to wstring
-								std::string szNameA = std::string((*pasShaders)[dwI].asConstantDescriptions[dwK].Name);
-								std::wstring szName(szNameA.begin(), szNameA.end());
-
-								// constant available in list ?
-								if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
-								{
-									m_aszShaderConstants.push_back(szName);
-									m_aszShaderConstantsA.push_back(szNameA);
-								}
-							}
-#endif
-							// add shader hash to lists
-							std::wstring szHash = std::to_wstring((*pasShaders)[dwI].dwHashCode);
-							(*pasShaderHashCodes).push_back(szHash);
-							(*padwShaderHashCodes).push_back((*pasShaders)[dwI].dwHashCode);
-						}
-					}
-				}
-				// "-> To Name" - Button
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToName)
-				{
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentConstants);
-
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
-					{
-						// set the name to the name control of the shader rules page
-						m_sPageGameShaderRules.m_szConstantName = m_aszShaderConstantsCurrent[nSelection];
-					}
-				}
-				// "-> To Register" - Button
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToRegister)
-				{
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwHashCodes);
-
-					if ((nSelection >= 0) && (nSelection < (INT)(*padwShaderHashCodes).size()))
-						m_dwCurrentChosenShaderHashCode = (*padwShaderHashCodes)[nSelection];
-					else
-						m_dwCurrentChosenShaderHashCode = 0;
-
-					if (m_dwCurrentChosenShaderHashCode)
-					{
-						// find the hash code in the shader list
-						UINT dwIndex = 0;
-						for (UINT dwI = 0; dwI < (UINT)(*pasShaders).size(); dwI++)
-						{
-							if (m_dwCurrentChosenShaderHashCode == (*pasShaders)[dwI].dwHashCode)
-							{
-								dwIndex = dwI;
-								dwI = (UINT)(*pasShaders).size();
-							}
-						}
-
-						INT nSelection = 0;
-
-						// get current selection of the shader constant list
-						nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentConstants);
-
-						if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
-						{
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-							if ((*pasShaders)[dwIndex].asBuffers.size())
-							{
-								UINT dwBufferIndex = 0;
-
-								// get the buffer index
-								while (dwBufferIndex < (UINT)(*pasShaders)[dwIndex].asBuffers.size())
-								{
-									if (nSelection >= (INT)(*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
-									{
-										nSelection -= (INT)(*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables.size();
-										dwBufferIndex++;
-									}
-									else break;
-								}
-
-								// set data based on selection
-								if (nSelection < (INT)(*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
-								{
-									// set new start register string on the shader rules page (=offset/16)
-									std::wstringstream szStartOffset; szStartOffset << ((*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables[nSelection].dwStartOffset >> 4);
-									m_sPageGameShaderRules.m_szStartRegIndex = szStartOffset.str();
-
-									// also set the buffer index if present
-									if (dwBufferIndex < (UINT)(*pasShaders)[dwIndex].asBuffersUnaccounted.size())
-									{
-										// set the new register
-										std::wstringstream szStartRegister; szStartRegister << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwBufferIndex].dwRegister;
-										m_sPageGameShaderRules.m_szBufferIndex = szStartRegister.str();
-									}
-								}
-							}
-#endif
-						}
-					}
-				}
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-				// "-> To Buffer Size" - Button
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToBufferSize)
-				{
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
-
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderBuffersizes.size()))
-					{
-						// set the name to the name control of the shader rules page
-						m_sPageGameShaderRules.m_szBufferSize = m_aszShaderBuffersizes[nSelection];
-					}
-				}
-				// "-> To Buffer Index" - Button
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToBufferIndex)
-				{
-					INT nSelection = 0;
-
-					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
-
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderBuffersizes.size()))
-					{
-						// set the name to the name control of the shader rules page
-						m_sPageGameShaderRules.m_szBufferIndex = m_aszShaderBuffersizes[nSelection];
-					}
-				}
-				// "-> To Fetched Hash" - Button
-				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToFetchedList)
-				{
-					if (m_dwCurrentChosenShaderHashCode)
-					{
-						// add to hash code list
-						m_aunFetchedHashCodes.push_back(m_dwCurrentChosenShaderHashCode);
-
-						// fill the string list
-						FillFetchedHashCodeList();
-					}
-				}
-#endif				
-			}
-			// "Shader Rules" page
-			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
-			{
-				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwCreate)
-				{
-					// create rule, first parse input data
-					Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule();
-
-					// full name
-					if (m_sPageGameShaderRules.m_bConstantName)
-					{
-						std::string sz(m_sPageGameShaderRules.m_szConstantName.begin(), m_sPageGameShaderRules.m_szConstantName.end());
-						sRule.m_szConstantName = sz;
-						sRule.m_bUseName = true;
-					}
-
-					// partial name
-					if (m_sPageGameShaderRules.m_bPartialName)
-					{
-						std::string sz(m_sPageGameShaderRules.m_szPartialName.begin(), m_sPageGameShaderRules.m_szPartialName.end());
-						sRule.m_szConstantName = sz;
-						sRule.m_bUsePartialNameMatch = true;
-					}
-
-					// start register
-					if (m_sPageGameShaderRules.m_bStartRegIndex)
-					{
-						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szStartRegIndex);
-						sz >> sRule.m_dwStartRegIndex;
-						sRule.m_bUseStartRegIndex = true;
-					}
-
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-					// buffer size
-					if (m_sPageGameShaderRules.m_bBufferSize)
-					{
-						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferSize);
-						sz >> sRule.m_dwBufferSize;
-						sRule.m_bUseBufferSize = true;
-					}
-
-					// buffer index
-					if (m_sPageGameShaderRules.m_bBufferIndex)
-					{
-						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferIndex);
-						sz >> sRule.m_dwBufferIndex;
-						sRule.m_bUseBufferIndex = true;
-					}
-#endif
-
-					// operation
-					sRule.m_dwOperationToApply = m_sPageGameShaderRules.m_dwOperationValue;
-
-					// register count
-					sRule.m_dwRegisterCount = m_sPageGameShaderRules.m_dwRegCountValue;
-
-					// transpose
-					sRule.m_bTranspose = m_sPageGameShaderRules.m_bTranspose;
-
-					// create modification
-					if (sRule.m_dwRegisterCount == 1)
-						sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
-					else if (sRule.m_dwRegisterCount == 4)
-						sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
-					else sRule.m_pcModification = nullptr;
-
-					// add the rule
-					m_asConstantRules.push_back(sRule);
-
-					// update the control string list
-					FillShaderRuleIndices();
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwAddGeneral)
-				{
-					// increase the update counter to reverify the constant buffers for rules
-					m_dwConstantRulesUpdateCounter++;
-
-					// get current selection of the rule indices list
-					INT nSelection = 0;
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
-					{
-						// add to general rules
-						m_aunGlobalConstantRuleIndices.push_back((UINT)nSelection);
-					}
-
-					// update the list
-					FillShaderRuleGeneralIndices();
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteGeneral)
-				{
-					// increase the update counter to reverify the constant buffers for rules
-					m_dwConstantRulesUpdateCounter++;
-
-					// get current selection of the general indices constant list
-					INT nSelection = 0;
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
-					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleGeneralIndices.size()))
-					{
-						// erase
-						m_aunGlobalConstantRuleIndices.erase(m_aunGlobalConstantRuleIndices.begin() + nSelection);
-					}
-
-					// update the list
-					FillShaderRuleGeneralIndices();
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteLatest)
-				{
-					// increase the update counter to reverify the constant buffers for rules
-					m_dwConstantRulesUpdateCounter++;
-
-					if (m_asConstantRules.size())
-					{
-						// get last index of the shader rule list
-						INT nSelection = (INT)m_asConstantRules.size() - 1;
-
-						{
-							// delete all entries for that index in the general list
-							auto it = m_aunGlobalConstantRuleIndices.begin();
-							while (it < m_aunGlobalConstantRuleIndices.end())
-							{
-								if ((INT)*it == nSelection)
-								{
-									m_aunGlobalConstantRuleIndices.erase(it);
-								}
-								it++;
-							}
-						}
-
-						// erase latest
-						auto it = m_asConstantRules.end();
-						it--;
-						m_asConstantRules.erase(it);
-
-						// update the control string lists
-						FillShaderRuleIndices();
-						FillShaderRuleGeneralIndices();
-					}
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwImportXML)
-				{
-					OPENFILENAME ofn;
-					wchar_t szFileName[MAX_PATH] = L"";
-
-					// get filename using the OPENFILENAME structure and GetOpenFileName()
-					ZeroMemory(&ofn, sizeof(ofn));
-
-					ofn.lStructSize = sizeof(ofn);
-					ofn.hwndOwner = NULL;
-					ofn.lpstrFilter = (LPCWSTR)L"Vireio v3 Shader Rule XML file (*.xml)\0*.xml\0";
-					ofn.lpstrFile = (LPWSTR)szFileName;
-					ofn.nMaxFile = MAX_PATH;
-					ofn.lpstrDefExt = (LPCWSTR)L"xml";
-					ofn.lpstrTitle = L"Import Vireio v3 Shader Rule XML file";
-					ofn.Flags = OFN_FILEMUSTEXIST;
-
-					if (GetOpenFileName(&ofn))
-					{
-						// and import
-						std::wstring szW = std::wstring(ofn.lpstrFile);
-						std::string szFilePath = std::string(szW.begin(), szW.end());
-						ImportXMLRules(szFilePath);
-					}
-
-					// fill the string list
-					FillShaderRuleIndices();
-					FillShaderRuleGeneralIndices();
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-					FillFetchedHashCodeList();
-#elif defined(VIREIO_D3D9)
-					FillShaderRuleShaderIndices();
-#endif
-				}
-			}
-			break;
-#pragma endregion
-		default:
-			break;
-	}
+//	// multiply mouse coords by 4 due to Aquilinus workspace architecture
+//	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam, 4);
+//	switch (sEvent.eType)
+//	{
+//		case NoEvent:
+//			break;
+//		case ChangedToNext:
+//		case ChangedToPrevious:
+//			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
+//			{
+//				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwShaderType)
+//				{
+//					// unselect all list boxes
+//					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwHashCodes);
+//					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentConstants);
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
+//#endif
+//
+//					// set new value and the text list
+//					m_eChosenShaderType = (Vireio_Supported_Shaders)sEvent.dwNewValue;
+//					if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
+//					{
+//						m_pcVireioGUI->SetNewTextList(m_sPageShader.m_dwHashCodes, &m_aszVShaderHashCodes);
+//					}
+//					else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
+//					{
+//						m_pcVireioGUI->SetNewTextList(m_sPageShader.m_dwHashCodes, &m_aszPShaderHashCodes);
+//					}
+//				}
+//			}
+//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
+//			{
+//				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRegisterCount)
+//				{
+//					if (sEvent.dwNewValue == 0)
+//						m_sPageGameShaderRules.m_dwRegCountValue = 1;
+//					else if (sEvent.dwNewValue == 1)
+//						m_sPageGameShaderRules.m_dwRegCountValue = 2;
+//					else if (sEvent.dwNewValue == 2)
+//						m_sPageGameShaderRules.m_dwRegCountValue = 4;
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwOperationToApply)
+//				{
+//					m_sPageGameShaderRules.m_dwOperationValue = sEvent.dwNewValue;
+//				}
+//			}
+//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
+//			{
+//				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollImpl)
+//					m_sGameConfiguration.nRollImpl = sEvent.nNewValue;
+//
+//				// update view transform
+//				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+//				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+//				m_pcShaderViewAdjustment->ComputeViewTransforms();
+//			}
+//			break;
+//		case ChangedToValue:
+//#pragma region ChangedToValue
+//			// "Game Settings" page
+//			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
+//			{
+//				// get new value from the control
+//				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwGameSeparation)
+//					m_sGameConfiguration.fWorldScaleFactor = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergence)
+//					m_sGameConfiguration.fConvergence = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwAspectMultiplier)
+//					m_sGameConfiguration.fAspectMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMinShaderCount)
+//					m_sGameConfiguration.dwVRboostMinShaderCount = sEvent.dwNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMaxShaderCount)
+//					m_sGameConfiguration.dwVRboostMaxShaderCount = sEvent.dwNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergenceEnabled)
+//					m_sGameConfiguration.bConvergenceEnabled = sEvent.bNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwYawMultiplier)
+//					m_sGameConfiguration.fYawMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPitchMultiplier)
+//					m_sGameConfiguration.fPitchMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollMultiplier)
+//					m_sGameConfiguration.fRollMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionMultiplier)
+//					m_sGameConfiguration.fPositionMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionXMultiplier)
+//					m_sGameConfiguration.fPositionXMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionYMultiplier)
+//					m_sGameConfiguration.fPositionYMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionZMultiplier)
+//					m_sGameConfiguration.fPositionZMultiplier = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOV)
+//					m_sGameConfiguration.fPFOV = sEvent.fNewValue;
+//				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOVToggle)
+//					m_sGameConfiguration.bPFOVToggle = sEvent.bNewValue;
+//
+//				// update view transform
+//				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+//				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+//				m_pcShaderViewAdjustment->ComputeViewTransforms();
+//			}
+//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
+//			{
+//				// which shader is chosen ?
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//				std::vector<Vireio_D3D11_Shader>* pasShaders;
+//#elif defined(VIREIO_D3D9)
+//				std::vector<Vireio_D3D9_Shader>* pasShaders;
+//#endif
+//				std::vector<std::wstring>* pasShaderHashCodes;
+//				std::vector<UINT>* padwShaderHashCodes;
+//				if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
+//				{
+//					pasShaders = &m_asVShaders;
+//					pasShaderHashCodes = &m_aszVShaderHashCodes;
+//					padwShaderHashCodes = &m_adwVShaderHashCodes;
+//				}
+//				else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
+//				{
+//					pasShaders = &m_asPShaders;
+//					pasShaderHashCodes = &m_aszPShaderHashCodes;
+//					padwShaderHashCodes = &m_adwPShaderHashCodes;
+//				}
+//				// "Sort Shader List" button
+//				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwSort)
+//				{
+//					// set sorting bool
+//					m_bSortShaderList = sEvent.bNewValue;
+//				}
+//				// "Hash Codes" - List
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwHashCodes)
+//				{
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwHashCodes);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)(*padwShaderHashCodes).size()))
+//						m_dwCurrentChosenShaderHashCode = (*padwShaderHashCodes)[nSelection];
+//					else
+//						m_dwCurrentChosenShaderHashCode = 0;
+//
+//					// fill current shader data lists, first unselect a possible selection
+//					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentConstants);
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//					m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
+//#endif
+//					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
+//					m_aszShaderBuffersizes = std::vector<std::wstring>();
+//
+//					if (m_dwCurrentChosenShaderHashCode)
+//					{
+//						// find the hash code in the shader list
+//						UINT dwIndex = 0;
+//						for (UINT dwI = 0; dwI < (UINT)(*pasShaders).size(); dwI++)
+//						{
+//							if (m_dwCurrentChosenShaderHashCode == (*pasShaders)[dwI].dwHashCode)
+//							{
+//								dwIndex = dwI;
+//								dwI = (UINT)(*pasShaders).size();
+//							}
+//						}
+//
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//						// add all constant names to the current shader constant list
+//						for (UINT dwJ = 0; dwJ < (UINT)(*pasShaders)[dwIndex].asBuffers.size(); dwJ++)
+//						{
+//							std::wstringstream szSize; szSize << (*pasShaders)[dwIndex].asBuffers[dwJ].dwSize;
+//							m_aszShaderBuffersizes.push_back(szSize.str());
+//
+//							for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asBuffers[dwJ].asVariables.size(); dwK++)
+//							{
+//								// convert to wstring
+//								std::string szNameA = std::string((*pasShaders)[dwIndex].asBuffers[dwJ].asVariables[dwK].szName);
+//								std::wstring szName(szNameA.begin(), szNameA.end());
+//
+//								m_aszShaderConstantsCurrent.push_back(szName);
+//							}
+//						}
+//
+//						m_aszShaderBuffersizes.push_back(std::wstring(L">-----unaccounted:"));
+//
+//						// add all unaccounted buffer sizes to the buffer sizes list
+//						for (UINT dwI = 0; dwI < (UINT)(*pasShaders)[dwIndex].asBuffersUnaccounted.size(); dwI++)
+//						{
+//							std::wstringstream szReg; szReg << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwI].dwRegister;
+//							m_aszShaderBuffersizes.push_back(szReg.str());
+//							std::wstringstream szSize; szSize << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwI].dwSize;
+//							m_aszShaderBuffersizes.push_back(szSize.str());
+//						}
+//#elif defined(VIREIO_D3D9)
+//						// add all constant names to the current shader constant list
+//						for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asConstantDescriptions.size(); dwK++)
+//						{
+//							// convert to wstring
+//							std::string szNameA = std::string((*pasShaders)[dwIndex].asConstantDescriptions[dwK].Name);
+//							std::wstring szName(szNameA.begin(), szNameA.end());
+//
+//							m_aszShaderConstantsCurrent.push_back(szName);
+//						}
+//#endif
+//					}
+//				}
+//				// "Shader Constants" - List
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwCurrentConstants)
+//				{
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentConstants);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
+//					{
+//						// unselect and clear buffer size list
+//						m_pcVireioGUI->UnselectCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
+//						m_aszShaderBuffersizes = std::vector<std::wstring>();
+//
+//						// get a number vector
+//						std::vector<UINT> adwBufferSizes;
+//
+//						// loop through buffers, compare all entries
+//						for (UINT dwI = 0; dwI < (UINT)(*pasShaders).size(); dwI++)
+//						{
+//							for (UINT dwJ = 0; dwJ < (UINT)(*pasShaders)[dwI].asBuffers.size(); dwJ++)
+//							{
+//								if (nSelection < (INT)(*pasShaders)[dwI].asBuffers[dwJ].asVariables.size())
+//								{
+//									// compare the two strings, first convert to wstring
+//									std::string szNameA = std::string((*pasShaders)[dwI].asBuffers[dwJ].asVariables[nSelection].szName);
+//									std::wstring szName(szNameA.begin(), szNameA.end());
+//									if (szName.compare(m_aszShaderConstantsCurrent[nSelection]) == 0)
+//									{
+//										UINT dwSize = (*pasShaders)[dwI].asBuffers[dwJ].dwSize;
+//										// add buffer size to list if not present
+//										if (std::find(adwBufferSizes.begin(), adwBufferSizes.end(), dwSize) == adwBufferSizes.end())
+//											adwBufferSizes.push_back(dwSize);
+//									}
+//								}
+//							}
+//						}
+//
+//						// fill the buffer sizes entries new
+//						for (UINT dwJ = 0; dwJ < (UINT)adwBufferSizes.size(); dwJ++)
+//						{
+//							std::wstringstream szSize; szSize << adwBufferSizes[dwJ];
+//							m_aszShaderBuffersizes.push_back(szSize.str());
+//						}
+//					}
+//#endif
+//				}
+//			}
+//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
+//			{
+//				// "Rule Indices" list
+//				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRuleIndices)
+//				{
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
+//					{
+//						// call the method to fill the rule data
+//						FillShaderRuleData((UINT)nSelection);
+//					}
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwConstantName)
+//				{
+//					m_sPageGameShaderRules.m_bConstantName = sEvent.bNewValue;
+//
+//					// if true -> get string from clipboard
+//					if (sEvent.bNewValue)
+//					{
+//						std::string szClipboard = GetClipboardText();
+//						m_sPageGameShaderRules.m_szConstantName = std::wstring(szClipboard.begin(), szClipboard.end());
+//					}
+//					// if false -> delete current value
+//					else
+//					{
+//						m_sPageGameShaderRules.m_szConstantName = std::wstring();
+//					}
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwPartialName)
+//				{
+//					m_sPageGameShaderRules.m_bPartialName = sEvent.bNewValue;
+//
+//					// if true -> get string from clipboard
+//					if (sEvent.bNewValue)
+//					{
+//						std::string szClipboard = GetClipboardText();
+//						m_sPageGameShaderRules.m_szPartialName = std::wstring(szClipboard.begin(), szClipboard.end());
+//					}
+//					// if false -> delete current value
+//					else
+//					{
+//						m_sPageGameShaderRules.m_szPartialName = std::wstring();
+//					}
+//				}
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndex)
+//				{
+//					// set new value and delete the buffer index sizes debug vector
+//					m_sPageGameShaderRules.m_bBufferIndex = sEvent.bNewValue;
+//					m_aunBufferIndexSizesDebug = std::vector<UINT>();
+//
+//					// if true -> try to parse a number from the clipboard
+//					if (sEvent.bNewValue)
+//					{
+//						// get the clipboard text as a stream
+//						std::wstringstream szClipboard;
+//						szClipboard << GetClipboardText().c_str();
+//
+//						// parse to a number
+//						UINT dwValue = 0;
+//						szClipboard >> dwValue;
+//
+//						// delete the stream, parse the number back to the stream
+//						szClipboard = std::wstringstream();
+//						szClipboard << dwValue;
+//
+//						// and set the text
+//						m_sPageGameShaderRules.m_szBufferIndex = szClipboard.str();
+//					}
+//					// if false -> delete current value
+//					else
+//					{
+//						m_sPageGameShaderRules.m_szBufferIndex = std::wstring();
+//					}
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferSize)
+//				{
+//					m_sPageGameShaderRules.m_bBufferSize = sEvent.bNewValue;
+//
+//					// if true -> try to parse a number from the clipboard
+//					if (sEvent.bNewValue)
+//					{
+//						// get the clipboard text as a stream
+//						std::wstringstream szClipboard;
+//						szClipboard << GetClipboardText().c_str();
+//
+//						// parse to a number
+//						UINT dwValue = 0;
+//						szClipboard >> dwValue;
+//
+//						// delete the stream, parse the number back to the stream
+//						szClipboard = std::wstringstream();
+//						szClipboard << dwValue;
+//
+//						// and set the text
+//						m_sPageGameShaderRules.m_szBufferSize = szClipboard.str();
+//					}
+//					// if false -> delete current value
+//					else
+//					{
+//						m_sPageGameShaderRules.m_szBufferSize = std::wstring();
+//					}
+//				}
+//#endif
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwStartRegIndex)
+//				{
+//					// set new value
+//					m_sPageGameShaderRules.m_bStartRegIndex = sEvent.bNewValue;
+//
+//					// if true -> try to parse a number from the clipboard
+//					if (sEvent.bNewValue)
+//					{
+//						// get the clipboard text as a stream
+//						std::wstringstream szClipboard;
+//						szClipboard << GetClipboardText().c_str();
+//
+//						// parse to a number
+//						UINT dwValue = 0;
+//						szClipboard >> dwValue;
+//
+//						// delete the stream, parse the number back to the stream
+//						szClipboard = std::wstringstream();
+//						szClipboard << dwValue;
+//
+//						// and set the text
+//						m_sPageGameShaderRules.m_szStartRegIndex = szClipboard.str();
+//					}
+//					// if false -> delete current value
+//					else
+//					{
+//						m_sPageGameShaderRules.m_szStartRegIndex = std::wstring();
+//					}
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwTranspose)
+//					m_sPageGameShaderRules.m_bTranspose = sEvent.bNewValue;
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndexDebug)
+//				{
+//					// set new value
+//					m_bBufferIndexDebug = sEvent.bNewValue;
+//				}
+//#endif
+//			}
+//			break;
+//#pragma endregion
+//		case ChangedToText:
+//			break;
+//		case Pressed:
+//#pragma region Pressed:
+//			// "Debug" page
+//			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::DebugPage])
+//			{
+//				if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwGrab)
+//				{
+//					// set the grab debug bool to true
+//					m_bGrabDebug = true;
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwClear)
+//				{
+//					// clear debug string list
+//					m_aszDebugTrace = std::vector<std::wstring>();
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwOptions)
+//				{
+//					// new debug option chosen
+//					m_eDebugOption = (Debug_Grab_Options)sEvent.dwNewValue;
+//				}
+//			}
+//			// "Shaders" page
+//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
+//			{
+//				// which shader is chosen ?
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//				std::vector<Vireio_D3D11_Shader>* pasShaders;
+//#elif defined(VIREIO_D3D9)
+//				std::vector<Vireio_D3D9_Shader>* pasShaders;
+//#endif
+//				std::vector<std::wstring>* pasShaderHashCodes;
+//				std::vector<UINT>* padwShaderHashCodes;
+//				if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
+//				{
+//					pasShaders = &m_asVShaders;
+//					pasShaderHashCodes = &m_aszVShaderHashCodes;
+//					padwShaderHashCodes = &m_adwVShaderHashCodes;
+//				}
+//				else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
+//				{
+//					pasShaders = &m_asPShaders;
+//					pasShaderHashCodes = &m_aszPShaderHashCodes;
+//					padwShaderHashCodes = &m_adwPShaderHashCodes;
+//				}
+//
+//				// "Update Shader Hash Code List" - Button
+//				if (sEvent.dwIndexOfControl == m_sPageShader.m_dwUpdate)
+//				{
+//					// test the shader constant list for updates...
+//					if ((*pasShaderHashCodes).size() < (*pasShaders).size())
+//					{
+//						// loop through new shaders
+//						for (UINT dwI = (UINT)(*pasShaderHashCodes).size(); dwI < (UINT)(*pasShaders).size(); dwI++)
+//						{
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//							// loop through shader buffers
+//							for (UINT dwJ = 0; dwJ < (UINT)(*pasShaders)[dwI].asBuffers.size(); dwJ++)
+//							{
+//								for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asBuffers[dwJ].asVariables.size(); dwK++)
+//								{
+//									// convert to wstring
+//									std::string szNameA = std::string((*pasShaders)[dwI].asBuffers[dwJ].asVariables[dwK].szName);
+//									std::wstring szName(szNameA.begin(), szNameA.end());
+//
+//									// constant available in list ?
+//									if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
+//									{
+//										m_aszShaderConstants.push_back(szName);
+//										m_aszShaderConstantsA.push_back(szNameA);
+//									}
+//								}
+//							}
+//#elif defined(VIREIO_D3D9)
+//							// loop through constant descriptions for that shader
+//							for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asConstantDescriptions.size(); dwK++)
+//							{
+//								// convert to wstring
+//								std::string szNameA = std::string((*pasShaders)[dwI].asConstantDescriptions[dwK].Name);
+//								std::wstring szName(szNameA.begin(), szNameA.end());
+//
+//								// constant available in list ?
+//								if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
+//								{
+//									m_aszShaderConstants.push_back(szName);
+//									m_aszShaderConstantsA.push_back(szNameA);
+//								}
+//							}
+//#endif
+//							// add shader hash to lists
+//							std::wstring szHash = std::to_wstring((*pasShaders)[dwI].dwHashCode);
+//							(*pasShaderHashCodes).push_back(szHash);
+//							(*padwShaderHashCodes).push_back((*pasShaders)[dwI].dwHashCode);
+//						}
+//					}
+//				}
+//				// "-> To Name" - Button
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToName)
+//				{
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentConstants);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
+//					{
+//						// set the name to the name control of the shader rules page
+//						m_sPageGameShaderRules.m_szConstantName = m_aszShaderConstantsCurrent[nSelection];
+//					}
+//				}
+//				// "-> To Register" - Button
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToRegister)
+//				{
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwHashCodes);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)(*padwShaderHashCodes).size()))
+//						m_dwCurrentChosenShaderHashCode = (*padwShaderHashCodes)[nSelection];
+//					else
+//						m_dwCurrentChosenShaderHashCode = 0;
+//
+//					if (m_dwCurrentChosenShaderHashCode)
+//					{
+//						// find the hash code in the shader list
+//						UINT dwIndex = 0;
+//						for (UINT dwI = 0; dwI < (UINT)(*pasShaders).size(); dwI++)
+//						{
+//							if (m_dwCurrentChosenShaderHashCode == (*pasShaders)[dwI].dwHashCode)
+//							{
+//								dwIndex = dwI;
+//								dwI = (UINT)(*pasShaders).size();
+//							}
+//						}
+//
+//						INT nSelection = 0;
+//
+//						// get current selection of the shader constant list
+//						nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentConstants);
+//
+//						if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
+//						{
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//							if ((*pasShaders)[dwIndex].asBuffers.size())
+//							{
+//								UINT dwBufferIndex = 0;
+//
+//								// get the buffer index
+//								while (dwBufferIndex < (UINT)(*pasShaders)[dwIndex].asBuffers.size())
+//								{
+//									if (nSelection >= (INT)(*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
+//									{
+//										nSelection -= (INT)(*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables.size();
+//										dwBufferIndex++;
+//									}
+//									else break;
+//								}
+//
+//								// set data based on selection
+//								if (nSelection < (INT)(*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
+//								{
+//									// set new start register string on the shader rules page (=offset/16)
+//									std::wstringstream szStartOffset; szStartOffset << ((*pasShaders)[dwIndex].asBuffers[dwBufferIndex].asVariables[nSelection].dwStartOffset >> 4);
+//									m_sPageGameShaderRules.m_szStartRegIndex = szStartOffset.str();
+//
+//									// also set the buffer index if present
+//									if (dwBufferIndex < (UINT)(*pasShaders)[dwIndex].asBuffersUnaccounted.size())
+//									{
+//										// set the new register
+//										std::wstringstream szStartRegister; szStartRegister << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwBufferIndex].dwRegister;
+//										m_sPageGameShaderRules.m_szBufferIndex = szStartRegister.str();
+//									}
+//								}
+//							}
+//#endif
+//						}
+//					}
+//				}
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//				// "-> To Buffer Size" - Button
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToBufferSize)
+//				{
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderBuffersizes.size()))
+//					{
+//						// set the name to the name control of the shader rules page
+//						m_sPageGameShaderRules.m_szBufferSize = m_aszShaderBuffersizes[nSelection];
+//					}
+//				}
+//				// "-> To Buffer Index" - Button
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToBufferIndex)
+//				{
+//					INT nSelection = 0;
+//
+//					// get current selection of the shader constant list
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageShader.m_dwCurrentBuffersizes);
+//
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderBuffersizes.size()))
+//					{
+//						// set the name to the name control of the shader rules page
+//						m_sPageGameShaderRules.m_szBufferIndex = m_aszShaderBuffersizes[nSelection];
+//					}
+//				}
+//				// "-> To Fetched Hash" - Button
+//				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToFetchedList)
+//				{
+//					if (m_dwCurrentChosenShaderHashCode)
+//					{
+//						// add to hash code list
+//						m_aunFetchedHashCodes.push_back(m_dwCurrentChosenShaderHashCode);
+//
+//						// fill the string list
+//						FillFetchedHashCodeList();
+//					}
+//				}
+//#endif				
+//			}
+//			// "Shader Rules" page
+//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
+//			{
+//				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwCreate)
+//				{
+//					// create rule, first parse input data
+//					Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule();
+//
+//					// full name
+//					if (m_sPageGameShaderRules.m_bConstantName)
+//					{
+//						std::string sz(m_sPageGameShaderRules.m_szConstantName.begin(), m_sPageGameShaderRules.m_szConstantName.end());
+//						sRule.m_szConstantName = sz;
+//						sRule.m_bUseName = true;
+//					}
+//
+//					// partial name
+//					if (m_sPageGameShaderRules.m_bPartialName)
+//					{
+//						std::string sz(m_sPageGameShaderRules.m_szPartialName.begin(), m_sPageGameShaderRules.m_szPartialName.end());
+//						sRule.m_szConstantName = sz;
+//						sRule.m_bUsePartialNameMatch = true;
+//					}
+//
+//					// start register
+//					if (m_sPageGameShaderRules.m_bStartRegIndex)
+//					{
+//						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szStartRegIndex);
+//						sz >> sRule.m_dwStartRegIndex;
+//						sRule.m_bUseStartRegIndex = true;
+//					}
+//
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//					// buffer size
+//					if (m_sPageGameShaderRules.m_bBufferSize)
+//					{
+//						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferSize);
+//						sz >> sRule.m_dwBufferSize;
+//						sRule.m_bUseBufferSize = true;
+//					}
+//
+//					// buffer index
+//					if (m_sPageGameShaderRules.m_bBufferIndex)
+//					{
+//						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferIndex);
+//						sz >> sRule.m_dwBufferIndex;
+//						sRule.m_bUseBufferIndex = true;
+//					}
+//#endif
+//
+//					// operation
+//					sRule.m_dwOperationToApply = m_sPageGameShaderRules.m_dwOperationValue;
+//
+//					// register count
+//					sRule.m_dwRegisterCount = m_sPageGameShaderRules.m_dwRegCountValue;
+//
+//					// transpose
+//					sRule.m_bTranspose = m_sPageGameShaderRules.m_bTranspose;
+//
+//					// create modification
+//					if (sRule.m_dwRegisterCount == 1)
+//						sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+//					else if (sRule.m_dwRegisterCount == 4)
+//						sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+//					else sRule.m_pcModification = nullptr;
+//
+//					// add the rule
+//					m_asConstantRules.push_back(sRule);
+//
+//					// update the control string list
+//					FillShaderRuleIndices();
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwAddGeneral)
+//				{
+//					// increase the update counter to reverify the constant buffers for rules
+//					m_dwConstantRulesUpdateCounter++;
+//
+//					// get current selection of the rule indices list
+//					INT nSelection = 0;
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
+//					{
+//						// add to general rules
+//						m_aunGlobalConstantRuleIndices.push_back((UINT)nSelection);
+//					}
+//
+//					// update the list
+//					FillShaderRuleGeneralIndices();
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteGeneral)
+//				{
+//					// increase the update counter to reverify the constant buffers for rules
+//					m_dwConstantRulesUpdateCounter++;
+//
+//					// get current selection of the general indices constant list
+//					INT nSelection = 0;
+//					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
+//					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleGeneralIndices.size()))
+//					{
+//						// erase
+//						m_aunGlobalConstantRuleIndices.erase(m_aunGlobalConstantRuleIndices.begin() + nSelection);
+//					}
+//
+//					// update the list
+//					FillShaderRuleGeneralIndices();
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteLatest)
+//				{
+//					// increase the update counter to reverify the constant buffers for rules
+//					m_dwConstantRulesUpdateCounter++;
+//
+//					if (m_asConstantRules.size())
+//					{
+//						// get last index of the shader rule list
+//						INT nSelection = (INT)m_asConstantRules.size() - 1;
+//
+//						{
+//							// delete all entries for that index in the general list
+//							auto it = m_aunGlobalConstantRuleIndices.begin();
+//							while (it < m_aunGlobalConstantRuleIndices.end())
+//							{
+//								if ((INT)*it == nSelection)
+//								{
+//									m_aunGlobalConstantRuleIndices.erase(it);
+//								}
+//								it++;
+//							}
+//						}
+//
+//						// erase latest
+//						auto it = m_asConstantRules.end();
+//						it--;
+//						m_asConstantRules.erase(it);
+//
+//						// update the control string lists
+//						FillShaderRuleIndices();
+//						FillShaderRuleGeneralIndices();
+//					}
+//				}
+//				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwImportXML)
+//				{
+//					OPENFILENAME ofn;
+//					wchar_t szFileName[MAX_PATH] = L"";
+//
+//					// get filename using the OPENFILENAME structure and GetOpenFileName()
+//					ZeroMemory(&ofn, sizeof(ofn));
+//
+//					ofn.lStructSize = sizeof(ofn);
+//					ofn.hwndOwner = NULL;
+//					ofn.lpstrFilter = (LPCWSTR)L"Vireio v3 Shader Rule XML file (*.xml)\0*.xml\0";
+//					ofn.lpstrFile = (LPWSTR)szFileName;
+//					ofn.nMaxFile = MAX_PATH;
+//					ofn.lpstrDefExt = (LPCWSTR)L"xml";
+//					ofn.lpstrTitle = L"Import Vireio v3 Shader Rule XML file";
+//					ofn.Flags = OFN_FILEMUSTEXIST;
+//
+//					if (GetOpenFileName(&ofn))
+//					{
+//						// and import
+//						std::wstring szW = std::wstring(ofn.lpstrFile);
+//						std::string szFilePath = std::string(szW.begin(), szW.end());
+//						ImportXMLRules(szFilePath);
+//					}
+//
+//					// fill the string list
+//					FillShaderRuleIndices();
+//					FillShaderRuleGeneralIndices();
+//#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+//					FillFetchedHashCodeList();
+//#elif defined(VIREIO_D3D9)
+//					FillShaderRuleShaderIndices();
+//#endif
+//				}
+//			}
+//			break;
+//#pragma endregion
+//		default:
+//			break;
+//	}
 }
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
@@ -4678,7 +4571,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 ***/
 void MatrixModifier::CreateGUI()
 {
-	SIZE sSizeOfThis;
+	/*SIZE sSizeOfThis;
 	sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
 	m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, GUI_CONTROL_FONTSIZE, RGB(110, 105, 95), RGB(254, 249, 240));
 
@@ -4808,8 +4701,8 @@ void MatrixModifier::CreateGUI()
 	sControl.m_eControlType = Vireio_Control_Type::FloatInput;
 	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
 	sControl.m_sPosition.y = GUI_CONTROL_BORDER;
-	sControl.m_sSize.cx = GUI_CONTROL_FONTSIZE * 12;                     /**< Standard for float controls ***/
-	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE * 3;                      /**< Standard for float controls ***/
+	sControl.m_sSize.cx = GUI_CONTROL_FONTSIZE * 12;                     /// Standard for float controls 
+	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE * 3;                      /// Standard for float controls 
 	sControl.m_sFloat.m_fValue = m_sGameConfiguration.fWorldScaleFactor;
 	sControl.m_sFloat.m_pszText = &szGameSeparationText;
 
@@ -4869,8 +4762,8 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
 	sControl.m_sSize.cy = (GUI_HEIGHT >> 1) - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
 	sControl.m_sListBox.m_bSelectable = true;
-	sControl.m_sListBox.m_nCurrentSelection = -1;                                                   /**< Set to -1 means 'No Selection' at startup ***/
-	sControl.m_sListBox.m_paszEntries = &m_aszVShaderHashCodes;                                     /**< At start we set the vertex shader hash code list here. ***/
+	sControl.m_sListBox.m_nCurrentSelection = -1;                                                   /// Set to -1 means 'No Selection' at startup 
+	sControl.m_sListBox.m_paszEntries = &m_aszVShaderHashCodes;                                     /// At start we set the vertex shader hash code list here. 
 	m_sPageShader.m_dwHashCodes = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
 
 	// "update shader data" button
@@ -5087,7 +4980,7 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szButtonClear = std::wstring(L"Clear Debug Trace");
 	sControl.m_sButton.m_pszText = &szButtonClear;
 	m_sPageDebug.m_dwClear = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-#pragma endregion
+#pragma endregion*/
 }
 
 /**
@@ -5095,9 +4988,6 @@ void MatrixModifier::CreateGUI()
 ***/
 void MatrixModifier::FillShaderRuleIndices()
 {
-	// first, unselect and clear
-	if (m_pcVireioGUI)
-		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
 	m_aszShaderRuleIndices = std::vector<std::wstring>();
 	for (UINT dwI = 0; dwI < (UINT)m_asConstantRules.size(); dwI++)
 	{
@@ -5115,8 +5005,6 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 	if (dwRuleIndex >= (UINT)m_asConstantRules.size())
 		return;
 
-	// unselect and clear the shader rule data list
-	m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwRuleData);
 	m_aszShaderRuleData = std::vector<std::wstring>();
 
 	// add the data strings
@@ -5189,13 +5077,13 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		m_aszShaderRuleData.push_back(szTranspose.str());
 	}
 
-	// operation ?
-	{
+	// operation ? TODO !!
+	/*{
 		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
 			m_aszShaderRuleData.push_back(ShaderConstantModificationFactory::GetVector4ModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
 		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
 			m_aszShaderRuleData.push_back(ShaderConstantModificationFactory::GetMatrixModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
-	}
+	}*/
 }
 
 /**
@@ -5203,9 +5091,6 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 ***/
 void MatrixModifier::FillShaderRuleGeneralIndices()
 {
-	// first, unselect and clear
-	if (m_pcVireioGUI)
-		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
 	m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
 	for (UINT dwI = 0; dwI < (UINT)m_aunGlobalConstantRuleIndices.size(); dwI++)
 	{
@@ -5239,9 +5124,6 @@ void MatrixModifier::FillFetchedHashCodeList()
 ***/
 void MatrixModifier::FillShaderRuleShaderIndices()
 {
-	// first, unselect and clear
-	if (m_pcVireioGUI)
-		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwShaderIndices);
 	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
 	for (UINT dwI = 0; dwI < (UINT)m_asShaderSpecificRuleIndices.size(); dwI++)
 	{
@@ -5261,7 +5143,7 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 bool MatrixModifier::ImportXMLRules(std::string szRulesPath)
 {
 	// helper to convert IDs to indices (Vireio v4 does use indices instead of IDs)
-	std::vector<UINT> aIDIndices = std::vector<UINT>();
+	/*std::vector<UINT> aIDIndices = std::vector<UINT>();
 
 	m_asConstantRules.clear();
 	m_aunGlobalConstantRuleIndices.clear();
@@ -5428,5 +5310,5 @@ bool MatrixModifier::ImportXMLRules(std::string szRulesPath)
 #endif
 	}
 
-	return true;
+	return true;*/
 }

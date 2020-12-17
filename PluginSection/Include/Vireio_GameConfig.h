@@ -29,10 +29,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-/**
-* Vireio Game Configuration since v4.x of the Driver.
-* This config replaces the ProxyConfig structure of former versions.
-***/
+#include<stdio.h>
+
+#ifndef VIREIO_GAME_CONFIG
+#define VIREIO_GAME_CONFIG
+
+/// <summary>
+/// Vireio Game Configuration since v4.x of the Driver.
+/// This config replaces the ProxyConfig structure of former versions.
+/// </summary>
 struct Vireio_GameConfiguration
 {
 	float       fWorldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
@@ -54,3 +59,5 @@ struct Vireio_GameConfiguration
 	float		fPFOV;                       /**< Projection FOV, alternative to modifying game's FOV **/
 	bool		bPFOVToggle;                 /**< Projection FOV, toggle for above **/
 };
+
+#endif

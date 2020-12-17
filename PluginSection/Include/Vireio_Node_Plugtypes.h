@@ -31,6 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<stdlib.h>
 #include<sstream>
+#include<d3d11_1.h>
+#include<d3d11.h>
+#include<d3d10_1.h>
+#include<d3d10.h>
+#include<d3d9.h>
+#include<d3dx9.h>
 #define AQU_INCLUDE_CONFIG_ONLY
 #include"..//..//Aquilinus/Aquilinus//AQU_NodesStructures.h"
 #include"..\..\..\Include\VireioMenu.h"
