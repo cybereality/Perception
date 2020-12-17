@@ -7,7 +7,7 @@ Created using [Visual Studio Community C++ 2019](https://visualstudio.microsoft.
     * FREESPACE      : The folder for libfreespace (Hillcrest Labs SDK).
     * DXSDK_DIR      : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK).
     * OVRSDKROOT     : Your Oculus SDK root directory.
-for OSVR-nodes:
+#### for OSVR-nodes:
     * BOOST_ROOT     : Boost needed for the OSVR render manager
     * OSVRRENDERMANAGER_INCLUDE_DIRS       : OSVR Render Manager include x64.
     * OSVRRENDERMANAGER_INCLUDE_DIRS_Win32 : OSVR Render Manager include Win32.
@@ -47,6 +47,26 @@ Also, take care to have the latest Visual Studio Redistributables installed, dow
 	* Vireio OSVR Direct Mode - DevNr 2006 - PluginNr 289
 	* Vireio HTC Vive Tracker - DevNr 2006 - PluginNr 320
 	* Vireio HTC Vive Direct Mode - DevNr 2006 - PluginNr 321
+	
+#### How to create a D3D9 game profile
+
+- Start Game in Windowed mode, inject <Aquilinus.dll> using <Inicio.exe>
+- Create Stereo Splitter node
+  - Connect Direct3DDevice9::Present
+  - Connect :
+			Direct3DDevice9::BeginScene (*)
+			Direct3DDevice9::EndScene (*)
+  - Connect : (Surface Handling Methods)
+			Direct3DDevice9::SetRenderTarget
+			Direct3DDevice9::SetDepthStencilSurface
+			Direct3DDevice9::SetTexture
+  - Connect : (Drawing Methods)
+			Direct3DDevice9::Clear (*)
+			Direct3DDevice9::DrawPrimitive (*)
+			Direct3DDevice9::DrawIndexedPrimitive (*)
+			Direct3DDevice9::DrawPrimitiveUP (*)
+			Direct3DDevice9::DrawIndexedPrimitieUP (*)
+  - Game should now render on both left + right image surface
 
 #### Known Aquilinus Plugins aside this repository:
 
