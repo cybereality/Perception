@@ -295,7 +295,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 	switch ((STS_Decommanders)unDecommanderIndex)
 	{
 	case STS_Decommanders::Modifier:
-		return L"Modifier";
+		return VLink::Name(VLink::_L::ModifierData);
 	case STS_Decommanders::CreateAdditionalSwapchain:
 		return L"CreateAdditionalSwapchain";
 	case STS_Decommanders::GetSwapChain:
@@ -508,7 +508,6 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DStateBlock9, (int)VMT_IDIRECT3DSTATEBLOCK9::Apply);
 
 	}
-
 
 	return 0;
 }

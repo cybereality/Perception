@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include<stdio.h>
 #include<vector>
+#include<array>
 #include<string>
 #include"..\..\..\Include\Vireio_GameConfig.h"
 
@@ -47,10 +48,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<d3d9.h>
 #include<d3dx9.h>
 
-#pragma region => Element calculation class
+#pragma region => Modification calculation class
+/// <summary>
+/// All float fields enumeration used
+/// to compute any mathematical operation.
+/// </summary>
+enum class MathFloatFields : size_t
+{
+	Roll,             /*< Amount of actual roll (in radians) */
+	IPD,              /*< Interpupillary distance. */
+	Convergence,      /*< Convergence. Left/Rigth offset adjustment. In millimeters. */
+	Squash,           /*< The amount of squashing GUI shader constants. */
+	GUI_Depth,        /*< The 3d depth of the GUI. */
+	HUD_Distance,     /*< The distance of the HUD. */
+	HUD_Depth,        /*< The 3d depth of the HUD. */
+	AspectMultiplier, /*< Aspect multiplier for projection matrices */
+	FOV_H,            /*< FOV, horizontal */
+	FOV_V,            /*< FOV, vertical*/
+
+	Math_FloatFields_Size
+
+};
+constexpr size_t Math_FloatFields_Size = (size_t)MathFloatFields::Math_FloatFields_Size;
+
 /// <summary>
 /// All mathematical registers enumeration.
-/// Stores all mathematical registers (vectors, 
+/// Indices to all mathematical registers (vectors, 
 /// matrices), both input and output (meanwhile
 /// stored).
 /// 1 Register  =  4 * float = Vector4
@@ -58,11 +81,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// </summary>
 enum class MathRegisters : size_t
 {
-	Start = 0, // Placeholder
-	End        // Placeholder
+	VEC_PositionTransform = 0,
+
+	MAT_BasicProjection = VEC_PositionTransform + 4,              /*< Projection matrix - basic with no PFOV */
+	MAT_ProjectionInv = MAT_BasicProjection + 4,                  /*< Projection inverse matrix */
+	MAT_ProjectionFOV = MAT_ProjectionInv + 4,                    /*< The projection with adjusted FOV */
+	MAT_ProjectionConvL = MAT_ProjectionFOV + 4,                  /*< The projection with left eye convergence */
+	MAT_ProjectionConvR = MAT_ProjectionConvL + 4,                /*< The projection with right eye convergence */
+	MAT_Roll = MAT_ProjectionConvR + 4,                           /*< The head roll matrix */
+	MAT_RollNegative = MAT_Roll + 4,                              /*< The head roll matrix. (negative) */
+	MAT_RollHalf = MAT_RollNegative + 4,                          /*< The head roll matrix. (half roll) */
+	MAT_TransformL = MAT_RollHalf + 4,                            /*< Left matrix used to roll (if roll enabled) and shift view for ipd. */
+	MAT_TransformR = MAT_TransformL + 4,                          /*< Right matrix used to roll (if roll enabled) and shift view for ipd. */
+	MAT_ViewProjectionL = MAT_TransformR + 4,                     /*< Left view projection matrix */
+	MAT_ViewProjectionR = MAT_ViewProjectionL + 4,                /*< Right view projection matrix */
+	MAT_ViewProjectionNoRollL = MAT_ViewProjectionR + 4,          /*< Left view projection matrix (no roll) */
+	MAT_ViewProjectionNoRollR = MAT_ViewProjectionNoRollL + 4,    /*< Right view projection matrix (no roll) */
+	MAT_Position = MAT_ViewProjectionNoRollR + 4,                 /*< Positional translation matrix */
+	MAT_GatheredL = MAT_Position + 4,                             /*< Gathered matrix to be used in gathered modifications */
+	MAT_GatheredR = MAT_GatheredL + 4,                            /*< Gathered matrix to be used in gathered modifications */
+	// TODO !! Rest of ViewAdjustment class fields
+
+	Math_Registers_Size = MAT_GatheredR + 4     // not used
 };
-static const MathRegisters s_eRegInMIN = MathRegisters::Start;
-static const MathRegisters s_eRegInMAX = MathRegisters::End;
+constexpr size_t Math_Registers_Size = (size_t)MathRegisters::Math_Registers_Size;
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #elif defined(VIREIO_D3D9)
@@ -71,17 +113,161 @@ typedef D3DXVECTOR4 REGISTER4F;
 
 /// <summary>
 /// Class for any matrix/vector calculation.
-/// Calculates different matrices and vertices for different nodes.
+/// Calculates different matrices and vertices (shader registers) for different nodes.
+/// Compression of Class >ViewAdjustment< 2013 by Chris Drain
 /// </summary>
-class ElementCalculation
+class ModificationCalculation
 {
 public:
-	ElementCalculation(Vireio_GameConfiguration* psConfig) : m_psConfig(psConfig) { m_aMathRegisters.resize((size_t)s_eRegInMAX); }
-	virtual ~ElementCalculation() {}
+	ModificationCalculation(Vireio_GameConfiguration* psConfig) : m_psConfig(psConfig)
+	{
+		SetFloat(MathFloatFields::AspectMultiplier, psConfig->fAspectMultiplier);
+		SetFloat(MathFloatFields::FOV_H, 110.0f);
+		SetFloat(MathFloatFields::Roll, 0.f);
+		Compute(MathRegisters::MAT_BasicProjection);
+		Compute(MathRegisters::MAT_ProjectionInv);
+		Compute(MathRegisters::MAT_ProjectionFOV);
+		Compute(MathRegisters::MAT_Roll);
+		Compute(MathRegisters::MAT_RollNegative);
+		Compute(MathRegisters::MAT_RollHalf);
 
-	
-	/// <summary> All mathematical elements needed to compute any modification. </summary>
-	std::vector<REGISTER4F> m_aMathRegisters;
+		//ComputeViewTransforms(); // TODO !!
+
+	}
+	virtual ~ModificationCalculation() {}
+
+	/// <summary>
+	/// Set float field.
+	/// </summary>
+	/// <param name="eIndex">Index based on enumeration</param>
+	/// <param name="fValue">Value to be applied</param>
+	void SetFloat(MathFloatFields eIndex, float fValue)
+	{
+		m_aMathFloat[(size_t)eIndex] = fValue;
+	}
+
+	/// <summary>
+	/// Any computation (update) done here.
+	/// </summary>
+	/// <param name="eRegister">The register to be updated</param>
+	void Compute(MathRegisters eRegister)
+	{
+		// Minimum (near) Z-value
+		const float n = 0.1f;
+		// Maximum (far) Z-value
+		const float f = 10.0f;
+		// Minimum (left) X-value
+		const float l = -0.5f;
+		// Maximum (right) X-value
+		const float r = 0.5f;
+
+		switch (eRegister)
+		{
+		case MathRegisters::VEC_PositionTransform:
+			break;
+		case MathRegisters::MAT_BasicProjection:
+		{
+			float fAspect = m_aMathFloat[(size_t)MathFloatFields::AspectMultiplier];
+			// Maximum (top) y-value of the view volume
+			float t = 0.5f / fAspect;
+			// Minimum (bottom) y-value of the volume
+			float b = -0.5f / fAspect;
+			// Calculate basic projection
+			D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection], l, r, b, t, n, f);
+		}
+		break;
+		case MathRegisters::MAT_ProjectionInv:
+			D3DXMatrixInverse((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv], 0, (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
+			break;
+		case MathRegisters::MAT_ProjectionFOV:
+		{
+			float fAspect = m_aMathFloat[(size_t)MathFloatFields::AspectMultiplier];
+			float fFOV_horiz = m_aMathFloat[(size_t)MathFloatFields::FOV_H];
+
+			// TODO !! NO HMD ?? see ViewAdjustment::UpdateProjectionMatrices()
+
+			// Calculate vertical fov from provided horizontal
+			float fFOV_vert = m_aMathFloat[(size_t)MathFloatFields::FOV_V] = 2.0f * atan(tan(D3DXToRadian(fFOV_horiz) / 2.0f) * fAspect);
+
+			// And left and right (identical in this case)
+			D3DXMatrixPerspectiveFovLH((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionFOV], fFOV_vert, fAspect, n, f);
+		}
+		break;
+		case MathRegisters::MAT_ProjectionConvL:
+			break;
+		case MathRegisters::MAT_ProjectionConvR:
+			break;
+		case MathRegisters::MAT_Roll:
+			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Roll], m_aMathFloat[(size_t)MathFloatFields::Roll]);
+			break;
+		case MathRegisters::MAT_RollNegative:
+			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_RollNegative], -m_aMathFloat[(size_t)MathFloatFields::Roll]);
+			break;
+		case MathRegisters::MAT_RollHalf:
+			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_RollHalf], m_aMathFloat[(size_t)MathFloatFields::Roll] * .5f);
+			break;
+		case MathRegisters::MAT_TransformL:
+			break;
+		case MathRegisters::MAT_TransformR:
+			break;
+		case MathRegisters::MAT_ViewProjectionL:
+			break;
+		case MathRegisters::MAT_ViewProjectionR:
+			break;
+		case MathRegisters::MAT_ViewProjectionNoRollL:
+			break;
+		case MathRegisters::MAT_ViewProjectionNoRollR:
+			break;
+		case MathRegisters::MAT_Position:
+			break;
+		case MathRegisters::MAT_GatheredL:
+			break;
+		case MathRegisters::MAT_GatheredR:
+			break;
+		case MathRegisters::Math_Registers_Size:
+			break;
+		default:
+			break;
+		}
+	}
+
+	/// <summary>
+	/// Retrieves an internal float value.
+	/// </summary>
+	/// <param name="eIndex">Index based on (MathFloatFields enum)</param>
+	/// <returns>Current value of specified index</returns>
+	float Get(MathFloatFields eIndex)
+	{
+		return m_aMathFloat[(size_t)eIndex];
+	}
+
+	/// <summary>
+	/// Retrieves an internal vector value.
+	/// </summary>
+	/// <param name="eRegister">Register index (MathRegisters enum)</param>
+	/// <returns>Current value (field) of specified index</returns>
+	D3DXVECTOR4 Get(MathRegisters eRegister)
+	{
+		return D3DXVECTOR4((float*)&m_aMathRegisters[(size_t)eRegister]);     
+	}
+
+	/// <summary>
+	/// Retrieves an internal matrix value.
+	/// </summary>
+	/// <param name="eRegister">Register index (MathRegisters enum)</param>
+	/// <returns>Current value (field) of specified index</returns>
+	D3DXMATRIX Get(MathRegisters eRegister, const unsigned uSize = 4)
+	{
+		// out of range ?
+		if ((uSize != 4) || ((uSize + 4) > (unsigned)Math_Registers_Size)) return D3DXMATRIX();
+		return D3DXMATRIX((float*)&m_aMathRegisters[(size_t)eRegister]);
+	}
+
+private:
+	/// <summary> All mathematical registers needed to compute any modification. </summary>
+	std::array<REGISTER4F, Math_Registers_Size> m_aMathRegisters;
+	/// <summary> All float fields needed to compute any modification. </summary>
+	std::array<float, Math_FloatFields_Size> m_aMathFloat;
 	/// <summary>Vireio v4.x game configuration.</summary>
 	Vireio_GameConfiguration* m_psConfig;
 };
@@ -103,7 +289,7 @@ class ShaderConstantModification
 public:
 	/// <summary> Constructor/Desctructor </summary>
 	/// <param name="modID">Identifier of the modification. Identifier enumerations defined in ShaderConstantModificationFactory</param>
-	ShaderConstantModification(UINT modID, std::shared_ptr<ElementCalculation> pcCalculaion) : m_ModificationID(modID), m_pcCalculation(pcCalculaion) {}
+	ShaderConstantModification(UINT modID, std::shared_ptr<ModificationCalculation> pcCalculaion) : m_ModificationID(modID), m_pcCalculation(pcCalculaion) {}
 	virtual ~ShaderConstantModification() {}
 
 	/// <summary> Pure virtual method, should apply the modification to produce left and right versions </summary>
@@ -113,7 +299,7 @@ public:
 	UINT m_ModificationID;
 
 	/// <summary> Calculation class. </summary>
-	std::shared_ptr<ElementCalculation> m_pcCalculation;
+	std::shared_ptr<ModificationCalculation> m_pcCalculation;
 };
 
 /// <summary>
@@ -276,7 +462,7 @@ struct Vireio_Constant_Modification_Rule
 class Vector4SimpleTranslate : public ShaderConstantModification<float>
 {
 public:
-	Vector4SimpleTranslate(UINT uModID, std::shared_ptr<ElementCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {};
+	Vector4SimpleTranslate(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {};
 
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
@@ -294,7 +480,7 @@ public:
 /// <param name="uModID">Modification Identifier</param>
 /// <param name="pcCalculation">Elements Calculation class</param>
 /// <returns></returns>
-static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT uModID, std::shared_ptr<ElementCalculation> pcCalculation)
+static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation)
 {
 	return std::make_shared<Vector4SimpleTranslate>(uModID, pcCalculation);
 }
@@ -305,7 +491,7 @@ static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(U
 /// <param name="uModID">Modification Identifier</param>
 /// <param name="pcCalculation">Elements Calculation class</param>
 /// <returns></returns>
-static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT uModID, std::shared_ptr<ElementCalculation> pcCalculation, bool bTranspose)
+static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation, bool bTranspose)
 {
 	UNREFERENCED_PARAMETER(bTranspose);
 

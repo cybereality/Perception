@@ -78,6 +78,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D9Interfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DDevice9.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DSwapchain9.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DStateBlock9.h"
 #include"..\..\..\Include\Vireio_GameConfig.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"VireioMatrixModifierClasses.h"
@@ -94,7 +98,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        32
+#define NUMBER_OF_DECOMMANDERS                        21
 #define GUI_HEIGHT                                   768
 #endif
 
@@ -299,8 +303,6 @@ enum Vireio_Supported_Shaders
 	HullShader,
 	DomainShader
 };
-#elif defined(VIREIO_D3D9)
-
 #endif
 
 /// <summary>
@@ -342,10 +344,7 @@ public:
 	/// Return value pointer (HRESULT).
 	/// </summary>
 	void* m_pvReturn;
-	/// <summary>
-	/// Current drawing side, only changed in VireioStereoSplitter::SetDrawingSide().
-	/// </summary>
-	RenderPosition m_eCurrentRenderingSide;
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/// <summary>
 	/// Constant Buffer Map data vector
@@ -364,7 +363,6 @@ private:
 	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
 #endif
 	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
-	void CreateGUI();
 	void FillShaderRuleIndices();
 	void FillShaderRuleData(UINT dwRuleIndex);
 	void FillShaderRuleGeneralIndices();
@@ -380,6 +378,12 @@ private:
 	/// [IN] Input pointers array.
 	/// </summary>
 	void* m_ppInput[NUMBER_OF_DECOMMANDERS];
+	/// <summary>
+	/// [OUT] All data this node provides to other nodes.
+	/// </summary>
+	ModifierData m_sModifierData;
+
+#pragma region => Internal Data
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/// <summary>*
@@ -502,7 +506,6 @@ private:
 	};
 
 #elif defined(VIREIO_D3D9)
-
 	/// <summary>
 	/// The d3d9 vertex shader description vector.
 	/// Contains all enumerated shader data structures.
@@ -521,14 +524,6 @@ private:
 	/// The active pixel shader.
 	/// </summary>
 	IDirect3DManagedStereoShader9<IDirect3DPixelShader9>* m_pcActivePixelShader;
-	/// <summary>
-	/// The indices of the shader rules assigned to the active vertex shader.
-	/// </summary>
-	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasVSConstantRuleIndices;
-	/// <summary>
-	/// The indices of the shader rules assigned to the active pixel shader.
-	/// </summary>
-	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasPSConstantRuleIndices;
 	/// <summary>
 	/// Shader-specific constant rule indices array.
 	/// </summary>
@@ -560,21 +555,13 @@ private:
 	/// </summary>
 	bool m_bProjectionTransformSet;
 	/// <summary>
-	/// The stored left view transform set via SetTransform().
+	/// The stored view transform set via SetTransform() l/r.
 	/// </summary>
-	D3DXMATRIX m_sMatViewLeft;
+	D3DXMATRIX m_sMatView[2];
 	/// <summary>
-	/// The stored right view transform set via SetTransform().
+	/// The stored projection transform set via SetTransform() l/r.
 	/// </summary>
-	D3DXMATRIX m_sMatViewRight;
-	/// <summary>
-	/// The stored left projection transform set via SetTransform().
-	/// </summary>
-	D3DXMATRIX m_sMatProjLeft;
-	/// <summary>
-	/// The stored right projection transform set via SetTransform().
-	/// </summary>
-	D3DXMATRIX m_sMatProjRight;
+	D3DXMATRIX m_sMatProj[2];
 	/// <summary>
 	/// Either the left or right view, depending on active render side.
 	/// </summary>
@@ -585,14 +572,6 @@ private:
 	D3DXMATRIX* m_psMatProjCurrent;
 #endif
 
-	/// <summary>
-	/// Tracker input pointers. (pitch, yaw, roll,...)
-	/// </summary>
-	float* m_apfTrackerInput[10];
-	/// <summary>
-	/// Current chosen shader type.
-	/// </summary>
-	Vireio_Supported_Shaders m_eChosenShaderType;
 	/// <summary>
 	/// All constant rules loaded for that game.
 	/// </summary>
@@ -614,7 +593,7 @@ private:
 	/// View matrix adjustment class.
 	/// @see ViewAdjustment
 	/// </summary>
-	std::shared_ptr<ElementCalculation> m_pcShaderElementCalculation;
+	std::shared_ptr<ModificationCalculation> m_pcShaderModificationCalculation;
 	/// <summary>
 	/// The game configuration for the current game.
 	/// </summary>
@@ -631,6 +610,10 @@ private:
 	/// List of available Debug Options (Entries).
 	/// </summary>
 	std::vector<std::wstring> m_aszDebugOptions;
+#pragma endregion
+
+#pragma region => Node Controls / In-Game Menu
+
 	/// <summary>
 	/// Shader page control IDs
 	/// Structure contains all control IDs for the vertex shader page.
@@ -845,10 +828,6 @@ private:
 	/// </summary>
 	char m_acData[MAX_DATA_SIZE];
 	/// <summary>
-	/// Option to switch the render target to exclude shaders beeing drawn.
-	/// </summary>
-	BOOL m_bSwitchRenderTarget;
-	/// <summary>
 	/// Vireio menu.
 	/// </summary>
 	VireioSubMenu m_sMenu;
@@ -883,6 +862,9 @@ private:
 	/// </summary>
 	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
 #endif
+
+#pragma endregion
+
 };
 
 /// <summary>

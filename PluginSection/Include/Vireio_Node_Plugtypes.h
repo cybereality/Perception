@@ -552,13 +552,13 @@ struct HMDTrackerData : public VireioPluginData
 /// </summary>
 struct ModifierData : public VireioPluginData
 {
-	/**
-	* The indices of the shader rules assigned to the active vertex shader.
-	***/
+	/// <summary>
+	/// The indices of the shader rules assigned to the active vertex shader.
+	/// </summary>
 	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasVSConstantRuleIndices;
-	/**
-	* The indices of the shader rules assigned to the active pixel shader.
-	***/
+	/// <summary>
+	/// The indices of the shader rules assigned to the active pixel shader.
+	/// </summary>
 	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasPSConstantRuleIndices;
 
 	/// <summary>
@@ -619,7 +619,6 @@ struct StereoData : public VireioPluginData
 	/// <returns>Link identifier for this structure</returns>
 	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::StereoData); }
 };
-
 
 #pragma endregion
 

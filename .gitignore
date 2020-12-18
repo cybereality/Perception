@@ -212,3 +212,4 @@ LibOVRKernel
 /PluginSection/VirtualReality/VireioCinema/VireioCinema/VS2019/Release/VireioCinema.dll.recipe
 *.recipe
 /PluginSection/VirtualReality/VireioCinema/VireioCinema/VS2019/Release/VireioCinema.vcxproj.FileListAbsolute.txt
+/PluginSection/VireioCore/VireioMatrixModifier/VireioMatrixModifier/VS2019/Release/VireioMatrixModifier.vcxproj.FileListAbsolute.txt
