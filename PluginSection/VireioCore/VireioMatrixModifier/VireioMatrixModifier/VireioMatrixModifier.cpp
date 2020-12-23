@@ -70,43 +70,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
-#define TO_DO_ADD_BOOL_HERE_TRUE                                           true
-#define TO_DO_ADD_BOOL_HERE_FALSE                                         false
-
-/**
-* Simple clipboard text helper.
-***/
-std::string GetClipboardText()
-{
-	// Try opening the clipboard
-	if (!OpenClipboard(nullptr))
-		return std::string();
-
-	// Get handle of clipboard object for ANSI text
-	HANDLE hData = GetClipboardData(CF_TEXT);
-	if (hData == nullptr)
-		return std::string();
-
-	// Lock the handle to get the actual text pointer
-	char* pszText = static_cast<char*>(GlobalLock(hData));
-	if (pszText == nullptr)
-		return std::string();
-
-	// Save text in a string class instance
-	std::string text(pszText);
-
-	// Release the lock
-	GlobalUnlock(hData);
-
-	// Release the clipboard
-	CloseClipboard();
-
-	return text;
-}
-
-/**
-* Constructor.
-***/
+/// <summary> 
+/// Constructor.
+/// </summary>
 MatrixModifier::MatrixModifier() : AQU_Nodus(),
 m_aszShaderConstantsA(),
 m_aszShaderConstants(),
@@ -123,7 +89,8 @@ m_asShaderSpecificRuleIndices(),
 #endif
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
-m_sModifierData{}
+m_sModifierData{},
+m_acData()
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -274,7 +241,7 @@ m_sModifierData{}
 	m_pcSecondaryRenderTargetView10 = nullptr;
 	m_pcSecondaryRenderTargetSRView10 = nullptr;
 #elif defined(VIREIO_D3D9)
-	// init shader rule page shader indices list (DX9 only)
+	// init shader rule page shader indices list (DX9 only) (control)
 	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
 
 	// init shader constant indices (DX9 only)
@@ -284,7 +251,6 @@ m_sModifierData{}
 	// init dx9 classes
 	m_pcActiveVertexShader = nullptr;
 	m_pcActivePixelShader = nullptr;
-	m_bViewTransformSet = false;
 
 	// init proxy registers
 	m_afRegistersVertex = std::vector<float>(MAX_DX9_CONSTANT_REGISTERS * VECTOR_LENGTH);
@@ -304,17 +270,17 @@ m_sModifierData{}
 #endif
 }
 
-/**
-* Destructor.
-***/
+/// <summary> 
+/// Destructor.
+/// </summary>
 MatrixModifier::~MatrixModifier()
 {
 	m_pcShaderModificationCalculation.reset();
 }
 
-/**
-* Return the name of the Matrix Modifier node.
-***/
+/// <summary> 
+/// Return the name of the Matrix Modifier node.
+/// </summary>
 const char* MatrixModifier::GetNodeType()
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -324,9 +290,9 @@ const char* MatrixModifier::GetNodeType()
 #endif
 }
 
-/**
-* Returns a global unique identifier for the Matrix Modifier node.
-***/
+/// <summary> 
+/// Returns a global unique identifier for the Matrix Modifier node.
+/// </summary>
 UINT MatrixModifier::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
@@ -338,17 +304,17 @@ UINT MatrixModifier::GetNodeTypeId()
 	return ((DEVELOPER_IDENTIFIER << 16) + MY_PLUGIN_IDENTIFIER);
 }
 
-/**
-* Returns the name of the category for the Matrix Modifier node.
-***/
+/// <summary> 
+/// Returns the name of the category for the Matrix Modifier node.
+/// </summary>
 LPWSTR MatrixModifier::GetCategory()
 {
 	return L"Vireio Core";
 }
 
-/**
-* Returns a logo to be used for the Matrix Modifier node.
-***/
+/// <summary> 
+/// Returns a logo to be used for the Matrix Modifier node.
+/// </summary>
 HBITMAP MatrixModifier::GetLogo()
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -360,23 +326,23 @@ HBITMAP MatrixModifier::GetLogo()
 	return hBitmap;
 }
 
-/**
-* Returns the updated control for the Matrix Modifier node.
-* Allways return >nullptr< if there is no update for the control !!
-***/
+/// <summary> 
+/// Returns the updated control for the Matrix Modifier node.
+/// Allways return >nullptr< if there is no update for the control !!
+/// </summary>
 HBITMAP MatrixModifier::GetControl()
 {
 	return nullptr;
 }
 
-/**
-* Node data size.
-* 1) sizeof(Vireio_GameConfiguration)
-* 2) sizeof(UINT) = Number of Rules
-* 3) sizeof(Vireio_Constant_Modification_Rule_Normalized) * Number of Rules
-* 4) sizeof(UINT) = Number of General Indices
-* 5) sizeof(UINT) * Number of General Indices
-***/
+/// <summary> 
+/// Node data size.
+/// 1) sizeof(Vireio_GameConfiguration)
+/// 2) sizeof(UINT) = Number of Rules
+/// 3) sizeof(Vireio_Constant_Modification_Rule_Normalized) * Number of Rules
+/// 4) sizeof(UINT) = Number of General Indices
+/// 5) sizeof(UINT) * Number of General Indices
+/// </summary>
 DWORD MatrixModifier::GetSaveDataSize()
 {
 	DWORD dwSizeofData = sizeof(Vireio_GameConfiguration);
@@ -394,9 +360,9 @@ DWORD MatrixModifier::GetSaveDataSize()
 	return dwSizeofData;
 }
 
-/**
-* Save the data.
-***/
+/// <summary> 
+/// Save the data.
+/// </summary>
 char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 {
 	static std::stringstream acStream;
@@ -456,18 +422,18 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 
 	// set data size
 	UINT unDataSize = (UINT)acStream.str().size();
-	if (unDataSize > MAX_DATA_SIZE) unDataSize = 0;
 	*pdwSizeOfData = unDataSize;
 
 	// copy data
-	memcpy(&m_acData[0], (void*)&acStream.str()[0], (size_t)unDataSize);
+	m_acData.resize(unDataSize);
+	memcpy(&m_acData.data()[0], (void*)&acStream.str()[0], (size_t)unDataSize);
 
-	return (char*)&m_acData[0];
+	return (char*)&m_acData.data()[0];
 }
 
-/**
-* Get node data from the profile file.
-***/
+/// <summary> 
+/// Get node data from the profile file.
+/// </summary>
 void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 {
 	UINT dwDataOffset = 0;
@@ -716,15 +682,15 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sMenu.asEntries.push_back(sEntry);
 	}
 
-	// TODO !!! Shader element calculation class !!
-	/*m_pcShaderModificationCalculation->Load(m_sGameConfiguration);
-	m_pcShaderModificationCalculation->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
-	m_pcShaderModificationCalculation->ComputeViewTransforms();*/
+	// update Shader element calculation class !
+	m_pcShaderModificationCalculation->Load(&m_sGameConfiguration);
+	m_pcShaderModificationCalculation->SetFloat(MathFloatFields::AspectMultiplier, (float)1920.0f / (float)1080.0f);
+	m_pcShaderModificationCalculation->ComputeViewTransforms();
 }
 
-/**
-* Provides the name of the requested commander.
-***/
+/// <summary> 
+/// Provides the name of the requested commander.
+/// </summary>
 LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -790,9 +756,9 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 	return L"UNTITLED";
 }
 
-/**
-* Provides the name of the requested decommander.
-***/
+/// <summary> 
+/// Provides the name of the requested decommander.
+/// </summary>
 LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -959,9 +925,9 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 	return L"UNTITLED";
 }
 
-/**
-* Returns the plug type for the requested commander.
-***/
+/// <summary> 
+/// Returns the plug type for the requested commander.
+/// </summary>
 DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -1019,9 +985,9 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 	return NULL;
 }
 
-/**
-* Returns the plug type for the requested decommander.
-***/
+/// <summary> 
+/// Returns the plug type for the requested decommander.
+/// </summary>
 DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -1188,9 +1154,9 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 	return 0;
 }
 
-/**
-* Provides the output pointer for the requested commander.
-***/
+/// <summary> 
+/// Provides the output pointer for the requested commander.
+/// </summary>
 void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -1259,18 +1225,18 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 	return nullptr;
 }
 
-/**
-* Sets the input pointer for the requested decommander.
-***/
+/// <summary> 
+/// Sets the input pointer for the requested decommander.
+/// </summary>
 void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	if (dwDecommanderIndex < NUMBER_OF_DECOMMANDERS)
 		m_ppInput[dwDecommanderIndex] = (pData);
 }
 
-/**
-* Matrix Modifier supports various D3D10 + D3D11 calls.
-***/
+/// <summary> 
+/// Matrix Modifier supports various D3D10 + D3D11 calls.
+/// </summary>
 bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -1350,10 +1316,10 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 	return false;
 }
 
-/**
-* Handle Stereo Render Targets (+Depth Buffers).
-* Main entry point.
-***/
+/// <summary> 
+/// Handle Stereo Render Targets (+Depth Buffers).
+/// Main entry point.
+/// </summary>
 void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
 	static HRESULT nHr = S_OK;
@@ -1399,9 +1365,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		// for (size_t nIx = 0; nIx < m_sMenu.asEntries.size(); nIx++)
 		{
 			// update view transform ..... TODO 
-			/*m_pcShaderModificationCalculation->Load(m_sGameConfiguration);
-			m_pcShaderModificationCalculation->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-			m_pcShaderModificationCalculation->ComputeViewTransforms();*/
+			/*	m_pcShaderModificationCalculation->Load(&m_sGameConfiguration);
+				m_pcShaderModificationCalculation->SetFloat(MathFloatFields::AspectMultiplier, (float)1920.0f / (float)1080.0f);
+				m_pcShaderModificationCalculation->ComputeViewTransforms();*/
 		}
 	}
 
@@ -2507,7 +2473,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ID3D10Device::PSGetConstantBuffers
 			// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
 #pragma endregion
-	}
+}
 #elif defined(VIREIO_D3D9)
 	switch (eD3DInterface)
 	{
@@ -2664,7 +2630,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				D3DXMATRIX sMatTempLeft;
 				D3DXMATRIX sMatTempRight;
 				D3DXMATRIX* psMatProjToSet = NULL;
-				bool bIsTransformSetTemp = false;
 
 				if (!(*m_ppsMatrix))
 				{
@@ -2686,13 +2651,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// TODO !! LEFT/RIGHT PROJECTION MATRIX ??
 						sMatTempLeft = sMatSource;
 						sMatTempRight = sMatSource;
-
-						bIsTransformSetTemp = true;
 					}
 				}
 
 				// update proxy device
-				m_bProjectionTransformSet = bIsTransformSetTemp;
 				m_sMatProj[0] = sMatTempLeft;
 				m_sMatProj[1] = sMatTempRight;
 
@@ -3020,9 +2982,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	return nullptr;
 }
 
-/**
-* There's some windows event on our node.
-***/
+/// <summary> 
+/// There's some windows event on our node.
+/// </summary>
 void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//	// multiply mouse coords by 4 due to Aquilinus workspace architecture
@@ -3078,9 +3040,9 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	//					m_sGameConfiguration.nRollImpl = sEvent.nNewValue;
 	//
 	//				// update view transform
-	//				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-	//				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-	//				m_pcShaderViewAdjustment->ComputeViewTransforms();
+	//				m_pcShaderModificationCalculation->Load(&m_sGameConfiguration);
+	//				m_pcShaderModificationCalculation->SetFloat(MathFloatFields::AspectMultiplier, (float)1920.0f / (float)1080.0f);
+	//				m_pcShaderModificationCalculation->ComputeViewTransforms();
 	//			}
 	//			break;
 	//		case ChangedToValue:
@@ -3121,9 +3083,9 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	//					m_sGameConfiguration.bPFOVToggle = sEvent.bNewValue;
 	//
 	//				// update view transform
-	//				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-	//				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
-	//				m_pcShaderViewAdjustment->ComputeViewTransforms();
+	//				m_pcShaderModificationCalculation->Load(&m_sGameConfiguration);
+	//				m_pcShaderModificationCalculation->SetFloat(MathFloatFields::AspectMultiplier, (float)1920.0f / (float)1080.0f);
+	//				m_pcShaderModificationCalculation->ComputeViewTransforms();
 	//			}
 	//			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
 	//			{
@@ -3830,10 +3792,10 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
-/**
-* Handles all constant buffer setting methods for all DX11 shaders.
-* Called by VSSetConstantBuffers, GSSetConstantBuffers, HSSetConstantBuffers, DSSetConstantBuffers and PSSetConstantBuffers.
-***/
+/// <summary> 
+/// Handles all constant buffer setting methods for all DX11 shaders.
+/// Called by VSSetConstantBuffers, GSSetConstantBuffers, HSSetConstantBuffers, DSSetConstantBuffers and PSSetConstantBuffers.
+/// </summary>
 void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*>& apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer* const* ppcConstantBuffers, Vireio_Supported_Shaders eShaderType)
 {
 	// loop through the new buffers
@@ -3906,10 +3868,10 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 	}
 }
 
-/**
-* Verifies a stereo constant buffer for shader rules and assigns them in case.
-* @param pcBuffer The constant buffer to be verified.
-***/
+/// <summary> 
+/// Verifies a stereo constant buffer for shader rules and assigns them in case.
+/// @param pcBuffer The constant buffer to be verified.
+/// </summary>
 void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer* pcBuffer, UINT dwBufferIndex, Vireio_Supported_Shaders eShaderType)
 {
 	// buffer already verified ?
@@ -4136,13 +4098,13 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer* pcBuffer, UINT dwBufferI
 	pcBuffer->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
 }
 
-/**
-* Modifies left and right constant data using specified shader rules.
-* @param nRulesIndex The index of the shader rules this constant buffer is modified with.
-* @param pdwLeft The buffer data for the left constant buffer. Data must match right buffer data.
-* @param pdwRight The buffer data for the right constant buffer. Data must match left buffer data.
-* @param dwBufferSize The size of this buffer, in bytes.
-***/
+/// <summary> 
+/// Modifies left and right constant data using specified shader rules.
+/// @param nRulesIndex The index of the shader rules this constant buffer is modified with.
+/// @param pdwLeft The buffer data for the left constant buffer. Data must match right buffer data.
+/// @param pdwRight The buffer data for the right constant buffer. Data must match left buffer data.
+/// @param dwBufferSize The size of this buffer, in bytes.
+/// </summary>
 void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize)
 {
 	// do modifications
@@ -4199,9 +4161,9 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 #if defined(VIREIO_D3D9)
 #endif
 
-/**
-* Handles the debug trace.
-***/
+/// <summary> 
+/// Handles the debug trace.
+/// </summary>
 void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -4324,9 +4286,9 @@ void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT
 #endif
 }
 
-/**
-* Creates the Graphical User Interface for this node.
-***/
+/// <summary> 
+/// Creates the Graphical User Interface for this node.
+/// </summary>
 //void MatrixModifier::CreateGUI()
 //{
 	/*SIZE sSizeOfThis;
@@ -4741,9 +4703,9 @@ void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT
 #pragma endregion*/
 //}
 
-/**
-*
-***/
+/// <summary>
+///
+/// </summary>
 void MatrixModifier::FillShaderRuleIndices()
 {
 	m_aszShaderRuleIndices = std::vector<std::wstring>();
@@ -4755,9 +4717,9 @@ void MatrixModifier::FillShaderRuleIndices()
 	}
 }
 
-/**
-*
-***/
+/// <summary>
+///
+/// </summary>
 void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 {
 	if (dwRuleIndex >= (UINT)m_asConstantRules.size())
@@ -4809,7 +4771,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		std::wstringstream szBufferSize;
 		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
 		m_aszShaderRuleData.push_back(szBufferSize.str());
-	}
+}
 #endif
 
 	// reg count ?
@@ -4844,9 +4806,9 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 	}*/
 }
 
-/**
-*
-***/
+/// <summary>
+///
+/// </summary>
 void MatrixModifier::FillShaderRuleGeneralIndices()
 {
 	m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
@@ -4859,9 +4821,9 @@ void MatrixModifier::FillShaderRuleGeneralIndices()
 }
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-/**
-*
-***/
+/// <summary>
+///
+/// </summary>
 void MatrixModifier::FillFetchedHashCodeList()
 {
 	// first, unselect and clear
@@ -4877,9 +4839,9 @@ void MatrixModifier::FillFetchedHashCodeList()
 }
 
 #elif defined(VIREIO_D3D9)
-/**
-*
-***/
+/// <summary>
+///
+/// </summary>
 void MatrixModifier::FillShaderRuleShaderIndices()
 {
 	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
@@ -4892,12 +4854,12 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 }
 #endif
 
-/**
-* Imports (v3) shader modification rules.
-* True if load succeeds, false otherwise.
-* (pugi::xml_document)
-* @param szRulesPath Rules path as defined in game configuration.
-***/
+/// <summary> 
+/// Imports (v3) shader modification rules.
+/// True if load succeeds, false otherwise.
+/// (pugi::xml_document)
+/// @param szRulesPath Rules path as defined in game configuration.
+/// </summary>
 bool MatrixModifier::ImportXMLRules(std::string szRulesPath)
 {
 	// helper to convert IDs to indices (Vireio v4 does use indices instead of IDs)

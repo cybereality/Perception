@@ -48,6 +48,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<d3d9.h>
 #include<d3dx9.h>
 
+// constants
+constexpr float fLEFT_CONSTANT = -1.f;
+constexpr float fRIGHT_CONSTANT = 1.f;
+
+#define IPD_DEFAULT 0.064f /**< 64mm in meters */
+
+#define DEFAULT_CONVERGENCE 3.0f
+#define DEFAULT_PFOV 110.0f
+#define DEFAULT_ASPECT_MULTIPLIER 1.0f
+
+#define DEFAULT_YAW_MULTIPLIER 25.0f
+#define DEFAULT_PITCH_MULTIPLIER 25.0f
+#define DEFAULT_ROLL_MULTIPLIER 1.0f
+
+#define DEFAULT_POS_TRACKING_X_MULT 2.0f
+#define DEFAULT_POS_TRACKING_Y_MULT 2.5f
+#define DEFAULT_POS_TRACKING_Z_MULT 0.5f
+
 #pragma region => Modification calculation class
 /// <summary>
 /// All float fields enumeration used
@@ -55,16 +73,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// </summary>
 enum class MathFloatFields : size_t
 {
-	Roll,             /*< Amount of actual roll (in radians) */
-	IPD,              /*< Interpupillary distance. */
-	Convergence,      /*< Convergence. Left/Rigth offset adjustment. In millimeters. */
-	Squash,           /*< The amount of squashing GUI shader constants. */
-	GUI_Depth,        /*< The 3d depth of the GUI. */
-	HUD_Distance,     /*< The distance of the HUD. */
-	HUD_Depth,        /*< The 3d depth of the HUD. */
-	AspectMultiplier, /*< Aspect multiplier for projection matrices */
-	FOV_H,            /*< FOV, horizontal */
-	FOV_V,            /*< FOV, vertical*/
+	Roll,                     /*< Amount of actual roll (in radians) */
+	IPD,                      /*< Interpupillary distance. */
+	Convergence,              /*< Convergence. Left/Rigth offset adjustment. In millimeters. */
+	Squash,                   /*< The amount of squashing GUI shader constants. */
+	GUI_Depth,                /*< The 3d depth of the GUI. */
+	HUD_Distance,             /*< The distance of the HUD. */
+	HUD_Depth,                /*< The 3d depth of the HUD. */
+	AspectMultiplier,         /*< Aspect multiplier for projection matrices */
+	FOV_H,                    /*< FOV, horizontal */
+	FOV_V,                    /*< FOV, vertical*/
+	Separation_World,         /*< Separation, in World Units */
+	Separation_IPDAdjustment, /*< Separation IPD adjustment being used for GUI and HUD matrices */
+	Frustum_Asymmetry,        /*< Frustum Asymmetry, in meters. For convergence computation */
+	Physical_Screensize,      /*< Physical (Monitor) Screen Size, in meters. For convergence computation */
+	LensXCenterOffset,        /*< HMD lens center horizontal offset */
 
 	Math_FloatFields_Size
 
@@ -83,24 +106,39 @@ enum class MathRegisters : size_t
 {
 	VEC_PositionTransform = 0,
 
-	MAT_BasicProjection = VEC_PositionTransform + 4,              /*< Projection matrix - basic with no PFOV */
-	MAT_ProjectionInv = MAT_BasicProjection + 4,                  /*< Projection inverse matrix */
-	MAT_ProjectionFOV = MAT_ProjectionInv + 4,                    /*< The projection with adjusted FOV */
-	MAT_ProjectionConvL = MAT_ProjectionFOV + 4,                  /*< The projection with left eye convergence */
-	MAT_ProjectionConvR = MAT_ProjectionConvL + 4,                /*< The projection with right eye convergence */
-	MAT_Roll = MAT_ProjectionConvR + 4,                           /*< The head roll matrix */
-	MAT_RollNegative = MAT_Roll + 4,                              /*< The head roll matrix. (negative) */
-	MAT_RollHalf = MAT_RollNegative + 4,                          /*< The head roll matrix. (half roll) */
-	MAT_TransformL = MAT_RollHalf + 4,                            /*< Left matrix used to roll (if roll enabled) and shift view for ipd. */
-	MAT_TransformR = MAT_TransformL + 4,                          /*< Right matrix used to roll (if roll enabled) and shift view for ipd. */
-	MAT_ViewProjectionL = MAT_TransformR + 4,                     /*< Left view projection matrix */
-	MAT_ViewProjectionR = MAT_ViewProjectionL + 4,                /*< Right view projection matrix */
-	MAT_ViewProjectionNoRollL = MAT_ViewProjectionR + 4,          /*< Left view projection matrix (no roll) */
-	MAT_ViewProjectionNoRollR = MAT_ViewProjectionNoRollL + 4,    /*< Right view projection matrix (no roll) */
-	MAT_Position = MAT_ViewProjectionNoRollR + 4,                 /*< Positional translation matrix */
-	MAT_GatheredL = MAT_Position + 4,                             /*< Gathered matrix to be used in gathered modifications */
-	MAT_GatheredR = MAT_GatheredL + 4,                            /*< Gathered matrix to be used in gathered modifications */
-	// TODO !! Rest of ViewAdjustment class fields
+	MAT_BasicProjection = VEC_PositionTransform + 4,                       /*< Projection matrix - basic with no PFOV */
+	MAT_ProjectionInv = MAT_BasicProjection + 4,                           /*< Projection inverse matrix */
+	MAT_ProjectionFOV = MAT_ProjectionInv + 4,                             /*< The projection with adjusted FOV */
+	MAT_ProjectionConvL = MAT_ProjectionFOV + 4,                           /*< The projection with left eye convergence */
+	MAT_ProjectionConvR = MAT_ProjectionConvL + 4,                         /*< The projection with right eye convergence */
+	MAT_Roll = MAT_ProjectionConvR + 4,                                    /*< The head roll matrix */
+	MAT_RollNegative = MAT_Roll + 4,                                       /*< The head roll matrix. (negative) */
+	MAT_RollHalf = MAT_RollNegative + 4,                                   /*< The head roll matrix. (half roll) */
+	MAT_TransformL = MAT_RollHalf + 4,                                     /*< Left matrix used to roll (if roll enabled) and shift view for ipd. */
+	MAT_TransformR = MAT_TransformL + 4,                                   /*< Right matrix used to roll (if roll enabled) and shift view for ipd. */
+	MAT_ViewProjectionL = MAT_TransformR + 4,                              /*< Left view projection matrix */
+	MAT_ViewProjectionR = MAT_ViewProjectionL + 4,                         /*< Right view projection matrix */
+	MAT_ViewProjectionTransL = MAT_ViewProjectionR + 4,                    /*< Left view projection transform matrix */
+	MAT_ViewProjectionTransR = MAT_ViewProjectionTransL + 4,               /*< Right view projection transform matrix */
+	MAT_ViewProjectionTransNoRollL = MAT_ViewProjectionTransR + 4,         /*< Left view projection transform matrix (no roll) */
+	MAT_ViewProjectionTransNoRollR = MAT_ViewProjectionTransNoRollL + 4,   /*< Right view projection transform matrix (no roll) */
+	MAT_Position = MAT_ViewProjectionTransNoRollR + 4,                     /*< Positional translation matrix */
+	MAT_GatheredL = MAT_Position + 4,                                      /*< Gathered matrix to be used in gathered modifications */
+	MAT_GatheredR = MAT_GatheredL + 4,                                     /*< Gathered matrix to be used in gathered modifications */
+	MAT_HudL = MAT_GatheredR + 4,                                          /*< Left HUD matrix. */
+	MAT_HudR = MAT_HudL + 4,                                               /*< Right HUD matrix */
+	MAT_GuiL = MAT_HudR + 4,                                               /*< Left GUI matrix. */
+	MAT_GuiR = MAT_GuiL + 4,                                               /*< Right GUI matrix. */
+	MAT_Squash = MAT_GuiR + 4,                                             /*< Squash scaling matrix, to be used in HUD/GUI scaling matrices. */
+	MAT_HudDistance = MAT_Squash + 4,                                      /*< HUD distance matrix, to be used in HUD scaling matrices. */
+	MAT_Hud3dDepthL = MAT_HudDistance + 4,                                 /*< HUD 3d depth matrix, to be used in HUD separation matrices. */
+	MAT_Hud3dDepthR = MAT_Hud3dDepthL + 4,                                 /*< HUD 3d depth matrix, to be used in HUD separation matrices. */
+	MAT_Hud3dDepthShiftL = MAT_Hud3dDepthR + 4,                            /*< HUD 3d depth matrix (shifted), to be used in HUD separation matrices. */
+	MAT_Hud3dDepthShiftR = MAT_Hud3dDepthShiftL + 4,                       /*< HUD 3d depth matrix (shifted), to be used in HUD separation matrices. */
+	MAT_Gui3dDepthL = MAT_Hud3dDepthShiftR + 4,                            /*< GUI 3d depth matrix, to be used in GUI separation matrices. */
+	MAT_Gui3dDepthR = MAT_Gui3dDepthL + 4,                                 /*< GUI 3d depth matrix, to be used in GUI separation matrices. */
+	MAT_ConvergenceOffL = MAT_Gui3dDepthR + 4,                             /*< Convergence offset left. (only translation) */
+	MAT_ConvergenceOffR = MAT_ConvergenceOffL + 4,                         /*< Convergence offset right. (only translation) */
 
 	Math_Registers_Size = MAT_GatheredR + 4     // not used
 };
@@ -115,6 +153,8 @@ typedef D3DXVECTOR4 REGISTER4F;
 /// Class for any matrix/vector calculation.
 /// Calculates different matrices and vertices (shader registers) for different nodes.
 /// Compression of Class >ViewAdjustment< 2013 by Chris Drain
+/// 
+/// TODO !! PROJECTION FOV !! PIXEL SHADER ROLL !! CONVERGENCE FOR MONITOR STEREO !! MATRIX POSITION TRACKING !! HMD LENS X CENTER !!
 /// </summary>
 class ModificationCalculation
 {
@@ -124,17 +164,48 @@ public:
 		SetFloat(MathFloatFields::AspectMultiplier, psConfig->fAspectMultiplier);
 		SetFloat(MathFloatFields::FOV_H, 110.0f);
 		SetFloat(MathFloatFields::Roll, 0.f);
-		Compute(MathRegisters::MAT_BasicProjection);
-		Compute(MathRegisters::MAT_ProjectionInv);
-		Compute(MathRegisters::MAT_ProjectionFOV);
-		Compute(MathRegisters::MAT_Roll);
-		Compute(MathRegisters::MAT_RollNegative);
-		Compute(MathRegisters::MAT_RollHalf);
-
-		//ComputeViewTransforms(); // TODO !!
-
+		SetFloat(MathFloatFields::Convergence, psConfig->fConvergence);
+		SetFloat(MathFloatFields::IPD, psConfig->fIPD);
+		SetFloat(MathFloatFields::Separation_World, (psConfig->fIPD / 2.f) * psConfig->fWorldScaleFactor);
+		SetFloat(MathFloatFields::Separation_IPDAdjustment, ((psConfig->fIPD - IPD_DEFAULT) / 2.f) * psConfig->fWorldScaleFactor);
+		SetFloat(MathFloatFields::Frustum_Asymmetry, 0.f);   // ignore convergence settings for now
+		SetFloat(MathFloatFields::Physical_Screensize, 1.f); // set to 1 to avoid division by zero
+		SetFloat(MathFloatFields::LensXCenterOffset, 0.f);
+		ComputeViewTransforms();
 	}
 	virtual ~ModificationCalculation() {}
+
+	/// <summary>
+	/// Loads basic fields from config.
+	/// </summary>
+	/// <param name="psConfig"></param>
+	void Load(Vireio_GameConfiguration* psConfig)
+	{
+		m_psConfig = psConfig;
+		SetFloat(MathFloatFields::Convergence, psConfig->fConvergence);
+		SetFloat(MathFloatFields::IPD, psConfig->fIPD);
+		SetFloat(MathFloatFields::Separation_World, (psConfig->fIPD / 2.f) * psConfig->fWorldScaleFactor);
+		SetFloat(MathFloatFields::Separation_IPDAdjustment, ((psConfig->fIPD - IPD_DEFAULT) / 2.f) * psConfig->fWorldScaleFactor);
+
+		// TODO !! PROJECTION FOV !
+	}
+
+	/// <summary>
+	/// Computes all necessary view matrices for modification/transform.
+	/// Do not change the succession of the computiations here !!
+	/// </summary>
+	void ComputeViewTransforms()
+	{
+		Compute(MathRegisters::MAT_BasicProjection);
+		Compute(MathRegisters::MAT_ProjectionFOV);
+		Compute(MathRegisters::MAT_ProjectionConvL);
+		Compute(MathRegisters::MAT_Roll);
+		Compute(MathRegisters::MAT_TransformL);
+		Compute(MathRegisters::MAT_ViewProjectionL);
+		Compute(MathRegisters::MAT_ViewProjectionTransL);
+
+		// TODO !! POSITIONAL TRACKING !
+	}
 
 	/// <summary>
 	/// Set float field.
@@ -144,6 +215,16 @@ public:
 	void SetFloat(MathFloatFields eIndex, float fValue)
 	{
 		m_aMathFloat[(size_t)eIndex] = fValue;
+	}
+
+	/// <summary>
+	/// Set register field.
+	/// </summary>
+	/// <param name="eIndex">Index based on enumeration</param>
+	/// <param name="fValue">Value to be applied</param>
+	void SetRegister(MathRegisters eIndex, REGISTER4F fValue)
+	{
+		m_aMathRegisters[(size_t)eIndex] = fValue;
 	}
 
 	/// <summary>
@@ -166,6 +247,7 @@ public:
 		case MathRegisters::VEC_PositionTransform:
 			break;
 		case MathRegisters::MAT_BasicProjection:
+		case MathRegisters::MAT_ProjectionInv:
 		{
 			float fAspect = m_aMathFloat[(size_t)MathFloatFields::AspectMultiplier];
 			// Maximum (top) y-value of the view volume
@@ -174,11 +256,9 @@ public:
 			float b = -0.5f / fAspect;
 			// Calculate basic projection
 			D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection], l, r, b, t, n, f);
+			D3DXMatrixInverse((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv], 0, (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
 		}
 		break;
-		case MathRegisters::MAT_ProjectionInv:
-			D3DXMatrixInverse((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv], 0, (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
-			break;
 		case MathRegisters::MAT_ProjectionFOV:
 		{
 			float fAspect = m_aMathFloat[(size_t)MathFloatFields::AspectMultiplier];
@@ -194,38 +274,183 @@ public:
 		}
 		break;
 		case MathRegisters::MAT_ProjectionConvL:
-			break;
 		case MathRegisters::MAT_ProjectionConvR:
-			break;
+		case MathRegisters::MAT_ConvergenceOffL:
+		case MathRegisters::MAT_ConvergenceOffR:
+		{
+			// TODO !! CONVERGENCE FOR MONITOR STEREO
+
+			float frustumAsymmetryInMeters = m_aMathFloat[(size_t)MathFloatFields::Frustum_Asymmetry];
+			float physicalScreenSizeInMeters = m_aMathFloat[(size_t)MathFloatFields::Physical_Screensize];
+			float fAspect = m_aMathFloat[(size_t)MathFloatFields::AspectMultiplier];
+
+			// Maximum (top) y-value of the view volume
+			float t = 0.5f / fAspect;
+			// Minimum (bottom) y-value of the volume
+			float b = -0.5f / fAspect;
+
+			// divide the frustum asymmetry by the assumed physical size of the physical screen
+			float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * fLEFT_CONSTANT) / physicalScreenSizeInMeters;
+			float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * fRIGHT_CONSTANT) / physicalScreenSizeInMeters;
+
+			// get the horizontal screen space size and compute screen space adjustment
+			float screenSpaceXSize = abs(l) + abs(r);
+			float multiplier = screenSpaceXSize / 1; // = 1 meter
+			float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
+			float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
+
+			// now, create the re-projection matrices for both eyes using this frustum asymmetry
+			D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL], l + frustumAsymmetryLeft, r + frustumAsymmetryLeft, b, t, n, f);
+			D3DXMatrixPerspectiveOffCenterLH((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR], l + frustumAsymmetryRight, r + frustumAsymmetryRight, b, t, n, f);
+
+			// create convergence offset matrices without projection
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ConvergenceOffL], frustumAsymmetryLeftInMeters * m_psConfig->fWorldScaleFactor, 0, 0);
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ConvergenceOffR], frustumAsymmetryRightInMeters * m_psConfig->fWorldScaleFactor, 0, 0);
+		}
+		break;
 		case MathRegisters::MAT_Roll:
-			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Roll], m_aMathFloat[(size_t)MathFloatFields::Roll]);
-			break;
 		case MathRegisters::MAT_RollNegative:
-			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_RollNegative], -m_aMathFloat[(size_t)MathFloatFields::Roll]);
-			break;
 		case MathRegisters::MAT_RollHalf:
+			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Roll], m_aMathFloat[(size_t)MathFloatFields::Roll]);
+			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_RollNegative], -m_aMathFloat[(size_t)MathFloatFields::Roll]);
 			D3DXMatrixRotationZ((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_RollHalf], m_aMathFloat[(size_t)MathFloatFields::Roll] * .5f);
 			break;
 		case MathRegisters::MAT_TransformL:
-			break;
 		case MathRegisters::MAT_TransformR:
-			break;
+		case MathRegisters::MAT_ViewProjectionTransNoRollL:
+		case MathRegisters::MAT_ViewProjectionTransNoRollR:
+		{
+			float fSeparation_World = m_aMathFloat[(size_t)MathFloatFields::Separation_World];
+
+			// separation settings are overall (HMD and desktop), since they are based on physical IPD
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL], fSeparation_World * fLEFT_CONSTANT, 0, 0);
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR], fSeparation_World * fRIGHT_CONSTANT, 0, 0);
+
+			// update "no-roll" matrices here before roll is applied eventually
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollL] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollR] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
+
+			// head roll - only if using translation implementation
+			if (m_psConfig->nRollImpl == 1)
+			{
+				D3DXMatrixMultiply((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL], (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Roll], (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL]);
+				D3DXMatrixMultiply((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR], (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Roll], (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR]);
+			}
+		}
+		break;
 		case MathRegisters::MAT_ViewProjectionL:
-			break;
 		case MathRegisters::MAT_ViewProjectionR:
+			// head roll - only if using translation implementation
+			if (m_psConfig->nRollImpl == 1)
+			{
+				// projection l/r
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionL] =
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Roll] *
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionR] =
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Roll] *
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
+			}
+			else
+			{
+				// projection l/r
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionL] =
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionR] =
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
+			}
 			break;
-		case MathRegisters::MAT_ViewProjectionNoRollL:
-			break;
-		case MathRegisters::MAT_ViewProjectionNoRollR:
+		case MathRegisters::MAT_ViewProjectionTransL:
+		case MathRegisters::MAT_ViewProjectionTransR:
+			// projection l/r
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransL] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransR] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
 			break;
 		case MathRegisters::MAT_Position:
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Position],
+				m_aMathRegisters[(size_t)MathRegisters::VEC_PositionTransform].x,
+				m_aMathRegisters[(size_t)MathRegisters::VEC_PositionTransform].y,
+				m_aMathRegisters[(size_t)MathRegisters::VEC_PositionTransform].z);
 			break;
 		case MathRegisters::MAT_GatheredL:
-			break;
 		case MathRegisters::MAT_GatheredR:
+			// TODO !! MATRIX GATHER METHOD !!
 			break;
-		case MathRegisters::Math_Registers_Size:
-			break;
+		case MathRegisters::MAT_HudL:
+		case MathRegisters::MAT_HudR:
+		case MathRegisters::MAT_GuiL:
+		case MathRegisters::MAT_GuiR:
+		case MathRegisters::MAT_Squash:
+		case MathRegisters::MAT_HudDistance:
+		case MathRegisters::MAT_Hud3dDepthL:
+		case MathRegisters::MAT_Hud3dDepthR:
+		case MathRegisters::MAT_Hud3dDepthShiftL:
+		case MathRegisters::MAT_Hud3dDepthShiftR:
+		case MathRegisters::MAT_Gui3dDepthL:
+		case MathRegisters::MAT_Gui3dDepthR:
+		{
+			// squash
+			float fSquash = m_aMathFloat[(size_t)MathFloatFields::Squash];
+			D3DXMatrixScaling((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Squash], fSquash, fSquash, 1);
+
+			// hudDistance
+			float fHudDistance = m_aMathFloat[(size_t)MathFloatFields::HUD_Distance];
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance], 0, 0, fHudDistance);
+
+			// hud3DDepth
+			float fHud3DDepth = m_aMathFloat[(size_t)MathFloatFields::HUD_Depth];
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthL], fHud3DDepth, 0, 0);
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthR], -fHud3DDepth, 0, 0);
+			float fAdditionalSeparation = (1.5f - fHudDistance) * m_aMathFloat[(size_t)MathFloatFields::LensXCenterOffset];
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthShiftL], fHud3DDepth + fAdditionalSeparation, 0, 0);
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthShiftR], -fHud3DDepth - fAdditionalSeparation, 0, 0);
+
+			// gui3DDepth
+			float fGui3DDepth = m_aMathFloat[(size_t)MathFloatFields::GUI_Depth] + m_aMathFloat[(size_t)MathFloatFields::Separation_IPDAdjustment];
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthL], fGui3DDepth, 0, 0);
+			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthR], -fGui3DDepth, 0, 0);
+
+			// gui/hud matrices - Just use the default projection not the PFOV
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudL] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthL] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudR] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthR] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_GuiL] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthL] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Squash] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_GuiL] =
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthR] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Squash] *
+				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
+		}
+		break;
 		default:
 			break;
 		}
@@ -248,7 +473,7 @@ public:
 	/// <returns>Current value (field) of specified index</returns>
 	D3DXVECTOR4 Get(MathRegisters eRegister)
 	{
-		return D3DXVECTOR4((float*)&m_aMathRegisters[(size_t)eRegister]);     
+		return D3DXVECTOR4((float*)&m_aMathRegisters[(size_t)eRegister]);
 	}
 
 	/// <summary>

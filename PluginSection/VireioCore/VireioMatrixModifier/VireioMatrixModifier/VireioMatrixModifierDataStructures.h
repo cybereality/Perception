@@ -47,20 +47,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
 
-#define IPD_DEFAULT 0.064f /**< 64mm in meters */
-
-#define DEFAULT_CONVERGENCE 3.0f
-#define DEFAULT_PFOV 110.0f
-#define DEFAULT_ASPECT_MULTIPLIER 1.0f
-
-#define DEFAULT_YAW_MULTIPLIER 25.0f
-#define DEFAULT_PITCH_MULTIPLIER 25.0f
-#define DEFAULT_ROLL_MULTIPLIER 1.0f
-
-#define DEFAULT_POS_TRACKING_X_MULT 2.0f
-#define DEFAULT_POS_TRACKING_Y_MULT 2.5f
-#define DEFAULT_POS_TRACKING_Z_MULT 0.5f
-
 #define VIREIO_MAX_VARIABLE_NAME_LENGTH      64  /**< We restrict variable names to 64 characters. ***/
 #define VIREIO_CONSTANT_RULES_NOT_ADDRESSED - 1  /**< No shader rules addressed for this shader. ***/
 #define VIREIO_CONSTANT_RULES_NOT_AVAILABLE - 2  /**< No shader rules available for this shader. ***/

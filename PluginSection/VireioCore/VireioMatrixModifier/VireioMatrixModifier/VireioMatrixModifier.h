@@ -102,8 +102,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_HEIGHT                                   768
 #endif
 
-#define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
-
 #define E_NO_MATCH         _HRESULT_TYPEDEF_(0x8A596AF85)
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
@@ -545,16 +543,6 @@ private:
 	/// </summary>
 	std::vector<float> m_afRegistersPixel;
 	/// <summary>
-	/// True if view transform is set via SetTransform().
-	/// @see SetTransform()
-	/// </summary>
-	bool m_bViewTransformSet;
-	/// <summary>
-	/// True if projection transform is set via SetTransform().
-	/// @see SetTransform()
-	/// </summary>
-	bool m_bProjectionTransformSet;
-	/// <summary>
 	/// The stored view transform set via SetTransform() l/r.
 	/// </summary>
 	D3DXMATRIX m_sMatView[2];
@@ -826,7 +814,7 @@ private:
 	/// <summary>
 	/// Data buffer to save this node.
 	/// </summary>
-	char m_acData[MAX_DATA_SIZE];
+	std::vector<unsigned char> m_acData;
 	/// <summary>
 	/// Vireio menu.
 	/// </summary>
