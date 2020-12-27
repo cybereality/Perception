@@ -219,13 +219,15 @@ void BeginCanvas(CanvasState* canvas)
         if (io.KeyShift && !io.KeyCtrl)
             canvas->offset.x += io.MouseWheel * 16.0f;
 
-        if (!io.KeyShift && !io.KeyCtrl)
+        // changed code here... scroll with <Ctrl> pressed
+        if (!io.KeyShift && io.KeyCtrl)
         {
             canvas->offset.y += io.MouseWheel * 16.0f;
             canvas->offset.x += io.MouseWheelH * 16.0f;
         }
 
-        if (!io.KeyShift && io.KeyCtrl)
+        // changed code here... zoom without <Ctrl> pressed
+        if (!io.KeyShift && !io.KeyCtrl)
         {
             if (io.MouseWheel != 0)
             {

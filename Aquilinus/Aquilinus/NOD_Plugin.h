@@ -47,7 +47,7 @@ public:
 	~NOD_Plugin();
 
 	/*** NOD_Basic public methods ***/
-	virtual HRESULT          Update();
+	virtual HRESULT          Update(float fZoom);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
 	virtual void             ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
 	virtual void             AlignData(LONG nDecommanderIndex, void* pData) { m_pNodus->SetInputPointer((DWORD)nDecommanderIndex, pData); NOD_Basic::AlignData(nDecommanderIndex, pData); }

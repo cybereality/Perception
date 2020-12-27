@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NOD_BASIC_CLASS
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-#   define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
 #include <ddraw.h>
@@ -44,9 +44,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..\dependecies\imgui\imgui.h"
 #include "..\dependecies\imgui\imgui_internal.h"
 
-/**
-* Simple clipboard text helper.
-***/
+/// <summary>
+/// Simple clipboard text helper.
+/// </summary>
 inline std::string GetClipboardText()
 {
 	// Try opening the clipboard
@@ -59,7 +59,7 @@ inline std::string GetClipboardText()
 		return std::string();
 
 	// Lock the handle to get the actual text pointer
-	char * pszText = static_cast<char*>(GlobalLock(hData));
+	char* pszText = static_cast<char*>(GlobalLock(hData));
 	if (pszText == nullptr)
 		return std::string();
 
@@ -75,9 +75,9 @@ inline std::string GetClipboardText()
 	return text;
 }
 
-/**
-* The current control beahvior of a node.
-***/
+/// <summary>
+/// The current control beahvior of a node.
+/// </summary>
 enum class AQU_NodeBehavior
 {
 	Inactive,
@@ -86,9 +86,9 @@ enum class AQU_NodeBehavior
 	ConnectProvoker
 };
 
-/**
-* Provoker/Invoker setting.
-***/
+/// <summary>
+/// Provoker/Invoker setting.
+/// </summary>
 enum class AQU_NodeProvokingType
 {
 	Both = 0,           /**< Node has both : Provoker and Invoker ***/
@@ -97,29 +97,38 @@ enum class AQU_NodeProvokingType
 	None = 3            /**< Node has no Provoker and no Invoker ***/
 };
 
-/**
-* Setting for the next provoking circle.
-* To be set back to >DefaultBehavior< after next circle.
-**/
+/// <summary>
+/// Setting for the next provoking circle.
+/// To be set back to >DefaultBehavior< after next circle.
+/// </summary>
 enum class AQU_NextNodeCall
 {
 	DefaultBehavior = 0,  /** Default behavior : provoke -> call D3D method **/
 	DoubleCall = 1,       /** Double call : call D3D method -> provoke -> call D3D method **/
 };
 
-/**
-* Plugin flags.
-**/
+/// <summary>
+/// Plugin flags.
+/// </summary>
 enum class AQU_PluginFlags
 {
 	DoubleCallFlag = 512,       /** Double call : call D3D method -> provoke -> call D3D method **/
 	ImmediateReturnFlag = 1024, /** Immediate return : D3D method call replaced by plugin **/
 };
 
-/**
-* Aquilinus plugin import node.
-* All methods empty.
-***/
+/// <summary>
+/// Slot enumeration. (this needs c++17)
+/// -2 -> Invoker
+/// -1 -> Provoker
+/// </summary>
+enum struct Slot : int { };
+constexpr Slot Slot_Invoker{ -2 };
+constexpr Slot Slot_Provoker{ -1 };
+
+/// <summary>
+/// Aquilinus plugin import node.
+/// All methods empty.
+/// </summary>
 class AQU_Nodus
 {
 public:
@@ -127,7 +136,7 @@ public:
 	~AQU_Nodus() {}
 
 	/*** AQU_Nodus public methods ***/
-	virtual const char*     GetNodeType() { return typeid(this).name(); }
+	virtual const char* GetNodeType() { return typeid(this).name(); }
 	virtual UINT32          GetNodeTypeId() { return NULL; }
 	virtual LPWSTR          GetCategory() { return L""; }
 	virtual HBITMAP         GetLogo() { return nullptr; }
@@ -137,7 +146,7 @@ public:
 	virtual int             GetProvokingType() { return 0; }
 	virtual bool            GetMethodReplacement() { return false; }
 	virtual DWORD           GetSaveDataSize() { return 0; }
-	virtual char*           GetSaveData(UINT* pdwSizeOfData) { return nullptr; }
+	virtual char* GetSaveData(UINT* pdwSizeOfData) { return nullptr; }
 	virtual void            InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
 	virtual DWORD           GetCommandersNumber() { return 0; }
 	virtual DWORD           GetDecommandersNumber() { return 0; }
@@ -145,17 +154,17 @@ public:
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex) { return L""; }
 	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex) { return 0; }
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex) { return 0; }
-	virtual void*           GetOutputPointer(DWORD dwCommanderIndex) { return nullptr; }
+	virtual void* GetOutputPointer(DWORD dwCommanderIndex) { return nullptr; }
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData) { (dwDecommanderIndex); (pData); }
-	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)  { return false; }
-	virtual void*           Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	{ (pcThis); (eD3D); (eD3DInterface); (eD3DMethod); (dwNumberConnected); (nProvokerIndex); return nullptr; }
+	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod) { return false; }
+	virtual void* Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex) { (pcThis); (eD3D); (eD3DInterface); (eD3DMethod); (dwNumberConnected); (nProvokerIndex); return nullptr; }
 	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam) {} // TODO !! DEPRECATED !!
 };
 
-/**
-* Aquilinus node prototype.
-* Every Aquilinus node derives from this class. Note that GetNodeType() and GetNodeTypeId() MUST be overwritten in any derived class.
-***/
+/// <summary>
+/// Aquilinus node prototype.
+/// Every Aquilinus node derives from this class. Note that GetNodeType() and GetNodeTypeId() MUST be overwritten in any derived class.
+/// </summary>
 class NOD_Basic
 {
 public:
@@ -163,31 +172,31 @@ public:
 	virtual ~NOD_Basic();
 
 	/*** NOD_Basic public methods ***/
-	virtual HRESULT          Update();
-	virtual LONG*            GetCommanderConnectionIndices(std::vector<NOD_Basic*>* ppaNodes, DWORD dwIndex);
-	virtual LONG*            GetProvokerConnectionIndices();
+	virtual HRESULT          Update(float fZoom);
+	virtual LONG* GetCommanderConnectionIndices(std::vector<NOD_Basic*>* ppaNodes, DWORD dwIndex);
+	virtual LONG* GetProvokerConnectionIndices();
 	virtual DWORD            GetCommanderConnectionsNumber(DWORD dwIndex);
 	virtual DWORD            GetProvokerConnectionsNumber();
 	virtual DWORD            GetInvokerConnectionsNumber();
 	virtual void             SetNewIndex(DWORD unIndex);
 	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
-	virtual void             InputSlot(const char* title, int kind);
-	virtual void             OutputSlot(const char* title, int kind);
+	virtual void             InputSlot(Slot eIndex, float fZoom, float fOriginY);
+	virtual void             OutputSlot(Slot eIndex, float fZoom, float fOriginY);
 	virtual POINT            GetConnectionOrigin();
 	virtual void             ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::string acCommander, std::string acDecommander);
 	virtual void             ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, DWORD dwCommanderIndex, DWORD dwDecommanderIndex);
 	virtual void             ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
 	virtual void             AlignData(LONG nDecommanderIndex, void* pData);
-	virtual void*            Provoke(void* pcThis, std::vector<NOD_Basic*>* ppaNodes) { return Provoke(pcThis, m_cProvoker.m_eD3D, m_cProvoker.m_eD3DInterface, m_cProvoker.m_eD3DMethod, ppaNodes); }
-	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
+	virtual void* Provoke(void* pcThis, std::vector<NOD_Basic*>* ppaNodes) { return Provoke(pcThis, m_cProvoker.m_eD3D, m_cProvoker.m_eD3DInterface, m_cProvoker.m_eD3DMethod, ppaNodes); }
+	virtual void* Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
 	virtual ImVec2           GetNodePosition() { return m_sPos; }
 	virtual ImVec2           GetNodeSize() { return m_sSize; }
 	virtual ImVec2           GetNodeHeaderTextSize();
 	virtual float            GetSlotSpace() { return m_fSlotSpace; }
 	virtual DWORD            GetSaveDataSize();
-	virtual char*            GetSaveData(UINT* pdwSizeOfData);
+	virtual char* GetSaveData(UINT* pdwSizeOfData);
 	virtual void             InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
-	virtual const char*      GetNodeType() { return typeid(this).name(); }
+	virtual const char* GetNodeType() { return typeid(this).name(); }
 	virtual UINT             GetNodeTypeId() { return NULL; }
 	virtual void             VerifyConnections(std::vector<NOD_Basic*>* ppaNodes);
 	virtual AQU_NextNodeCall GetNextCycleBehavior() { AQU_NextNodeCall eRet = m_eNextNodeCall; m_eNextNodeCall = AQU_NextNodeCall::DefaultBehavior;	return eRet; }
@@ -196,113 +205,113 @@ public:
 	virtual bool             HasProvoker() { return ((m_eNodeProvokingType == AQU_NodeProvokingType::Both) || (m_eNodeProvokingType == AQU_NodeProvokingType::OnlyProvoker)); }
 	virtual void             ConvertStrings();
 
-	/**
-	* The title text of the node.
-	**/
+	/// <summary>
+	/// The title text of the node.
+	/// </summary>
 	LPCWSTR m_szTitle;
-	/**
-	* The title as std::string(). Converted within Draw()
-	***/
+	/// <summary>
+	/// The title as std::string(). Converted within Draw()
+	/// </summary>
 	std::string m_acTitleA;
-	/**
-	* The actual, floating position in the canvas. Public, since accessed by ImNodes.
-	***/
+	/// <summary>
+	/// The actual, floating position in the canvas. Public, since accessed by ImNodes.
+	/// </summary>
 	ImVec2 m_sPos;
-	/**
-	* True if active.
-	***/
+	/// <summary>
+	/// True if active.
+	/// </summary>
 	bool m_bActive;
-	/**
-	* The node provoker.
-	* Must be public since the detour classes will use it.
-	***/
+	/// <summary>
+	/// The node provoker.
+	/// Must be public since the detour classes will use it.
+	/// </summary>
 	NOD_Provoker m_cProvoker;
-	/**
-	* Vector to all node commanders.
-	* Must be public since the detour classes will use it.
-	***/
+	/// <summary>
+	/// Vector to all node commanders.
+	/// Must be public since the detour classes will use it.
+	/// </summary>
 	std::vector<NOD_Commander*> m_paCommanders;
-	/**
-	* Vector to all temporary node commanders.
-	* Must be public since the detour classes will use it.
-	* Temporary commanders can be bunched to single commanders.
-	***/
+	/// <summary>
+	/// Vector to all temporary node commanders.
+	/// Must be public since the detour classes will use it.
+	/// Temporary commanders can be bunched to single commanders.
+	/// </summary>
 	std::vector<NOD_Commander*> m_paCommandersTemporary;
-	/**
-	* The return value for this node.
-	* The type of the return value is determined by the node type.
-	* To be changed in the Provoke() method.
-	***/
+	/// <summary>
+	/// The return value for this node.
+	/// The type of the return value is determined by the node type.
+	/// To be changed in the Provoke() method.
+	/// </summary>
 	static void* m_pvReturn;
-	/**
-	* True if that node replaces the provoking node's return value;
-	***/
+	/// <summary>
+	/// True if that node replaces the provoking node's return value;
+	/// </summary>
 	bool m_bReturn;
-	/**
-	* Node behavior for the next provoking circle.
-	* Set back to >DefaultBehavior< after next call.
-	**/
+	/// <summary>
+	/// Node behavior for the next provoking circle.
+	///	Set back to >DefaultBehavior< after next call.
+	/// </summary>
 	AQU_NextNodeCall m_eNextNodeCall;
-	/**
-	* The provoker/invoker setting of this node.
-	***/
+	/// <summary>
+	/// The provoker/invoker setting of this node.
+	/// </summary>
 	AQU_NodeProvokingType m_eNodeProvokingType;
-	/**
-	* Vector to all node decommanders.
-	***/
+	/// <summary>
+	/// Vector to all node decommanders.
+	/// </summary>
 	std::vector<NOD_Decommander*> m_paDecommanders;
 
 protected:
-	/**
-	* Node invoker.
-	***/
+	/// <summary>
+	/// Node invoker.
+	/// </summary>
 	NOD_Invoker m_cInvoker;
-	/**
-	* The size of the node in the canvas (in full zoom pixel space).
-	**/
+	/// <summary>
+	/// The size of the node in the canvas (in full zoom pixel space).
+	/// </summary>
 	ImVec2 m_sSize;
-	/**
-	* Current zoom factor, needed for node translation.
-	***/
+	/// <summary>
+	/// Current zoom factor, needed for node translation.
+	/// </summary>
 	float m_fZoom;
-	/**
-	* Added to node width, reserved for slots.
-	***/
+	/// <summary>
+	/// Added to node width, reserved for slots.
+	/// </summary>
 	float m_fSlotSpace;
-	/**
-	* Current local mouse cursor position.
-	***/
+	/// <summary>
+	/// Current local mouse cursor position.
+	/// </summary>
 	POINT m_vecLocalMouseCursor;
-	/**
-	* The mouse cursor origin for all mouse actions (in desktop pixel space).
-	***/
+	/// <summary>
+	/// The mouse cursor origin for all mouse actions (in desktop pixel space).
+	/// </summary>
 	POINT m_vecMouseOrigin;
-	/**
-	* The behavior of the node.
-	***/
+	/// <summary>
+	/// The behavior of the node.
+	/// </summary>
 	AQU_NodeBehavior m_NodeBehavior;
-	/**
-	* The last chosen commander index.
-	***/
+	/// <summary>
+	/// The last chosen commander index.
+	/// </summary>
 	int m_nCommanderIndex;
-	/**
-	* The connection origin to draw a new connection.
-	***/
+	/// <summary>
+	/// The connection origin to draw a new connection.
+	/// </summary>
 	POINT m_vecConnectionOrigin;
-	/**
-	* True if the last connected invoker is to be deleted within the next Provoke() call.
-	* This must be done within the Provoke() call since this is the only safe way.
-	* Otherwise the provoking circle could end up nowhere causing a crash.
-	***/
+	/// <summary>
+	/// True if the last connected invoker is to be deleted within the next Provoke() call.
+	/// This must be done within the Provoke() call since this is the only safe way.
+	/// Otherwise the provoking circle could end up nowhere causing a crash.
+	/// </summary>
 	bool m_bPopBackConnectedInvokers;
-	/**
-	* Node index to be verified.
-	* -1 if no node to be verified.
-	***/
+	/// <summary>
+	/// Node index to be verified.
+	///-1 if no node to be verified.
+	/// </summary>
 	int m_nNodeIndexToVerify;
-	/*
-	* True after that node is drawn the first time.
-	**/
+	/// <summary>
+	/// True after that node is drawn the first time.
+	/// </summary>
 	bool m_bFirstDraw;
 };
 

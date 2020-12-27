@@ -106,7 +106,7 @@ NOD_Basic::~NOD_Basic()
 * Do NOT use ImGui::Separator() here, graphical glitch.
 * @param vcOrigin The origin vector for the drawing call, in pixel space.
 ***/
-HRESULT NOD_Basic::Update()
+HRESULT NOD_Basic::Update(float fZoom)
 {
 	// convert title to std::string
 	if (m_acTitleA.length() == 0)
@@ -229,90 +229,124 @@ bool NOD_Basic::SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod)
 }
 
 /**
-* Node input slot/link/connection. TODO !! ZOOM
+* Node input slot/link/connection.
 ***/
-void NOD_Basic::InputSlot(const char* title, int kind) 
+void NOD_Basic::InputSlot(Slot eIndex, float fZoom, float fOriginY)
 {
+	// radius of link circle
+	float fRadius = 5.f * fZoom;
+
+	// get slot text, align y pos
+	std::string acTitle = std::string();
+	if (eIndex == Slot_Invoker)
+	{
+		acTitle = std::string("Invoker");
+
+		// align y cursor position
+		ImGui::SetCursorPosY(fOriginY + (float)m_paDecommanders.size() * fRadius * 4.f + fRadius);
+	}
+	else if ((int)eIndex >= 0)
+	{
+		if ((int)eIndex < (int)m_paDecommanders.size())
+			acTitle = std::string(m_paDecommanders[(int)eIndex]->m_szTitleA);
+		else return;
+
+		// align y cursor position
+		ImGui::SetCursorPosY(fOriginY + (float)(int)eIndex * fRadius * 4.f);
+	}
+	else return;
+
 	// set cursor
 	const auto& style = ImGui::GetStyle();
-	ImGui::SetCursorPosX(ImGui::GetCursorPosX() - style.ItemSpacing.x); //  * zoom);
+	float fPosX = ImGui::GetCursorPosX();
+	ImGui::SetCursorPosX(fPosX - style.ItemSpacing.x * fZoom);
 
 	// get text size, connection circle
 	auto* draw_lists = ImGui::GetWindowDrawList();
-	ImVec2 title_size = ImGui::CalcTextSize(title);
+	ImVec2 title_size = ImGui::CalcTextSize(acTitle.c_str());
 	ImRect circle_rect{
 			ImGui::GetCursorScreenPos(),
-			ImGui::GetCursorScreenPos() + ImVec2{10.f, 10.f}
+			ImGui::GetCursorScreenPos() + ImVec2{fRadius * 2.f, fRadius * 2.f}
 	};
 
 	// Vertical-align circle in the middle of the line.
-	float circle_offset_y = title_size.y / 2.f - 5.f;
+	float circle_offset_y = title_size.y / 2.f - fRadius;
 	circle_rect.Min.y += circle_offset_y;
 	circle_rect.Max.y += circle_offset_y;
-	draw_lists->AddCircleFilled(circle_rect.GetCenter(), 5.f, 0xffffffff);
+	draw_lists->AddCircleFilled(circle_rect.GetCenter(), fRadius, 0xffffffff);
 
 	// add item
 	ImGui::ItemSize(circle_rect.GetSize());
-	ImGui::ItemAdd(circle_rect, ImGui::GetID(title));
+	ImGui::ItemAdd(circle_rect, ImGui::GetID(acTitle.c_str()));
 
-	// if (bDrawSlotTitles) {} // TODO !!!
-	{
-		ImGui::SameLine();
-		ImGui::TextUnformatted(title);
-	}
-	/*else
-	{
-		ImGui::SameLine();
-		ImGui::TextUnformatted(" ");
-	}*/
+	// draw text
+	ImGui::SameLine();
+	ImGui::SetCursorPosX(fPosX + fRadius);
+	ImGui::TextUnformatted(acTitle.c_str());
 
 	ImGui::SameLine();
-	ImGui::GetCurrentWindow()->DC.CursorMaxPos.x -= style.ItemSpacing.x;
+	ImGui::GetCurrentWindow()->DC.CursorMaxPos.x -= style.ItemSpacing.x * fZoom;
 }
 
 /**
 * Node output slot/link/connection.
 **/
-void NOD_Basic::OutputSlot(const char* title, int kind) 
+void NOD_Basic::OutputSlot(Slot eIndex, float fZoom, float fOriginY)
 {
+	// radius of link circle
+	float fRadius = 5.f * fZoom;
+
+	// get slot, align y pos
+	std::string acTitle = std::string();
+	if (eIndex == Slot_Provoker)
+	{
+		acTitle = std::string("Provoker");
+
+		// align y cursor position
+		ImGui::SetCursorPosY(fOriginY + (float)m_paCommanders.size() * fRadius * 4.f + fRadius);
+	}
+	else if ((int)eIndex >= 0)
+	{
+		if ((int)eIndex < (int)m_paCommanders.size())
+			acTitle = std::string(m_paCommanders[(int)eIndex]->m_szTitleA);
+		else return;
+
+		// align y cursor position
+		ImGui::SetCursorPosY(fOriginY + (float)(int)eIndex * fRadius * 4.f);
+	}
+	else return;
+
 	// set cursor
 	const auto& style = ImGui::GetStyle();
-	float fPos = ImGui::GetCursorPosX() + m_fSlotSpace + m_sSize.x + style.ItemSpacing.x;
-	ImVec2 title_size = ImGui::CalcTextSize(title);
-	ImGui::SetCursorPosX(fPos - title_size.x - style.ItemSpacing.x); //  * zoom);
+	float fPosX = ImGui::GetCursorPosX() + (m_fSlotSpace + m_sSize.x + style.ItemSpacing.x) * fZoom;
+	ImVec2 title_size = ImGui::CalcTextSize(acTitle.c_str());
+	ImGui::SetCursorPosX(fPosX - title_size.x - style.ItemSpacing.x * fZoom);
 
-	// if (bDrawSlotTitles) {} // TODO !!!
-	{
-		ImGui::TextUnformatted(title);
-		ImGui::SameLine();
-	}
-	/*else
-	{
-		ImGui::TextUnformatted(" ");
-		ImGui::SameLine();
-	}*/
+	// draw text
+	ImGui::TextUnformatted(acTitle.c_str());
+	ImGui::SameLine();
 
-	ImGui::SetCursorPosX(fPos); //  * zoom);
+	ImGui::SetCursorPosX(fPosX);
 
 	// get text size, connection circle
 	auto* draw_lists = ImGui::GetWindowDrawList();
 	ImRect circle_rect{
 			ImGui::GetCursorScreenPos(),
-			ImGui::GetCursorScreenPos() + ImVec2{10.f, 10.f}
+			ImGui::GetCursorScreenPos() + ImVec2{fRadius * 2.f, fRadius * 2.f}
 	};
 
 	// Vertical-align circle in the middle of the line.
-	float circle_offset_y = title_size.y / 2.f - 5.f;
+	float circle_offset_y = title_size.y / 2.f - fRadius;
 	circle_rect.Min.y += circle_offset_y;
 	circle_rect.Max.y += circle_offset_y;
-	draw_lists->AddCircleFilled(circle_rect.GetCenter(), 5.f, 0xffffffff);
+	draw_lists->AddCircleFilled(circle_rect.GetCenter(), fRadius, 0xffffffff);
 
 	// add item
 	ImGui::ItemSize(circle_rect.GetSize());
-	ImGui::ItemAdd(circle_rect, ImGui::GetID(title));
+	ImGui::ItemAdd(circle_rect, ImGui::GetID(acTitle.c_str()));
 
 	ImGui::SameLine();
-	ImGui::GetCurrentWindow()->DC.CursorMaxPos.x -= style.ItemSpacing.x;
+	ImGui::GetCurrentWindow()->DC.CursorMaxPos.x -= style.ItemSpacing.x * fZoom;
 }
 
 /**
@@ -335,7 +369,7 @@ void NOD_Basic::ConnectDecommander(NOD_Basic* pNode, LONG nDestNodeIndex, std::s
 	NOD_Decommander* psDecommander = nullptr;
 
 	// get commander, decommander
-	for (NOD_Commander* pC : m_paCommanders) 
+	for (NOD_Commander* pC : m_paCommanders)
 		if (acCommander.compare(pC->m_szTitleA) == 0) psCommander = pC;
 	for (NOD_Decommander* pD : pNode->m_paDecommanders)
 		if (acDecommander.compare(pD->m_szTitleA) == 0) psDecommander = pD;

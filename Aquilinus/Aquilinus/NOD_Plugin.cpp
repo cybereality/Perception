@@ -145,7 +145,7 @@ NOD_Plugin::~NOD_Plugin()
 * @param pcDrawer The aquilinus drawing interface.
 * @param vcOrigin The origin vector for the drawing call, in pixel space.
 ***/
-HRESULT NOD_Plugin::Update()
+HRESULT NOD_Plugin::Update(float fZoom)
 {
 	// draw the logo
 	if (m_hBitmapLogo)
@@ -157,8 +157,8 @@ HRESULT NOD_Plugin::Update()
 		// draw image....reverse V
 		if (m_dwLogoID)
 		{
-			const float fZoom = 0.5f;
-			ImGui::Image((void*)(intptr_t)m_dwLogoID, ImVec2((float)m_sImageSize.nW * fZoom, (float)m_sImageSize.nH * fZoom), ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
+			const float fLocalZoom = 0.5f;
+			ImGui::Image((void*)(intptr_t)m_dwLogoID, ImVec2((float)m_sImageSize.nW * fZoom * fLocalZoom, (float)m_sImageSize.nH * fZoom * fLocalZoom), ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
 		}
 
 	}

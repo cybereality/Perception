@@ -98,6 +98,7 @@
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <PreprocessorDefinitions>AQUILINUS_RUNTIME_ENVIRONMENT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -115,6 +116,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(OCULUS_SDK_ROOT_DIR)LibOVR\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>AQUILINUS_RUNTIME_ENVIRONMENT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -135,6 +137,7 @@
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <PreprocessorDefinitions>AQUILINUS_RUNTIME_ENVIRONMENT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -156,6 +159,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(OCULUS_SDK_ROOT_DIR)LibOVR\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>AQUILINUS_RUNTIME_ENVIRONMENT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

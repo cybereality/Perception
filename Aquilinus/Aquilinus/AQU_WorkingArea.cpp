@@ -594,7 +594,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 #pragma endregion
 			// => <main loop window> node creation
-#pragma region Node creation (Drag n Drop Target)
+#pragma region Node creation (Canvas / Drag n Drop Target)
 
 			// create a node editor canvas
 			static ImNodes::CanvasState canvas = {};
@@ -608,10 +608,16 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				static bool s_bShowNodeControls = false;
 
 				// top left canvas buttons
-				if (ImGui::Button(" -><- "))
+				if (ImGui::Button(" >o< "))
 				{
 					// center
 					canvas.offset = ImVec2(0.f, 0.f);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(" >z< "))
+				{
+					// center zoom
+					canvas.zoom = 1.f;
 				}
 				ImGui::SameLine();
 				
@@ -770,8 +776,8 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					if (ImNodes::BeginNode((void*)m_paNodes[i], &m_paNodes[i]->m_sPos, &m_paNodes[i]->m_bActive))
 					{
 						// set node size X ... add space for slots
-						ImVec2 sSize = m_paNodes[i]->GetNodeSize();
-						sSize.x += m_paNodes[i]->GetSlotSpace();
+						ImVec2 sSize = m_paNodes[i]->GetNodeSize() * canvas.zoom;
+						sSize.x += m_paNodes[i]->GetSlotSpace() * canvas.zoom;
 						sSize.y = 0.f;
 						ImGui::ItemSize(sSize);
 
@@ -779,12 +785,12 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						auto* storage = ImGui::GetStateStorage();
 						float node_width = sSize.x;
 						storage->SetFloat(ImGui::GetID("node-width"), node_width);
-
+						
 						// for plugin nodes do not center (no title), other nodes center node title
 						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN) || (node_width <= 0))
 						{
 							// add 5 * standard ImGui Border size here
-							const float fBorderSize = 1.f;
+							const float fBorderSize = 1.f * canvas.zoom;
 							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * fBorderSize);
 						}
 						else
@@ -796,7 +802,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						}
 
 						// Update node and render node title.. 
-						m_paNodes[i]->Update();
+						m_paNodes[i]->Update(canvas.zoom);
 						ImGui::BeginGroup();
 
 						// backup cursor position
@@ -806,11 +812,12 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						{
 							// decommander slots
 							int nSum = (int)m_paNodes[i]->m_paDecommanders.size();
+							float fOriginY = ImGui::GetCursorPosY();
 							for (int j = 0; j < nSum; j++)
 							{
 								// create slot
 								ImNodes::BeginSlot(m_paNodes[i]->m_paDecommanders[j]->m_szTitleA, ImNodes::InputSlotKind((int)m_paNodes[i]->m_paDecommanders[j]->m_ePlugtype));
-								m_paNodes[i]->InputSlot(m_paNodes[i]->m_paDecommanders[j]->m_szTitleA, ImNodes::InputSlotKind((int)m_paNodes[i]->m_paDecommanders[j]->m_ePlugtype));
+								m_paNodes[i]->InputSlot(Slot{ j }, canvas.zoom, fOriginY);
 								ImNodes::EndSlot();
 							}
 
@@ -818,7 +825,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							if (m_paNodes[i]->HasInvoker())
 							{
 								ImNodes::BeginSlot("Invoke", ImNodes::InputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
-								m_paNodes[i]->InputSlot("Invoke", ImNodes::InputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+								m_paNodes[i]->InputSlot(Slot_Invoker, canvas.zoom, fOriginY);
 								ImNodes::EndSlot();
 							}
 						}
@@ -829,12 +836,14 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 
 						ImGui::BeginGroup();
 						{
+							// commander slots
+							float fOriginY = ImGui::GetCursorPosY();
 							int nSum = (int)m_paNodes[i]->m_paCommanders.size();
 							for (int j = 0; j < nSum; j++)
 							{
 								// create slot
 								ImNodes::BeginSlot(m_paNodes[i]->m_paCommanders[j]->m_szTitleA, ImNodes::OutputSlotKind((int)m_paNodes[i]->m_paCommanders[j]->m_ePlugtype));
-								m_paNodes[i]->OutputSlot(m_paNodes[i]->m_paCommanders[j]->m_szTitleA, ImNodes::OutputSlotKind((int)m_paNodes[i]->m_paCommanders[j]->m_ePlugtype));
+								m_paNodes[i]->OutputSlot(Slot{ j }, canvas.zoom, fOriginY);
 								ImNodes::EndSlot();
 							}
 
@@ -842,7 +851,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							if (m_paNodes[i]->HasProvoker())
 							{
 								ImNodes::BeginSlot("Provoke", ImNodes::OutputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
-								m_paNodes[i]->OutputSlot("Provoke", ImNodes::OutputSlotKind((int)NOD_Plugtype::AQU_PROVOKE));
+								m_paNodes[i]->OutputSlot(Slot_Provoker, canvas.zoom, fOriginY);
 								ImNodes::EndSlot();
 							}
 						}
@@ -855,7 +864,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN)  && (s_bShowNodeControls))
 						{
 							// add 5 * standard ImGui Border size here
-							const float fBorderSize = 1.f;
+							const float fBorderSize = 1.f * canvas.zoom;
 							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * fBorderSize);
 
 							ImGui::BeginChild("Test Control", m_paNodes[i]->GetNodeSize());
