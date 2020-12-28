@@ -339,6 +339,7 @@
     <ClInclude Include="..\AQU_FileManager.h" />
     <ClInclude Include="..\AQU_GlobalTypes.h" />
     <ClInclude Include="..\AQU_NodesStructures.h" />
+    <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\AQU_SupportedInterfaces.h" />
     <ClInclude Include="..\AQU_TransferSite.h" />
     <ClInclude Include="..\AQU_WorkingArea.h" />

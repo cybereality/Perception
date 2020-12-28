@@ -34,15 +34,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include <ddraw.h>
+#include <Windows.h>
 #include <Windowsx.h>
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include <typeinfo>
 #include "AQU_NodesStructures.h"
-#include "..\dependecies\imgui\imgui.h"
-#include "..\dependecies\imgui\imgui_internal.h"
+#include "AQU_Nodus.h"
 
 /// <summary>
 /// Simple clipboard text helper.
@@ -124,42 +123,6 @@ enum class AQU_PluginFlags
 enum struct Slot : int { };
 constexpr Slot Slot_Invoker{ -2 };
 constexpr Slot Slot_Provoker{ -1 };
-
-/// <summary>
-/// Aquilinus plugin import node.
-/// All methods empty.
-/// </summary>
-class AQU_Nodus
-{
-public:
-	AQU_Nodus() {}
-	~AQU_Nodus() {}
-
-	/*** AQU_Nodus public methods ***/
-	virtual const char* GetNodeType() { return typeid(this).name(); }
-	virtual UINT32          GetNodeTypeId() { return NULL; }
-	virtual LPWSTR          GetCategory() { return L""; }
-	virtual HBITMAP         GetLogo() { return nullptr; }
-	virtual HBITMAP         GetControl() { return nullptr; }
-	virtual DWORD           GetNodeWidth() { return 100; }
-	virtual DWORD           GetNodeHeight() { return 100; }
-	virtual int             GetProvokingType() { return 0; }
-	virtual bool            GetMethodReplacement() { return false; }
-	virtual DWORD           GetSaveDataSize() { return 0; }
-	virtual char* GetSaveData(UINT* pdwSizeOfData) { return nullptr; }
-	virtual void            InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
-	virtual DWORD           GetCommandersNumber() { return 0; }
-	virtual DWORD           GetDecommandersNumber() { return 0; }
-	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex) { return L""; }
-	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex) { return L""; }
-	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex) { return 0; }
-	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex) { return 0; }
-	virtual void* GetOutputPointer(DWORD dwCommanderIndex) { return nullptr; }
-	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData) { (dwDecommanderIndex); (pData); }
-	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod) { return false; }
-	virtual void* Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex) { (pcThis); (eD3D); (eD3DInterface); (eD3DMethod); (dwNumberConnected); (nProvokerIndex); return nullptr; }
-	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam) {} // TODO !! DEPRECATED !!
-};
 
 /// <summary>
 /// Aquilinus node prototype.

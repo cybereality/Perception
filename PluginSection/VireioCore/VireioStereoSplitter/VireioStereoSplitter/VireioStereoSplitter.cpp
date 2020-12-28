@@ -46,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-StereoSplitter::StereoSplitter() :AQU_Nodus(),
+StereoSplitter::StereoSplitter(ImGuiContext* sCtx) :AQU_Nodus(sCtx),
 m_apcActiveRenderTargets(D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT * 2, nullptr),
 m_apcActiveTextures(D3D9_SIMULTANEAOUS_TEXTURE_COUNT * 2, nullptr),
 m_apcActiveTexturesDisplacement(D3D9_SIMULTANEAOUS_DISPLACEMENT_TEXTURE_COUNT * 2, nullptr),
@@ -542,8 +542,8 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 ***/
 bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
-	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
+	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_9_0) &&
+		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_9_29))
 	{
 		if (nD3DInterface == (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9)
 		{
@@ -1816,13 +1816,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 	}
 	return nullptr;
-}
-
-/**
-* There's some windows event on our node.
-***/
-void StereoSplitter::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
-{
 }
 
 /**

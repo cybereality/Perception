@@ -76,7 +76,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_DX9_CONSTANT_REGISTERS                   224                     /**< Maximum shader registers for DX9 ***/
 #define RegisterIndex(x) (x * VECTOR_LENGTH)                                 /**< Simple helper to access shader register. ***/
 
-#include"AQU_Nodus.h"
+#include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D9Interfaces.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DDevice9.h"
@@ -106,7 +106,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
-void debugf(const char *fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
+void debugf(const char* fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
 
 /// <summary>
 /// Simple hash code helper.
@@ -246,7 +246,7 @@ enum STS_Decommanders
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 /// <summary>
-* Vireio Map DX10/11 data structure.
+*Vireio Map DX10 / 11 data structure.
 * Contains all data for a mapped constant buffer.
 /// </summary>
 struct Vireio_Map_Data
@@ -291,7 +291,7 @@ struct Vireio_Map_Data
 };
 
 /// <summary>
-* Simple enumeration of supported Shaders.
+*Simple enumeration of supported Shaders.
 /// </summary>
 enum Vireio_Supported_Shaders
 {
@@ -310,21 +310,20 @@ enum Vireio_Supported_Shaders
 class MatrixModifier : public AQU_Nodus
 {
 public:
-	MatrixModifier();
+	MatrixModifier(ImGuiContext* sCtx);
 	virtual ~MatrixModifier();
 
 	/*** AQU_Nodus public methods ***/
-	virtual const char*     GetNodeType();
+	virtual const char* GetNodeType();
 	virtual UINT            GetNodeTypeId();
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return g_uGlobalNodeWidth; }
-	virtual DWORD           GetNodeHeight() { return GUI_HEIGHT; }
+	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)GUI_HEIGHT); }
 	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
 	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
 	virtual DWORD           GetSaveDataSize();
-	virtual char*           GetSaveData(UINT* pdwSizeOfData);
+	virtual char* GetSaveData(UINT* pdwSizeOfData);
 	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
@@ -332,11 +331,11 @@ public:
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
 	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
-	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
+	virtual void* GetOutputPointer(DWORD dwCommanderIndex);
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
-	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
-	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+	virtual void			UpdateImGuiControl(float fZoom);
 
 	/// <summary>
 	/// Return value pointer (HRESULT).
@@ -356,11 +355,11 @@ private:
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 	/*** MatrixModifier private methods ***/
-	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*> &apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer *const*ppcConstantBuffers, Vireio_Supported_Shaders eShaderType);
-	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex, Vireio_Supported_Shaders eShaderType);
+	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*>& apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer* const* ppcConstantBuffers, Vireio_Supported_Shaders eShaderType);
+	void VerifyConstantBuffer(ID3D11Buffer* pcBuffer, UINT dwBufferIndex, Vireio_Supported_Shaders eShaderType);
 	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
 #endif
-	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
+	void DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
 	void FillShaderRuleIndices();
 	void FillShaderRuleData(UINT dwRuleIndex);
 	void FillShaderRuleGeneralIndices();
@@ -369,8 +368,6 @@ private:
 #else
 	void FillShaderRuleShaderIndices();
 #endif
-	bool MatrixModifier::ImportXMLRules(std::string rulesPath);
-
 
 	/// <summary>
 	/// [IN] Input pointers array.
@@ -447,7 +444,7 @@ private:
 	/// 0---------------------------------------------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
 	/// D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
 	/// </summary>
-	std::vector<ID3D11RenderTargetView *> m_apcActiveRenderTargetViews11;
+	std::vector<ID3D11RenderTargetView*> m_apcActiveRenderTargetViews11;
 	/// <summary>
 	/// Active stored depth stencil view.
 	/// The depth stencil surface that is currently in use.
@@ -461,7 +458,7 @@ private:
 	/// The number of frames the constant buffers are to be verified.
 	/// Set to zero to optimize StereoSplitter->SetDrawingSide()
 	/// </summary>
-	UINT m_dwVerifyConstantBuffers;	
+	UINT m_dwVerifyConstantBuffers;
 	/// <summary>
 	/// Constant Buffer private data buffer left eye.
 	/// </summary>
@@ -858,9 +855,9 @@ private:
 /// <summary>
 /// Exported Constructor Method.
 /// </summary>
-extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
+extern "C" __declspec(dllexport) AQU_Nodus * AQU_Nodus_Create(ImGuiContext * sCtx)
 {
-	MatrixModifier* pMatrixModifier = new MatrixModifier();
+	MatrixModifier* pMatrixModifier = new MatrixModifier(sCtx);
 	return static_cast<AQU_Nodus*>(pMatrixModifier);
 }
 

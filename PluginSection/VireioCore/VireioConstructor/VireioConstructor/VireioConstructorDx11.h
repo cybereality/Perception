@@ -104,8 +104,9 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
-	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)GUI_HEIGHT); }
+	//virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
+	//virtual DWORD           GetNodeHeight() { return 128; }
 	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
 	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }

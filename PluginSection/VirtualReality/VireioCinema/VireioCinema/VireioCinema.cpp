@@ -54,7 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-VireioCinema::VireioCinema() : AQU_Nodus(),
+VireioCinema::VireioCinema(ImGuiContext * sCtx) : AQU_Nodus(sCtx),
 m_sStereoData{},
 m_psTrackerData(nullptr),
 m_psStereoDataIn(nullptr),
@@ -647,8 +647,8 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
 	return true;
-	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
+	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_9_0) &&
+		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_9_29))
 	{
 		if (((nD3DInterface == INTERFACE_IDIRECT3DDEVICE9) &&
 			(nD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT)) ||

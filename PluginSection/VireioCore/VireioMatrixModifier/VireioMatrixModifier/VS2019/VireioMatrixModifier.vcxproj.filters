@@ -1,22 +1,62 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="..\AQU_Nodus.h" />
-    <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
-    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
-    <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
-    <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
     <ClInclude Include="..\VireioMatrixModifierClasses.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\AQU_Nodus.def" />
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_helpers.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Resources.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h">
+      <Filter>Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h">
+      <Filter>Vireio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioMatrixModifier.cpp" />
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{4023ed06-e55f-4358-ab9d-9ce839044436}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{0ab1e004-3c23-4582-b669-6553b4216822}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vireio">
+      <UniqueIdentifier>{5297b12c-5b18-4a31-a564-e56169a674a2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.natvis">
+      <Filter>ImGui</Filter>
+    </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -621,7 +621,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				}
 				ImGui::SameLine();
 				
-				// toggle button main functionality.. put into method if needed more often
+				// "toggle"-button main functionality.. put into method if needed more often
 				{
 					if (s_bShowNodeControls == true)
 					{
@@ -667,14 +667,15 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 				sTargetPos.x -= ImGui::GetWindowPos().x;
 				sTargetPos.y -= ImGui::GetWindowPos().y;
 				ImGui::SetCursorPos(sTargetPos);
+				sTargetPos /= canvas.zoom;
 
 				// create fake selectable as DnD target
 				const char* name1 = " ";
 				ImGui::Selectable(name1, false, ImGuiSelectableFlags_Disabled);
 
 				// subtract canvas offset for Drag n Drop
-				sTargetPos.x -= canvas.offset.x;
-				sTargetPos.y -= canvas.offset.y;
+				sTargetPos.x -= canvas.offset.x / canvas.zoom;
+				sTargetPos.y -= canvas.offset.y / canvas.zoom;
 
 				// create drag and drop target
 				if (ImGui::BeginDragDropTarget())
@@ -867,15 +868,9 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							const float fBorderSize = 1.f * canvas.zoom;
 							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * fBorderSize);
 
-							ImGui::BeginChild("Test Control", m_paNodes[i]->GetNodeSize());
-							ImGui::Text("This is a test control");
-							ImGui::Button("AAA"); ImGui::SameLine();
-							ImGui::Button("BBB"); ImGui::SameLine();
-							ImGui::Button("CCC");
-							const float values[5] = { 0.5f, 0.20f, 0.80f, 0.60f, 0.25f };
-							ImGui::PlotHistogram("##values", values, IM_ARRAYSIZE(values), 0, NULL, 0.0f, 1.0f, ImVec2(100.f, 50.f));
-							static int lines = 7;
-							ImGui::SliderInt("Lines", &lines, 1, 15);
+							// call plugin control method
+							ImGui::BeginChild("Plugin control", m_paNodes[i]->GetNodeSize() * canvas.zoom);
+							((NOD_Plugin*)m_paNodes[i])->UpdatePluginControl(canvas.zoom);
 							ImGui::EndChild();
 						}
 

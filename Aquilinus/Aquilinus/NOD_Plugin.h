@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -40,28 +40,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Plugin node.
 ***/
-class NOD_Plugin : public NOD_Basic 
-{ 
-public: 
+class NOD_Plugin : public NOD_Basic
+{
+public:
 	NOD_Plugin(LONG nX, LONG nY, std::wstring szFilePath);
 	~NOD_Plugin();
 
 	/*** NOD_Basic public methods ***/
-	virtual HRESULT          Update(float fZoom);
-	virtual bool             SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
-	virtual void             ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
-	virtual void             AlignData(LONG nDecommanderIndex, void* pData) { m_pNodus->SetInputPointer((DWORD)nDecommanderIndex, pData); NOD_Basic::AlignData(nDecommanderIndex, pData); }
-	virtual void*            Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
-	virtual DWORD            GetSaveDataSize();
-	virtual char*            GetSaveData(UINT* pdwSizeOfData);
-	virtual void             InitNodeData(char* pData, UINT dwSizeOfData);
-	virtual const char*      GetNodeType() { return typeid(this).name(); }
-	virtual UINT             GetNodeTypeId() { return ELEMENTARY_NODE_PLUGIN; }
-	virtual void             VerifyConnections(std::vector<NOD_Basic*>* ppaNodes);
+	virtual HRESULT Update(float fZoom);
+	virtual bool SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod);
+	virtual void ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex);
+	virtual void AlignData(LONG nDecommanderIndex, void* pData) { m_pNodus->SetInputPointer((DWORD)nDecommanderIndex, pData); NOD_Basic::AlignData(nDecommanderIndex, pData); }
+	virtual void* Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes);
+	virtual DWORD GetSaveDataSize();
+	virtual char* GetSaveData(UINT* pdwSizeOfData);
+	virtual void InitNodeData(char* pData, UINT dwSizeOfData);
+	virtual const char* GetNodeType() { return typeid(this).name(); }
+	virtual UINT GetNodeTypeId() { return ELEMENTARY_NODE_PLUGIN; }
+	virtual void VerifyConnections(std::vector<NOD_Basic*>* ppaNodes);
 
 	/*** NOD_Plugin public methods ***/
-	UINT                     GetPluginNodeTypeId() { return m_pNodus->GetNodeTypeId(); }
-	LPCWSTR                  GetPluginNodeFileName() { return m_szFileName; }
+	UINT GetPluginNodeTypeId() { return m_pNodus->GetNodeTypeId(); }
+	LPCWSTR GetPluginNodeFileName() { return m_szFileName; }
+	void UpdatePluginControl(float fZoom);
 
 
 private:
@@ -102,7 +103,7 @@ private:
 	***/
 	RECT m_rcControl;
 	/**
-	* The node file name. 
+	* The node file name.
 	***/
 	wchar_t m_szFileName[64];
 };

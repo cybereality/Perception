@@ -47,10 +47,12 @@ inline void _assert(const char* expression, const char* file, int line)
 	fprintf(stderr, "Assertion '%s' failed, file '%s' line '%d'.", expression, file, line);
 	abort();
 }
+#ifndef assert
 #ifdef _DEBUG
 #define assert(EXPRESSION) ((void)0)
 #else
 #define assert(EXPRESSION) ((EXPRESSION) ? (void)0 : _assert(#EXPRESSION, __FILE__, __LINE__))
+#endif
 #endif
 
 /**

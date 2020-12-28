@@ -73,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// <summary> 
 /// Constructor.
 /// </summary>
-MatrixModifier::MatrixModifier() : AQU_Nodus(),
+MatrixModifier::MatrixModifier(ImGuiContext * sCtx) : AQU_Nodus(sCtx),
 m_aszShaderConstantsA(),
 m_aszShaderConstants(),
 m_aszVShaderHashCodes(),
@@ -1240,8 +1240,8 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_10) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_10_1))
+	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_10) &&
+		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_10_1))
 	{
 		if (nD3DInterface == INTERFACE_ID3D10DEVICE)
 		{
@@ -1252,8 +1252,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 
 		}
 	}
-	else if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_11) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_11_2))
+	else if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_11) &&
+		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_11_2))
 	{
 		if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{
@@ -1279,8 +1279,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		}
 	}
 #elif defined(VIREIO_D3D9)
-	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
+	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_9_0) &&
+		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_9_29))
 	{
 		if (nD3DInterface == (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9)
 		{
@@ -2982,11 +2982,23 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	return nullptr;
 }
 
+/// <summary>
+/// => Update ImGui Control
+/// Update node controls using ImGui. 
+/// Use zoom factor to align controls.
+/// </summary>
+/// <param name="fZoom">Current zoom factor on ImNodes canvas.</param>
+void MatrixModifier::UpdateImGuiControl(float fZoom) 
+{ 
+	ImGui::TextUnformatted("Text Sample ABCDEFGHIJKLMNOP");
+	return; 
+}
+
 /// <summary> 
 /// There's some windows event on our node.
 /// </summary>
-void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
-{
+//void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
+//{
 	//	// multiply mouse coords by 4 due to Aquilinus workspace architecture
 	//	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam, 4);
 	//	switch (sEvent.eType)
@@ -3789,7 +3801,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	//		default:
 	//			break;
 	//	}
-}
+//}
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 /// <summary> 
@@ -4156,9 +4168,6 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 		}
 	}
 }
-#endif
-
-#if defined(VIREIO_D3D9)
 #endif
 
 /// <summary> 
@@ -4853,182 +4862,3 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 	}
 }
 #endif
-
-/// <summary> 
-/// Imports (v3) shader modification rules.
-/// True if load succeeds, false otherwise.
-/// (pugi::xml_document)
-/// @param szRulesPath Rules path as defined in game configuration.
-/// </summary>
-bool MatrixModifier::ImportXMLRules(std::string szRulesPath)
-{
-	// helper to convert IDs to indices (Vireio v4 does use indices instead of IDs)
-	/*std::vector<UINT> aIDIndices = std::vector<UINT>();
-
-	m_asConstantRules.clear();
-	m_aunGlobalConstantRuleIndices.clear();
-#if defined(VIREIO_D3D9)
-	m_asShaderSpecificRuleIndices.clear();
-#endif
-
-	pugi::xml_document cRulesFile;
-	pugi::xml_parse_result sResultProfiles = cRulesFile.load_file(szRulesPath.c_str());
-
-	if (sResultProfiles.status != pugi::status_ok)
-	{
-		OutputDebugString(L"[MAM] Parsing of shader rules file failed. No rules loaded.\n");
-		OutputDebugStringA(szRulesPath.c_str());
-		return false;
-	}
-
-	// load from file
-	pugi::xml_node cXmlShaderConfig = cRulesFile.child("shaderConfig");
-	if (!cXmlShaderConfig)
-	{
-		OutputDebugString(L"[MAM] 'shaderConfig' node missing, malformed shader rules doc.\n");
-		return false;
-	}
-
-	pugi::xml_node cXmlRules = cXmlShaderConfig.child("rules");
-	if (!cXmlRules)
-	{
-		OutputDebugString(L"[MAM] No 'rules' node found, malformed shader rules doc.\n");
-		return false;
-	}
-	else
-	{
-		for (pugi::xml_node cRule = cXmlRules.child("rule"); cRule; cRule = cRule.next_sibling("rule"))
-		{
-			// NOTE : no pattern search supported in v4 !!
-			static Vireio_Constant_Modification_Rule sNewRule;
-
-			// get constant name
-			sNewRule.m_szConstantName = cRule.attribute("constantName").as_string();
-			sNewRule.m_bUseName = (bool)(sNewRule.m_szConstantName.length() > 0);
-
-			// parse type
-			std::string szType = cRule.attribute("constantType").as_string();
-			if (szType.compare("MatrixC") == 0)
-			{
-				sNewRule.m_dwRegisterCount = 4;
-			}
-			else if (szType.compare("MatrixR") == 0)
-			{
-				sNewRule.m_dwRegisterCount = 4;
-			}
-			else if (szType.compare("Vector") == 0)
-			{
-				sNewRule.m_dwRegisterCount = 1;
-			}
-			else
-			{
-				OutputDebugString(L"Unknown or unsupported constant type: ");
-				OutputDebugStringA(szType.c_str());
-				OutputDebugString(L"\n");
-
-				sNewRule.m_dwRegisterCount = 1;
-			}
-
-			// get the ID as index, to convert later
-			UINT unID = cRule.attribute("id").as_uint();
-			aIDIndices.push_back(unID);
-
-			sNewRule.m_dwOperationToApply = cRule.attribute("modToApply").as_uint();
-			sNewRule.m_dwStartRegIndex = cRule.attribute("startReg").as_uint(UINT_MAX);
-			sNewRule.m_bUsePartialNameMatch = cRule.attribute("partialName").as_bool(false);
-			sNewRule.m_bTranspose = cRule.attribute("transpose").as_bool(false);
-
-			// and add to vector
-			m_asConstantRules.push_back(sNewRule);
-		}
-
-		// default rules (these are optional but will most likely exist for 99% of profiles)
-		pugi::xml_node cDefaultRules = cXmlShaderConfig.child("defaultRuleIDs");
-		if (cDefaultRules)
-		{
-			for (pugi::xml_node cRuleId = cDefaultRules.child("ruleID"); cRuleId; cRuleId = cRuleId.next_sibling("ruleID"))
-			{
-				// get ID
-				UINT unID = cRuleId.attribute("id").as_uint();
-
-				// get index
-				UINT unIndex = 0;
-				bool bFoundID = false;
-				for (UINT unI = 0; unI < (UINT)aIDIndices.size(); unI++)
-				{
-					if (unID == aIDIndices[unI])
-					{
-						unIndex = unI;
-						bFoundID = true;
-					}
-				}
-
-				// add to indices if ID is present
-				if (bFoundID)
-				{
-					m_aunGlobalConstantRuleIndices.push_back(unIndex);
-				}
-			}
-		}
-		else
-		{
-			OutputDebugString(L"[MAM] No default rules found, did you do this intentionally?\n");
-		}
-
-#if defined(VIREIO_D3D9)
-		// Shader specific rules (optional)
-		for (pugi::xml_node cShaderSpecificIDs = cXmlShaderConfig.child("shaderSpecificRuleIDs"); cShaderSpecificIDs; cShaderSpecificIDs = cShaderSpecificIDs.next_sibling("shaderSpecificRuleIDs"))
-		{
-			UINT unHash = cShaderSpecificIDs.attribute("shaderHash").as_uint(0);
-
-			if (unHash == 0)
-			{
-				OutputDebugString(L"[MAM] Shader specific rule with invalid/no hash. Skipping rule.\n");
-				continue;
-			}
-
-			// TODO !! VIEWPORT SQUISH ?? OBJECT TYPE ??
-			std::vector<UINT> aunShaderRuleIDs;
-
-			for (pugi::xml_node cRuleId = cShaderSpecificIDs.child("ruleID"); cRuleId; cRuleId = cRuleId.next_sibling("ruleID"))
-			{
-				aunShaderRuleIDs.push_back(cRuleId.attribute("id").as_uint());
-			}
-
-			if (aunShaderRuleIDs.size())
-			{
-				for (UINT unI = 0; unI < (UINT)aunShaderRuleIDs.size(); unI++)
-				{
-					// get ID
-					UINT unID = aunShaderRuleIDs[unI];
-
-					// get index
-					UINT unIndex = 0;
-					bool bFoundID = false;
-					for (UINT unJ = 0; unJ < (UINT)aIDIndices.size(); unJ++)
-					{
-						if (unID == aIDIndices[unJ])
-						{
-							unIndex = unJ;
-							bFoundID = true;
-						}
-					}
-
-					// add to indices if ID is present
-					if (bFoundID)
-					{
-						static Vireio_Hash_Rule_Index sIndex;
-						sIndex.unHash = unHash;
-						sIndex.unRuleIndex = unIndex;
-
-						m_asShaderSpecificRuleIndices.push_back(sIndex);
-					}
-
-				}
-			}
-		}
-#endif
-	}
-
-	return true;*/
-}

@@ -184,23 +184,28 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imconfig.h" />
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.h" />
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_helpers.h" />
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_internal.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
-    <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioMatrixModifierClasses.h" />
     <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\VireioMatrixModifier.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\AQU_Nodus.def" />
+    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
+    <Natvis Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -165,15 +165,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioConstructorDx11.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioConstructorDx11.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\VireioConstructor_Resources.rc" />

@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<vector>
 
-#include"AQU_Nodus.h"
+#include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
 
 #include<Shlwapi.h>
@@ -365,7 +365,7 @@ enum GameTypeEntry
 class StereoSplitter : public AQU_Nodus
 {
 public:
-	StereoSplitter();
+	StereoSplitter(ImGuiContext* sCtx);
 	virtual ~StereoSplitter();
 
 	/*** AQU_Nodus public methods ***/
@@ -374,8 +374,7 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return g_uGlobalNodeWidth; }
-	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
 	virtual DWORD           GetSaveDataSize();
 	virtual char* GetSaveData(UINT* pdwSizeOfData);
 	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
@@ -389,7 +388,6 @@ public:
 	virtual void            SetInputPointer(DWORD unDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex);
-	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:
 	/*** StereoSplitter private D3D9 methods ***/
@@ -754,9 +752,9 @@ private:
 /// <summary>
 /// Exported Constructor Method.
 /// </summary>
-extern "C" __declspec(dllexport) AQU_Nodus * AQU_Nodus_Create()
+extern "C" __declspec(dllexport) AQU_Nodus * AQU_Nodus_Create(ImGuiContext * sCtx)
 {
-	StereoSplitter* pStereoSplitter = new StereoSplitter();
+	StereoSplitter* pStereoSplitter = new StereoSplitter(sCtx);
 	return static_cast<AQU_Nodus*>(pStereoSplitter);
 }
 

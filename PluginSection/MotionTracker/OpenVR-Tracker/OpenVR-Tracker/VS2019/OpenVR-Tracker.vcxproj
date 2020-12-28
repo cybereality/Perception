@@ -167,15 +167,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\OpenVR-Tracker.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\OpenVR-Tracker.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\OpenVR-Tracker_Resources.rc" />

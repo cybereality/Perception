@@ -804,6 +804,9 @@
     <ClInclude Include="..\..\dependecies\imgui\ImNodes.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\AQU_Nodus.h">
+      <Filter>AQU_Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Aquilinus.cpp" />

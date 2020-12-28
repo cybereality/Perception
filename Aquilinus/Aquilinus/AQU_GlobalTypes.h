@@ -42,8 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /** Max 256 interfaces */
 #define MAX_INTERFACES_NUMBER 256
 
-#ifndef AQU_INCLUDE_CONFIG_ONLY
-
 /*** Aquilinus global defines ***/
 #define DIRECTX_8_0 80
 #define	DIRECTX_8_0A 81	
@@ -151,8 +149,6 @@ enum AQU_InjectionTechniques
 	Detour,
 	Proxy
 };
-
-#endif
 
 /**
 * The current stage of the project.

@@ -34,9 +34,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%d", a); OutputDebugString(buf); }
 #define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 
-/**
-* Constructor.
-***/
+/// <summary>
+/// Constructor.
+/// </summary>
 NOD_Plugin::NOD_Plugin(LONG nX, LONG nY, std::wstring szFilePath) :NOD_Basic(nX, nY, 140, 100),
 m_dwUpdateCounter(0)
 {
@@ -45,14 +45,14 @@ m_dwUpdateCounter(0)
 
 	if (m_hm != NULL)
 	{
-		typedef AQU_Nodus* (*AQU_Nodus_Create)();
+		typedef AQU_Nodus* (*AQU_Nodus_Create)(ImGuiContext* sCtx);
 		AQU_Nodus_Create m_pAQU_Nodus_Create;
 
 		// get plugin creation method
 		m_pAQU_Nodus_Create = (AQU_Nodus_Create)GetProcAddress(m_hm, "AQU_Nodus_Create");
 
 		// create the nodus class
-		m_pNodus = m_pAQU_Nodus_Create();
+		m_pNodus = m_pAQU_Nodus_Create(ImGui::GetCurrentContext());
 
 		// set fields by plugin data
 		m_eNodeProvokingType = (AQU_NodeProvokingType)m_pNodus->GetProvokingType();
@@ -61,8 +61,7 @@ m_dwUpdateCounter(0)
 		m_bReturn = m_pNodus->GetMethodReplacement();
 
 		// set size
-		m_sSize.x = (float)m_pNodus->GetNodeWidth();
-		m_sSize.y = (float)m_pNodus->GetNodeHeight();
+		m_sSize = m_pNodus->GetNodeSize();
 
 		// set name
 		std::string strA(m_pNodus->GetNodeType());
@@ -130,21 +129,19 @@ m_dwUpdateCounter(0)
 	m_fSlotSpace = 0.f;
 }
 
-/**
-* Destructor.
-***/
+/// <summary>
+/// Destructor.
+/// </summary>
 NOD_Plugin::~NOD_Plugin()
 {
 	FreeLibrary(m_hm);
 	m_hm = NULL;
 }
 
-/**
-* Draws the node.
-* The plugin node has additional drawing options like a logo or a control.
-* @param pcDrawer The aquilinus drawing interface.
-* @param vcOrigin The origin vector for the drawing call, in pixel space.
-***/
+/// <summary>
+/// Draws the node.
+/// The plugin node has additional drawing options like a logo or a control.
+/// </summary>
 HRESULT NOD_Plugin::Update(float fZoom)
 {
 	// draw the logo
@@ -166,17 +163,17 @@ HRESULT NOD_Plugin::Update(float fZoom)
 	return S_OK;
 }
 
-/**
-* Returns nodus dll class method.
-***/
+/// <summary>
+/// Returns nodus dll class method.
+/// </summary>
 bool NOD_Plugin::SupportsD3DMethod(int eD3D, int eD3DInterface, int eD3DMethod)
 {
 	return m_pNodus->SupportsD3DMethod(eD3D, eD3DInterface, eD3DMethod);
 }
 
-/**
-* Calls super method and sets all plugin input pointers new.
-***/
+/// <summary>
+/// Calls super method and sets all plugin input pointers new.
+/// </summary>
 void NOD_Plugin::ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex)
 {
 	// loop through decommanders, set input pointer
@@ -187,9 +184,9 @@ void NOD_Plugin::ConnectInvoker(NOD_Basic* pNode, LONG nDestNodeIndex)
 	NOD_Basic::ConnectInvoker(pNode, nDestNodeIndex);
 }
 
-/**
-* Node Provoke - Draw Text.
-***/
+/// <summary>
+/// Node Provoke - Draw Text.
+/// </summary>
 void* NOD_Plugin::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMethod, std::vector<NOD_Basic*>* ppaNodes)
 {
 	// update plugin replace command
@@ -214,33 +211,33 @@ void* NOD_Plugin::Provoke(void* pcThis, int eD3D, int eD3DInterface, int eD3DMet
 	return NOD_Basic::Provoke(pcThis, eD3D, eD3DInterface, eD3DMethod, ppaNodes);
 }
 
-/**
-* Get the plugin nodes save data block size.
-***/
+/// <summary>
+/// Get the plugin nodes save data block size.
+/// </summary>
 DWORD NOD_Plugin::GetSaveDataSize()
 {
 	return m_pNodus->GetSaveDataSize();
 }
 
-/**
-* Get the plugin nodes save data block.
-***/
+/// <summary>
+/// Get the plugin nodes save data block.
+/// </summary>
 char* NOD_Plugin::GetSaveData(UINT* pdwSizeOfData)
 {
 	return m_pNodus->GetSaveData(pdwSizeOfData);
 }
 
-/**
-* Init the plugin nodes load data block.
-***/
+/// <summary>
+/// Init the plugin nodes load data block.
+/// </summary>
 void NOD_Plugin::InitNodeData(char* pData, UINT dwSizeOfData)
 {
 	m_pNodus->InitNodeData(pData, dwSizeOfData);
 }
 
-/**
-* Verifies the connections of the plugin node.
-***/
+/// <summary>
+/// Verifies the connections of the plugin node.
+/// </summary>
 void NOD_Plugin::VerifyConnections(std::vector<NOD_Basic*>* ppaNodes)
 {
 	// node to be verified ?
@@ -264,6 +261,16 @@ void NOD_Plugin::VerifyConnections(std::vector<NOD_Basic*>* ppaNodes)
 		m_pNodus->SetInputPointer((DWORD)i, m_paDecommanders[i]->m_pInput);
 	}
 }
+
+/// <summary>
+/// Calls the plugin method to update the controls.
+/// </summary>
+/// <param name="fZoom">Current zoom factor</param>
+void NOD_Plugin::UpdatePluginControl(float fZoom)
+{
+	m_pNodus->UpdateImGuiControl(fZoom);
+}
+
 
 
 

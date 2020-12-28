@@ -316,8 +316,8 @@ void VireioConstructorDx11::SetInputPointer(DWORD dwDecommanderIndex, void* pDat
 ***/
 bool VireioConstructorDx11::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
-	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_11) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_11_2))
+	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_11) &&
+		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_11_2))
 	{
 		if (nD3DInterface == INTERFACE_ID3D11DEVICE)
 		{

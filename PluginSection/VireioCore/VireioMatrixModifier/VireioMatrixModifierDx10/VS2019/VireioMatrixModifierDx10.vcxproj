@@ -208,7 +208,6 @@
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
-    <ClInclude Include="..\..\VireioMatrixModifier\AQU_Nodus.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifier.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\Resources.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierDataStructures.h" />
@@ -218,9 +217,6 @@
     <ClCompile Include="..\..\..\..\..\Shared\pugixml.cpp" />
     <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
     <ClCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier_Resources.rc" />

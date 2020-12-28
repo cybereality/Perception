@@ -34,7 +34,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include"AQU_Nodus.h"
+#include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include<vector>
 
 
@@ -98,7 +98,7 @@ enum class VRC_Decommanders
 class VireioCinema : public AQU_Nodus
 {
 public:
-	VireioCinema();
+	VireioCinema(ImGuiContext* sCtx);
 	virtual ~VireioCinema();
 
 	/*** VireioCinema public methods ***/
@@ -106,8 +106,7 @@ public:
 	virtual UINT            GetNodeTypeId();
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
-	virtual DWORD           GetNodeWidth() { return g_uGlobalNodeWidth; }
-	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
@@ -427,8 +426,8 @@ private:
 /// <summary>
 /// Exported Constructor Method.
 /// </summary>
-extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
+extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create(ImGuiContext * sCtx)
 {
-	VireioCinema* pVireioCinema = new VireioCinema();
+	VireioCinema* pVireioCinema = new VireioCinema(sCtx);
 	return static_cast<AQU_Nodus*>(pVireioCinema);
 }

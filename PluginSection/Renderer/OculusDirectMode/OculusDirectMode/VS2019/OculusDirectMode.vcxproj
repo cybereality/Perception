@@ -174,7 +174,6 @@
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\OculusDirectMode.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
@@ -184,9 +183,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\OculusDirectMode_Resources.rc" />

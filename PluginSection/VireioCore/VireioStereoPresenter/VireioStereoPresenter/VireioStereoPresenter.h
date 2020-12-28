@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<memory>
 #include<sstream>
 
-#include"AQU_Nodus.h"
+#include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
 
 #include<Shlwapi.h>
@@ -115,7 +115,7 @@ enum VireioMenuEvent
 class StereoPresenter : public AQU_Nodus
 {
 public:
-	StereoPresenter();
+	StereoPresenter(ImGuiContext* sCtx);
 	virtual ~StereoPresenter();
 
 	/*** AQU_Nodus public methods ***/
@@ -124,8 +124,7 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return 512; }
-	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
@@ -293,8 +292,8 @@ private:
 /// <summary>
 /// Exported Constructor Method.
 /// </summary>
-extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
+extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create(ImGuiContext * sCtx)
 {
-	StereoPresenter* pStereoPresenter = new StereoPresenter();
+	StereoPresenter* pStereoPresenter = new StereoPresenter(sCtx);
 	return static_cast<AQU_Nodus*>(pStereoPresenter);
 }

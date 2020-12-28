@@ -53,7 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// <summary>
 /// Constructor
 /// </summary>
-StereoPresenter::StereoPresenter() :AQU_Nodus(),
+StereoPresenter::StereoPresenter(ImGuiContext * sCtx) :AQU_Nodus(sCtx),
 m_psStereoData(nullptr),
 m_pcBackBufferView(nullptr),
 m_pcVertexShader10(nullptr),
@@ -275,10 +275,7 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 /// </summary>
 bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
-	//if ((nD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	return true;
-
-	//return false;
 }
 
 /// <summary>

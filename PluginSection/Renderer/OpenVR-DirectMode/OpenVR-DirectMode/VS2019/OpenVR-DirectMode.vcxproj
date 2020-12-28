@@ -167,15 +167,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\OpenVR-DirectMode.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\OpenVR-DirectMode.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\OpenVR-DirectMode_Resources.rc" />

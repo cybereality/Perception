@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="..\..\VireioMatrixModifier\AQU_Nodus.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\Resources.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifier.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierDataStructures.h" />
@@ -115,9 +114,6 @@
     <ClInclude Include="..\..\..\..\..\Shared\pugiconfig.hpp">
       <Filter>pugixml</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier.cpp" />
