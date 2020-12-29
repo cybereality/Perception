@@ -621,7 +621,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 					canvas.zoom = 1.f;
 				}
 				ImGui::SameLine();
-				
+
 				// "toggle"-button main functionality.. put into method if needed more often
 				{
 					if (s_bShowNodeControls == true)
@@ -787,7 +787,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						auto* storage = ImGui::GetStateStorage();
 						float node_width = sSize.x;
 						storage->SetFloat(ImGui::GetID("node-width"), node_width);
-						
+
 						// for plugin nodes do not center (no title), other nodes center node title
 						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN) || (node_width <= 0))
 						{
@@ -863,16 +863,17 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 						ImGui::SetCursorPos(sPos);
 
 						// draw controls ??
-						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN)  && (s_bShowNodeControls))
+						if ((m_paNodes[i]->GetNodeTypeId() == ELEMENTARY_NODE_PLUGIN) && (s_bShowNodeControls))
 						{
 							// add 5 * standard ImGui Border size here
 							const float fBorderSize = 1.f * canvas.zoom;
 							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * fBorderSize);
 
 							// call plugin control method
-							ImGui::BeginChild("Plugin control", m_paNodes[i]->GetNodeSize() * canvas.zoom);
+							ImGui::Begin("Plugin controls");
 							((NOD_Plugin*)m_paNodes[i])->UpdatePluginControl(canvas.zoom);
-							ImGui::EndChild();
+							ImGui::Separator();
+							ImGui::End();
 						}
 
 						ImGui::EndGroup();
