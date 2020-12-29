@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -121,159 +121,159 @@ public:
 		switch (eInterface)
 		{
 		case AQU_SUPPORTEDINTERFACES::IDirect3DBaseTexture9:
-			{
-				NOD_IDirect3DBaseTexture9* pInterfaceNodeProvider = new NOD_IDirect3DBaseTexture9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DBaseTexture9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DBaseTexture9* pInterfaceNodeProvider = new NOD_IDirect3DBaseTexture9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DBaseTexture9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DCubeTexture9:
-			{
-				NOD_IDirect3DCubeTexture9* pInterfaceNodeProvider = new NOD_IDirect3DCubeTexture9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DCubeTexture9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DCubeTexture9* pInterfaceNodeProvider = new NOD_IDirect3DCubeTexture9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DCubeTexture9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DDevice9:
-			{
-				NOD_IDirect3DDevice9* pInterfaceNodeProvider = new NOD_IDirect3DDevice9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DDevice9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DDevice9* pInterfaceNodeProvider = new NOD_IDirect3DDevice9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DDevice9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DIndexBuffer9:
-			{
-				NOD_IDirect3DIndexBuffer9* pInterfaceNodeProvider = new NOD_IDirect3DIndexBuffer9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DIndexBuffer9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DIndexBuffer9* pInterfaceNodeProvider = new NOD_IDirect3DIndexBuffer9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DIndexBuffer9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DPixelShader9:
-			{
-				NOD_IDirect3DPixelShader9* pInterfaceNodeProvider = new NOD_IDirect3DPixelShader9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DPixelShader9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DPixelShader9* pInterfaceNodeProvider = new NOD_IDirect3DPixelShader9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DPixelShader9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DQuery9:
-			{
-				NOD_IDirect3DQuery9* pInterfaceNodeProvider = new NOD_IDirect3DQuery9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DQuery9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DQuery9* pInterfaceNodeProvider = new NOD_IDirect3DQuery9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DQuery9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DResource9:
-			{
-				NOD_IDirect3DResource9* pInterfaceNodeProvider = new NOD_IDirect3DResource9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DResource9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DResource9* pInterfaceNodeProvider = new NOD_IDirect3DResource9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DResource9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DStateBlock9:
-			{
-				NOD_IDirect3DStateBlock9* pInterfaceNodeProvider = new NOD_IDirect3DStateBlock9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DStateBlock9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DStateBlock9* pInterfaceNodeProvider = new NOD_IDirect3DStateBlock9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DStateBlock9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DSurface9:
-			{
-				NOD_IDirect3DSurface9* pInterfaceNodeProvider = new NOD_IDirect3DSurface9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DSurface9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DSurface9* pInterfaceNodeProvider = new NOD_IDirect3DSurface9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DSurface9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DSwapChain9:
-			{
-				NOD_IDirect3DSwapChain9* pInterfaceNodeProvider = new NOD_IDirect3DSwapChain9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DSwapChain9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DSwapChain9* pInterfaceNodeProvider = new NOD_IDirect3DSwapChain9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DSwapChain9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DTexture9:
-			{
-				NOD_IDirect3DTexture9* pInterfaceNodeProvider = new NOD_IDirect3DTexture9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DTexture9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DTexture9* pInterfaceNodeProvider = new NOD_IDirect3DTexture9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DTexture9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DVertexBuffer9:
-			{
-				NOD_IDirect3DVertexBuffer9* pInterfaceNodeProvider = new NOD_IDirect3DVertexBuffer9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DVertexBuffer9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DVertexBuffer9* pInterfaceNodeProvider = new NOD_IDirect3DVertexBuffer9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DVertexBuffer9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DVertexDeclaration9:
-			{
-				NOD_IDirect3DVertexDeclaration9* pInterfaceNodeProvider = new NOD_IDirect3DVertexDeclaration9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DVertexDeclaration9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DVertexDeclaration9* pInterfaceNodeProvider = new NOD_IDirect3DVertexDeclaration9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DVertexDeclaration9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DVertexShader9:
-			{
-				NOD_IDirect3DVertexShader9* pInterfaceNodeProvider = new NOD_IDirect3DVertexShader9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DVertexShader9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DVertexShader9* pInterfaceNodeProvider = new NOD_IDirect3DVertexShader9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DVertexShader9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DVolume9:
-			{
-				NOD_IDirect3DVolume9* pInterfaceNodeProvider = new NOD_IDirect3DVolume9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DVolume9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DVolume9* pInterfaceNodeProvider = new NOD_IDirect3DVolume9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DVolume9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DVolumeTexture9:
-			{
-				NOD_IDirect3DVolumeTexture9* pInterfaceNodeProvider = new NOD_IDirect3DVolumeTexture9();
-				ret = pInterfaceNodeProvider->Get_IDirect3DVolumeTexture9_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DVolumeTexture9* pInterfaceNodeProvider = new NOD_IDirect3DVolumeTexture9();
+			ret = pInterfaceNodeProvider->Get_IDirect3DVolumeTexture9_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDirect3DDevice9Ex:
-			{
-				NOD_IDirect3DDevice9Ex* pInterfaceNodeProvider = new NOD_IDirect3DDevice9Ex();
-				ret = pInterfaceNodeProvider->Get_IDirect3DDevice9Ex_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDirect3DDevice9Ex* pInterfaceNodeProvider = new NOD_IDirect3DDevice9Ex();
+			ret = pInterfaceNodeProvider->Get_IDirect3DDevice9Ex_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::ID3D10Device:
-			{
-				NOD_ID3D10Device* pInterfaceNodeProvider = new NOD_ID3D10Device();
-				ret = pInterfaceNodeProvider->Get_ID3D10Device_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_ID3D10Device* pInterfaceNodeProvider = new NOD_ID3D10Device();
+			ret = pInterfaceNodeProvider->Get_ID3D10Device_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::ID3D10Device1:
 			break;
 		case AQU_SUPPORTEDINTERFACES::ID3D11Device:
-			{
-				NOD_ID3D11Device* pInterfaceNodeProvider = new NOD_ID3D11Device();
-				ret = pInterfaceNodeProvider->Get_ID3D11Device_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_ID3D11Device* pInterfaceNodeProvider = new NOD_ID3D11Device();
+			ret = pInterfaceNodeProvider->Get_ID3D11Device_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::ID3D11Device1:
 			break;
 		case AQU_SUPPORTEDINTERFACES::ID3D11Device2:
@@ -281,13 +281,13 @@ public:
 		case AQU_SUPPORTEDINTERFACES::ID3D11Device3:
 			break;
 		case AQU_SUPPORTEDINTERFACES::IDXGISwapChain:
-			{
-				NOD_IDXGISwapChain* pInterfaceNodeProvider = new NOD_IDXGISwapChain();
-				ret = pInterfaceNodeProvider->Get_IDXGISwapChain_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_IDXGISwapChain* pInterfaceNodeProvider = new NOD_IDXGISwapChain();
+			ret = pInterfaceNodeProvider->Get_IDXGISwapChain_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::IDXGISwapChain1:
 			break;
 		case AQU_SUPPORTEDINTERFACES::IDXGISwapChain2:
@@ -295,13 +295,13 @@ public:
 		case AQU_SUPPORTEDINTERFACES::IDXGISwapChain3:
 			break;
 		case AQU_SUPPORTEDINTERFACES::ID3D11DeviceContext:
-			{
-				NOD_ID3D11DeviceContext* pInterfaceNodeProvider = new NOD_ID3D11DeviceContext();
-				ret = pInterfaceNodeProvider->Get_ID3D11DeviceContext_Node(dwIndex, nX, nY);
-				delete pInterfaceNodeProvider;
-			}
-			return ret;
-			break;
+		{
+			NOD_ID3D11DeviceContext* pInterfaceNodeProvider = new NOD_ID3D11DeviceContext();
+			ret = pInterfaceNodeProvider->Get_ID3D11DeviceContext_Node(dwIndex, nX, nY);
+			delete pInterfaceNodeProvider;
+		}
+		return ret;
+		break;
 		case AQU_SUPPORTEDINTERFACES::ID3D11DeviceContext1:
 			break;
 		case AQU_SUPPORTEDINTERFACES::ID3D11DeviceContext2:
@@ -361,10 +361,15 @@ public:
 	* Provides a node by id.
 	* For Plugin nodes the pluginId and filename are also needed.
 	***/
-	HRESULT Get_Node(NOD_Basic* &psNode, UINT dwID, LONG nX, LONG nY, UINT dwPluginID, LPCWSTR szFileName)
+	HRESULT Get_Node(NOD_Basic*& psNode, UINT dwID, LONG nX, LONG nY, UINT dwPluginID, LPCWSTR szFileName)
 	{
-		// set null pointer for safety
+		// set null pointer
 		psNode = nullptr;
+
+		// read the interface
+		UINT d = dwID >> 24;
+		UINT i = (dwID >> 16) & 0x00ff;
+		UINT j = dwID & 0x0000ffff;
 
 		// is a plugin node ?
 		if (dwID == ELEMENTARY_NODE_PLUGIN)
@@ -378,19 +383,11 @@ public:
 				delete psNode;
 				psNode = nullptr;
 			}
-
-			return S_OK;
 		}
-
-		// read the interface
-		UINT d = dwID >> 24;
-		UINT i = (dwID >> 16) & 0x00ff;
-		UINT j = dwID & 0x0000ffff;
-
 		// get the node (D3D)
-		if (d == DirectX_9_0)
+		else if (d == DirectX_9_0)
 		{
-			switch(i)
+			switch (i)
 			{
 			case (UINT)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DBaseTexture9:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDirect3DBaseTexture9, j, nX, nY);
@@ -444,10 +441,10 @@ public:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDirect3DDevice9Ex, j, nX, nY);
 				break;
 			}
-		} 
+		}
 		else if (d == DirectX_10)
 		{
-			switch(i)
+			switch (i)
 			{
 			case (UINT)ITA_D3D10INTERFACES::ITA_D3D10Interfaces::ID3D10Device:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D10Device, j, nX, nY);
@@ -466,9 +463,9 @@ public:
 				break;
 			}
 		}
-		else if(d == DirectX_10_1)
+		else if (d == DirectX_10_1)
 		{
-			switch(i)
+			switch (i)
 			{
 			case (UINT)ITA_D3D10INTERFACES::ITA_D3D10Interfaces::ID3D10Device1:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D10Device1, j, nX, nY);
@@ -477,7 +474,7 @@ public:
 		}
 		else if (d == DirectX_11)
 		{
-			switch(i)
+			switch (i)
 			{
 			case (UINT)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11Device:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device, j, nX, nY);
@@ -489,7 +486,7 @@ public:
 		}
 		else if (d == DirectX_11_1)
 		{
-			switch(i)
+			switch (i)
 			{
 			case (UINT)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11Device1:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device1, j, nX, nY);
@@ -501,7 +498,7 @@ public:
 		}
 		else if (d == DirectX_11_2)
 		{
-			switch(i)
+			switch (i)
 			{
 			case (UINT)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11Device2:
 				psNode = Get_D3D_Node(AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device2, j, nX, nY);
@@ -513,56 +510,63 @@ public:
 		}
 
 		// get the node (fixed)
-		if (psNode)	return S_OK; 
-		else
+		if (!psNode)
 		{
-			switch(dwID)
+			switch (dwID)
 			{
 			case ELEMENTARY_NODE_FALSE:
 				psNode = new NOD_False(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_TRUE:
 				psNode = new NOD_True(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_FIXED_FLOAT:
 				psNode = new NOD_FixedFloat(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_FIXED_WSTRING:
 				psNode = new NOD_FixedWString(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_FIXED_INT:
 				psNode = new NOD_FixedInt(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_FIXED_POINTER:
 				psNode = new NOD_FixedPointer(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_CONFIGURATION:
 				psNode = new NOD_AquilinusConfig(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_HELLO_WORLD_DX9:
 				psNode = new NOD_HelloWorldDx9(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_HELLO_WORLD_DX10:
 				psNode = new NOD_HelloWorldDx10(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_MATH_LOOKAT:
 				psNode = new NOD_MathLookat(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_DEBUG_D3DVECTOR:
 				psNode = new NOD_OutputDebugVector(nX, nY);
-				return S_OK;
+				break;
 			case ELEMENTARY_NODE_DEBUG_D3DMATRIX:
 				psNode = new NOD_OutputDebugMatrix(nX, nY);
-				return S_OK;
+				break;
 			case D3DOPS_NODE_FRAMEDECAL:
 				psNode = new NOD_FrameDecalDx9(nX, nY);
-				return S_OK;
+				break;
 			case D3DOPS_NODE_D3DX9:
 				psNode = new NOD_D3DX9(nX, nY);
-				return S_OK;
+				break;
 			}
-			return E_FAIL;
 		}
+
+		if (!psNode)
+			return E_FAIL;
+		else
+		{
+			// do not forget to convert the (link text) strings
+			psNode->ConvertStrings();
+		}
+		return S_OK;
 	}
 
 	/// <summary>

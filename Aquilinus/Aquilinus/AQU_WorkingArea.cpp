@@ -463,6 +463,7 @@ DWORD WINAPI AQU_WorkingArea::s_WorkingAreaMsgThread(void* param)
 							}
 						}
 					}
+					ImGui::MenuItem("Force D3D", NULL, &m_pcTransferSite->m_bForceD3D);
 					ImGui::EndMenu();
 				}
 				ImGui::EndMainMenuBar();

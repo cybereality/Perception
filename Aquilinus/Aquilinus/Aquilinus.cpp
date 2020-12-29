@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -99,7 +99,7 @@ inline bool bCompare(const BYTE* pData, const BYTE* bMask, const char* szMask)
 /// <param name="bMaskara"></param>
 /// <param name="szMaskara"></param>
 /// </summary>
-inline UINT_PTR FindPattern(UINT_PTR dValor, UINT_PTR dLer, BYTE *bMaskara, char * szMaskara)
+inline UINT_PTR FindPattern(UINT_PTR dValor, UINT_PTR dLer, BYTE* bMaskara, char* szMaskara)
 {
 	for (UINT_PTR i = 0; i < dLer; i++)
 		if (bCompare((PBYTE)(dValor + i), bMaskara, szMaskara))
@@ -353,7 +353,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 	case AQU_ProjectStage::WorkingAreaNew:
 		// create the working area class
 		g_pAQU_WorkingArea = new AQU_WorkingArea(hInstance, g_pAQU_TransferSite);
-		
+
 		// set to working area stage
 		g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingArea;
 		break;
@@ -363,13 +363,12 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 		// output debug information
 		OutputDebugString(g_pAQU_TransferSite->m_pFileManager->GetName(g_pAQU_TransferSite->m_pConfig->dwProcessIndex));
-		
+
 		// load the workspace
 		g_pAQU_WorkingArea->s_LoadWorkSpace();
 
-		// set bForceD3D to "true" if "Editor Mode" is set
-		if (!g_pAquilinusConfig->bAlwaysForceD3D)
-			g_pAQU_TransferSite->m_bForceD3D = true;
+		// set bForceD3D to "true"
+		g_pAQU_TransferSite->m_bForceD3D = true;
 
 		// set to working area stage
 		g_pAquilinusConfig->eProjectStage = AQU_ProjectStage::WorkingArea;
@@ -497,7 +496,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 				// and add the node
 				g_paNodes[i] = pNode;
-				delete [] pcData;
+				delete[] pcData;
 			}
 
 			delete pProvider;
@@ -677,8 +676,8 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 	D3DDEVTYPE DeviceType,
 	HWND hFocusWindow,
 	DWORD BehaviorFlags,
-	D3DPRESENT_PARAMETERS *pPresentationParameters,
-	IDirect3DDevice9 **ppReturnedDeviceInterface
+	D3DPRESENT_PARAMETERS* pPresentationParameters,
+	IDirect3DDevice9** ppReturnedDeviceInterface
 )
 {
 	static bool s_bIsOwnCall = false;
@@ -695,7 +694,7 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 
 	//const IID IID_IDirect3D9Ex = { 0x02177241, 0x69FC, 0x400C, { 0x8F, 0xF1, 0x93, 0xA4, 0x4D, 0xF6, 0x86, 0x1D } };
 	HRESULT hr = S_OK;
-	IDirect3D9Ex *pDirect3D9Ex = NULL;
+	IDirect3D9Ex* pDirect3D9Ex = NULL;
 	if ((pcD3D) && (SUCCEEDED(pcD3D->QueryInterface(IID_IDirect3D9Ex, (void**)(&pDirect3D9Ex)))))
 	{
 		OutputDebugString(L"[Aquilinus] Create D3D9Ex device !");
@@ -710,7 +709,7 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 
 		if (*ppReturnedDeviceInterface)
 		{
-			IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+			IDirect3DDevice9Ex* pDirect3DDevice9Ex = NULL;
 			if (SUCCEEDED((*ppReturnedDeviceInterface)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 			{
 				if (SUCCEEDED(hr))
@@ -732,9 +731,8 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 			pPresentationParameters, ppReturnedDeviceInterface);
 	}
 
-	// set back bForceD3D... (only if "Editor Mode" is not set)
-	if (!g_pAquilinusConfig->bAlwaysForceD3D)
-		g_pAQU_TransferSite->m_bForceD3D = false;
+	// set back bForceD3D...
+	g_pAQU_TransferSite->m_bForceD3D = false;
 
 	// restore CreateDevice pointer
 	DWORD dwProtect;
@@ -760,7 +758,7 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 			CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 			return hr;
 		}
-		D3D9_IDirect3DDevice9_VMTable = (PUINT_PTR)*(PUINT_PTR)*ppReturnedDeviceInterface;
+		D3D9_IDirect3DDevice9_VMTable = (PUINT_PTR) * (PUINT_PTR)*ppReturnedDeviceInterface;
 
 		// create all
 		if (pDirect3D9Ex)
@@ -774,7 +772,7 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 /// <summary>
 /// => D3D9 Hook
 /// </summary>
-HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS *pPresentationParameters)
+HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	// create the aquilinus detour class
 	pDCL_IDirect3DDevice9 = new DCL_IDirect3DDevice9(g_pAQU_TransferSite, pParent);
@@ -790,7 +788,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DRESOURCE9 pIDirect3DResource9;
 	if (SUCCEEDED(pDevice->CreateTexture(16, 16, 0, D3DUSAGE_RENDERTARGET, D3DFORMAT::D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pIDirect3DTexture9, NULL)))
 	{
-		D3D9_IDirect3DTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DTexture9;
+		D3D9_IDirect3DTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DTexture9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DTexture9 = new DCL_IDirect3DTexture9(g_pAQU_TransferSite);
 
@@ -806,7 +804,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 		}
 		else
 		{
-			D3D9_IDirect3DBaseTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DBaseTexture9;
+			D3D9_IDirect3DBaseTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DBaseTexture9;
 			// create the aquilinus detour class
 			pDCL_IDirect3DBaseTexture9 = new DCL_IDirect3DBaseTexture9(g_pAQU_TransferSite);
 
@@ -822,7 +820,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 			}
 			else
 			{
-				D3D9_IDirect3DResource9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DResource9;
+				D3D9_IDirect3DResource9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DResource9;
 				// create the aquilinus detour class
 				pDCL_IDirect3DResource9 = new DCL_IDirect3DResource9(g_pAQU_TransferSite);
 
@@ -848,7 +846,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DCUBETEXTURE9 pIDirect3DCubeTexture9;
 	if (SUCCEEDED(pDevice->CreateCubeTexture(16, 0, D3DUSAGE_RENDERTARGET, D3DFORMAT::D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pIDirect3DCubeTexture9, NULL)))
 	{
-		D3D9_IDirect3DCubeTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DCubeTexture9;
+		D3D9_IDirect3DCubeTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DCubeTexture9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DCubeTexture9 = new DCL_IDirect3DCubeTexture9(g_pAQU_TransferSite);
 
@@ -868,7 +866,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DVOLUMETEXTURE9 pIDirect3DVolumeTexture9;
 	if (SUCCEEDED(pDevice->CreateVolumeTexture(16, 16, 16, 0, D3DUSAGE_DYNAMIC, D3DFORMAT::D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pIDirect3DVolumeTexture9, NULL)))
 	{
-		D3D9_IDirect3DVolumeTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DVolumeTexture9;
+		D3D9_IDirect3DVolumeTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DVolumeTexture9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DVolumeTexture9 = new DCL_IDirect3DVolumeTexture9(g_pAQU_TransferSite);
 
@@ -880,7 +878,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 		LPDIRECT3DVOLUME9 pIDirect3DVolume9;
 		if (SUCCEEDED(pIDirect3DVolumeTexture9->GetVolumeLevel(0, &pIDirect3DVolume9)))
 		{
-			D3D9_IDirect3DVolume9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DVolume9;
+			D3D9_IDirect3DVolume9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DVolume9;
 			// create the aquilinus detour class
 			pDCL_IDirect3DVolume9 = new DCL_IDirect3DVolume9(g_pAQU_TransferSite);
 
@@ -908,7 +906,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DSURFACE9 pIDirect3DSurface9;
 	if (SUCCEEDED(pDevice->CreateOffscreenPlainSurface(16, 16, D3DFORMAT::D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pIDirect3DSurface9, NULL)))
 	{
-		D3D9_IDirect3DSurface9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DSurface9;
+		D3D9_IDirect3DSurface9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DSurface9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DSurface9 = new DCL_IDirect3DSurface9(g_pAQU_TransferSite);
 
@@ -929,7 +927,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	if (SUCCEEDED(pDevice->CreateAdditionalSwapChain(pPresentationParameters, &pIDirect3DSwapChain9)))
 	{
 		OutputDebugString(L"Aquilinus : Additional swap chain created !");
-		D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DSwapChain9;
+		D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DSwapChain9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DSwapChain9 = new DCL_IDirect3DSwapChain9(g_pAQU_TransferSite);
 
@@ -945,7 +943,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 		if (pIDirect3DSwapChain9)
 		{
 			OutputDebugString(L"Aquilinus : Got swap chain (d3d9) !");
-			D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DSwapChain9;
+			D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DSwapChain9;
 			// create the aquilinus detour class
 			pDCL_IDirect3DSwapChain9 = new DCL_IDirect3DSwapChain9(g_pAQU_TransferSite);
 
@@ -966,7 +964,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DINDEXBUFFER9 pIDirect3DIndexBuffer9;
 	if (SUCCEEDED(pDevice->CreateIndexBuffer(16, 0, D3DFORMAT::D3DFMT_INDEX32, D3DPOOL_DEFAULT, &pIDirect3DIndexBuffer9, NULL)))
 	{
-		D3D9_IDirect3DIndexBuffer9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DIndexBuffer9;
+		D3D9_IDirect3DIndexBuffer9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DIndexBuffer9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DIndexBuffer9 = new DCL_IDirect3DIndexBuffer9(g_pAQU_TransferSite);
 
@@ -986,7 +984,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DVERTEXBUFFER9 pIDirect3DVertexBuffer9;
 	if (SUCCEEDED(pDevice->CreateVertexBuffer(3 * sizeof(float), 0, D3DFVF_XYZ, D3DPOOL_DEFAULT, &pIDirect3DVertexBuffer9, NULL)))
 	{
-		D3D9_IDirect3DVertexBuffer9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DVertexBuffer9;
+		D3D9_IDirect3DVertexBuffer9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DVertexBuffer9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DVertexBuffer9 = new DCL_IDirect3DVertexBuffer9(g_pAQU_TransferSite);
 
@@ -1021,7 +1019,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	else OutputDebugString(L"Aquilinus : Failed to compile Pixel Shader (d3d9).");
 	if (SUCCEEDED(hr))
 	{
-		D3D9_IDirect3DPixelShader9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DPixelShader9;
+		D3D9_IDirect3DPixelShader9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DPixelShader9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DPixelShader9 = new DCL_IDirect3DPixelShader9(g_pAQU_TransferSite);
 
@@ -1057,7 +1055,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	else OutputDebugString(L"Aquilinus : Failed to compile Vertex Shader (d3d9).");
 	if (SUCCEEDED(hr))
 	{
-		D3D9_IDirect3DVertexShader9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DVertexShader9;
+		D3D9_IDirect3DVertexShader9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DVertexShader9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DVertexShader9 = new DCL_IDirect3DVertexShader9(g_pAQU_TransferSite);
 
@@ -1081,7 +1079,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DQUERY9 pIDirect3DQuery9;
 	if (SUCCEEDED(pDevice->CreateQuery(D3DQUERYTYPE_EVENT, &pIDirect3DQuery9)))
 	{
-		D3D9_IDirect3DQuery9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DQuery9;
+		D3D9_IDirect3DQuery9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DQuery9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DQuery9 = new DCL_IDirect3DQuery9(g_pAQU_TransferSite);
 
@@ -1101,7 +1099,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DSTATEBLOCK9 pIDirect3DStateBlock9;
 	if (SUCCEEDED(pDevice->CreateStateBlock(D3DSTATEBLOCKTYPE::D3DSBT_ALL, &pIDirect3DStateBlock9)))
 	{
-		D3D9_IDirect3DStateBlock9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DStateBlock9;
+		D3D9_IDirect3DStateBlock9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DStateBlock9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DStateBlock9 = new DCL_IDirect3DStateBlock9(g_pAQU_TransferSite);
 
@@ -1128,7 +1126,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	};
 	if (SUCCEEDED(pDevice->CreateVertexDeclaration(dwDecl, &pIDirect3DVertexDeclaration9)))
 	{
-		D3D9_IDirect3DVertexDeclaration9_VMTable = (PUINT_PTR)*(PUINT_PTR)pIDirect3DVertexDeclaration9;
+		D3D9_IDirect3DVertexDeclaration9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DVertexDeclaration9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DVertexDeclaration9 = new DCL_IDirect3DVertexDeclaration9(g_pAQU_TransferSite);
 
@@ -1304,7 +1302,7 @@ DWORD WINAPI D3D9_VMT_Create(LPVOID Param)
 	if (Direct3D_Object == NULL)
 		return D3DERR_INVALIDCALL;
 
-	D3D9_IDirect3D9_VMTable = (PUINT_PTR)*(PUINT_PTR)Direct3D_Object;
+	D3D9_IDirect3D9_VMTable = (PUINT_PTR) * (PUINT_PTR)Direct3D_Object;
 	Direct3D_Object->Release();
 
 	DWORD dwProtect;
@@ -1424,7 +1422,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DTexture9)
-			D3D9_IDirect3DTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DTexture9;
+			D3D9_IDirect3DTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DTexture9;
 		Override_D3D9_IDirect3DTexture9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1459,7 +1457,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DCubeTexture9)
-			D3D9_IDirect3DCubeTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DCubeTexture9;
+			D3D9_IDirect3DCubeTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DCubeTexture9;
 		Override_D3D9_IDirect3DCubeTexture9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1472,7 +1470,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DVolumeTexture9)
-			D3D9_IDirect3DVolumeTexture9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DVolumeTexture9;
+			D3D9_IDirect3DVolumeTexture9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DVolumeTexture9;
 		Override_D3D9_IDirect3DVolumeTexture9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1496,7 +1494,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DSurface9)
-			D3D9_IDirect3DSurface9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DSurface9;
+			D3D9_IDirect3DSurface9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DSurface9;
 		Override_D3D9_IDirect3DSurface9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1509,7 +1507,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DSwapChain9)
-			D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DSwapChain9;
+			D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DSwapChain9;
 		Override_D3D9_IDirect3DSwapChain9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1522,7 +1520,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DIndexBuffer9)
-			D3D9_IDirect3DIndexBuffer9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DIndexBuffer9;
+			D3D9_IDirect3DIndexBuffer9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DIndexBuffer9;
 		Override_D3D9_IDirect3DIndexBuffer9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1535,7 +1533,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DVertexBuffer9)
-			D3D9_IDirect3DVertexBuffer9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DVertexBuffer9;
+			D3D9_IDirect3DVertexBuffer9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DVertexBuffer9;
 		Override_D3D9_IDirect3DVertexBuffer9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1548,7 +1546,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DPixelShader9)
-			D3D9_IDirect3DPixelShader9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DPixelShader9;
+			D3D9_IDirect3DPixelShader9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DPixelShader9;
 		Override_D3D9_IDirect3DPixelShader9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1561,7 +1559,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DVertexShader9)
-			D3D9_IDirect3DVertexShader9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DVertexShader9;
+			D3D9_IDirect3DVertexShader9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DVertexShader9;
 		Override_D3D9_IDirect3DVertexShader9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1585,7 +1583,7 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (g_pAQU_TransferSite->m_pIDirect3DStateBlock9)
-			D3D9_IDirect3DStateBlock9_VMTable = (PUINT_PTR)*(PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DStateBlock9;
+			D3D9_IDirect3DStateBlock9_VMTable = (PUINT_PTR) * (PUINT_PTR)g_pAQU_TransferSite->m_pIDirect3DStateBlock9;
 		Override_D3D9_IDirect3DStateBlock9_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
@@ -1624,7 +1622,7 @@ DWORD WINAPI D3D10_VMT_Mask(LPVOID Param)
 #ifdef AQUILINUS_64
 	// TODO !! 64 bit !!
 #else
-	ID3D10Device *pDevice;
+	ID3D10Device* pDevice;
 
 	// find the window we want to inject
 	//HWND hWnd = FindWindow(NULL, AQU_WINDOW_NAME);
@@ -1700,7 +1698,7 @@ DWORD WINAPI D3D10_VMT_Mask(LPVOID Param)
 ***/
 DWORD WINAPI D3D10_VMT_Create(LPVOID Param)
 {
-	ID3D10Device *pDevice;
+	ID3D10Device* pDevice;
 
 	// find the window we want to inject
 	//HWND hWnd = FindWindow(NULL, AQU_WINDOW_NAME);
@@ -1792,7 +1790,7 @@ DWORD WINAPI D3D10_VMT_Repatch(LPVOID Param)
 	D3D10_IDXGISwapChain_VMTable = NULL;
 	while (D3D10_IDXGISwapChain_VMTable == NULL)
 	{
-		IDXGISwapChain *pSwapChain = nullptr;
+		IDXGISwapChain* pSwapChain = nullptr;
 		if (SUCCEEDED(pDCL_ID3D10Device->GetDXGISwapChain(&pSwapChain)))
 		{
 			// set swapchain vtable
@@ -1846,8 +1844,8 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 		Sleep(g_pAquilinusConfig->dwDetourTimeDelay);
 	}
 
-	ID3D11Device *pDevice;
-	ID3D11DeviceContext *pImmediateContext;
+	ID3D11Device* pDevice;
+	ID3D11DeviceContext* pImmediateContext;
 
 	// find the window we want to inject
 	HWND hWnd = GetForegroundWindow();
@@ -2073,7 +2071,7 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 		}
 		if (D3D10_IDXGISwapChain_VMTable == NULL)
 		{
-			IDXGISwapChain *pSwapChain = nullptr;
+			IDXGISwapChain* pSwapChain = nullptr;
 			if (FAILED(pDCL_ID3D11Device->GetDXGISwapChain(&pSwapChain)))
 				pDCL_ID3D11DeviceContext->GetDXGISwapChain(&pSwapChain);
 			else
@@ -2176,7 +2174,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileA_Detour(LPDIRECT3DSURFACE9 pDestSurf
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2228,7 +2226,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileW_Detour(LPDIRECT3DSURFACE9 pDestSurf
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2281,7 +2279,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromResourceA_Detour(LPDIRECT3DSURFACE9 pDest
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2334,7 +2332,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromResourceW_Detour(LPDIRECT3DSURFACE9 pDest
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2387,7 +2385,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileInMemory_Detour(LPDIRECT3DSURFACE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2438,7 +2436,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromSurface_Detour(LPDIRECT3DSURFACE9 pDestSu
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2491,7 +2489,7 @@ HRESULT WINAPI D3D9_D3DXLoadSurfaceFromMemory_Detour(LPDIRECT3DSURFACE9 pDestSur
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2540,7 +2538,7 @@ HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2589,7 +2587,7 @@ HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_F
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2638,7 +2636,7 @@ HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2690,7 +2688,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileA_Detour(LPDIRECT3DVOLUME9 pDestVolume
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2742,7 +2740,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileW_Detour(LPDIRECT3DVOLUME9 pDestVolume
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2795,7 +2793,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromResourceA_Detour(LPDIRECT3DVOLUME9 pDestVo
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2848,7 +2846,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromResourceW_Detour(LPDIRECT3DVOLUME9 pDestVo
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2901,7 +2899,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileInMemory_Detour(LPDIRECT3DVOLUME9 pDes
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2953,7 +2951,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromVolume_Detour(LPDIRECT3DVOLUME9 pDestVolum
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3008,7 +3006,7 @@ HRESULT WINAPI D3D9_D3DXLoadVolumeFromMemory_Detour(LPDIRECT3DVOLUME9 pDestVolum
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3057,7 +3055,7 @@ HRESULT WINAPI D3D9_D3DXSaveVolumeToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FIL
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3106,7 +3104,7 @@ HRESULT WINAPI D3D9_D3DXSaveVolumeToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_FI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3155,7 +3153,7 @@ HRESULT WINAPI D3D9_D3DXSaveVolumeToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf,
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3199,7 +3197,7 @@ HRESULT WINAPI D3D9_D3DXCreateTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT Wid
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3243,7 +3241,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3289,7 +3287,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3329,7 +3327,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDevice,
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3369,7 +3367,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDevice,
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3409,7 +3407,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDev
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3449,7 +3447,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDev
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3489,7 +3487,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3529,7 +3527,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3570,7 +3568,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 pDev
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3611,7 +3609,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 pDev
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3652,7 +3650,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3693,7 +3691,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3734,7 +3732,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceA_Detour(LPDIRECT3DDEVICE
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3775,7 +3773,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceW_Detour(LPDIRECT3DDEVICE
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3826,7 +3824,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pDevic
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3877,7 +3875,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pDevic
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3927,7 +3925,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3977,7 +3975,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4029,7 +4027,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4081,7 +4079,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4133,7 +4131,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceExA_Detour(LPDIRECT3DDEVICE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4185,7 +4183,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceExW_Detour(LPDIRECT3DDEVICE9 pD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4236,7 +4234,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceExA_Detour(LPDIRECT3DDEVICE
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4287,7 +4285,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceExW_Detour(LPDIRECT3DDEVICE
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4340,7 +4338,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceExA_Detour(LPDIRECT3DDEVI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4393,7 +4391,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceExW_Detour(LPDIRECT3DDEVI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4433,7 +4431,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileInMemory_Detour(LPDIRECT3DDEVICE9 p
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4473,7 +4471,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileInMemory_Detour(LPDIRECT3DDEVIC
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4514,7 +4512,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileInMemory_Detour(LPDIRECT3DDEV
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4565,7 +4563,7 @@ HRESULT WINAPI D3D9_D3DXCreateTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEVICE9
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4616,7 +4614,7 @@ HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEV
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4669,7 +4667,7 @@ HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx_Detour(LPDIRECT3DD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4717,7 +4715,7 @@ HRESULT WINAPI D3D9_D3DXSaveTextureToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4765,7 +4763,7 @@ HRESULT WINAPI D3D9_D3DXSaveTextureToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_F
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4813,7 +4811,7 @@ HRESULT WINAPI D3D9_D3DXSaveTextureToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4860,7 +4858,7 @@ HRESULT WINAPI D3D9_D3DXFilterTexture_Detour(LPDIRECT3DBASETEXTURE9 pBaseTexture
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4907,7 +4905,7 @@ HRESULT WINAPI D3D9_D3DXFillTexture_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFI
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4954,7 +4952,7 @@ HRESULT WINAPI D3D9_D3DXFillCubeTexture_Detour(LPDIRECT3DCUBETEXTURE9 pCubeTextu
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -5001,7 +4999,7 @@ HRESULT WINAPI D3D9_D3DXFillVolumeTexture_Detour(LPDIRECT3DVOLUMETEXTURE9 pVolum
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -5047,7 +5045,7 @@ HRESULT WINAPI D3D9_D3DXFillTextureTX_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD3DX
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -5093,7 +5091,7 @@ HRESULT WINAPI D3D9_D3DXFillCubeTextureTX_Detour(LPDIRECT3DCUBETEXTURE9 pCubeTex
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -5139,7 +5137,7 @@ HRESULT WINAPI D3D9_D3DXFillVolumeTextureTX_Detour(LPDIRECT3DVOLUMETEXTURE9 pVol
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -5189,7 +5187,7 @@ HRESULT WINAPI D3D9_D3DXComputeNormalMap_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD
 		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}

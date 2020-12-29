@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -51,7 +51,9 @@ m_dwUpdateCounter(0)
 		// get plugin creation method
 		m_pAQU_Nodus_Create = (AQU_Nodus_Create)GetProcAddress(m_hm, "AQU_Nodus_Create");
 
-		// create the nodus class
+		// create the nodus class... first ensure that imgui context is actually created
+		if (!ImGui::GetCurrentContext())
+			ImGui::CreateContext();
 		m_pNodus = m_pAQU_Nodus_Create(ImGui::GetCurrentContext());
 
 		// set fields by plugin data
@@ -67,7 +69,7 @@ m_dwUpdateCounter(0)
 		std::string strA(m_pNodus->GetNodeType());
 		std::wstring strW = std::wstring(strA.begin(), strA.end());
 		m_szTitle = new wchar_t[strW.size() + 1];
-		CopyMemory((void*)&m_szTitle[0], (void*)strW.c_str(), (strW.size() + 1)*sizeof(wchar_t));
+		CopyMemory((void*)&m_szTitle[0], (void*)strW.c_str(), (strW.size() + 1) * sizeof(wchar_t));
 
 		// set file name
 		std::wstring strPath(szFilePath);
@@ -82,7 +84,7 @@ m_dwUpdateCounter(0)
 		}
 		else
 		{
-			CopyMemory((void*)&m_szFileName[0], (void*)strBase.c_str(), strBase.length()*sizeof(wchar_t));
+			CopyMemory((void*)&m_szFileName[0], (void*)strBase.c_str(), strBase.length() * sizeof(wchar_t));
 			m_szFileName[strBase.length()] = 0;
 		}
 
@@ -150,7 +152,7 @@ HRESULT NOD_Plugin::Update(float fZoom)
 		// create GL texture
 		if (!m_dwLogoID)
 			ImGui::CreateTextureFromBitmap(m_hBitmapLogo, &m_dwLogoID, &m_sImageSize.nW, &m_sImageSize.nH);
-		
+
 		// draw image....reverse V
 		if (m_dwLogoID)
 		{

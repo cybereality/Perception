@@ -554,16 +554,31 @@ struct ModifierData : public VireioPluginData
 	/// <summary>
 	/// The indices of the shader rules assigned to the active vertex shader.
 	/// </summary>
-	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasVSConstantRuleIndices;
+	std::vector<Vireio_Constant_Rule_Index_DX9>* pasVSConstantRuleIndices;
 	/// <summary>
 	/// The indices of the shader rules assigned to the active pixel shader.
 	/// </summary>
-	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasPSConstantRuleIndices;
-
+	std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSConstantRuleIndices;
+	/// <summary>
+	/// The stored view transform set via SetTransform() l/r.
+	/// </summary>
+	D3DXMATRIX sMatView[2];
+	/// <summary>
+	/// The stored projection transform set via SetTransform() l/r.
+	/// </summary>
+	D3DXMATRIX sMatProj[2];
+	/// <summary>
+	/// True if View matrix set via SetTransform.
+	/// </summary>
+	bool bViewSet;
+	/// <summary>
+	/// True if Projection matrix set via SetTransform.
+	/// </summary>
+	bool bProjSet;
 	/// <summary>
 	/// Current drawing side, only changed in StereoSplitter->SetDrawingSide().
 	/// </summary>
-	RenderPosition m_eCurrentRenderingSide;
+	RenderPosition eCurrentRenderingSide;
 
 	/// <returns>Link identifier for this structure</returns>
 	const virtual unsigned GetPlugtype() { return VLink::Link(VLink::_L::StereoData); }

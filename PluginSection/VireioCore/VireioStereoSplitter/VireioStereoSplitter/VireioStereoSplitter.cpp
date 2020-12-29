@@ -782,13 +782,13 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
-				
+
 				// switch the drawing side before the second draw call is done
 				if (m_eCurrentRenderingSide == RenderPosition::Left)
 					bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Right);
 				else if (m_eCurrentRenderingSide == RenderPosition::Right)
 					bSwitched = SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
-				
+
 				// no second call if not switched -> immediate return
 				if (!bSwitched)
 				{
@@ -2075,11 +2075,11 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				return pcStereoTwinSurface;
 			}
 			else OutputDebugString(L"[STS] No surface !!");
-				}
-			}
+		}
+	}
 
 	return nullptr;
-		}
+}
 
 /**
 * Verify private data interfaces for the surface.
@@ -2156,20 +2156,20 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	// Already on the correct eye
 	if (eSide == m_eCurrentRenderingSide)
 		return true;
-	
+
 	// TODO !! IMPLEMENT !!
 	// if (VERSION_3) return true;
-	
+
 	// should never try and render for the right eye if there is no render target for the main render targets right side
 	if ((m_apcActiveRenderTargets[0] == m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT]) && (eSide == RenderPosition::Left))
 	{
 		return false;
 	}
-	
+
 	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
 	// things, as I have already managed twice.
 	SetDrawingSideField(eSide);
-	
+
 	// state block was applied ?
 	if (m_bApply)
 	{
@@ -2198,7 +2198,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		// state block is handled
 		m_bApply = false;
 	}
-	
+
 	// switch render targets to new eSide
 	bool bRenderTargetChanged = false;
 	HRESULT nHr = D3D_OK;
@@ -2222,14 +2222,14 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			bRenderTargetChanged = true;
 		}
 	}
-	
+
 	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport
 	if (bRenderTargetChanged && !m_bActiveViewportIsDefault)
 	{
 		pcDevice->SetViewport(&m_sLastViewportSet);
 	}
-	
-	#define DRAW_INDICATORS
+
+#define DRAW_INDICATORS
 #ifdef DRAW_INDICATORS
 	if (eSide == RenderPosition::Left)
 	{
@@ -2239,7 +2239,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		rc.left = 10;
 		rc.right = 60;
 		pcDevice->ColorFill(m_apcActiveRenderTargets[0], &rc, D3DCOLOR_ARGB(255, 100, 10, 200));
-		}
+	}
 	else
 	{
 		RECT rc;
@@ -2250,7 +2250,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		pcDevice->ColorFill(m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT], &rc, D3DCOLOR_ARGB(255, 100, 200, 10));
 	}
 #endif
-	
+
 	// switch depth stencil to new side
 	if (m_pcActiveDepthStencilSurface[0] != NULL)
 	{
@@ -2261,7 +2261,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			nHr = pcDevice->SetDepthStencilSurface(m_pcActiveDepthStencilSurface[1]);
 		}
 	}
-	
+
 	// switch textures to new side
 	for (std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_unTextureNumber; i++)
 	{
@@ -2275,11 +2275,29 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		if (nHr)
 			OutputDebugString(L"[STS] Error trying to set one of the textures while switching between active eyes for drawing.\n");
 	}
-	
-	// set shader constants to new side, first vertex shader
+
 	if (m_psModifierData)
 	{
-		std::vector<Vireio_Constant_Rule_Index_DX9>* pasVSIndices = m_psModifierData->m_pasVSConstantRuleIndices;
+		// update view transform for new side 
+		if (m_psModifierData->bViewSet)
+		{
+			if (eSide == RenderPosition::Left)
+				pcDevice->SetTransform(D3DTS_VIEW, &m_psModifierData->sMatView[0]);
+			else
+				pcDevice->SetTransform(D3DTS_VIEW, &m_psModifierData->sMatView[1]);
+		}
+
+		// update projection transform for new side 
+		if (m_psModifierData->bProjSet)
+		{
+			if (eSide == RenderPosition::Left)
+				pcDevice->SetTransform(D3DTS_PROJECTION, &m_psModifierData->sMatProj[0]);
+			else
+				pcDevice->SetTransform(D3DTS_PROJECTION, &m_psModifierData->sMatProj[1]);
+		}
+
+		// set shader constants to new side, first vertex shader
+		std::vector<Vireio_Constant_Rule_Index_DX9>* pasVSIndices = m_psModifierData->pasVSConstantRuleIndices;
 		if (eSide == RenderPosition::Left)
 		{
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
@@ -2290,7 +2308,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
 				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].m_dwConstantRuleRegister, (*pasVSIndices)[nI].m_afConstantDataRight, (*pasVSIndices)[nI].m_dwConstantRuleRegisterCount);
 		}
-		std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSIndices = m_psModifierData->m_pasPSConstantRuleIndices;
+		std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSIndices = m_psModifierData->pasPSConstantRuleIndices;
 		if (eSide == RenderPosition::Left)
 		{
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
@@ -2302,9 +2320,9 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].m_dwConstantRuleRegister, (*pasPSIndices)[nI].m_afConstantDataRight, (*pasPSIndices)[nI].m_dwConstantRuleRegisterCount);
 		}
 	}
-	
+
 	return true;
-	}
+}
 
 /**
 * Creates a texture by surface description and returns both texture and surface level zero.
@@ -2396,8 +2414,8 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 
 				}
 			}
+			}
 		}
-	}
 	break;
 	case D3DRTYPE_VOLUMETEXTURE:
 		// TODO !! VOLUME TEXTURE !!
@@ -2438,10 +2456,10 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 							pcSurface->Release();
 						}
 					}
-					}
+				}
 
 				return;
-				}
+			}
 
 			// create the texture
 			if (FAILED(pcDevice->CreateCubeTexture((UINT)sDesc.Width, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DCubeTexture9**)ppcStereoTwinTexture, NULL)))

@@ -102,8 +102,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_HEIGHT                                   768
 #endif
 
-#define E_NO_MATCH         _HRESULT_TYPEDEF_(0x8A596AF85)
-
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 void debugf(const char* fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
@@ -160,7 +158,7 @@ enum STS_Commanders
 /// <summary>
 /// Node Commander Enumeration.
 /// </summary>
-enum STS_Decommanders
+enum struct STS_Decommanders
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** D3D10 + D3D11 methods ***/
@@ -314,28 +312,28 @@ public:
 	virtual ~MatrixModifier();
 
 	/*** AQU_Nodus public methods ***/
-	virtual const char* GetNodeType();
-	virtual UINT            GetNodeTypeId();
-	virtual LPWSTR          GetCategory();
-	virtual HBITMAP         GetLogo();
-	virtual HBITMAP         GetControl();
-	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)GUI_HEIGHT); }
-	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
-	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
-	virtual DWORD           GetSaveDataSize();
-	virtual char* GetSaveData(UINT* pdwSizeOfData);
-	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
-	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
-	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
-	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
-	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
-	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
-	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
-	virtual void* GetOutputPointer(DWORD dwCommanderIndex);
-	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
-	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
-	virtual void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
-	virtual void			UpdateImGuiControl(float fZoom);
+	virtual      const char* GetNodeType();
+	virtual             UINT GetNodeTypeId();
+	virtual           LPWSTR GetCategory();
+	virtual          HBITMAP GetLogo();
+	virtual          HBITMAP GetControl();
+	virtual           ImVec2 GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)GUI_HEIGHT); }
+	virtual              int GetProvokingType() { return PROVOKING_TYPE; }
+	virtual             bool GetMethodReplacement() { return METHOD_REPLACEMENT; }
+	virtual            DWORD GetSaveDataSize();
+	virtual            char* GetSaveData(UINT* pdwSizeOfData);
+	virtual             void InitNodeData(char* pData, UINT dwSizeOfData);
+	virtual            DWORD GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
+	virtual            DWORD GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual           LPWSTR GetCommanderName(DWORD dwCommanderIndex);
+	virtual           LPWSTR GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual            DWORD GetCommanderType(DWORD dwCommanderIndex);
+	virtual            DWORD GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual            void* GetOutputPointer(DWORD dwCommanderIndex);
+	virtual             void SetInputPointer(DWORD dwDecommanderIndex, void* pData);
+	virtual             bool SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
+	virtual            void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+	virtual 			void UpdateImGuiControl(float fZoom);
 
 	/// <summary>
 	/// Return value pointer (HRESULT).
@@ -540,21 +538,9 @@ private:
 	/// </summary>
 	std::vector<float> m_afRegistersPixel;
 	/// <summary>
-	/// The stored view transform set via SetTransform() l/r.
+	/// The currently provided D3D9 device.
 	/// </summary>
-	D3DXMATRIX m_sMatView[2];
-	/// <summary>
-	/// The stored projection transform set via SetTransform() l/r.
-	/// </summary>
-	D3DXMATRIX m_sMatProj[2];
-	/// <summary>
-	/// Either the left or right view, depending on active render side.
-	/// </summary>
-	D3DXMATRIX* m_psMatViewCurrent;
-	/// <summary>
-	/// Either the left or right projection, depending on active render side.
-	/// </summary>
-	D3DXMATRIX* m_psMatProjCurrent;
+	IDirect3DDevice9* m_pcDeviceCurrent;
 #endif
 
 	/// <summary>
@@ -849,6 +835,56 @@ private:
 #endif
 
 #pragma endregion
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#pragma region /// => D3D10 methods
+#pragma endregion
+#else
+#pragma region /// => D3D9 methods
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShader(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShader(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetTransform(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT MultiplyTransform(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShaderConstantF(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShaderConstantF(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShaderConstantI(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShaderConstantI(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShaderConstantB(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShaderConstantB(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShaderConstantF(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShaderConstantF(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShaderConstantI(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShaderConstantI(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShaderConstantB(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShaderConstantB(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetStreamSource(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetStreamSource(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateVertexShader(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreatePixelShader(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT VB_Apply(int& nFlags);
+#pragma endregion
+#endif
 
 };
 

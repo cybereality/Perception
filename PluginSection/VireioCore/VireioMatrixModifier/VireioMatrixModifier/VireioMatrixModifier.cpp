@@ -37,6 +37,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
+#define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
+#define SHOW_CALL(name) // OutputDebugStringA(name) // CallLogger call(name)
 
 #include"VireioMatrixModifier.h"
 
@@ -68,12 +71,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
 #endif
 
-#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
-
 /// <summary> 
 /// Constructor.
 /// </summary>
-MatrixModifier::MatrixModifier(ImGuiContext * sCtx) : AQU_Nodus(sCtx),
+MatrixModifier::MatrixModifier(ImGuiContext* sCtx) : AQU_Nodus(sCtx),
 m_aszShaderConstantsA(),
 m_aszShaderConstants(),
 m_aszVShaderHashCodes(),
@@ -245,8 +246,8 @@ m_acData()
 	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
 
 	// init shader constant indices (DX9 only)
-	m_sModifierData.m_pasVSConstantRuleIndices = nullptr;
-	m_sModifierData.m_pasPSConstantRuleIndices = nullptr;
+	m_sModifierData.pasVSConstantRuleIndices = nullptr;
+	m_sModifierData.pasPSConstantRuleIndices = nullptr;
 
 	// init dx9 classes
 	m_pcActiveVertexShader = nullptr;
@@ -260,13 +261,10 @@ m_acData()
 	m_asVShaders = std::vector<Vireio_D3D9_Shader>();
 	m_asPShaders = std::vector<Vireio_D3D9_Shader>();
 
-	D3DXMatrixIdentity(&m_sMatView[0]);
-	D3DXMatrixIdentity(&m_sMatView[1]);
-	D3DXMatrixIdentity(&m_sMatProj[0]);
-	D3DXMatrixIdentity(&m_sMatProj[1]);
-
-	m_psMatViewCurrent = &m_sMatView[0];
-	m_psMatProjCurrent = &m_sMatProj[0];
+	D3DXMatrixIdentity(&m_sModifierData.sMatView[0]);
+	D3DXMatrixIdentity(&m_sModifierData.sMatView[1]);
+	D3DXMatrixIdentity(&m_sModifierData.sMatProj[0]);
+	D3DXMatrixIdentity(&m_sModifierData.sMatProj[1]);
 #endif
 }
 
@@ -876,48 +874,27 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case SetVertexShader:
-		return L"SetVertexShader";
-	case SetPixelShader:
-		return L"SetPixelShader";
-	case SetTransform:
-		return L"SetTransform";
-	case MultiplyTransform:
-		return L"MultiplyTransform";
-	case SetVertexShaderConstantF:
-		return L"SetVertexShaderConstantF";
-	case GetVertexShaderConstantF:
-		return L"GetVertexShaderConstantF";
-	case SetVertexShaderConstantI:
-		return L"SetVertexShaderConstantI";
-	case GetVertexShaderConstantI:
-		return L"GetVertexShaderConstantI";
-	case SetVertexShaderConstantB:
-		return L"SetVertexShaderConstantB";
-	case GetVertexShaderConstantB:
-		return L"GetVertexShaderConstantB";
-	case SetPixelShaderConstantF:
-		return L"SetPixelShaderConstantF";
-	case GetPixelShaderConstantF:
-		return L"GetPixelShaderConstantF";
-	case SetPixelShaderConstantI:
-		return L"SetPixelShaderConstantI";
-	case GetPixelShaderConstantI:
-		return L"GetPixelShaderConstantI";
-	case SetPixelShaderConstantB:
-		return L"SetPixelShaderConstantB";
-	case GetPixelShaderConstantB:
-		return L"GetPixelShaderConstantB";
-	case SetStreamSource:
-		return L"SetStreamSource";
-	case GetStreamSource:
-		return L"GetStreamSource";
-	case CreateVertexShader:
-		return L"CreateVertexShader";
-	case CreatePixelShader:
-		return L"CreatePixelShader";
-	case VB_Apply:
-		return L"VB_Apply";
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetVertexShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetPixelShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetTransform);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, MultiplyTransform);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetVertexShaderConstantF);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetVertexShaderConstantF);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetVertexShaderConstantI);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetVertexShaderConstantI);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetVertexShaderConstantB);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetVertexShaderConstantB);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetPixelShaderConstantF);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetPixelShaderConstantF);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetPixelShaderConstantI);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetPixelShaderConstantI);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetPixelShaderConstantB);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetPixelShaderConstantB);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, SetStreamSource);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetStreamSource);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CreateVertexShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CreatePixelShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, VB_Apply);
 	default:
 		break;
 	}
@@ -1105,47 +1082,47 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case SetVertexShader:
+	case STS_Decommanders::SetVertexShader:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetVertexShader);
-	case SetPixelShader:
+	case STS_Decommanders::SetPixelShader:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetPixelShader);
-	case SetTransform:
+	case STS_Decommanders::SetTransform:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetTransform);
-	case MultiplyTransform:
+	case STS_Decommanders::MultiplyTransform:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::MultiplyTransform);
-	case SetVertexShaderConstantF:
+	case STS_Decommanders::SetVertexShaderConstantF:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF);
-	case GetVertexShaderConstantF:
+	case STS_Decommanders::GetVertexShaderConstantF:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF);
-	case SetVertexShaderConstantI:
+	case STS_Decommanders::SetVertexShaderConstantI:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI);
-	case GetVertexShaderConstantI:
+	case STS_Decommanders::GetVertexShaderConstantI:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI);
-	case SetVertexShaderConstantB:
+	case STS_Decommanders::SetVertexShaderConstantB:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB);
-	case GetVertexShaderConstantB:
+	case STS_Decommanders::GetVertexShaderConstantB:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB);
-	case SetPixelShaderConstantF:
+	case STS_Decommanders::SetPixelShaderConstantF:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF);
-	case GetPixelShaderConstantF:
+	case STS_Decommanders::GetPixelShaderConstantF:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF);
-	case SetPixelShaderConstantI:
+	case STS_Decommanders::SetPixelShaderConstantI:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI);
-	case GetPixelShaderConstantI:
+	case STS_Decommanders::GetPixelShaderConstantI:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI);
-	case SetPixelShaderConstantB:
+	case STS_Decommanders::SetPixelShaderConstantB:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB);
-	case GetPixelShaderConstantB:
+	case STS_Decommanders::GetPixelShaderConstantB:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB);
-	case SetStreamSource:
+	case STS_Decommanders::SetStreamSource:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetStreamSource);
-	case GetStreamSource:
+	case STS_Decommanders::GetStreamSource:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetStreamSource);
-	case CreateVertexShader:
+	case STS_Decommanders::CreateVertexShader:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreateVertexShader);
-	case CreatePixelShader:
+	case STS_Decommanders::CreatePixelShader:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::CreatePixelShader);
-	case VB_Apply:
+	case STS_Decommanders::VB_Apply:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DStateBlock9, (int)VMT_IDIRECT3DSTATEBLOCK9::Apply);
 	default:
 		break;
@@ -1163,7 +1140,7 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
 	case eDrawingSide:
-		return (void*)&m_sModifierData.m_eCurrentRenderingSide;
+		return (void*)&m_sModifierData.eCurrentRenderingSide;
 	case ppActiveConstantBuffers_DX10_VertexShader:
 		//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader];
 		break;
@@ -1381,6 +1358,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		// m_pcShaderModificationCalculation->UpdateRoll(-s_fRoll);
 		// m_pcShaderModificationCalculation->ComputeViewTransforms();
 	}*/
+
+	// set current device... TODO !! SET UNION FOR VERTEX BUFFER CLASS
+	m_pcDeviceCurrent = (IDirect3DDevice9*)pThis;
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch (eD3DInterface)
@@ -1758,7 +1738,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				/*if (m_bSwitchRenderTarget)
 				{
 					// restore render targets by backup
-					if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+					if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
 					else
 						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
@@ -1932,7 +1912,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// m_bSwitchRenderTarget = true;
 
 						// set secondary render target
-						if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+						if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
 						else
 							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
@@ -2135,7 +2115,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcVSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::VertexShader);
 
 				// call super method
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 				{
 					((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot,
 						*m_pdwNumBuffers,
@@ -2168,7 +2148,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcHSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::HullShader);
 
 				// call super method
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 				{
 					((ID3D11DeviceContext*)pThis)->HSSetConstantBuffers(*m_pdwStartSlot,
 						*m_pdwNumBuffers,
@@ -2201,7 +2181,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcDSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::DomainShader);
 
 				// call super method
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 				{
 					((ID3D11DeviceContext*)pThis)->DSSetConstantBuffers(*m_pdwStartSlot,
 						*m_pdwNumBuffers,
@@ -2234,7 +2214,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcGSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::GeometryShader);
 
 				// call super method
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 				{
 					((ID3D11DeviceContext*)pThis)->GSSetConstantBuffers(*m_pdwStartSlot,
 						*m_pdwNumBuffers,
@@ -2267,7 +2247,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcPSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::PixelShader);
 
 				// call super method
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
+				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 				{
 					((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(*m_pdwStartSlot,
 						*m_pdwNumBuffers,
@@ -2473,7 +2453,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ID3D10Device::PSGetConstantBuffers
 			// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
 #pragma endregion
-}
+	}
 #elif defined(VIREIO_D3D9)
 	switch (eD3DInterface)
 	{
@@ -2482,496 +2462,303 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 #pragma region SetVertexShader
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShader:
-			/*if (!m_ppcShader_Vertex) return nullptr;
-			//if (m_pcActiveVertexShader == *m_ppcShader_Vertex) return nullptr;
-			if (!*m_ppcShader_Vertex)
+		{
+			SHOW_CALL("SetVertexShader");
+
+			int nFlags = 0;
+			nHr = SetVertexShader(nFlags);
+			if (nFlags)
 			{
-				m_pcActiveVertexShader = nullptr;
-				m_sModifierData.m_pasVSConstantRuleIndices = nullptr;
-				nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(nullptr);
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
 			}
-			else
-			{
-				// set back modified constants... TODO !! make this optionally... shouldn't need that maybe
-				// if (m_pcActiveVertexShader)
-				// m_pcActiveVertexShader->SetShaderOld((IDirect3DDevice9*)pThis, &m_afRegistersVertex[0]);
-
-				// set new active shader
-				m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*>(*m_ppcShader_Vertex);
-
-				// set constant rule indices pointer for stereo splitter
-				m_sModifierData.m_pasVSConstantRuleIndices = &m_pcActiveVertexShader->m_asConstantRuleIndices;
-
-				// replace call, set actual shader
-				nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
-
-				// update shader constants for active side
-				m_pcActiveVertexShader->SetShader(&m_afRegistersVertex[0]);
-
-				// set modified constants
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
-				{
-					for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.m_pasVSConstantRuleIndices->size(); nI++)
-						((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF((*m_sModifierData.m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.m_pasVSConstantRuleIndices)[nI].m_afConstantDataLeft, (*m_sModifierData.m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
-				}
-				else
-				{
-					for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.m_pasVSConstantRuleIndices->size(); nI++)
-						((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF((*m_sModifierData.m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.m_pasVSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_sModifierData.m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
-				}
-			}
-
-			// method replaced, immediately return
-			nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-			return (void*)&nHr;*/
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetPixelShader
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShader:
-			/*if (!m_ppcShader_Pixel) return nullptr;
-			//if (m_pcActivePixelShader == *m_ppcShader_Pixel) return nullptr;
-			if (!*m_ppcShader_Pixel)
+		{
+			SHOW_CALL("SetPixelShader");
+
+			int nFlags = 0;
+			nHr = SetPixelShader(nFlags);
+			if (nFlags)
 			{
-				m_pcActivePixelShader = nullptr;
-				m_sModifierData.m_pasPSConstantRuleIndices = nullptr;
-				nHr = ((IDirect3DDevice9*)pThis)->SetPixelShader(nullptr);
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
 			}
-			else
-			{
-				// set new active shader
-				m_pcActivePixelShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*>(*m_ppcShader_Pixel);
-
-				// set constant rule indices pointer for stereo splitter
-				m_sModifierData.m_pasPSConstantRuleIndices = &m_pcActivePixelShader->m_asConstantRuleIndices;
-
-				// replace call, set actual shader
-				nHr = ((IDirect3DDevice9*)pThis)->SetPixelShader(m_pcActivePixelShader->GetActualShader());
-
-				// update shader constants for active side
-				m_pcActivePixelShader->SetShader(&m_afRegistersPixel[0]);
-
-				// set modified constants
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
-				{
-					for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.m_pasPSConstantRuleIndices->size(); nI++)
-						((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF((*m_sModifierData.m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.m_pasPSConstantRuleIndices)[nI].m_afConstantDataLeft, (*m_sModifierData.m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
-				}
-				else
-				{
-					for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.m_pasPSConstantRuleIndices->size(); nI++)
-						((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF((*m_sModifierData.m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.m_pasPSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_sModifierData.m_pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
-				}
-			}
-
-			// method replaced, immediately return
-			nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-			return (void*)&nHr;*/
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetTransform
 		case (int)VMT_IDIRECT3DDEVICE9::SetTransform:
-			/*if (!m_psState) return nullptr;
-			if (!m_ppsMatrix) return nullptr;
+		{
+			SHOW_CALL("SetTransform");
 
-			if ((*m_psState) == D3DTS_VIEW)
+			int nFlags = 0;
+			nHr = SetTransform(nFlags);
+			if (nFlags)
 			{
-				D3DXMATRIX sMatTempLeft;
-				D3DXMATRIX sMatTempRight;
-				D3DXMATRIX* psMatViewToSet = NULL;
-				bool bIsTransformSetTemp = false;
-
-				if (!(*m_ppsMatrix))
-				{
-					D3DXMatrixIdentity(&sMatTempLeft);
-					D3DXMatrixIdentity(&sMatTempRight);
-				}
-				else
-				{
-					D3DXMATRIX sMatSource(*(*m_ppsMatrix));
-
-					// If the view is set to the identity then we don't need to perform any adjustments
-					if (D3DXMatrixIsIdentity(&sMatSource))
-					{
-						D3DXMatrixIdentity(&sMatTempLeft);
-						D3DXMatrixIdentity(&sMatTempRight);
-					}
-					else
-					{
-						// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
-						sMatTempLeft = sMatSource * m_pcShaderModificationCalculation->LeftViewTransform();
-						sMatTempRight = sMatSource * m_pcShaderModificationCalculation->RightViewTransform();
-
-						bIsTransformSetTemp = true;
-					}
-				}
-
-				// update proxy device
-				m_bViewTransformSet = bIsTransformSetTemp;
-				m_sMatView[0] = sMatTempLeft;
-				m_sMatView[1] = sMatTempRight;
-
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
-				{
-					m_psMatViewCurrent = &m_sMatView[0];
-				}
-				else
-				{
-					m_psMatViewCurrent = &m_sMatView[1];
-				}
-
-				psMatViewToSet = m_psMatViewCurrent;
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-
-				nHr = ((IDirect3DDevice9*)pThis)->SetTransform((*m_psState), psMatViewToSet);
+				nProvokerIndex |= nFlags;
 				return (void*)&nHr;
 			}
-			else if ((*m_psState) == D3DTS_PROJECTION)
-			{
-				D3DXMATRIX sMatTempLeft;
-				D3DXMATRIX sMatTempRight;
-				D3DXMATRIX* psMatProjToSet = NULL;
-
-				if (!(*m_ppsMatrix))
-				{
-					D3DXMatrixIdentity(&sMatTempLeft);
-					D3DXMatrixIdentity(&sMatTempRight);
-				}
-				else
-				{
-					D3DXMATRIX sMatSource(*(*m_ppsMatrix));
-
-					// If the view is set to the identity then we don't need to perform any adjustments
-					if (D3DXMatrixIsIdentity(&sMatSource))
-					{
-						D3DXMatrixIdentity(&sMatTempLeft);
-						D3DXMatrixIdentity(&sMatTempRight);
-					}
-					else
-					{
-						// TODO !! LEFT/RIGHT PROJECTION MATRIX ??
-						sMatTempLeft = sMatSource;
-						sMatTempRight = sMatSource;
-					}
-				}
-
-				// update proxy device
-				m_sMatProj[0] = sMatTempLeft;
-				m_sMatProj[1] = sMatTempRight;
-
-				if (m_sModifierData.m_eCurrentRenderingSide == RenderPosition::Left)
-				{
-					m_psMatProjCurrent = &m_sMatProj[0];
-				}
-				else
-				{
-					m_psMatProjCurrent = &m_sMatProj[1];
-				}
-
-				psMatProjToSet = m_psMatProjCurrent;
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-
-				nHr = ((IDirect3DDevice9*)pThis)->SetTransform((*m_psState), psMatProjToSet);
-				return (void*)&nHr;
-			}
-			break;*/
+		}
+		return nullptr;
 #pragma endregion
 #pragma region MultiplyTransform
 		case (int)VMT_IDIRECT3DDEVICE9::MultiplyTransform:
-			//if (!m_psState_Multiply) return nullptr;
-			//if (!m_ppsMatrix_Multiply) return nullptr;
+		{
+			SHOW_CALL("MultiplyTransform");
 
-			break;
+			int nFlags = 0;
+			nHr = MultiplyTransform(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetVertexShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF:
-			/*if (!m_pdwStartRegister) return nullptr;
-			if (!m_ppfConstantData) return nullptr;
-			if (!m_pdwVector4fCount) return nullptr;
+		{
+			SHOW_CALL("SetVertexShaderConstantF");
 
-			// ->D3DERR_INVALIDCALL
-			if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
-				return nullptr;
-
-			// Set proxy registers
-			memcpy(&m_afRegistersVertex[RegisterIndex(*m_pdwStartRegister)], *m_ppfConstantData, (*m_pdwVector4fCount) * 4 * sizeof(float));
-
-			if (m_pcActiveVertexShader)
+			int nFlags = 0;
+			nHr = SetVertexShaderConstantF(nFlags);
+			if (nFlags)
 			{
-				// check proxy shader wether the data gets modified or not
-				bool bModified = false;
-				m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_sModifierData.m_eCurrentRenderingSide, &m_afRegistersVertex[0]);
-
-				// was the data modified for stereo ?
-				if (bModified)
-				{
-					// set modified data
-					nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, &m_pcActiveVertexShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					return (void*)&nHr;
-				}
-			}*/
-			break;
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region GetVertexShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF:
-			/*if (!m_pdwStartRegister) return nullptr;
-			if (!m_ppfConstantData) return nullptr;
-			if (!m_pdwVector4fCount) return nullptr;
+		{
+			SHOW_CALL("GetVertexShaderConstantF");
 
-			if (m_pcActiveVertexShader)
+			int nFlags = 0;
+			nHr = GetVertexShaderConstantF(nFlags);
+			if (nFlags)
 			{
-				// out of range ?
-				if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
-					nHr = D3DERR_INVALIDCALL;
-				else
-				{
-					// get data from proxy register
-					*m_ppfConstantData = &m_afRegistersVertex[RegisterIndex((*m_pdwStartRegister))];
-					nHr = D3D_OK;
-				}
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+				nProvokerIndex |= nFlags;
 				return (void*)&nHr;
-			}*/
-			break;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetVertexShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI:
-			/*if (!m_pdwStartRegister) return nullptr;
-			if (!m_ppnConstantData) return nullptr;
-			if (!m_pdwVector4fCount) return nullptr;*/
+		{
+			SHOW_CALL("SetVertexShaderConstantI");
 
-			break;
+			int nFlags = 0;
+			nHr = SetVertexShaderConstantI(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region GetVertexShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI:
-			break;
+		{
+			SHOW_CALL("GetVertexShaderConstantI");
+
+			int nFlags = 0;
+			nHr = GetVertexShaderConstantI(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetVertexShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB:
-			/*if (!m_pdwStartRegister) return nullptr;
-			if (!m_ppbConstantData) return nullptr;
-			if (!m_pdwVector4fCount) return nullptr;*/
+		{
+			SHOW_CALL("SetVertexShaderConstantB");
 
-			break;
+			int nFlags = 0;
+			nHr = SetVertexShaderConstantB(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region GetVertexShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB:
-			break;
+		{
+			SHOW_CALL("GetVertexShaderConstantB");
+
+			int nFlags = 0;
+			nHr = GetVertexShaderConstantB(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetPixelShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF:
-			/*if (!m_pdwStartRegister) return nullptr;
-			if (!m_ppfConstantData) return nullptr;
-			if (!m_pdwVector4fCount) return nullptr;
+		{
+			SHOW_CALL("SetPixelShaderConstantF");
 
-			// ->D3DERR_INVALIDCALL
-			if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
-				return nullptr;
-
-			// Set proxy registers
-			memcpy(&m_afRegistersPixel[RegisterIndex(*m_pdwStartRegister)], *m_ppfConstantData, (*m_pdwVector4fCount) * 4 * sizeof(float));
-
-			if (m_pcActivePixelShader)
+			int nFlags = 0;
+			nHr = SetPixelShaderConstantF(nFlags);
+			if (nFlags)
 			{
-				// check proxy shader wether the data gets modified or not
-				bool bModified = false;
-				m_pcActivePixelShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, m_sModifierData.m_eCurrentRenderingSide, &m_afRegistersPixel[0]);
-
-				// was the data modified for stereo ?
-				if (bModified)
-				{
-					// set modified data
-					nHr = ((IDirect3DDevice9*)pThis)->SetPixelShaderConstantF(*m_pdwStartRegister, &m_pcActivePixelShader->m_afRegisterBuffer[0], *m_pdwVector4fCount);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					return (void*)&nHr;
-				}
-			}*/
-			break;
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		break;
 #pragma endregion
 #pragma region GetPixelShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF:
-			/*if (!m_pdwStartRegister) return nullptr;
-			if (!m_ppfConstantData) return nullptr;
-			if (!m_pdwVector4fCount) return nullptr;
+		{
+			SHOW_CALL("GetPixelShaderConstantF");
 
-			if (m_pcActivePixelShader)
+			int nFlags = 0;
+			nHr = GetPixelShaderConstantF(nFlags);
+			if (nFlags)
 			{
-				// out of range ?
-				if (((*m_pdwStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*m_pdwStartRegister) + (*m_pdwVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
-					nHr = D3DERR_INVALIDCALL;
-				else
-				{
-					// get data from proxy register
-					*m_ppfConstantData = &m_afRegistersPixel[RegisterIndex((*m_pdwStartRegister))];
-					nHr = D3D_OK;
-				}
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+				nProvokerIndex |= nFlags;
 				return (void*)&nHr;
-			}*/
-			break;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetPixelShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI:
-			break;
+		{
+			SHOW_CALL("SetPixelShaderConstantI");
+
+			int nFlags = 0;
+			nHr = SetPixelShaderConstantI(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region GetPixelShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI:
-			break;
+		{
+			SHOW_CALL("GetPixelShaderConstantI");
+
+			int nFlags = 0;
+			nHr = GetPixelShaderConstantI(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetPixelShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB:
-			break;
+		{
+			SHOW_CALL("SetPixelShaderConstantB");
+
+			int nFlags = 0;
+			nHr = SetPixelShaderConstantB(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region GetPixelShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB:
-			break;
+		{
+			SHOW_CALL("GetPixelShaderConstantB");
+
+			int nFlags = 0;
+			nHr = GetPixelShaderConstantB(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region SetStreamSource
 		case (int)VMT_IDIRECT3DDEVICE9::SetStreamSource:
-			/*if (!m_punStreamNumber) return nullptr;
-			if (!m_ppcStreamData) return nullptr;
-			if (!m_punOffsetInBytes) return nullptr;
-			if (!m_punStride) return nullptr;
-			*/
-			break;
+		{
+			SHOW_CALL("SetStreamSource");
+
+			int nFlags = 0;
+			nHr = SetStreamSource(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region GetStreamSource
 		case (int)VMT_IDIRECT3DDEVICE9::GetStreamSource:
-			/*if (!m_punStreamNumber_Get) return nullptr;
-			if (!m_pppcStreamData_Get) return nullptr;
-			if (!m_ppunOffsetInBytes_Get) return nullptr;
-			if (!m_ppunStride_Get) return nullptr;
-			*/
-			break;
+		{
+			SHOW_CALL("GetStreamSource");
+
+			int nFlags = 0;
+			nHr = GetStreamSource(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region CreateVertexShader
 		case (int)VMT_IDIRECT3DDEVICE9::CreateVertexShader:
-			/*if (!m_ppunFunction) return nullptr;
-			if (!m_pppcShader_Vertex) return nullptr;
-			if (!*m_pppcShader_Vertex) return nullptr;
+		{
+			SHOW_CALL("CreateVertexShader");
+
+			int nFlags = 0;
+			nHr = CreateVertexShader(nFlags);
+			if (nFlags)
 			{
-				// create the actual shader
-				IDirect3DVertexShader9* pcActualVShader = NULL;
-				nHr = ((IDirect3DDevice9*)pThis)->CreateVertexShader(*m_ppunFunction, &pcActualVShader);
-
-				// create the proxy shader
-				if (SUCCEEDED(nHr))
-				{
-					**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::VertexShader);
-				}
-				else
-				{
-					OutputDebugString(L"[MAM] Failed to create the vertex shader!");
-				}
-
-				if (**m_pppcShader_Vertex)
-				{
-					// get the hash
-					UINT unHash = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*)**m_pppcShader_Vertex)->GetShaderHash();
-
-					// loop through shader list wether hash is present
-					bool bPresent = false;
-					for (UINT unI = 0; unI < (UINT)m_asVShaders.size(); unI++)
-					{
-						if (m_asVShaders[unI].dwHashCode == unHash)
-							bPresent = true;
-					}
-
-					// add to shader list
-					if (!bPresent)
-					{
-						Vireio_D3D9_Shader sShaderDesc = {};
-						sShaderDesc.dwHashCode = unHash;
-
-						// get the constant descriptions from that shader
-						std::vector<SAFE_D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*)**m_pppcShader_Vertex)->GetConstantDescriptions();
-						sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
-
-						// copy the name (LPCSTR) to a new string
-						for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
-						{
-							// copy name string
-							sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
-						}
-						m_asVShaders.push_back(sShaderDesc);
-					}
-
-				}
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
 			}
-			return (void*)&nHr;*/
+		}
+		return nullptr;
 #pragma endregion
 #pragma region CreatePixelShader
 		case (int)VMT_IDIRECT3DDEVICE9::CreatePixelShader:
-			/*if (!m_ppunFunction) return nullptr;
-			if (!m_pppcShader_Pixel) return nullptr;
-			if (!*m_pppcShader_Pixel) return nullptr;
+		{
+			SHOW_CALL("CreatePixelShader");
+
+			int nFlags = 0;
+			nHr = CreatePixelShader(nFlags);
+			if (nFlags)
 			{
-				// create the actual shader
-				IDirect3DPixelShader9* pcActualPShader = NULL;
-				nHr = ((IDirect3DDevice9*)pThis)->CreatePixelShader(*m_ppunFunction, &pcActualPShader);
-
-				// create the proxy shader
-				if (SUCCEEDED(nHr))
-				{
-					**m_pppcShader_Pixel = new IDirect3DManagedStereoShader9<IDirect3DPixelShader9>(pcActualPShader, (IDirect3DDevice9*)pThis, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::PixelShader);
-				}
-				else
-				{
-					OutputDebugString(L"[MAM] Failed to create the pixel shader!");
-				}
-
-				if (**m_pppcShader_Pixel)
-				{
-					// get the hash
-					UINT unHash = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*)**m_pppcShader_Pixel)->GetShaderHash();
-
-					// loop through shader list wether hash is present
-					bool bPresent = false;
-					for (UINT unI = 0; unI < (UINT)m_asPShaders.size(); unI++)
-					{
-						if (m_asPShaders[unI].dwHashCode == unHash)
-							bPresent = true;
-					}
-
-					// add to shader list
-					if (!bPresent)
-					{
-						Vireio_D3D9_Shader sShaderDesc = {};
-						sShaderDesc.dwHashCode = unHash;
-
-						// get the constant descriptions from that shader
-						std::vector<SAFE_D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*)**m_pppcShader_Pixel)->GetConstantDescriptions();
-						sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
-
-						// copy the name (LPCSTR) to a new string
-						for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
-						{
-							// copy name string
-							sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
-						}
-						m_asPShaders.push_back(sShaderDesc);
-					}
-
-				}
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
 			}
-			return (void*)&nHr;*/
-			break;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region Apply
 #pragma endregion
@@ -2988,10 +2775,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 /// Use zoom factor to align controls.
 /// </summary>
 /// <param name="fZoom">Current zoom factor on ImNodes canvas.</param>
-void MatrixModifier::UpdateImGuiControl(float fZoom) 
-{ 
+void MatrixModifier::UpdateImGuiControl(float fZoom)
+{
 	ImGui::TextUnformatted("Text Sample ABCDEFGHIJKLMNOP");
-	return; 
+	return;
 }
 
 /// <summary> 
@@ -4780,7 +4567,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		std::wstringstream szBufferSize;
 		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
 		m_aszShaderRuleData.push_back(szBufferSize.str());
-}
+	}
 #endif
 
 	// reg count ?
@@ -4861,4 +4648,582 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 		m_aszShaderRuleShaderIndices.push_back(szIndex.str());
 	}
 }
+#endif
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#pragma region /// => D3D10 methods
+#pragma endregion
+#else
+#pragma region /// => D3D9 methods
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetVertexShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetVertexShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetVertexShader]);
+
+	IDirect3DVertexShader9** ppcShader;
+	if (ppIn[0]) ppcShader = *(IDirect3DVertexShader9***)ppIn[0]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	//if (m_pcActiveVertexShader == *ppcShader) return nullptr; // TODO !! KEEP THIS ?
+	if (!*ppcShader)
+	{
+		m_pcActiveVertexShader = nullptr;
+		m_sModifierData.pasVSConstantRuleIndices = nullptr;
+		nHr = m_pcDeviceCurrent->SetVertexShader(nullptr);
+	}
+	else
+	{
+		// set back modified constants... TODO !! make this optionally... shouldn't need that maybe
+		// if (m_pcActiveVertexShader)
+		// m_pcActiveVertexShader->SetShaderOld((IDirect3DDevice9*)pThis, &m_afRegistersVertex[0]);
+
+		// set new active shader
+		m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*>(*ppcShader);
+
+		// set constant rule indices pointer for stereo splitter
+		m_sModifierData.pasVSConstantRuleIndices = &m_pcActiveVertexShader->m_asConstantRuleIndices;
+
+		// replace call, set actual shader
+		nHr = m_pcDeviceCurrent->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
+
+		// update shader constants for active side
+		m_pcActiveVertexShader->SetShader(&m_afRegistersVertex[0]);
+
+		// set modified constants
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.pasVSConstantRuleIndices->size(); nI++)
+				m_pcDeviceCurrent->SetVertexShaderConstantF((*m_sModifierData.pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.pasVSConstantRuleIndices)[nI].m_afConstantDataLeft, (*m_sModifierData.pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
+		}
+		else
+		{
+			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.pasVSConstantRuleIndices->size(); nI++)
+				m_pcDeviceCurrent->SetVertexShaderConstantF((*m_sModifierData.pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.pasVSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_sModifierData.pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
+		}
+	}
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetPixelShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetPixelShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetPixelShader]);
+
+	IDirect3DPixelShader9** ppcShader;
+	if (ppIn[0]) ppcShader = *(IDirect3DPixelShader9***)ppIn[0]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	//if (m_pcActivePixelShader == *m_ppcShader_Pixel) return nullptr; // TODO !! KEEP THIS ?
+	if (!*ppcShader)
+	{
+		m_pcActivePixelShader = nullptr;
+		m_sModifierData.pasPSConstantRuleIndices = nullptr;
+		nHr = m_pcDeviceCurrent->SetPixelShader(nullptr);
+	}
+	else
+	{
+		// set new active shader
+		m_pcActivePixelShader = static_cast<IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*>(*ppcShader);
+
+		// set constant rule indices pointer for stereo splitter
+		m_sModifierData.pasPSConstantRuleIndices = &m_pcActivePixelShader->m_asConstantRuleIndices;
+
+		// replace call, set actual shader
+		nHr = m_pcDeviceCurrent->SetPixelShader(m_pcActivePixelShader->GetActualShader());
+
+		// update shader constants for active side
+		m_pcActivePixelShader->SetShader(&m_afRegistersPixel[0]);
+
+		// set modified constants
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.pasPSConstantRuleIndices->size(); nI++)
+				m_pcDeviceCurrent->SetPixelShaderConstantF((*m_sModifierData.pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.pasPSConstantRuleIndices)[nI].m_afConstantDataLeft, (*m_sModifierData.pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
+		}
+		else
+		{
+			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_sModifierData.pasPSConstantRuleIndices->size(); nI++)
+				m_pcDeviceCurrent->SetPixelShaderConstantF((*m_sModifierData.pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_sModifierData.pasPSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_sModifierData.pasPSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
+		}
+	}
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetTransform(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetTransform]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetTransform]);
+
+	D3DTRANSFORMSTATETYPE* peState;
+	if (ppIn[0]) peState = *(D3DTRANSFORMSTATETYPE**)ppIn[0]; else return E_FAIL;
+	D3DMATRIX** ppsMatrix;
+	if (ppIn[1]) ppsMatrix = *(D3DMATRIX***)ppIn[1]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	if ((*peState) == D3DTS_VIEW)
+	{
+		D3DXMATRIX sMatTempLeft;
+		D3DXMATRIX sMatTempRight;
+
+		if (!(*ppsMatrix))
+		{
+			D3DXMatrixIdentity(&sMatTempLeft);
+			D3DXMatrixIdentity(&sMatTempRight);
+			m_sModifierData.bViewSet = false;
+		}
+		else
+		{
+			D3DXMATRIX sMatSource(*(*ppsMatrix));
+
+			// If the view is set to the identity then we don't need to perform any adjustments
+			if (D3DXMatrixIsIdentity(&sMatSource))
+			{
+				D3DXMatrixIdentity(&sMatTempLeft);
+				D3DXMatrixIdentity(&sMatTempRight);
+				m_sModifierData.bViewSet = false;
+			}
+			else
+			{
+				// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
+				sMatTempLeft = sMatSource * m_pcShaderModificationCalculation->Get(MathRegisters::MAT_TransformL, 4);
+				sMatTempRight = sMatSource * m_pcShaderModificationCalculation->Get(MathRegisters::MAT_TransformR, 4);
+				m_sModifierData.bViewSet = true;
+			}
+		}
+
+		// update proxy device
+		m_sModifierData.sMatView[0] = sMatTempLeft;
+		m_sModifierData.sMatView[1] = sMatTempRight;
+
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			nHr = m_pcDeviceCurrent->SetTransform(*peState, &m_sModifierData.sMatView[0]);
+		}
+		else
+		{
+			nHr = m_pcDeviceCurrent->SetTransform(*peState, &m_sModifierData.sMatView[1]);
+		}
+	}
+	else if ((*peState) == D3DTS_PROJECTION)
+	{
+		D3DXMATRIX sMatTempLeft;
+		D3DXMATRIX sMatTempRight;
+
+		if (!(*ppsMatrix))
+		{
+			D3DXMatrixIdentity(&sMatTempLeft);
+			D3DXMatrixIdentity(&sMatTempRight);
+			m_sModifierData.bProjSet = false;
+		}
+		else
+		{
+			D3DXMATRIX sMatSource(*(*ppsMatrix));
+
+			// If the view is set to the identity then we don't need to perform any adjustments
+			if (D3DXMatrixIsIdentity(&sMatSource))
+			{
+				D3DXMatrixIdentity(&sMatTempLeft);
+				D3DXMatrixIdentity(&sMatTempRight);
+				m_sModifierData.bProjSet = false;
+			}
+			else
+			{
+				// did we choose the right l/r transform matrices here ??
+				sMatTempLeft = sMatSource * m_pcShaderModificationCalculation->Get(MathRegisters::MAT_ViewProjectionL, 4);
+				sMatTempRight = sMatSource * m_pcShaderModificationCalculation->Get(MathRegisters::MAT_ViewProjectionR, 4);
+				m_sModifierData.bProjSet = true;
+			}
+		}
+
+		// update proxy device
+		m_sModifierData.sMatProj[0] = sMatTempLeft;
+		m_sModifierData.sMatProj[1] = sMatTempRight;
+
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			nHr = m_pcDeviceCurrent->SetTransform(*peState, &m_sModifierData.sMatProj[0]);
+		}
+		else
+		{
+			nHr = m_pcDeviceCurrent->SetTransform(*peState, &m_sModifierData.sMatProj[1]);
+		}
+	}
+	// if D3DTS_WORLD matrix is set do not replace the call
+	else return S_OK;
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::MultiplyTransform(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::MultiplyTransform]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::MultiplyTransform]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetVertexShaderConstantF(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetVertexShaderConstantF]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetVertexShaderConstantF]);
+	UINT* puStartRegister;
+	if (ppIn[0]) puStartRegister = *(UINT**)ppIn[0]; else return E_FAIL;
+	float** ppfConstantData;
+	if (ppIn[1]) ppfConstantData = *(float***)ppIn[1]; else return E_FAIL;
+	UINT* puVector4fCount;
+	if (ppIn[2]) puVector4fCount = *(UINT**)ppIn[2]; else return E_FAIL;
+
+	// ->D3DERR_INVALIDCALL, will actually be returned by base d3d method
+	if (((*puStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*puStartRegister) + (*puVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+		return D3DERR_INVALIDCALL;
+
+	// Set proxy registers
+	memcpy(&m_afRegistersVertex[RegisterIndex(*puStartRegister)], *ppfConstantData, (*puVector4fCount) * 4 * sizeof(float));
+
+	if (m_pcActiveVertexShader)
+	{
+		// check proxy shader wether the data gets modified or not
+		bool bModified = false;
+		m_pcActiveVertexShader->SetShaderConstantF(*puStartRegister, *ppfConstantData, *puVector4fCount, bModified, m_sModifierData.eCurrentRenderingSide, &m_afRegistersVertex[0]);
+
+		// was the data modified  ?
+		if (bModified)
+		{
+			// set modified data, immediate return
+			nFlags = AQU_PluginFlags::ImmediateReturnFlag;
+			return m_pcDeviceCurrent->SetVertexShaderConstantF(*puStartRegister, &m_pcActiveVertexShader->m_afRegisterBuffer[0], *puVector4fCount);
+		}
+	}
+
+	return S_OK;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetVertexShaderConstantF(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetVertexShaderConstantF]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetVertexShaderConstantF]);
+	UINT* puStartRegister;
+	if (ppIn[0]) puStartRegister = *(UINT**)ppIn[0]; else return E_FAIL;
+	float** ppfConstantData;
+	if (ppIn[1]) ppfConstantData = *(float***)ppIn[1]; else return E_FAIL;
+	UINT* puVector4fCount;
+	if (ppIn[2]) puVector4fCount = *(UINT**)ppIn[2]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	if (m_pcActiveVertexShader)
+	{
+		// out of range ?
+		if (((*puStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*puStartRegister) + (*puVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+			nHr = D3DERR_INVALIDCALL;
+		else
+		{
+			// get data from proxy register
+			*ppfConstantData = &m_afRegistersVertex[RegisterIndex((*puStartRegister))];
+			nHr = D3D_OK;
+		}
+
+		// method replaced, immediately return
+		nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	}
+
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetVertexShaderConstantI(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetVertexShaderConstantI]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetVertexShaderConstantI]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetVertexShaderConstantI(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetVertexShaderConstantI]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetVertexShaderConstantI]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetVertexShaderConstantB(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetVertexShaderConstantB]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetVertexShaderConstantB]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetVertexShaderConstantB(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetPixelShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetPixelShader]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetPixelShaderConstantF(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetPixelShaderConstantF]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetPixelShaderConstantF]);
+	UINT* puStartRegister;
+	if (ppIn[0]) puStartRegister = *(UINT**)ppIn[0]; else return E_FAIL;
+	float** ppfConstantData;
+	if (ppIn[1]) ppfConstantData = *(float***)ppIn[1]; else return E_FAIL;
+	UINT* puVector4fCount;
+	if (ppIn[2]) puVector4fCount = *(UINT**)ppIn[2]; else return E_FAIL;
+
+	// ->D3DERR_INVALIDCALL, will actually be returned by base d3d method
+	if (((*puStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*puStartRegister) + (*puVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+		return D3DERR_INVALIDCALL;
+
+	// Set proxy registers
+	memcpy(&m_afRegistersPixel[RegisterIndex(*puStartRegister)], *ppfConstantData, (*puVector4fCount) * 4 * sizeof(float));
+
+	if (m_pcActivePixelShader)
+	{
+		// check proxy shader wether the data gets modified or not
+		bool bModified = false;
+		m_pcActivePixelShader->SetShaderConstantF(*puStartRegister, *ppfConstantData, *puVector4fCount, bModified, m_sModifierData.eCurrentRenderingSide, &m_afRegistersPixel[0]);
+
+		// was the data modified  ?
+		if (bModified)
+		{
+			// set modified data, immediate return
+			nFlags = AQU_PluginFlags::ImmediateReturnFlag;
+			return m_pcDeviceCurrent->SetPixelShaderConstantF(*puStartRegister, &m_pcActivePixelShader->m_afRegisterBuffer[0], *puVector4fCount);
+		}
+	}
+
+	return S_OK;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetPixelShaderConstantF(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetPixelShaderConstantF]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetPixelShaderConstantF]);
+	UINT* puStartRegister;
+	if (ppIn[0]) puStartRegister = *(UINT**)ppIn[0]; else return E_FAIL;
+	float** ppfConstantData;
+	if (ppIn[1]) ppfConstantData = *(float***)ppIn[1]; else return E_FAIL;
+	UINT* puVector4fCount;
+	if (ppIn[2]) puVector4fCount = *(UINT**)ppIn[2]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	if (m_pcActivePixelShader)
+	{
+		// out of range ?
+		if (((*puStartRegister) >= MAX_DX9_CONSTANT_REGISTERS) || (((*puStartRegister) + (*puVector4fCount)) >= MAX_DX9_CONSTANT_REGISTERS))
+			nHr = D3DERR_INVALIDCALL;
+		else
+		{
+			// get data from proxy register
+			*ppfConstantData = &m_afRegistersPixel[RegisterIndex((*puStartRegister))];
+			nHr = D3D_OK;
+		}
+
+		// method replaced, immediately return
+		nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	}
+
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetPixelShaderConstantI(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetPixelShaderConstantI]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetPixelShaderConstantI]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetPixelShaderConstantI(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetPixelShaderConstantI]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetPixelShaderConstantI]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetPixelShaderConstantB(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetPixelShaderConstantB]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetPixelShaderConstantB]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetPixelShaderConstantB(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetPixelShaderConstantB]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetPixelShaderConstantB]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::SetStreamSource(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::SetStreamSource]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::SetStreamSource]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetStreamSource(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetStreamSource]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetStreamSource]);
+	return E_NOTIMPL;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CreateVertexShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CreateVertexShader]);
+	DWORD** ppuFunction;
+	if (ppIn[0]) ppuFunction = *(DWORD***)ppIn[0]; else return E_FAIL;
+	IDirect3DVertexShader9*** pppcShader;
+	if (ppIn[1]) pppcShader = *(IDirect3DVertexShader9****)ppIn[1]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	if (*pppcShader)
+	{
+		// create the actual shader
+		IDirect3DVertexShader9* pcActualVShader = NULL;
+		nHr = m_pcDeviceCurrent->CreateVertexShader(*ppuFunction, &pcActualVShader);
+
+		// create the proxy shader
+		if (SUCCEEDED(nHr))
+		{
+			**pppcShader = new IDirect3DManagedStereoShader9<IDirect3DVertexShader9>(pcActualVShader, m_pcDeviceCurrent, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::VertexShader);
+		}
+		else
+		{
+			OutputDebugString(L"[MAM] Failed to create the vertex shader!");
+		}
+
+		if (**pppcShader)
+		{
+			// get the hash
+			UINT unHash = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*) * *pppcShader)->GetShaderHash();
+
+			// loop through shader list wether hash is present
+			bool bPresent = false;
+			for (UINT unI = 0; unI < (UINT)m_asVShaders.size(); unI++)
+			{
+				if (m_asVShaders[unI].dwHashCode == unHash)
+					bPresent = true;
+			}
+
+			// add to shader list
+			if (!bPresent)
+			{
+				Vireio_D3D9_Shader sShaderDesc = {};
+				sShaderDesc.dwHashCode = unHash;
+
+				// get the constant descriptions from that shader
+				std::vector<SAFE_D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DVertexShader9>*) * *pppcShader)->GetConstantDescriptions();
+				sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
+
+				// copy the name (LPCSTR) to a new string
+				for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
+				{
+					// copy name string
+					sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
+				}
+				m_asVShaders.push_back(sShaderDesc);
+			}
+		}
+
+		// method replaced, immediately return
+		nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	}
+
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::CreatePixelShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CreatePixelShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CreatePixelShader]);
+	DWORD** ppuFunction;
+	if (ppIn[0]) ppuFunction = *(DWORD***)ppIn[0]; else return E_FAIL;
+	IDirect3DPixelShader9*** pppcShader;
+	if (ppIn[1]) pppcShader = *(IDirect3DPixelShader9****)ppIn[1]; else return E_FAIL;
+
+	HRESULT nHr = S_OK;
+	if (*pppcShader)
+	{
+		// create the actual shader
+		IDirect3DPixelShader9* pcActualVShader = NULL;
+		nHr = m_pcDeviceCurrent->CreatePixelShader(*ppuFunction, &pcActualVShader);
+
+		// create the proxy shader
+		if (SUCCEEDED(nHr))
+		{
+			**pppcShader = new IDirect3DManagedStereoShader9<IDirect3DPixelShader9>(pcActualVShader, m_pcDeviceCurrent, &m_asConstantRules, &m_aunGlobalConstantRuleIndices, &m_asShaderSpecificRuleIndices, Vireio_Supported_Shaders::PixelShader);
+		}
+		else
+		{
+			OutputDebugString(L"[MAM] Failed to create the pixel shader!");
+		}
+
+		if (**pppcShader)
+		{
+			// get the hash
+			UINT unHash = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*) * *pppcShader)->GetShaderHash();
+
+			// loop through shader list wether hash is present
+			bool bPresent = false;
+			for (UINT unI = 0; unI < (UINT)m_asPShaders.size(); unI++)
+			{
+				if (m_asPShaders[unI].dwHashCode == unHash)
+					bPresent = true;
+			}
+
+			// add to shader list
+			if (!bPresent)
+			{
+				Vireio_D3D9_Shader sShaderDesc = {};
+				sShaderDesc.dwHashCode = unHash;
+
+				// get the constant descriptions from that shader
+				std::vector<SAFE_D3DXCONSTANT_DESC>* pasConstants = ((IDirect3DManagedStereoShader9<IDirect3DPixelShader9>*) * *pppcShader)->GetConstantDescriptions();
+				sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(pasConstants->begin(), pasConstants->end());
+
+				// copy the name (LPCSTR) to a new string
+				for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
+				{
+					// copy name string
+					sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
+				}
+				m_asPShaders.push_back(sShaderDesc);
+			}
+		}
+
+		// method replaced, immediately return
+		nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	}
+
+	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::VB_Apply(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::VB_Apply]) return S_OK;	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::VB_Apply]);
+	return E_NOTIMPL;
+}
+
+#pragma endregion
 #endif

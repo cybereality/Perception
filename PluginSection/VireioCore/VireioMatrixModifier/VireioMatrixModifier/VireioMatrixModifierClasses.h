@@ -66,6 +66,9 @@ constexpr float fRIGHT_CONSTANT = 1.f;
 #define DEFAULT_POS_TRACKING_Y_MULT 2.5f
 #define DEFAULT_POS_TRACKING_Z_MULT 0.5f
 
+#define E_NO_MATCH         _HRESULT_TYPEDEF_(0x8A596AF85)
+
+
 #pragma region => Modification calculation class
 /// <summary>
 /// All float fields enumeration used
@@ -444,7 +447,7 @@ public:
 				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthL] *
 				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Squash] *
 				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_GuiL] =
+			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_GuiR] =
 				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
 				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthR] *
 				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Squash] *
@@ -461,7 +464,7 @@ public:
 	/// </summary>
 	/// <param name="eIndex">Index based on (MathFloatFields enum)</param>
 	/// <returns>Current value of specified index</returns>
-	float Get(MathFloatFields eIndex)
+	float GetFloat(MathFloatFields eIndex)
 	{
 		return m_aMathFloat[(size_t)eIndex];
 	}
@@ -481,7 +484,7 @@ public:
 	/// </summary>
 	/// <param name="eRegister">Register index (MathRegisters enum)</param>
 	/// <returns>Current value (field) of specified index</returns>
-	D3DXMATRIX Get(MathRegisters eRegister, const unsigned uSize = 4)
+	D3DXMATRIX Get(MathRegisters eRegister, const unsigned uSize)
 	{
 		// out of range ?
 		if ((uSize != 4) || ((uSize + 4) > (unsigned)Math_Registers_Size)) return D3DXMATRIX();
@@ -514,17 +517,69 @@ class ShaderConstantModification
 public:
 	/// <summary> Constructor/Desctructor </summary>
 	/// <param name="modID">Identifier of the modification. Identifier enumerations defined in ShaderConstantModificationFactory</param>
-	ShaderConstantModification(UINT modID, std::shared_ptr<ModificationCalculation> pcCalculaion) : m_ModificationID(modID), m_pcCalculation(pcCalculaion) {}
+	ShaderConstantModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculaion) : m_ModificationID(uModID), m_pcCalculation(pcCalculaion) {}
 	virtual ~ShaderConstantModification() {}
 
 	/// <summary> Pure virtual method, should apply the modification to produce left and right versions </summary>
-	virtual void ApplyModification(const T* inData, std::vector<T>* outLeft, std::vector<T>* outRight) = 0;
+	virtual void ApplyModification(const T* inData, std::array<T, 4>* outLeft, std::array<T, 4>* outRight) = 0;
+	/// <summary> Pure virtual method, should apply the modification to produce left and right versions </summary>
+	virtual void ApplyModification(const T* inData, std::array<T, 16>* outLeft, std::array<T, 16>* outRight) = 0;
 
 	/// <summary> Simply a way to identify this modification. Useful for comparing shadermodification equality </summary>
 	UINT m_ModificationID;
 
 	/// <summary> Calculation class. </summary>
 	std::shared_ptr<ModificationCalculation> m_pcCalculation;
+};
+
+/// <summary>
+/// Vector modification base.
+/// </summary>
+class ShaderVectorModification : public ShaderConstantModification<float>
+{
+public:
+	/// <summary>
+	/// Same constructor as base class.
+	/// </summary>
+	ShaderVectorModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {}
+
+	void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight)
+	{
+		D3DXVECTOR4 sIn(inData);
+
+		(D3DXVECTOR4)outLeft->data() = sIn + m_pcCalculation->Get(MathRegisters::VEC_PositionTransform) * fLEFT_CONSTANT;
+		(D3DXVECTOR4)outRight->data() = sIn + m_pcCalculation->Get(MathRegisters::VEC_PositionTransform) * fRIGHT_CONSTANT;
+	}
+	virtual void ApplyModification(const float* inData, std::array<float, 16>* outLeft, std::array<float, 16>* outRight) {};
+
+};
+
+/// <summary>
+/// Matrix modification base.
+/// </summary>
+class ShaderMatrixModification : public ShaderConstantModification<float>
+{
+public:
+
+
+	/// <summary>
+	/// Same constructor as base class.
+	/// </summary>
+	ShaderMatrixModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {}
+
+	/// <summary>
+	/// Apply projection transform matrix here.
+	/// </summary>
+	/// <param name="inData">Input data (D3DMATRIX)</param>
+	/// <param name="outLeft">Left output (matrix as float array)</param>
+	/// <param name="outRight">Right output (matrix as float array)</param>
+	void ApplyModification(const float* inData, std::array<float, 16>* outLeft, std::array<float, 16>* outRight)
+	{
+		D3DXMATRIX sIn = D3DXMATRIX(inData);
+		(D3DXMATRIX)outLeft->data() = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
+		(D3DXMATRIX)outRight->data() = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
+	}
+	virtual void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight) {};
 };
 
 /// <summary>
@@ -682,24 +737,6 @@ struct Vireio_Constant_Modification_Rule
 };
 
 /// <summary>
-/// Dummy class for now... TODO !!!
-/// </summary>
-class Vector4SimpleTranslate : public ShaderConstantModification<float>
-{
-public:
-	Vector4SimpleTranslate(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {};
-
-	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
-	{
-		D3DXVECTOR4 tempLeft(inData);
-		D3DXVECTOR4 tempRight(inData);
-
-		outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
-		outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());
-	}
-};
-
-/// <summary>
 /// TODO !! create different modifications
 /// </summary>
 /// <param name="uModID">Modification Identifier</param>
@@ -707,7 +744,7 @@ public:
 /// <returns></returns>
 static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation)
 {
-	return std::make_shared<Vector4SimpleTranslate>(uModID, pcCalculation);
+	return std::make_shared<ShaderVectorModification>(uModID, pcCalculation);
 }
 
 /// <summary>
@@ -720,7 +757,7 @@ static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UI
 {
 	UNREFERENCED_PARAMETER(bTranspose);
 
-	return std::make_shared<Vector4SimpleTranslate>(uModID, pcCalculation);
+	return std::make_shared<ShaderMatrixModification>(uModID, pcCalculation);
 }
 #pragma endregion
 
@@ -856,6 +893,7 @@ public:
 			return D3D_OK;
 		}
 	}
+
 	/// <summary>
 	/// IDirect3DXShader9->GetFunction() call.
 	/// </summary>
@@ -1002,8 +1040,10 @@ public:
 				}
 
 				// do modification
-				D3DXMATRIX sMatrixLeft, sMatrixRight;
-				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+				std::array<float, 16> afMatrixLeft, afMatrixRight;
+				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+				D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
+				D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
 				// transpose back
 				if (bTranspose)
@@ -1068,8 +1108,10 @@ public:
 				}
 
 				// do modification
-				D3DXMATRIX sMatrixLeft, sMatrixRight;
-				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+				std::array<float, 16> afMatrixLeft, afMatrixRight;
+				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+				D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
+				D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
 				// transpose back
 				if (bTranspose)
@@ -1116,8 +1158,10 @@ public:
 						}
 
 						// do modification
-						D3DXMATRIX sMatrixLeft, sMatrixRight;
-						((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+						std::array<float, 16> afMatrixLeft, afMatrixRight;
+						((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+						D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
+						D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
 						// transpose back
 						if (bTranspose)
@@ -1249,10 +1293,10 @@ private:
 			char buf[32]; ZeroMemory(&buf[0], 32);
 			switch (m_eShaderType)
 			{
-			case VertexShader:
+			case Vireio_Supported_Shaders::VertexShader:
 				sprintf_s(buf, "VS%u.txt", unHash);
 				break;
-			case PixelShader:
+			case Vireio_Supported_Shaders::PixelShader:
 				sprintf_s(buf, "PS%u.txt", unHash);
 				break;
 			default:

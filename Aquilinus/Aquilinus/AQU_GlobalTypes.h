@@ -176,7 +176,6 @@ struct AquilinusCfg
 	wchar_t                 szProcessName[MAX_JOLIET_FILENAME];               /**< The process name (used only in compiled projects) ***/
 	DWORD                   dwProcessIndex;                                   /**< The current game process index in the filemanager class. **/
 	BOOL                    bEmptyProcess;                                    /**< True if the process is empty. (for empty process profiles) **/
-	BOOL                    bAlwaysForceD3D;                                  /**< Always force D3D bool. This bool ensures that the detour classes ALWAYS call (super) D3D methods. **/
 	DWORD                   dwID;                                             /**< The process ID of the last injected process ***/
 	wchar_t                 szAquilinusPath[MAX_PATH];                        /**< The directory path of the driver dll. **/
 	wchar_t                 szWorkspaceFilePath[MAX_PATH];                    /**< The exact file path of the last loaded workspace file. **/
@@ -187,7 +186,7 @@ struct AquilinusCfg
 	__int32                 eInjectionTechnique[MAX_INTERFACES_NUMBER];       /**< The chosen injection technique for each supported D3D interface. ***/
 	DWORD                   dwColorSchemeIndex;                               /**< The current color scheme index. **/
 	unsigned __int32        dwDetourTimeDelay;                                /**< The delay time for the detour, in milliseconds. **/
-	__int32                 nInjectionRepetition;                            /**< Repeat the injectin process for various times. (0..15) **/
+	__int32                 nInjectionRepetition;                             /**< Repeat the injectin process for various times. (0..15) **/
 	BOOL                    bProfileWindow;                                   /**< True if a profile window is present for the current game profile. **/
 	BOOL                    bExternalSave;                                    /**< True if Inicio should save a file path stored in a memory data page. ***/
 	BOOL                    bUseDllPath;                                      /**< True if Aquilinus uses a custom dll path, False if it uses the path ".//plugin" **/
