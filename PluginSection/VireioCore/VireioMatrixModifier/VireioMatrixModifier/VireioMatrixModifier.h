@@ -679,11 +679,11 @@ private:
 		UINT m_dwBufferSize;                        /**< [Switch] Buffer size **/
 #endif
 		// string entries for the switches above
-		std::wstring m_szConstantName;
-		std::wstring m_szPartialName;
-		std::wstring m_szBufferIndex;
-		std::wstring m_szBufferSize;
-		std::wstring m_szStartRegIndex;
+		std::string m_szConstantName;
+		std::string m_szPartialName;
+		std::string m_szBufferIndex;
+		std::string m_szBufferSize;
+		std::string m_szStartRegIndex;
 
 		// values of the controls
 		bool m_bConstantName;
@@ -716,7 +716,7 @@ private:
 	/// and to create shader rules.
 	/// Each entry MUST MATCH same entry in m_adwShaderHashCodes.
 	/// </summary>
-	std::vector<std::wstring> m_aszVShaderHashCodes;
+	std::vector<std::string> m_aszVShaderHashCodes;
 	/// <summary>
 	/// List of all available vertex shader hash codes (UINT).
 	/// To be used on the shader page, the debug page
@@ -730,7 +730,7 @@ private:
 	/// and to create shader rules.
 	/// Each entry MUST MATCH same entry in m_adwShaderHashCodes.
 	/// </summary>
-	std::vector<std::wstring> m_aszPShaderHashCodes;
+	std::vector<std::string> m_aszPShaderHashCodes;
 	/// <summary>
 	/// List of all available pixel shader hash codes (UINT).
 	/// To be used on the shader page, the debug page
@@ -751,37 +751,37 @@ private:
 	/// </summary>
 	std::vector<std::string> m_aszShaderConstantsA;
 	/// <summary>
-	/// List of shader constant names for the currently chosen shader. (std::wstring).
+	/// List of shader constant names for the currently chosen shader. (std::string).
 	/// To be used on the shader modifaction page
 	/// and to create shader rules.
 	/// </summary>
-	std::vector<std::wstring> m_aszShaderConstantsCurrent;
+	std::vector<std::string> m_aszShaderConstantsCurrent;
 	/// <summary>
-	/// List of shader buffer sizes for the currently chosen shader. (std::wstring).
+	/// List of shader buffer sizes for the currently chosen shader. (std::string).
 	/// To be used on the shader modifaction page
 	/// and to create shader rules.
 	/// </summary>
-	std::vector<std::wstring> m_aszShaderBuffersizes;
+	std::vector<std::string> m_aszShaderBuffersizes;
 	/// <summary>
 	/// List of all shader rule indices present. (std::wstring).
 	/// To be used on the shader rules page.
 	/// </summary>
-	std::vector<std::wstring> m_aszShaderRuleIndices;
+	std::vector<std::string> m_aszShaderRuleIndices;
 	/// <summary>
 	/// List of shader rule data for the chosen shader rule index (std::wstring).
 	/// To be used on the shader rules page.
 	/// </summary>
-	std::vector<std::wstring> m_aszShaderRuleData;
+	std::vector<std::string> m_aszShaderRuleData;
 	/// <summary>
 	/// List of all shader rule indices generally used. (std::wstring).
 	/// To be used on the shader rules page.
 	/// </summary>
-	std::vector<std::wstring> m_aszShaderRuleGeneralIndices;
+	std::vector<std::string> m_aszShaderRuleGeneralIndices;
 	/// <summary>
 	/// Debug trace string list.
 	/// Contains all strings for the debug trace.
 	/// </summary>
-	std::vector<std::wstring> m_aszDebugTrace;
+	std::vector<std::string> m_aszDebugTrace;
 	/// <summary>
 	/// Currently chosen option to grab debug text.
 	/// </summary>
@@ -831,7 +831,7 @@ private:
 	/// List of all shaderrule indices for the currently chosen shader on the shaders page. (std::wstring).
 	/// (DX9 only)
 	/// </summary>
-	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
+	std::vector<std::string> m_aszShaderRuleShaderIndices;
 #endif
 
 #pragma endregion
