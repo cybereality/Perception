@@ -1003,6 +1003,8 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 	{
 		CASE_ENUM_2_WSTRING(STS_Decommanders, SetVertexShader);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, SetPixelShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetVertexShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GetPixelShader);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, SetTransform);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, MultiplyTransform);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, SetVertexShaderConstantF);
@@ -1213,6 +1215,10 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetVertexShader);
 	case STS_Decommanders::SetPixelShader:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetPixelShader);
+	case STS_Decommanders::GetVertexShader:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetVertexShader);
+	case STS_Decommanders::GetPixelShader:
+		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::GetPixelShader);
 	case STS_Decommanders::SetTransform:
 		return NOD_Plugtype::WireCable((int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9, (int)VMT_IDIRECT3DDEVICE9::SetTransform);
 	case STS_Decommanders::MultiplyTransform:
@@ -1390,6 +1396,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 			if ((nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetVertexShader) ||
 				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetPixelShader) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetVertexShader) ||
+				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::GetPixelShader) ||
 				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetTransform) ||
 				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::MultiplyTransform) ||
 				(nD3DMethod == (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF) ||
@@ -2609,6 +2617,36 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 			int nFlags = 0;
 			nHr = SetPixelShader(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
+#pragma endregion
+#pragma region GetVertexShader
+		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShader:
+		{
+			SHOW_CALL("GetVertexShader");
+
+			int nFlags = 0;
+			nHr = GetVertexShader(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
+#pragma endregion
+#pragma region GetPixelShader
+		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShader:
+		{
+			SHOW_CALL("GetPixelShader");
+
+			int nFlags = 0;
+			nHr = GetPixelShader(nFlags);
 			if (nFlags)
 			{
 				nProvokerIndex |= nFlags;
@@ -4045,6 +4083,46 @@ HRESULT MatrixModifier::SetPixelShader(int& nFlags)
 	// method replaced, immediately return
 	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
 	return nHr;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetVertexShader(int& nFlags) 
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetVertexShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetVertexShader]);
+
+	IDirect3DVertexShader9*** pppcShader;
+	if (ppIn[0]) pppcShader = *(IDirect3DVertexShader9****)ppIn[0]; else return E_FAIL;
+
+	if ((!m_pcActiveVertexShader) || (!*pppcShader))
+		return D3DERR_INVALIDCALL;
+
+	// provide proxy shader class (managed)
+	**pppcShader = m_pcActiveVertexShader;
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return D3D_OK;
+}
+
+/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+HRESULT MatrixModifier::GetPixelShader(int& nFlags) 
+{
+	if (!m_ppInput[(int)STS_Decommanders::GetPixelShader]) return S_OK;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GetPixelShader]);
+
+	IDirect3DPixelShader9*** pppcShader;
+	if (ppIn[0]) pppcShader = *(IDirect3DPixelShader9****)ppIn[0]; else return E_FAIL;
+
+	if ((!m_pcActivePixelShader) || (!*pppcShader))
+		return D3DERR_INVALIDCALL;
+
+	// provide proxy shader class (managed)
+	**pppcShader = m_pcActivePixelShader;
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return D3D_OK;
 }
 
 /// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>

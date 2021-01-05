@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -68,17 +68,17 @@ inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 * Constructor.
 ***/
 DCL_IDirect3DDevice9::DCL_IDirect3DDevice9(AQU_TransferSite* pcTransferSite, IDirect3D9* pcParentObject) :
-m_pcTransferSite(pcTransferSite),
-m_pcParentObject(pcParentObject),
-m_pcVShaderCurrent(nullptr),
-m_unFVF(0),
-m_bDrawingActive(false)
+	m_pcTransferSite(pcTransferSite),
+	m_pcParentObject(pcParentObject),
+	m_pcVShaderCurrent(nullptr),
+	m_unFVF(0),
+	m_bDrawingActive(false)
 {}
 
 /**
 *
 ***/
-DCL_IDirect3DDevice9::~DCL_IDirect3DDevice9(){}
+DCL_IDirect3DDevice9::~DCL_IDirect3DDevice9() {}
 
 #pragma endregion
 
@@ -131,7 +131,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::QueryInterface(IDirect3DDevice9* pcThis, RE
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IUNKNOWN::QueryInterface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_QueryInterface_Super(pcThis, riid, ppvObj);
@@ -229,7 +229,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::TestCooperativeLevel(IDirect3DDevice9* pcTh
 	return S_OK;
 
 	// return check device state in case of ex device
-	IDirect3DDevice9Ex *pcDirect3DDevice9Ex = NULL;
+	IDirect3DDevice9Ex* pcDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(((IDirect3DDevice9*)pcThis)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pcDirect3DDevice9Ex))))
 	{
 		// TODO !! GETCREATIONPARAMETERS -> hDeviceWindow
@@ -250,7 +250,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::TestCooperativeLevel(IDirect3DDevice9* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::TestCooperativeLevel]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_TestCooperativeLevel_Super(pcThis);
@@ -279,7 +279,7 @@ UINT WINAPI DCL_IDirect3DDevice9::GetAvailableTextureMem(IDirect3DDevice9* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			unI = (UINT)*(UINT*)pvRet;
+			unI = (UINT) * (UINT*)pvRet;
 			return unI;
 		}
 		else
@@ -310,7 +310,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::EvictManagedResources(IDirect3DDevice9* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::EvictManagedResources]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_EvictManagedResources_Super(pcThis);
@@ -351,7 +351,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetDirect3D(IDirect3DDevice9* pcThis, IDire
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetDirect3D]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetDirect3D_Super(pcThis, ppD3D9);
@@ -383,7 +383,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetDeviceCaps(IDirect3DDevice9* pcThis, D3D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetDeviceCaps_Super(pcThis, pCaps);
@@ -416,7 +416,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetDisplayMode(IDirect3DDevice9* pcThis, UI
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetDisplayMode_Super(pcThis, iSwapChain, pMode);
@@ -428,7 +428,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetDisplayMode(IDirect3DDevice9* pcThis, UI
 /**
 *
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9::GetCreationParameters(IDirect3DDevice9* pcThis, D3DDEVICE_CREATION_PARAMETERS *pParameters)
+HRESULT WINAPI DCL_IDirect3DDevice9::GetCreationParameters(IDirect3DDevice9* pcThis, D3DDEVICE_CREATION_PARAMETERS* pParameters)
 {
 	static HRESULT nHr = S_OK;
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9(L"IDirect3DDevice9::GetCreationParameters");
@@ -448,7 +448,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetCreationParameters(IDirect3DDevice9* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetCreationParameters]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetCreationParameters_Super(pcThis, pParameters);
@@ -482,7 +482,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetCursorProperties(IDirect3DDevice9* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetCursorProperties_Super(pcThis, XHotSpot, YHotSpot, pCursorBitmap);
@@ -542,7 +542,7 @@ BOOL WINAPI DCL_IDirect3DDevice9::ShowCursor(IDirect3DDevice9* pcThis, BOOL bSho
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::ShowCursor]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nB = (BOOL)*(BOOL*)pvRet;
+			nB = (BOOL) * (BOOL*)pvRet;
 			return nB;
 		}
 		else
@@ -578,7 +578,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateAdditionalSwapChain(IDirect3DDevice9*
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -617,7 +617,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetSwapChain(IDirect3DDevice9* pcThis, UINT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetSwapChain_Super(pcThis, iSwapChain, pSwapChain);
@@ -647,7 +647,7 @@ UINT WINAPI DCL_IDirect3DDevice9::GetNumberOfSwapChains(IDirect3DDevice9* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			unI = (UINT)*(UINT*)pvRet;
+			unI = (UINT) * (UINT*)pvRet;
 			return unI;
 		}
 		else
@@ -682,7 +682,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::Reset(IDirect3DDevice9* pcThis, D3DPRESENT_
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Reset]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -711,17 +711,6 @@ HRESULT WINAPI DCL_IDirect3DDevice9::Present(IDirect3DDevice9* pcThis, CONST REC
 		m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[2]->m_pOutput = (void*)&hDestWindowOverride;
 		m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[3]->m_pOutput = (void*)&pDirtyRegion;
 
-		static bool s_bDebug = false;
-		if (!s_bDebug)
-		{
-			OutputDebugString(L"------------------------PRESENT");
-			DEBUG_HEX(m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[0]->m_pOutput);
-			DEBUG_HEX(m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[1]->m_pOutput);
-			DEBUG_HEX(m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[2]->m_pOutput);
-			DEBUG_HEX(m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_paCommandersTemporary[3]->m_pOutput);
-			s_bDebug = true;
-		}
-
 		// provoke, set bForceD3D to "true" for any provoking circle
 		m_pcTransferSite->m_bForceD3D = true;
 		void* pvRet = m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->Provoke((void*)pcThis, m_pcTransferSite->m_ppaNodes);
@@ -731,7 +720,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::Present(IDirect3DDevice9* pcThis, CONST REC
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Present]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_Present_Super(pcThis, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -767,7 +756,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetBackBuffer(IDirect3DDevice9* pcThis, UIN
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetBackBuffer_Super(pcThis, iSwapChain, iBackBuffer, Type, ppBackBuffer);
@@ -801,7 +790,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetRasterStatus(IDirect3DDevice9* pcThis, U
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetRasterStatus_Super(pcThis, iSwapChain, pRasterStatus);
@@ -834,7 +823,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetDialogBoxMode(IDirect3DDevice9* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetDialogBoxMode_Super(pcThis, bEnableDialogs);
@@ -931,7 +920,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateTexture(IDirect3DDevice9* pcThis, UIN
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 
@@ -979,7 +968,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateVolumeTexture(IDirect3DDevice9* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1024,7 +1013,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateCubeTexture(IDirect3DDevice9* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1068,7 +1057,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateVertexBuffer(IDirect3DDevice9* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1112,7 +1101,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateIndexBuffer(IDirect3DDevice9* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1158,7 +1147,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateRenderTarget(IDirect3DDevice9* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1204,7 +1193,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateDepthStencilSurface(IDirect3DDevice9*
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1246,7 +1235,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::UpdateSurface(IDirect3DDevice9* pcThis, IDi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_UpdateSurface_Super(pcThis, pSourceSurface, pSourceRect, pDestinationSurface, pDestPoint);
@@ -1278,7 +1267,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::UpdateTexture(IDirect3DDevice9* pcThis, IDi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_UpdateTexture_Super(pcThis, pSourceTexture, pDestinationTexture);
@@ -1312,7 +1301,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetRenderTargetData(IDirect3DDevice9* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetRenderTargetData_Super(pcThis, pRenderTarget, pDestSurface);
@@ -1345,7 +1334,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetFrontBufferData(IDirect3DDevice9* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetFrontBufferData_Super(pcThis, iSwapChain, pDestSurface);
@@ -1382,7 +1371,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::StretchRect(IDirect3DDevice9* pcThis, IDire
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::StretchRect]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_StretchRect_Super(pcThis, pSourceSurface, pSourceRect, pDestSurface, pDestRect, Filter);
@@ -1417,7 +1406,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::ColorFill(IDirect3DDevice9* pcThis, IDirect
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::ColorFill]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_ColorFill_Super(pcThis, pSurface, pRect, color);
@@ -1455,7 +1444,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateOffscreenPlainSurface(IDirect3DDevice
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -1494,7 +1483,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetRenderTarget(IDirect3DDevice9* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetRenderTarget_Super(pcThis, RenderTargetIndex, pRenderTarget);
@@ -1528,7 +1517,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetRenderTarget(IDirect3DDevice9* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetRenderTarget_Super(pcThis, RenderTargetIndex, ppRenderTarget);
@@ -1561,7 +1550,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetDepthStencilSurface(IDirect3DDevice9* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetDepthStencilSurface_Super(pcThis, pNewZStencil);
@@ -1595,7 +1584,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetDepthStencilSurface(IDirect3DDevice9* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetDepthStencilSurface_Super(pcThis, ppZStencilSurface);
@@ -1625,7 +1614,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::BeginScene(IDirect3DDevice9* pcThis)
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::BeginScene]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_BeginScene_Super(pcThis);
@@ -1655,7 +1644,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::EndScene(IDirect3DDevice9* pcThis)
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::EndScene]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_EndScene_Super(pcThis);
@@ -1697,7 +1686,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::Clear(IDirect3DDevice9* pcThis, DWORD Count
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::Clear]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_Clear_Super(pcThis, Count, pRects, Flags, Color, Z, Stencil);
@@ -1731,7 +1720,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetTransform(IDirect3DDevice9* pcThis, D3DT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetTransform]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetTransform_Super(pcThis, State, pMatrix);
@@ -1765,7 +1754,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetTransform(IDirect3DDevice9* pcThis, D3DT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetTransform]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetTransform_Super(pcThis, State, pMatrix);
@@ -1799,7 +1788,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::MultiplyTransform(IDirect3DDevice9* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_MultiplyTransform_Super(pcThis, State, pMatrix);
@@ -1832,7 +1821,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetViewport(IDirect3DDevice9* pcThis, CONST
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetViewport]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetViewport_Super(pcThis, pViewport);
@@ -1865,7 +1854,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetViewport(IDirect3DDevice9* pcThis, D3DVI
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetViewport]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetViewport_Super(pcThis, pViewport);
@@ -1898,7 +1887,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetMaterial(IDirect3DDevice9* pcThis, CONST
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetMaterial]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetMaterial_Super(pcThis, pMaterial);
@@ -1931,7 +1920,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetMaterial(IDirect3DDevice9* pcThis, D3DMA
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetMaterial]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetMaterial_Super(pcThis, pMaterial);
@@ -1965,7 +1954,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetLight(IDirect3DDevice9* pcThis, DWORD In
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetLight]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetLight_Super(pcThis, Index, pLight);
@@ -1999,7 +1988,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetLight(IDirect3DDevice9* pcThis, DWORD In
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetLight]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetLight_Super(pcThis, Index, pLight);
@@ -2033,7 +2022,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::LightEnable(IDirect3DDevice9* pcThis, DWORD
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::LightEnable]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_LightEnable_Super(pcThis, Index, Enable);
@@ -2067,7 +2056,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetLightEnable(IDirect3DDevice9* pcThis, DW
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetLightEnable_Super(pcThis, Index, pEnable);
@@ -2101,7 +2090,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetClipPlane(IDirect3DDevice9* pcThis, DWOR
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetClipPlane_Super(pcThis, Index, pPlane);
@@ -2135,7 +2124,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetClipPlane(IDirect3DDevice9* pcThis, DWOR
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetClipPlane_Super(pcThis, Index, pPlane);
@@ -2159,320 +2148,320 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetRenderState(IDirect3DDevice9* pcThis, D3
 	{
 		switch (State)
 		{
-			case D3DRS_ZENABLE:
-				OutputDebugString(L"D3DRS_ZENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FILLMODE:
-				OutputDebugString(L"D3DRS_FILLMODE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SHADEMODE:
-				OutputDebugString(L"D3DRS_SHADEMODE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ZWRITEENABLE:
-				OutputDebugString(L"D3DRS_ZWRITEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ALPHATESTENABLE:
-				OutputDebugString(L"D3DRS_ALPHATESTENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_LASTPIXEL:
-				OutputDebugString(L"D3DRS_LASTPIXEL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SRCBLEND:
-				OutputDebugString(L"D3DRS_SRCBLEND"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_DESTBLEND:
-				OutputDebugString(L"D3DRS_DESTBLEND"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CULLMODE:
-				OutputDebugString(L"D3DRS_CULLMODE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ZFUNC:
-				OutputDebugString(L"D3DRS_ZFUNC"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ALPHAREF:
-				OutputDebugString(L"D3DRS_ALPHAREF"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ALPHAFUNC:
-				OutputDebugString(L"D3DRS_ALPHAFUNC"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_DITHERENABLE:
-				OutputDebugString(L"D3DRS_DITHERENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ALPHABLENDENABLE:
-				OutputDebugString(L"D3DRS_ALPHABLENDENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGENABLE:
-				OutputDebugString(L"D3DRS_FOGENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SPECULARENABLE:
-				OutputDebugString(L"D3DRS_SPECULARENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGCOLOR:
-				OutputDebugString(L"D3DRS_FOGCOLOR"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGTABLEMODE:
-				OutputDebugString(L"D3DRS_FOGTABLEMODE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGSTART:
-				OutputDebugString(L"D3DRS_FOGSTART"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGEND:
-				OutputDebugString(L"D3DRS_FOGEND"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGDENSITY:
-				OutputDebugString(L"D3DRS_FOGDENSITY"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_RANGEFOGENABLE:
-				OutputDebugString(L"D3DRS_RANGEFOGENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILENABLE:
-				OutputDebugString(L"D3DRS_STENCILENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILFAIL:
-				OutputDebugString(L"D3DRS_STENCILFAIL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILZFAIL:
-				OutputDebugString(L"D3DRS_STENCILZFAIL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILPASS:
-				OutputDebugString(L"D3DRS_STENCILPASS"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILFUNC:
-				OutputDebugString(L"D3DRS_STENCILFUNC"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILREF:
-				OutputDebugString(L"D3DRS_STENCILREF"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILMASK:
-				OutputDebugString(L"D3DRS_STENCILMASK"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_STENCILWRITEMASK:
-				OutputDebugString(L"D3DRS_STENCILWRITEMASK"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_TEXTUREFACTOR:
-				OutputDebugString(L"D3DRS_TEXTUREFACTOR"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP0:
-				OutputDebugString(L"D3DRS_WRAP0"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP1:
-				OutputDebugString(L"D3DRS_WRAP1"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP2:
-				OutputDebugString(L"D3DRS_WRAP2"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP3:
-				OutputDebugString(L"D3DRS_WRAP3"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP4:
-				OutputDebugString(L"D3DRS_WRAP4"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP5:
-				OutputDebugString(L"D3DRS_WRAP5"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP6:
-				OutputDebugString(L"D3DRS_WRAP6"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP7:
-				OutputDebugString(L"D3DRS_WRAP7"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CLIPPING:
-				OutputDebugString(L"D3DRS_CLIPPING"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_LIGHTING:
-				OutputDebugString(L"D3DRS_LIGHTING"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_AMBIENT:
-				OutputDebugString(L"D3DRS_AMBIENT"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FOGVERTEXMODE:
-				OutputDebugString(L"D3DRS_FOGVERTEXMODE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_COLORVERTEX:
-				OutputDebugString(L"D3DRS_COLORVERTEX"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_LOCALVIEWER:
-				OutputDebugString(L"D3DRS_LOCALVIEWER"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_NORMALIZENORMALS:
-				OutputDebugString(L"D3DRS_NORMALIZENORMALS"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_DIFFUSEMATERIALSOURCE:
-				OutputDebugString(L"D3DRS_DIFFUSEMATERIALSOURCE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SPECULARMATERIALSOURCE:
-				OutputDebugString(L"D3DRS_SPECULARMATERIALSOURCE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_AMBIENTMATERIALSOURCE:
-				OutputDebugString(L"D3DRS_AMBIENTMATERIALSOURCE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_EMISSIVEMATERIALSOURCE:
-				OutputDebugString(L"D3DRS_EMISSIVEMATERIALSOURCE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_VERTEXBLEND:
-				OutputDebugString(L"D3DRS_VERTEXBLEND"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CLIPPLANEENABLE:
-				OutputDebugString(L"D3DRS_CLIPPLANEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSIZE:
-				OutputDebugString(L"D3DRS_POINTSIZE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSIZE_MIN:
-				OutputDebugString(L"D3DRS_POINTSIZE_MIN"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSPRITEENABLE:
-				OutputDebugString(L"D3DRS_POINTSPRITEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSCALEENABLE:
-				OutputDebugString(L"D3DRS_POINTSCALEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSCALE_A:
-				OutputDebugString(L"D3DRS_POINTSCALE_A"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSCALE_B:
-				OutputDebugString(L"D3DRS_POINTSCALE_B"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSCALE_C:
-				OutputDebugString(L"D3DRS_POINTSCALE_C"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_MULTISAMPLEANTIALIAS:
-				OutputDebugString(L"D3DRS_MULTISAMPLEANTIALIAS"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_MULTISAMPLEMASK:
-				OutputDebugString(L"D3DRS_MULTISAMPLEMASK"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_PATCHEDGESTYLE:
-				OutputDebugString(L"D3DRS_PATCHEDGESTYLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_DEBUGMONITORTOKEN:
-				OutputDebugString(L"D3DRS_DEBUGMONITORTOKEN"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POINTSIZE_MAX:
-				OutputDebugString(L"D3DRS_POINTSIZE_MAX"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_INDEXEDVERTEXBLENDENABLE:
-				OutputDebugString(L"D3DRS_INDEXEDVERTEXBLENDENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_COLORWRITEENABLE:
-				OutputDebugString(L"D3DRS_COLORWRITEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_TWEENFACTOR:
-				OutputDebugString(L"D3DRS_TWEENFACTOR"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_BLENDOP:
-				OutputDebugString(L"D3DRS_BLENDOP"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_POSITIONDEGREE:
-				OutputDebugString(L"D3DRS_POSITIONDEGREE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_NORMALDEGREE:
-				OutputDebugString(L"D3DRS_NORMALDEGREE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SCISSORTESTENABLE:
-				OutputDebugString(L"D3DRS_SCISSORTESTENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SLOPESCALEDEPTHBIAS:
-				OutputDebugString(L"D3DRS_SLOPESCALEDEPTHBIAS"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ANTIALIASEDLINEENABLE:
-				OutputDebugString(L"D3DRS_ANTIALIASEDLINEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_MINTESSELLATIONLEVEL:
-				OutputDebugString(L"D3DRS_MINTESSELLATIONLEVEL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_MAXTESSELLATIONLEVEL:
-				OutputDebugString(L"D3DRS_MAXTESSELLATIONLEVEL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ADAPTIVETESS_X:
-				OutputDebugString(L"D3DRS_ADAPTIVETESS_X"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ADAPTIVETESS_Y:
-				OutputDebugString(L"D3DRS_ADAPTIVETESS_Y"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ADAPTIVETESS_Z:
-				OutputDebugString(L"D3DRS_ADAPTIVETESS_Z"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ADAPTIVETESS_W:
-				OutputDebugString(L"D3DRS_ADAPTIVETESS_W"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_ENABLEADAPTIVETESSELLATION:
-				OutputDebugString(L"D3DRS_ENABLEADAPTIVETESSELLATION"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_TWOSIDEDSTENCILMODE:
-				OutputDebugString(L"D3DRS_TWOSIDEDSTENCILMODE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CCW_STENCILFAIL:
-				OutputDebugString(L"D3DRS_CCW_STENCILFAIL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CCW_STENCILZFAIL:
-				OutputDebugString(L"D3DRS_CCW_STENCILZFAIL"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CCW_STENCILPASS:
-				OutputDebugString(L"D3DRS_CCW_STENCILPASS"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_CCW_STENCILFUNC:
-				OutputDebugString(L"D3DRS_CCW_STENCILFUNC"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_COLORWRITEENABLE1:
-				OutputDebugString(L"D3DRS_COLORWRITEENABLE1"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_COLORWRITEENABLE2:
-				OutputDebugString(L"D3DRS_COLORWRITEENABLE2"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_COLORWRITEENABLE3:
-				OutputDebugString(L"D3DRS_COLORWRITEENABLE3"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_BLENDFACTOR:
-				OutputDebugString(L"D3DRS_BLENDFACTOR"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SRGBWRITEENABLE:
-				OutputDebugString(L"D3DRS_SRGBWRITEENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_DEPTHBIAS:
-				OutputDebugString(L"D3DRS_DEPTHBIAS"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP8:
-				OutputDebugString(L"D3DRS_WRAP8"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP9:
-				OutputDebugString(L"D3DRS_WRAP9"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP10:
-				OutputDebugString(L"D3DRS_WRAP10"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP11:
-				OutputDebugString(L"D3DRS_WRAP11"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP12:
-				OutputDebugString(L"D3DRS_WRAP12"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP13:
-				OutputDebugString(L"D3DRS_WRAP13"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP14:
-				OutputDebugString(L"D3DRS_WRAP14"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_WRAP15:
-				OutputDebugString(L"D3DRS_WRAP15"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SEPARATEALPHABLENDENABLE:
-				OutputDebugString(L"D3DRS_SEPARATEALPHABLENDENABLE"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_SRCBLENDALPHA:
-				OutputDebugString(L"D3DRS_SRCBLENDALPHA"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_DESTBLENDALPHA:
-				OutputDebugString(L"D3DRS_DESTBLENDALPHA"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_BLENDOPALPHA:
-				OutputDebugString(L"D3DRS_BLENDOPALPHA"); DEBUG_UINT(Value);
-				break;
-			case D3DRS_FORCE_DWORD:
-				OutputDebugString(L"D3DRS_FORCE_DWORD"); DEBUG_UINT(Value);
-				break;
-			default:
-				break;
+		case D3DRS_ZENABLE:
+			OutputDebugString(L"D3DRS_ZENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FILLMODE:
+			OutputDebugString(L"D3DRS_FILLMODE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SHADEMODE:
+			OutputDebugString(L"D3DRS_SHADEMODE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ZWRITEENABLE:
+			OutputDebugString(L"D3DRS_ZWRITEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ALPHATESTENABLE:
+			OutputDebugString(L"D3DRS_ALPHATESTENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_LASTPIXEL:
+			OutputDebugString(L"D3DRS_LASTPIXEL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SRCBLEND:
+			OutputDebugString(L"D3DRS_SRCBLEND"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_DESTBLEND:
+			OutputDebugString(L"D3DRS_DESTBLEND"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CULLMODE:
+			OutputDebugString(L"D3DRS_CULLMODE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ZFUNC:
+			OutputDebugString(L"D3DRS_ZFUNC"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ALPHAREF:
+			OutputDebugString(L"D3DRS_ALPHAREF"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ALPHAFUNC:
+			OutputDebugString(L"D3DRS_ALPHAFUNC"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_DITHERENABLE:
+			OutputDebugString(L"D3DRS_DITHERENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ALPHABLENDENABLE:
+			OutputDebugString(L"D3DRS_ALPHABLENDENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGENABLE:
+			OutputDebugString(L"D3DRS_FOGENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SPECULARENABLE:
+			OutputDebugString(L"D3DRS_SPECULARENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGCOLOR:
+			OutputDebugString(L"D3DRS_FOGCOLOR"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGTABLEMODE:
+			OutputDebugString(L"D3DRS_FOGTABLEMODE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGSTART:
+			OutputDebugString(L"D3DRS_FOGSTART"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGEND:
+			OutputDebugString(L"D3DRS_FOGEND"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGDENSITY:
+			OutputDebugString(L"D3DRS_FOGDENSITY"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_RANGEFOGENABLE:
+			OutputDebugString(L"D3DRS_RANGEFOGENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILENABLE:
+			OutputDebugString(L"D3DRS_STENCILENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILFAIL:
+			OutputDebugString(L"D3DRS_STENCILFAIL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILZFAIL:
+			OutputDebugString(L"D3DRS_STENCILZFAIL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILPASS:
+			OutputDebugString(L"D3DRS_STENCILPASS"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILFUNC:
+			OutputDebugString(L"D3DRS_STENCILFUNC"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILREF:
+			OutputDebugString(L"D3DRS_STENCILREF"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILMASK:
+			OutputDebugString(L"D3DRS_STENCILMASK"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_STENCILWRITEMASK:
+			OutputDebugString(L"D3DRS_STENCILWRITEMASK"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_TEXTUREFACTOR:
+			OutputDebugString(L"D3DRS_TEXTUREFACTOR"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP0:
+			OutputDebugString(L"D3DRS_WRAP0"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP1:
+			OutputDebugString(L"D3DRS_WRAP1"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP2:
+			OutputDebugString(L"D3DRS_WRAP2"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP3:
+			OutputDebugString(L"D3DRS_WRAP3"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP4:
+			OutputDebugString(L"D3DRS_WRAP4"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP5:
+			OutputDebugString(L"D3DRS_WRAP5"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP6:
+			OutputDebugString(L"D3DRS_WRAP6"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP7:
+			OutputDebugString(L"D3DRS_WRAP7"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CLIPPING:
+			OutputDebugString(L"D3DRS_CLIPPING"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_LIGHTING:
+			OutputDebugString(L"D3DRS_LIGHTING"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_AMBIENT:
+			OutputDebugString(L"D3DRS_AMBIENT"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FOGVERTEXMODE:
+			OutputDebugString(L"D3DRS_FOGVERTEXMODE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_COLORVERTEX:
+			OutputDebugString(L"D3DRS_COLORVERTEX"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_LOCALVIEWER:
+			OutputDebugString(L"D3DRS_LOCALVIEWER"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_NORMALIZENORMALS:
+			OutputDebugString(L"D3DRS_NORMALIZENORMALS"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_DIFFUSEMATERIALSOURCE:
+			OutputDebugString(L"D3DRS_DIFFUSEMATERIALSOURCE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SPECULARMATERIALSOURCE:
+			OutputDebugString(L"D3DRS_SPECULARMATERIALSOURCE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_AMBIENTMATERIALSOURCE:
+			OutputDebugString(L"D3DRS_AMBIENTMATERIALSOURCE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_EMISSIVEMATERIALSOURCE:
+			OutputDebugString(L"D3DRS_EMISSIVEMATERIALSOURCE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_VERTEXBLEND:
+			OutputDebugString(L"D3DRS_VERTEXBLEND"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CLIPPLANEENABLE:
+			OutputDebugString(L"D3DRS_CLIPPLANEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSIZE:
+			OutputDebugString(L"D3DRS_POINTSIZE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSIZE_MIN:
+			OutputDebugString(L"D3DRS_POINTSIZE_MIN"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSPRITEENABLE:
+			OutputDebugString(L"D3DRS_POINTSPRITEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSCALEENABLE:
+			OutputDebugString(L"D3DRS_POINTSCALEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSCALE_A:
+			OutputDebugString(L"D3DRS_POINTSCALE_A"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSCALE_B:
+			OutputDebugString(L"D3DRS_POINTSCALE_B"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSCALE_C:
+			OutputDebugString(L"D3DRS_POINTSCALE_C"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_MULTISAMPLEANTIALIAS:
+			OutputDebugString(L"D3DRS_MULTISAMPLEANTIALIAS"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_MULTISAMPLEMASK:
+			OutputDebugString(L"D3DRS_MULTISAMPLEMASK"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_PATCHEDGESTYLE:
+			OutputDebugString(L"D3DRS_PATCHEDGESTYLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_DEBUGMONITORTOKEN:
+			OutputDebugString(L"D3DRS_DEBUGMONITORTOKEN"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POINTSIZE_MAX:
+			OutputDebugString(L"D3DRS_POINTSIZE_MAX"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_INDEXEDVERTEXBLENDENABLE:
+			OutputDebugString(L"D3DRS_INDEXEDVERTEXBLENDENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_COLORWRITEENABLE:
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_TWEENFACTOR:
+			OutputDebugString(L"D3DRS_TWEENFACTOR"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_BLENDOP:
+			OutputDebugString(L"D3DRS_BLENDOP"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_POSITIONDEGREE:
+			OutputDebugString(L"D3DRS_POSITIONDEGREE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_NORMALDEGREE:
+			OutputDebugString(L"D3DRS_NORMALDEGREE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SCISSORTESTENABLE:
+			OutputDebugString(L"D3DRS_SCISSORTESTENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SLOPESCALEDEPTHBIAS:
+			OutputDebugString(L"D3DRS_SLOPESCALEDEPTHBIAS"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ANTIALIASEDLINEENABLE:
+			OutputDebugString(L"D3DRS_ANTIALIASEDLINEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_MINTESSELLATIONLEVEL:
+			OutputDebugString(L"D3DRS_MINTESSELLATIONLEVEL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_MAXTESSELLATIONLEVEL:
+			OutputDebugString(L"D3DRS_MAXTESSELLATIONLEVEL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ADAPTIVETESS_X:
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_X"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ADAPTIVETESS_Y:
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_Y"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ADAPTIVETESS_Z:
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_Z"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ADAPTIVETESS_W:
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_W"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_ENABLEADAPTIVETESSELLATION:
+			OutputDebugString(L"D3DRS_ENABLEADAPTIVETESSELLATION"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_TWOSIDEDSTENCILMODE:
+			OutputDebugString(L"D3DRS_TWOSIDEDSTENCILMODE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CCW_STENCILFAIL:
+			OutputDebugString(L"D3DRS_CCW_STENCILFAIL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CCW_STENCILZFAIL:
+			OutputDebugString(L"D3DRS_CCW_STENCILZFAIL"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CCW_STENCILPASS:
+			OutputDebugString(L"D3DRS_CCW_STENCILPASS"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_CCW_STENCILFUNC:
+			OutputDebugString(L"D3DRS_CCW_STENCILFUNC"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_COLORWRITEENABLE1:
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE1"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_COLORWRITEENABLE2:
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE2"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_COLORWRITEENABLE3:
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE3"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_BLENDFACTOR:
+			OutputDebugString(L"D3DRS_BLENDFACTOR"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SRGBWRITEENABLE:
+			OutputDebugString(L"D3DRS_SRGBWRITEENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_DEPTHBIAS:
+			OutputDebugString(L"D3DRS_DEPTHBIAS"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP8:
+			OutputDebugString(L"D3DRS_WRAP8"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP9:
+			OutputDebugString(L"D3DRS_WRAP9"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP10:
+			OutputDebugString(L"D3DRS_WRAP10"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP11:
+			OutputDebugString(L"D3DRS_WRAP11"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP12:
+			OutputDebugString(L"D3DRS_WRAP12"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP13:
+			OutputDebugString(L"D3DRS_WRAP13"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP14:
+			OutputDebugString(L"D3DRS_WRAP14"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_WRAP15:
+			OutputDebugString(L"D3DRS_WRAP15"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SEPARATEALPHABLENDENABLE:
+			OutputDebugString(L"D3DRS_SEPARATEALPHABLENDENABLE"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_SRCBLENDALPHA:
+			OutputDebugString(L"D3DRS_SRCBLENDALPHA"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_DESTBLENDALPHA:
+			OutputDebugString(L"D3DRS_DESTBLENDALPHA"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_BLENDOPALPHA:
+			OutputDebugString(L"D3DRS_BLENDOPALPHA"); DEBUG_UINT(Value);
+			break;
+		case D3DRS_FORCE_DWORD:
+			OutputDebugString(L"D3DRS_FORCE_DWORD"); DEBUG_UINT(Value);
+			break;
+		default:
+			break;
 		}
 	}
 #endif
@@ -2493,15 +2482,15 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetRenderState(IDirect3DDevice9* pcThis, D3
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetRenderState_Super(pcThis, State, Value);
-	}
+		}
 	else nHr = D3D9_IDirect3DDevice9_SetRenderState_Super(pcThis, State, Value);
 
 	return nHr;
-}
+	}
 
 /**
 *
@@ -2527,7 +2516,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetRenderState(IDirect3DDevice9* pcThis, D3
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetRenderState_Super(pcThis, State, pValue);
@@ -2561,7 +2550,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateStateBlock(IDirect3DDevice9* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2597,7 +2586,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::BeginStateBlock(IDirect3DDevice9* pcThis)
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::BeginStateBlock]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_BeginStateBlock_Super(pcThis);
@@ -2630,7 +2619,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::EndStateBlock(IDirect3DDevice9* pcThis, IDi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::EndStateBlock]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -2670,7 +2659,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetClipStatus(IDirect3DDevice9* pcThis, CON
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetClipStatus]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetClipStatus_Super(pcThis, pClipStatus);
@@ -2703,7 +2692,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetClipStatus(IDirect3DDevice9* pcThis, D3D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetClipStatus]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetClipStatus_Super(pcThis, pClipStatus);
@@ -2737,7 +2726,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetTexture(IDirect3DDevice9* pcThis, DWORD 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetTexture_Super(pcThis, Stage, ppTexture);
@@ -2771,7 +2760,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetTexture(IDirect3DDevice9* pcThis, DWORD 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetTexture_Super(pcThis, Stage, pTexture);
@@ -2807,7 +2796,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetTextureStageState(IDirect3DDevice9* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetTextureStageState_Super(pcThis, Stage, Type, pValue);
@@ -2842,7 +2831,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetTextureStageState(IDirect3DDevice9* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetTextureStageState_Super(pcThis, Stage, Type, Value);
@@ -2877,7 +2866,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetSamplerState(IDirect3DDevice9* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetSamplerState_Super(pcThis, Sampler, Type, pValue);
@@ -2912,7 +2901,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetSamplerState(IDirect3DDevice9* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetSamplerState_Super(pcThis, Sampler, Type, Value);
@@ -2945,7 +2934,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::ValidateDevice(IDirect3DDevice9* pcThis, DW
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::ValidateDevice]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_ValidateDevice_Super(pcThis, pNumPasses);
@@ -2979,7 +2968,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetPaletteEntries(IDirect3DDevice9* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetPaletteEntries_Super(pcThis, PaletteNumber, pEntries);
@@ -3013,7 +3002,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetPaletteEntries(IDirect3DDevice9* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetPaletteEntries_Super(pcThis, PaletteNumber, pEntries);
@@ -3046,7 +3035,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetCurrentTexturePalette(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetCurrentTexturePalette_Super(pcThis, PaletteNumber);
@@ -3059,7 +3048,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetCurrentTexturePalette(IDirect3DDevice9* 
 /**
 *
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9::GetCurrentTexturePalette(IDirect3DDevice9* pcThis, UINT *PaletteNumber)
+HRESULT WINAPI DCL_IDirect3DDevice9::GetCurrentTexturePalette(IDirect3DDevice9* pcThis, UINT* PaletteNumber)
 {
 	static HRESULT nHr = S_OK;
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9(L"IDirect3DDevice9::GetCurrentTexturePalette");
@@ -3079,7 +3068,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetCurrentTexturePalette(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetCurrentTexturePalette_Super(pcThis, PaletteNumber);
@@ -3112,7 +3101,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetScissorRect(IDirect3DDevice9* pcThis, CO
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetScissorRect]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetScissorRect_Super(pcThis, pRect);
@@ -3145,7 +3134,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetScissorRect(IDirect3DDevice9* pcThis, RE
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetScissorRect]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetScissorRect_Super(pcThis, pRect);
@@ -3178,7 +3167,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetSoftwareVertexProcessing(IDirect3DDevice
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetSoftwareVertexProcessing_Super(pcThis, bSoftware);
@@ -3208,7 +3197,7 @@ BOOL WINAPI DCL_IDirect3DDevice9::GetSoftwareVertexProcessing(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nB = (BOOL)*(BOOL*)pvRet;
+			nB = (BOOL) * (BOOL*)pvRet;
 			return nB;
 		}
 		else
@@ -3243,7 +3232,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetNPatchMode(IDirect3DDevice9* pcThis, flo
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetNPatchMode]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetNPatchMode_Super(pcThis, nSegments);
@@ -3320,7 +3309,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DrawPrimitive(IDirect3DDevice9* pcThis, D3D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DrawPrimitive_Super(pcThis, PrimitiveType, StartVertex, PrimitiveCount);
@@ -3366,7 +3355,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DrawIndexedPrimitive(IDirect3DDevice9* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DrawIndexedPrimitive_Super(pcThis, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
@@ -3408,7 +3397,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DrawPrimitiveUP(IDirect3DDevice9* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DrawPrimitiveUP_Super(pcThis, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
@@ -3454,7 +3443,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DrawIndexedPrimitiveUP(IDirect3DDevice9* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DrawIndexedPrimitiveUP_Super(pcThis, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
@@ -3492,7 +3481,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::ProcessVertices(IDirect3DDevice9* pcThis, U
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_ProcessVertices_Super(pcThis, SrcStartIndex, DestIndex, VertexCount, pDestBuffer, pVertexDecl, Flags);
@@ -3526,7 +3515,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateVertexDeclaration(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_CreateVertexDeclaration_Super(pcThis, pVertexElements, ppDecl);
@@ -3559,7 +3548,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetVertexDeclaration(IDirect3DDevice9* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetVertexDeclaration_Super(pcThis, pDecl);
@@ -3591,7 +3580,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetVertexDeclaration(IDirect3DDevice9* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetVertexDeclaration_Super(pcThis, ppDecl);
@@ -3626,7 +3615,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetFVF(IDirect3DDevice9* pcThis, DWORD FVF)
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetFVF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetFVF_Super(pcThis, FVF);
@@ -3659,7 +3648,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetFVF(IDirect3DDevice9* pcThis, DWORD* pFV
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetFVF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetFVF_Super(pcThis, pFVF);
@@ -3698,7 +3687,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateVertexShader(IDirect3DDevice9* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -3740,7 +3729,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetVertexShader(IDirect3DDevice9* pcThis, I
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetVertexShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else
@@ -3775,7 +3764,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetVertexShader(IDirect3DDevice9* pcThis, I
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetVertexShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetVertexShader_Super(pcThis, ppShader);
@@ -3809,7 +3798,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetVertexShaderConstantF(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetVertexShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
@@ -3843,7 +3832,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetVertexShaderConstantF(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetVertexShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
@@ -3878,7 +3867,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetVertexShaderConstantI(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetVertexShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
@@ -3913,7 +3902,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetVertexShaderConstantI(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetVertexShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
@@ -3948,7 +3937,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetVertexShaderConstantB(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetVertexShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
@@ -3983,7 +3972,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetVertexShaderConstantB(IDirect3DDevice9* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetVertexShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
@@ -4019,7 +4008,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetStreamSource(IDirect3DDevice9* pcThis, U
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetStreamSource]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetStreamSource_Super(pcThis, StreamNumber, pStreamData, OffsetInBytes, Stride);
@@ -4055,7 +4044,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetStreamSource(IDirect3DDevice9* pcThis, U
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetStreamSource]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetStreamSource_Super(pcThis, StreamNumber, ppStreamData, pOffsetInBytes, pStride);
@@ -4089,7 +4078,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetStreamSourceFreq(IDirect3DDevice9* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetStreamSourceFreq_Super(pcThis, StreamNumber, Setting);
@@ -4123,7 +4112,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetStreamSourceFreq(IDirect3DDevice9* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetStreamSourceFreq_Super(pcThis, StreamNumber, pSetting);
@@ -4156,7 +4145,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetIndices(IDirect3DDevice9* pcThis, IDirec
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetIndices]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetIndices_Super(pcThis, pIndexData);
@@ -4189,7 +4178,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetIndices(IDirect3DDevice9* pcThis, IDirec
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetIndices]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetIndices_Super(pcThis, ppIndexData);
@@ -4224,7 +4213,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreatePixelShader(IDirect3DDevice9* pcThis,
 			// get return value.. MUST be STATIC !
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 	}
@@ -4265,7 +4254,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetPixelShader(IDirect3DDevice9* pcThis, ID
 			// get return value.. MUST be STATIC !
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else
@@ -4300,7 +4289,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetPixelShader(IDirect3DDevice9* pcThis, ID
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetPixelShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetPixelShader_Super(pcThis, ppShader);
@@ -4335,7 +4324,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetPixelShaderConstantF(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetPixelShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
@@ -4370,7 +4359,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetPixelShaderConstantF(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetPixelShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
@@ -4405,7 +4394,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetPixelShaderConstantI(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetPixelShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
@@ -4440,7 +4429,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetPixelShaderConstantI(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetPixelShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
@@ -4475,7 +4464,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetPixelShaderConstantB(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_SetPixelShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
@@ -4510,7 +4499,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::GetPixelShaderConstantB(IDirect3DDevice9* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_GetPixelShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
@@ -4547,7 +4536,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DrawRectPatch(IDirect3DDevice9* pcThis, UIN
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DrawRectPatch_Super(pcThis, Handle, pNumSegs, pRectPatchInfo);
@@ -4583,7 +4572,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DrawTriPatch(IDirect3DDevice9* pcThis, UINT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DrawTriPatch_Super(pcThis, Handle, pNumSegs, pTriPatchInfo);
@@ -4616,7 +4605,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::DeletePatch(IDirect3DDevice9* pcThis, UINT 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::DeletePatch]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_DeletePatch_Super(pcThis, Handle);
@@ -4650,7 +4639,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9::CreateQuery(IDirect3DDevice9* pcThis, D3DQU
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			nHr = (HRESULT)*(HRESULT*)pvRet;
+			nHr = (HRESULT) * (HRESULT*)pvRet;
 			return nHr;
 		}
 		else nHr = D3D9_IDirect3DDevice9_CreateQuery_Super(pcThis, Type, ppQuery);
@@ -4673,9 +4662,9 @@ HRESULT DCL_IDirect3DDevice9::SetSuperFunctionPointer(VMT_IUNKNOWN::VMT_IUnknown
 	switch (eFunc)
 	{
 		/*** IUnknown super methods ***/
-		case VMT_IUNKNOWN::QueryInterface:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_QueryInterface_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IUNKNOWN::AddRef:                      *(PUINT_PTR)&D3D9_IDirect3DDevice9_AddRef_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IUNKNOWN::Release:                     *(PUINT_PTR)&D3D9_IDirect3DDevice9_Release_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IUNKNOWN::QueryInterface:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_QueryInterface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IUNKNOWN::AddRef:                      *(PUINT_PTR)&D3D9_IDirect3DDevice9_AddRef_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IUNKNOWN::Release:                     *(PUINT_PTR)&D3D9_IDirect3DDevice9_Release_Super = (UINT_PTR)dwFunc; break;
 	}
 
 	return S_OK;
@@ -4691,122 +4680,122 @@ HRESULT DCL_IDirect3DDevice9::SetSuperFunctionPointer(VMT_IDIRECT3DDEVICE9::VMT_
 	switch (eFunc)
 	{
 		/*** IDirect3DDevice9 super methods ***/
-		case VMT_IDIRECT3DDEVICE9::TestCooperativeLevel:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_TestCooperativeLevel_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetAvailableTextureMem_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::EvictManagedResources:       *(PUINT_PTR)&D3D9_IDirect3DDevice9_EvictManagedResources_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetDirect3D:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDirect3D_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetDeviceCaps:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDeviceCaps_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetDisplayMode:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDisplayMode_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetCreationParameters:       *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetCreationParameters_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetCursorProperties:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetCursorProperties_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetCursorPosition:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetCursorPosition_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::ShowCursor:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_ShowCursor_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain:   *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateAdditionalSwapChain_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetSwapChain:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetSwapChain_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains:       *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetNumberOfSwapChains_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::Reset:                       *(PUINT_PTR)&D3D9_IDirect3DDevice9_Reset_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::Present:                     *(PUINT_PTR)&D3D9_IDirect3DDevice9_Present_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetBackBuffer:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetBackBuffer_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetRasterStatus:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRasterStatus_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetDialogBoxMode:            *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetDialogBoxMode_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetGammaRamp:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetGammaRamp_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetGammaRamp:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetGammaRamp_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateTexture:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateTexture_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateVolumeTexture:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVolumeTexture_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateCubeTexture:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateCubeTexture_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateVertexBuffer:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVertexBuffer_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateIndexBuffer:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateIndexBuffer_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateRenderTarget:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateRenderTarget_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface:   *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::UpdateSurface:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_UpdateSurface_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::UpdateTexture:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_UpdateTexture_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetRenderTargetData:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRenderTargetData_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetFrontBufferData:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetFrontBufferData_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::StretchRect:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_StretchRect_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::ColorFill:                   *(PUINT_PTR)&D3D9_IDirect3DDevice9_ColorFill_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface: *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateOffscreenPlainSurface_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetRenderTarget:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetRenderTarget_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetRenderTarget:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRenderTarget_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::BeginScene:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_BeginScene_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::EndScene:                    *(PUINT_PTR)&D3D9_IDirect3DDevice9_EndScene_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::Clear:                       *(PUINT_PTR)&D3D9_IDirect3DDevice9_Clear_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetTransform:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetTransform_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetTransform:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetTransform_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::MultiplyTransform:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_MultiplyTransform_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetViewport:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetViewport_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetViewport:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetViewport_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetMaterial:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetMaterial_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetMaterial:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetMaterial_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetLight:                    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetLight_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetLight:                    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetLight_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::LightEnable:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_LightEnable_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetLightEnable:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetLightEnable_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetClipPlane:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetClipPlane_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetClipPlane:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetClipPlane_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetRenderState:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetRenderState_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetRenderState:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRenderState_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateStateBlock:            *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateStateBlock_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::BeginStateBlock:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_BeginStateBlock_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::EndStateBlock:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_EndStateBlock_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetClipStatus:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetClipStatus_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetClipStatus:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetClipStatus_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetTexture:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetTexture_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetTexture:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetTexture_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetTextureStageState:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetTextureStageState_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetTextureStageState:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetTextureStageState_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetSamplerState:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetSamplerState_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetSamplerState:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetSamplerState_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::ValidateDevice:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_ValidateDevice_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetPaletteEntries:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPaletteEntries_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetPaletteEntries:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPaletteEntries_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetCurrentTexturePalette_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetCurrentTexturePalette_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetScissorRect:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetScissorRect_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetScissorRect:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetScissorRect_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing: *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetSoftwareVertexProcessing_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing: *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetSoftwareVertexProcessing_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetNPatchMode:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetNPatchMode_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetNPatchMode:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetNPatchMode_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DrawPrimitive:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawPrimitive_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawIndexedPrimitive_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawPrimitiveUP_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawIndexedPrimitiveUP_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::ProcessVertices:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_ProcessVertices_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetVertexDeclaration:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetVertexDeclaration:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetFVF:                      *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetFVF_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetFVF:                      *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetFVF_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateVertexShader:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVertexShader_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetVertexShader:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShader_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetVertexShader:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShader_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShaderConstantF_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShaderConstantF_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShaderConstantI_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShaderConstantI_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShaderConstantB_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShaderConstantB_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetStreamSource:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetStreamSource_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetStreamSource:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetStreamSource_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetStreamSourceFreq_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetStreamSourceFreq_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetIndices:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetIndices_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetIndices:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetIndices_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreatePixelShader:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreatePixelShader_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetPixelShader:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShader_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetPixelShader:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShader_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShaderConstantF_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShaderConstantF_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShaderConstantI_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShaderConstantI_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShaderConstantB_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShaderConstantB_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DrawRectPatch:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawRectPatch_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DrawTriPatch:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawTriPatch_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::DeletePatch:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_DeletePatch_Super = (UINT_PTR)dwFunc; break;
-		case VMT_IDIRECT3DDEVICE9::CreateQuery:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateQuery_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::TestCooperativeLevel:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_TestCooperativeLevel_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetAvailableTextureMem_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::EvictManagedResources:       *(PUINT_PTR)&D3D9_IDirect3DDevice9_EvictManagedResources_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDirect3D:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDirect3D_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDeviceCaps:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDeviceCaps_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDisplayMode:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDisplayMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetCreationParameters:       *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetCreationParameters_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetCursorProperties:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetCursorProperties_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetCursorPosition:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetCursorPosition_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ShowCursor:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_ShowCursor_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain:   *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateAdditionalSwapChain_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetSwapChain:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetSwapChain_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains:       *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetNumberOfSwapChains_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::Reset:                       *(PUINT_PTR)&D3D9_IDirect3DDevice9_Reset_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::Present:                     *(PUINT_PTR)&D3D9_IDirect3DDevice9_Present_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetBackBuffer:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetBackBuffer_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRasterStatus:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRasterStatus_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetDialogBoxMode:            *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetDialogBoxMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetGammaRamp:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetGammaRamp_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetGammaRamp:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetGammaRamp_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateTexture:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVolumeTexture:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVolumeTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateCubeTexture:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateCubeTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVertexBuffer:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVertexBuffer_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateIndexBuffer:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateIndexBuffer_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateRenderTarget:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateRenderTarget_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface:   *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::UpdateSurface:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_UpdateSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::UpdateTexture:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_UpdateTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRenderTargetData:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRenderTargetData_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetFrontBufferData:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetFrontBufferData_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::StretchRect:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_StretchRect_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ColorFill:                   *(PUINT_PTR)&D3D9_IDirect3DDevice9_ColorFill_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface: *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateOffscreenPlainSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetRenderTarget:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetRenderTarget_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRenderTarget:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRenderTarget_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::BeginScene:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_BeginScene_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::EndScene:                    *(PUINT_PTR)&D3D9_IDirect3DDevice9_EndScene_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::Clear:                       *(PUINT_PTR)&D3D9_IDirect3DDevice9_Clear_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetTransform:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetTransform_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetTransform:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetTransform_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::MultiplyTransform:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_MultiplyTransform_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetViewport:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetViewport_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetViewport:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetViewport_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetMaterial:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetMaterial_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetMaterial:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetMaterial_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetLight:                    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetLight_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetLight:                    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetLight_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::LightEnable:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_LightEnable_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetLightEnable:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetLightEnable_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetClipPlane:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetClipPlane_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetClipPlane:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetClipPlane_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetRenderState:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetRenderState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRenderState:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetRenderState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateStateBlock:            *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateStateBlock_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::BeginStateBlock:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_BeginStateBlock_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::EndStateBlock:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_EndStateBlock_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetClipStatus:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetClipStatus_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetClipStatus:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetClipStatus_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetTexture:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetTexture:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetTextureStageState:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetTextureStageState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetTextureStageState:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetTextureStageState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetSamplerState:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetSamplerState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetSamplerState:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetSamplerState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ValidateDevice:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_ValidateDevice_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPaletteEntries:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPaletteEntries_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPaletteEntries:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPaletteEntries_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetCurrentTexturePalette_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetCurrentTexturePalette_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetScissorRect:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetScissorRect_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetScissorRect:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetScissorRect_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing: *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetSoftwareVertexProcessing_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing: *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetSoftwareVertexProcessing_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetNPatchMode:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetNPatchMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetNPatchMode:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetNPatchMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawPrimitive:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawPrimitive_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawIndexedPrimitive_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawPrimitiveUP_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP:      *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawIndexedPrimitiveUP_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ProcessVertices:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_ProcessVertices_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexDeclaration:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexDeclaration:        *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetFVF:                      *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetFVF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetFVF:                      *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetFVF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVertexShader:          *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateVertexShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShader:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShader:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetVertexShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB:    *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetVertexShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetStreamSource:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetStreamSource_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetStreamSource:             *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetStreamSource_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetStreamSourceFreq_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq:         *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetStreamSourceFreq_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetIndices:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetIndices_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetIndices:                  *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetIndices_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreatePixelShader:           *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreatePixelShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShader:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShader:              *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_SetPixelShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB:     *(PUINT_PTR)&D3D9_IDirect3DDevice9_GetPixelShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawRectPatch:               *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawRectPatch_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawTriPatch:                *(PUINT_PTR)&D3D9_IDirect3DDevice9_DrawTriPatch_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DeletePatch:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_DeletePatch_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateQuery:                 *(PUINT_PTR)&D3D9_IDirect3DDevice9_CreateQuery_Super = (UINT_PTR)dwFunc; break;
 	}
 	return S_OK;
 }

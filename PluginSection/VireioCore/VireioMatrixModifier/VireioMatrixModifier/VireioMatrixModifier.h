@@ -98,7 +98,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        21
+#define NUMBER_OF_DECOMMANDERS                        23
 #define GUI_HEIGHT                                   768
 #endif
 
@@ -219,6 +219,8 @@ enum struct STS_Decommanders
 	/*** D3D9 methods ***/
 	SetVertexShader,
 	SetPixelShader,
+	GetVertexShader,
+	GetPixelShader,
 	SetTransform,
 	MultiplyTransform,
 	SetVertexShaderConstantF,
@@ -845,6 +847,10 @@ private:
 	HRESULT SetVertexShader(int& nFlags);
 	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShader(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShader(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShader(int& nFlags);
 	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetTransform(int& nFlags);
 	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
