@@ -103,24 +103,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_UINT_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %u", t, a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 void debugf(const char* fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
-
-/// <summary>
-/// Simple hash code helper.
-/// </summary>
-inline uint32_t GetHashCode(BYTE* pcData, int32_t nLen, uint32_t uSeed)
-{
-	uint32_t uH = uSeed;
-
-	// create hash
-	for (int32_t i = 0; i < nLen; i++)
-	{
-		uH = 31 * uH + pcData[i];
-	}
-
-	return uH;
-}
 
 /// <summary>
 /// Node Commander Enumeration.
@@ -889,6 +875,53 @@ private:
 	HRESULT CreatePixelShader(int& nFlags);
 	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT VB_Apply(int& nFlags);
+
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShader_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShader_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShader_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShader_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetTransform_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT MultiplyTransform_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShaderConstantF_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShaderConstantF_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShaderConstantI_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShaderConstantI_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetVertexShaderConstantB_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetVertexShaderConstantB_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShaderConstantF_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShaderConstantF_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShaderConstantI_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShaderConstantI_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetPixelShaderConstantB_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetPixelShaderConstantB_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT SetStreamSource_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT GetStreamSource_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreateVertexShader_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT CreatePixelShader_Proxy(int& nFlags);
+	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
+	HRESULT VB_Apply_Proxy(int& nFlags);
 #pragma endregion
 #endif
 
