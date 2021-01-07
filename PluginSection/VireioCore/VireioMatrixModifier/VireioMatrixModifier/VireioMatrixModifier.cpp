@@ -3165,7 +3165,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 		for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asConstantDescriptions.size(); dwK++)
 		{
 			// get std::string and add to vector
-			std::string szNameA = std::string((*pasShaders)[dwIndex].asConstantDescriptions[dwK].Name);
+			std::string szNameA = std::string((*pasShaders)[dwIndex].asConstantDescriptions[dwK].acName);
 			m_aszShaderConstantsCurrent.push_back(szNameA);
 		}
 
@@ -3202,7 +3202,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 					for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asConstantDescriptions.size(); dwK++)
 					{
 						// convert to wstring
-						std::string szNameA = std::string((*pasShaders)[dwI].asConstantDescriptions[dwK].Name);
+						std::string szNameA = std::string((*pasShaders)[dwI].asConstantDescriptions[dwK].acName);
 						std::wstring szName(szNameA.begin(), szNameA.end());
 
 						// constant available in list ?
@@ -3983,7 +3983,9 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 #pragma endregion
 #else
 #pragma region /// => D3D9 methods
-/// <summary>=> Set Vertex Shader</summary>
+/// <summary> 
+/// => Set Vertex Shader
+/// </summary>
 /// <param name="nFlags">[in,out]Method call flags</param>
 /// <returns>D3D result</returns>
 HRESULT MatrixModifier::SetVertexShader(int& nFlags)
@@ -3993,6 +3995,45 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 
 	IDirect3DVertexShader9** ppcShader;
 	if (ppIn[0]) ppcShader = *(IDirect3DVertexShader9***)ppIn[0]; else return E_FAIL;
+	if (!*ppcShader)
+	{
+		// TODO ! nullptr
+	}
+	else
+	{
+		// get shader function size
+		UINT uSizeOfData = 0;
+		(*ppcShader)->GetFunction(NULL, &uSizeOfData);
+		if (uSizeOfData)
+		{
+			// .. and the function itself
+			std::vector<BYTE> acFunction(uSizeOfData);
+			(*ppcShader)->GetFunction(acFunction.data(), &uSizeOfData);
+
+			// get the creator index
+			UINT uCreatorIx = GetCreatorIndex((uint32_t*)acFunction.data());
+
+			if (uCreatorIx)
+			{
+				// provide the shader data by modified creator string
+				struct CreatorMod
+				{
+					union
+					{
+						struct
+						{
+							char acModHeader[4];
+							char acHash[8];
+							char acIndex[4];
+						};
+						char acCreator[16];
+					};
+				} *psModData = (CreatorMod*)&acFunction[uCreatorIx];
+				std::string acCreator = std::string(psModData->acCreator, 16);
+				OutputDebugStringA(acCreator.c_str());
+			}
+		}
+	}
 
 	return S_OK;
 }
@@ -4317,7 +4358,7 @@ HRESULT MatrixModifier::GetStreamSource(int& nFlags)
 /// => Create Vertex Shader
 /// </summary>
 /// <param name="nFlags">[in,out]Method call flags</param>
-/// <returns>D3D result</returns>
+/// <returns>D3D result, S_OK if not replaced</returns>
 HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 {
 	if (!m_ppInput[(int)STS_Decommanders::CreateVertexShader]) return S_OK;
@@ -4331,27 +4372,92 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 
 	// parse the shader
 	uint32_t* auFunc = (uint32_t*)(*ppuFunction);
-	uint32_t uSizeOfData = 0, uHash = 0;
+	uint32_t uSizeOfData = 0, uCreatorIx = 0, uHash = 0;
 	std::vector<VIREIO_D3D9_CONSTANT_DESC> asConstantDesc;
-	if (FAILED(ParseShaderFunction(auFunc, uSizeOfData, asConstantDesc, uHash, VIREIO_SEED)))
+	if (FAILED(ParseShaderFunction(auFunc, uSizeOfData, uCreatorIx, asConstantDesc, uHash, VIREIO_SEED)))
 	{
 		OutputDebugString(L"[MAM] Failed to parse shader function !!");
 		return S_OK;
 	}
-	
+
+	// create array by function
+	if (!uSizeOfData) return S_OK;
+	std::vector<BYTE> acFunction(uSizeOfData);
+	CopyMemory(acFunction.data(), (BYTE*)auFunc, uSizeOfData);
+
+	// no creator string text provided within function ?
+	if (!uCreatorIx)
+	{
+		// TODO !! CREATE CONSTANT TABLE BY HAND
+		OutputDebugString(L"[MAM] No Creator CTAB text present within shader byte code !!");
+		return S_OK;
+	}
+
+	// loop through shader list wether hash is present
+	bool bPresent = false;
+	uint32_t uShaderIx = 0;
+	for (UINT unI = 0; unI < (UINT)m_asVShaders.size(); unI++)
+	{
+		if (m_asVShaders[unI].dwHashCode == (UINT)uHash)
+		{
+			bPresent = true;
+			uShaderIx = (uint32_t)unI;
+		}
+	}
+
+	// add to shader list
+	if (!bPresent)
+	{
+		Vireio_D3D9_Shader sShaderDesc = {};
+		sShaderDesc.dwHashCode = (UINT)uHash;
+
+		// get the constant descriptions from that shader
+		sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(asConstantDesc.begin(), asConstantDesc.end());
+
+		// copy the name (LPCSTR) to a new string
+		for (UINT unI = 0; unI < (UINT)asConstantDesc.size(); unI++)
+		{
+			// copy name string
+			sShaderDesc.asConstantDescriptions[unI].acName = asConstantDesc[unI].acName;
+		}
+		uShaderIx = (uint32_t)m_asVShaders.size();
+		m_asVShaders.push_back(sShaderDesc);
+	}
+
+	// write down data to shader creator string hex strings
+	static const char* acDigits = "0123456789ABCDEF";
+	const char acModHeader[4] = { 'V', 'M', 'O', 'D' };
+	struct CreatorMod
+	{
+		char acModHeader[4];
+		char acHash[8];
+		char acIndex[4];
+	} *psModData = (CreatorMod*)&acFunction[uCreatorIx];
+	CopyMemory(psModData->acModHeader, acModHeader, 4);
+	for (size_t i = 0, j = (8 - 1) * 4; i < 8; ++i, j -= 4)
+		psModData->acHash[i] = acDigits[(uHash >> j) & 0x0f];
+	for (size_t i = 0, j = (4 - 1) * 4; i < 4; ++i, j -= 4)
+		psModData->acIndex[i] = acDigits[(uShaderIx >> j) & 0x0f];
+
+#ifdef _DEBUG_MAM
 	// output constants...
-	if (true)// m_bDebugOutput)
 	for (VIREIO_D3D9_CONSTANT_DESC sDesc : asConstantDesc)
 	{
 		OutputDebugStringA(sDesc.acName.c_str());
 	}
+	// and shader hash, size, creator string index
+	{ wchar_t buf[128]; wsprintf(buf, L"Hash %x:Size %u:CrIx %u", uHash, uSizeOfData, uCreatorIx); OutputDebugString(buf); }
+	if (uCreatorIx)
+	{
+		std::string acCreator = std::string((char*)&acFunction[uCreatorIx]);
+		OutputDebugStringA(acCreator.c_str());
+	}
+#endif		
 
-	// create array by function
-	//std::vector<BYTE> acFunction(uSizeOfData);
-	//CopyMemory(acFunction.data(), (BYTE*)(*ppuFunction), uSizeOfData);
-	
+	// create shader using modified function byte code and return
 	HRESULT nHr = S_OK;
-	
+	nHr = m_pcDeviceCurrent->CreateVertexShader((const DWORD*)acFunction.data(), *pppcShader);
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
 	return nHr;
 }
 
@@ -4906,7 +5012,7 @@ HRESULT MatrixModifier::CreateVertexShader_Proxy(int& nFlags)
 				for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
 				{
 					// copy name string
-					sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
+					sShaderDesc.asConstantDescriptions[unI].acName = (*pasConstants)[unI].acName;
 				}
 				m_asVShaders.push_back(sShaderDesc);
 			}
@@ -4973,7 +5079,7 @@ HRESULT MatrixModifier::CreatePixelShader_Proxy(int& nFlags)
 				for (UINT unI = 0; unI < (UINT)pasConstants->size(); unI++)
 				{
 					// copy name string
-					sShaderDesc.asConstantDescriptions[unI].Name = (*pasConstants)[unI].Name;
+					sShaderDesc.asConstantDescriptions[unI].acName = (*pasConstants)[unI].acName;
 				}
 				m_asPShaders.push_back(sShaderDesc);
 			}

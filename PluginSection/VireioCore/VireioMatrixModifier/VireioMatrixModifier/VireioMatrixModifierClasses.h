@@ -783,26 +783,22 @@ enum class Vireio_Supported_Shaders : int
 };
 
 /// <summary>
-/// Simple copy of the d3d x constant structure.
-/// With a std::string name and without a default value pointer.
+/// Simple copy of the D3D9 constant description
+/// basically equals D3DXCONSTANT_DESC
 /// </summary>
-typedef struct _SAFE_D3DXCONSTANT_DESC
+typedef struct VIREIO_D3D9_CONSTANT_DESC //_SAFE_D3DXCONSTANT_DESC
 {
-	std::string Name;                   /**< Constant name ***/
-
-	D3DXREGISTER_SET RegisterSet;       /**< Register set ***/
-	UINT RegisterIndex;                 /**< Register index ***/
-	UINT RegisterCount;                 /**< Number of registers occupied ***/
-
-	D3DXPARAMETER_CLASS Class;          /**<  Class ***/
-	D3DXPARAMETER_TYPE Type;            /**<  Component type ***/
-
-	UINT Rows;                          /**<  Number of rows ***/
-	UINT Columns;                       /**<  Number of columns ***/
-	UINT Elements;                      /**<  Number of array elements ***/
-	UINT StructMembers;                 /**<  Number of structure member sub-parameters ***/
-
-	UINT Bytes;                         /**<  Data size, in bytes ***/
+	std::string         acName;         /**< Constant name ***/
+	D3DXREGISTER_SET    eRegisterSet;   /**< Register set ***/
+	UINT                uRegisterIndex; /**< Register index ***/
+	UINT                uRegisterCount; /**< Number of registers occupied ***/
+	D3DXPARAMETER_CLASS eClass;         /**< Class ***/
+	D3DXPARAMETER_TYPE  eType;          /**< Component type ***/
+	UINT                uRows;          /**< Number of rows ***/
+	UINT                uColumns;       /**< Number of columns ***/
+	UINT                uElements;      /**< Number of array elements ***/
+	UINT                uStructMembers; /**< Number of structure member sub-parameters ***/
+	std::vector<float>  afDefaultValue; /**< Default value ***/
 } SAFE_D3DXCONSTANT_DESC;
 
 /// <summary>
@@ -964,17 +960,16 @@ public:
 				{
 					// add to constant vector
 					SAFE_D3DXCONSTANT_DESC sDesc = {};
-					sDesc.Name = std::string(pConstantDesc[unJ].Name);
-					sDesc.RegisterSet = pConstantDesc[unJ].RegisterSet;
-					sDesc.RegisterIndex = pConstantDesc[unJ].RegisterIndex;
-					sDesc.RegisterCount = pConstantDesc[unJ].RegisterCount;
-					sDesc.Class = pConstantDesc[unJ].Class;
-					sDesc.Type = pConstantDesc[unJ].Type;
-					sDesc.Rows = pConstantDesc[unJ].Rows;
-					sDesc.Columns = pConstantDesc[unJ].Columns;
-					sDesc.Elements = pConstantDesc[unJ].Elements;
-					sDesc.StructMembers = pConstantDesc[unJ].StructMembers;
-					sDesc.Bytes = pConstantDesc[unJ].Bytes;
+					sDesc.acName= std::string(pConstantDesc[unJ].Name);
+					sDesc.eRegisterSet = pConstantDesc[unJ].RegisterSet;
+					sDesc.uRegisterIndex = pConstantDesc[unJ].RegisterIndex;
+					sDesc.uRegisterCount = pConstantDesc[unJ].RegisterCount;
+					sDesc.eClass = pConstantDesc[unJ].Class;
+					sDesc.eType = pConstantDesc[unJ].Type;
+					sDesc.uRows = pConstantDesc[unJ].Rows;
+					sDesc.uColumns = pConstantDesc[unJ].Columns;
+					sDesc.uElements = pConstantDesc[unJ].Elements;
+					sDesc.uStructMembers = pConstantDesc[unJ].StructMembers;
 					m_asConstantDesc.push_back(sDesc);
 
 					// register count 1 (= vector) and 4 (= matrix) supported

@@ -61,25 +61,6 @@ constexpr uint32_t OPCODE_MASK_HI_FSS_UTF = 0x7FFF0000;
 constexpr uint32_t OPCODE_ID_CTAB = 0x42415443;
 
 /// <summary>
-/// D3D9 constant description
-/// basically equals D3DXCONSTANT_DESC
-/// </summary>
-struct VIREIO_D3D9_CONSTANT_DESC
-{
-	std::string         acName;
-	D3DXREGISTER_SET    eRegisterSet;
-	UINT                uRegisterIndex;
-	UINT                uRegisterCount;
-	D3DXPARAMETER_CLASS eClass;
-	D3DXPARAMETER_TYPE  eType;
-	UINT                uRows;
-	UINT                uColumns;
-	UINT                uElements;
-	UINT                uStructMembers;
-	std::vector<float>  afDefaultValue;
-};
-
-/// <summary>
 /// Known Shader Byte Code Chunk types
 /// </summary>
 enum struct ShaderChunkType : unsigned
@@ -153,11 +134,109 @@ inline uint32_t GetHashCode(BYTE* pcData, int32_t nLen, uint32_t uSeed)
 /// </summary>
 /// <param name="acFunc">Shader function byte code</param>
 /// <param name="uSizeOfData">Provides the size of the function</param>
+/// <param name="uCreatorIx">Provides the index of the creator string</param>
 /// <param name="asConstants">Provides the shader constants</param>
 /// <param name="uHash">Provides the hash code</param>
 /// <param name="uSeed">Hash code seed</param>
 /// <returns>S_OK if succeeded, E_ABORT if parsing aborted</returns>
-inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, std::vector<VIREIO_D3D9_CONSTANT_DESC>& asConstants, uint32_t& uHash, uint32_t uSeed)
+inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint32_t& uCreatorIx, std::vector<VIREIO_D3D9_CONSTANT_DESC>& asConstants, uint32_t& uHash, uint32_t uSeed)
+{
+	uint32_t* acPtr = acFunc;
+
+	// parse header
+	if (*acPtr != OPCODE_HEADER_UTF32_FLEXIBLE)
+	{
+		DEBUG_HEX(*acPtr);
+		DEBUG_HEX(OPCODE_HEADER_UTF32_FLEXIBLE);
+		return E_ABORT;
+	}
+	else
+		++acPtr;
+
+	// loop until footer
+	while (*acPtr != OPCODE_FOOTER_UTF32_FLEXIBLE)
+	{
+		// get byte order mark
+		if ((*acPtr & OPCODE_MASK_LO) == OPCODE_BYTEORDERMARK_LO)
+		{
+			// check for chunk type
+			ShaderChunkType eChunkType = ShaderChunkType::Unknown;
+			uint32_t uChunkSize = (*acPtr & OPCODE_MASK_HI_FSS_UTF) >> 16;
+			switch (*(acPtr + 1))
+			{
+			case OPCODE_ID_CTAB:
+				eChunkType = ShaderChunkType::CTAB;
+				break;
+			default:
+				acPtr += uChunkSize;
+				break;
+			}
+
+			switch (eChunkType)
+			{
+			case ShaderChunkType::CTAB:
+			{
+				// get CTAB data
+				const uint8_t* acCTAB = reinterpret_cast<const uint8_t*>(acPtr + 2);
+				size_t uCTABSize = (uChunkSize - 1) * 4;
+
+				const CTAB_Data* sCTable = reinterpret_cast<const CTAB_Data*>(acCTAB);
+				if (uCTABSize < sizeof(*sCTable) || sCTable->uSize != sizeof(*sCTable))
+					return E_ABORT;
+
+				// get creator name
+				std::string acCreator = (const char*)acCTAB + sCTable->uCreator;
+
+				// only provide creator string if size min 16
+				if (acCreator.length() >= 16)
+					uCreatorIx = sCTable->uCreator + (uint32_t)acCTAB - (uint32_t)acFunc;
+
+				// get constants
+				asConstants.reserve(sCTable->uConstantsNumber);
+				const CTAB_ConstantInfo* psInfo = reinterpret_cast<const CTAB_ConstantInfo*>(acCTAB + sCTable->uConstantInfo);
+				for (uint32_t i = 0; i < sCTable->uConstantsNumber; ++i)
+				{
+					const CTAB_ConstantType* psType = reinterpret_cast<const CTAB_ConstantType*>(acCTAB + psInfo[i].uTypeInfo);
+
+					// fill struct
+					VIREIO_D3D9_CONSTANT_DESC sDesc = {};
+					sDesc.acName = (const char*)acCTAB + psInfo[i].uName;
+					sDesc.eRegisterSet = static_cast<D3DXREGISTER_SET>(psInfo[i].uRegisterSet);
+					sDesc.uRegisterIndex = psInfo[i].uRegisterIndex;
+					sDesc.uRegisterCount = psInfo[i].uRegisterCount;
+					sDesc.uRows = psType->uRows;
+					sDesc.uColumns = psType->uColumns;
+					sDesc.uElements = psType->uElements;
+					sDesc.uStructMembers = psType->uStructMembers;
+					asConstants.push_back(sDesc);
+				}
+			}
+			break;
+			case ShaderChunkType::Unknown:
+				break;
+			default:
+				break;
+			}
+
+		}
+		// inc by byte-size
+		uint8_t* acP = (uint8_t*)acPtr;	acP++;
+		acPtr = (uint32_t*)acP;
+	}
+
+	// get the size and hash code
+	uSizeOfData = 4 + (uint32_t)acPtr - (uint32_t)acFunc;
+	uHash = GetHashCode((BYTE*)acFunc, (int32_t)uSizeOfData, VIREIO_SEED);
+
+	return S_OK;
+}
+
+/// <summary>
+/// Provides the index of the creator string within D3D9 shader function byte code.
+/// </summary>
+/// <param name="acFunc">Shader function byte code</param>
+/// <returns>Zero if no index found, otherwise the creator string index</returns>
+inline uint32_t GetCreatorIndex(uint32_t* acFunc)
 {
 	uint32_t* acPtr = acFunc;
 
@@ -202,29 +281,12 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, std:
 				if (uCTABSize < sizeof(*sCTable) || sCTable->uSize != sizeof(*sCTable))
 					return E_ABORT;
 
-				// get creator name // TODO !! OVERWRITE CREATOR WITH VIREIO DATA
-				std::string acCreator = (const char*)acCTAB + sCTable->uCreator; 
-				OutputDebugStringA(acCreator.c_str());
+				// get creator name
+				std::string acCreator = (const char*)acCTAB + sCTable->uCreator;
 
-				// get constants
-				asConstants.reserve(sCTable->uConstantsNumber);
-				const CTAB_ConstantInfo* psInfo = reinterpret_cast<const CTAB_ConstantInfo*>(acCTAB + sCTable->uConstantInfo);
-				for (uint32_t i = 0; i < sCTable->uConstantsNumber; ++i)
-				{
-					const CTAB_ConstantType* psType = reinterpret_cast<const CTAB_ConstantType*>(acCTAB + psInfo[i].uTypeInfo);
-
-					// fill struct
-					VIREIO_D3D9_CONSTANT_DESC sDesc = {};
-					sDesc.acName = (const char*)acCTAB + psInfo[i].uName;
-					sDesc.eRegisterSet = static_cast<D3DXREGISTER_SET>(psInfo[i].uRegisterSet);
-					sDesc.uRegisterIndex = psInfo[i].uRegisterIndex;
-					sDesc.uRegisterCount = psInfo[i].uRegisterCount;
-					sDesc.uRows = psType->uRows;
-					sDesc.uColumns = psType->uColumns;
-					sDesc.uElements = psType->uElements;
-					sDesc.uStructMembers = psType->uStructMembers;
-					asConstants.push_back(sDesc);
-				}
+				// only provide creator string if size min 16
+				if (acCreator.length() >= 16)
+					return sCTable->uCreator + (uint32_t)acCTAB - (uint32_t)acFunc;
 			}
 			break;
 			case ShaderChunkType::Unknown:
@@ -238,7 +300,8 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, std:
 		uint8_t* acP = (uint8_t*)acPtr;	acP++;
 		acPtr = (uint32_t*)acP;
 	}
-	return S_OK;
+
+	return 0;
 }
 
 /// <summary>
