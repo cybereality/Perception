@@ -499,24 +499,46 @@ private:
 	std::vector<Vireio_D3D9_Shader> m_asPShaders;
 	/// <summary>
 	/// The active vertex shader.
+	/// Only used if codemod method is active.
 	/// </summary>
-	IDirect3DManagedStereoShader9<IDirect3DVertexShader9>* m_pcActiveVertexShader;
+	IDirect3DVertexShader9* m_pcActiveVertexShader;
 	/// <summary>
 	/// The active pixel shader.
+	/// Only used if codemod method is active.
 	/// </summary>
-	IDirect3DManagedStereoShader9<IDirect3DPixelShader9>* m_pcActivePixelShader;
+	IDirect3DPixelShader9* m_pcActivePixelShader;
+	/// <summary>
+	/// The active vertex shader index.
+	/// Only used if codemod method is active.
+	/// </summary>
+	uint32_t m_uActiveVSIx;
+	/// <summary>
+	/// The active pixel shader index.
+	/// Only used if codemod method is active.
+	/// </summary>
+	uint32_t m_uActivePSIx;
+	/// <summary>
+	/// The active vertex shader.
+	/// Only used if proxy method is active.
+	/// </summary>
+	IDirect3DManagedStereoShader9<IDirect3DVertexShader9>* m_pcActiveVertexShaderProxy;
+	/// <summary>
+	/// The active pixel shader proxy.
+	/// Only used if proxy method is active.
+	/// </summary>
+	IDirect3DManagedStereoShader9<IDirect3DPixelShader9>* m_pcActivePixelShaderProxy;
 	/// <summary>
 	/// Shader-specific constant rule indices array.
 	/// </summary>
 	std::vector<Vireio_Hash_Rule_Index> m_asShaderSpecificRuleIndices;
 	/// <summary>
-	/// Shader register vector. Unmodified vertex shader constant data.
+	/// Shader register array. Unmodified vertex shader constant data.
 	/// 4 floats == 1 register (defined in VECTOR_LENGTH):
 	/// [0][1][2][3] would be the first register.
 	/// [4][5][6][7] the second, etc.
 	/// use RegisterIndex(x) to access first float in register
 	/// </summary>
-	std::vector<float> m_afRegistersVertex;
+	std::array<float, MAX_DX9_CONSTANT_REGISTERS* VECTOR_LENGTH> m_afRegistersVertex;
 	/// <summary>
 	/// Shader register vector. Unmodified pixel shader constant data.
 	/// 4 floats == 1 register (defined in VECTOR_LENGTH):
@@ -524,7 +546,7 @@ private:
 	/// [4][5][6][7] the second, etc.
 	/// use RegisterIndex(x) to access first float in register
 	/// </summary>
-	std::vector<float> m_afRegistersPixel;
+	std::array<float, MAX_DX9_CONSTANT_REGISTERS* VECTOR_LENGTH> m_afRegistersPixel;
 	/// <summary>
 	/// The currently provided D3D9 device.
 	/// </summary>
@@ -829,6 +851,10 @@ private:
 #pragma endregion
 #else
 #pragma region /// => D3D9 methods
+	/// <summary>
+	/// Handles shader constants and modifications (float).
+	/// </summary>
+	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide, float* afRegisters, Vireio_D3D9_Shader* psShader);
 	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShader(int& nFlags);
 	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>

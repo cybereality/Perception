@@ -111,7 +111,37 @@ struct CTAB_ConstantType
 	uint32_t uStructMemberInfo;
 };
 
+/// <summary>
+/// Structure used to write data to the shader function.
+/// </summary>
+struct CreatorMod
+{
+	union
+	{
+		struct
+		{
+			char acModHeader[4];
+			char acHash[8];
+			char acIndex[4];
+		};
+		char acCreator[16];
+	};
+};
+
 #pragma region inline helper
+/// <summary>
+/// Convertes unsigned to hex string.
+/// </summary>
+/// <param name="acString">Output string</param>
+/// <param name="uValue">Input value</param>
+/// <param name="uDigits">Number of digits</param>
+inline void HexString(char* acString, uint32_t uValue, uint8_t uDigits)
+{
+	static const char* acDigits = "0123456789ABCDEF";
+	for (size_t i = 0, j = (uDigits - 1) * 4; i < uDigits; ++i, j -= 4)
+		acString[i] = acDigits[(uValue >> j) & 0x0f];
+}
+
 /// <summary>
 /// Simple hash code helper.
 /// </summary>
@@ -412,14 +442,14 @@ struct Vireio_D3D11_Constant_Buffer
 /// </summary>
 struct Vireio_D3D11_Constant_Buffer_Unaccounted
 {
-	UINT                                      dwRegister;                 /**< The index of the shader constant register. ***/
-	UINT                                      dwSize;                     /**< The number of float constants in that buffer. ***/
+	UINT dwRegister;                 /**< The index of the shader constant register. ***/
+	UINT dwSize;                     /**< The number of float constants in that buffer. ***/
 	enum D3D11_Constant_Buffer_AccessPattern
 	{
 		immediateIndexed,
 		dynamicIndexed,
-	}                                         eAccessPattern;             /**< The way that the buffer will be accessed by shader code. ***/
-	INT                                       nConstantRulesIndex;        /**< The index of the constant rules used. (-1 = not addressed, -2 = no rules) ***/
+	}    eAccessPattern;             /**< The way that the buffer will be accessed by shader code. ***/
+	INT  nConstantRulesIndex;        /**< The index of the constant rules used. (-1 = not addressed, -2 = no rules) ***/
 };
 
 /// <summary>
@@ -427,18 +457,24 @@ struct Vireio_D3D11_Constant_Buffer_Unaccounted
 /// </summary>
 struct Vireio_Shader
 {
-	UINT                                                  dwVersion;                                    /**< Shader version ***/
-	CHAR                                                  szCreator[VIREIO_MAX_VARIABLE_NAME_LENGTH];   /**< Creator string ***/
-	UINT                                                  dwHashCode;                                   /**< This shaders hash code. ***/
+	uint32_t    uVersion;   /**< Shader version ***/
+	std::string acCreator;  /**< Creator string (unmodified) ***/
+	uint32_t    uHash;      /**< This shaders hash code. ***/
 };
 
 /// <summary>
 /// Vireio D3D9 shader description.
 /// Structure containing all necessary data for the IDirect3D(X)Shader9 interfaces.
+/// For DX9 the constant indices also contain the left/right modified constant data.
+/// The currently modified shader constant data contains 4 floats == 1 register (defined 
+/// in VECTOR_LENGTH). Provided by the last SetShaderConstantF update.
 /// </summary>
 struct Vireio_D3D9_Shader : public Vireio_Shader
 {
-	std::vector<SAFE_D3DXCONSTANT_DESC>                   asConstantDescriptions;                       /**< Shader constant descriptions. ***/
+	std::vector<SAFE_D3DXCONSTANT_DESC>                           asConstantDescriptions;       /**< Shader constant descriptions. ***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>                   asConstantRuleIndices;        /**< The indices of the shader rules assigned to that shader hash. ***/
+	std::array<float, MAX_DX9_CONSTANT_REGISTERS * VECTOR_LENGTH> afRegisterBuffer;             /**< Shader register buffer. ***/
+	std::array<uint32_t, MAX_DX9_CONSTANT_REGISTERS>              aunRegisterModificationIndex; /**< Index of modification for the specified register. ***/
 };
 
 /// <summary>

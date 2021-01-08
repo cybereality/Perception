@@ -761,7 +761,7 @@ static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UI
 }
 #pragma endregion
 
-#pragma region => Managed shader class
+#pragma region Managed shader class
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #elif defined(VIREIO_D3D9)
 /// <summary>
@@ -786,7 +786,7 @@ enum class Vireio_Supported_Shaders : int
 /// Simple copy of the D3D9 constant description
 /// basically equals D3DXCONSTANT_DESC
 /// </summary>
-typedef struct VIREIO_D3D9_CONSTANT_DESC //_SAFE_D3DXCONSTANT_DESC
+typedef struct VIREIO_D3D9_CONSTANT_DESC
 {
 	std::string         acName;         /**< Constant name ***/
 	D3DXREGISTER_SET    eRegisterSet;   /**< Register set ***/
@@ -802,7 +802,7 @@ typedef struct VIREIO_D3D9_CONSTANT_DESC //_SAFE_D3DXCONSTANT_DESC
 } SAFE_D3DXCONSTANT_DESC;
 
 /// <summary>
-/// Managed proxy shader class.
+/// => Managed proxy shader class.
 /// Contains left and right shader constants.
 /// </summary>
 template <class T = float>
@@ -1022,13 +1022,13 @@ public:
 		{
 			// apply to left and right data
 			UINT unIndex = unInd;
-			UINT unStartRegisterConstant = (*it).m_dwConstantRuleRegister;
+			UINT unStartRegisterConstant = (*it).dwConstantRuleRegister;
 
 			// get the matrix
 			D3DXMATRIX sMatrix(&afRegisters[RegisterIndex(unStartRegisterConstant)]);
 			{
 				// matrix to be transposed ?
-				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
+				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].dwIndex].m_bTranspose;
 				if (bTranspose)
 				{
 					D3DXMatrixTranspose(&sMatrix, &sMatrix);
@@ -1036,7 +1036,7 @@ public:
 
 				// do modification
 				std::array<float, 16> afMatrixLeft, afMatrixRight;
-				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
 				D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
 				D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
@@ -1047,8 +1047,8 @@ public:
 					D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
 				}
 
-				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
-				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
+				m_asConstantRuleIndices[unIndex].asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
+				m_asConstantRuleIndices[unIndex].asConstantDataRight = (D3DMATRIX)sMatrixRight;
 			}
 			it++; unInd++;
 		}
@@ -1096,7 +1096,7 @@ public:
 			D3DXMATRIX sMatrix(&afRegisters[RegisterIndex(unStartRegister)]);
 			{
 				// matrix to be transposed ?
-				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
+				bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].dwIndex].m_bTranspose;
 				if (bTranspose)
 				{
 					D3DXMatrixTranspose(&sMatrix, &sMatrix);
@@ -1104,7 +1104,7 @@ public:
 
 				// do modification
 				std::array<float, 16> afMatrixLeft, afMatrixRight;
-				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+				((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
 				D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
 				D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
@@ -1115,8 +1115,8 @@ public:
 					D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
 				}
 
-				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
-				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
+				m_asConstantRuleIndices[unIndex].asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
+				m_asConstantRuleIndices[unIndex].asConstantDataRight = (D3DMATRIX)sMatrixRight;
 
 				// copy modified data to buffer
 				if (eRenderSide == RenderPosition::Left)
@@ -1128,25 +1128,22 @@ public:
 		}
 		else
 		{
-			UINT unInd = 0;
-
 			// more data, loop through modified constants for this shader
 			auto it = m_asConstantRuleIndices.begin();
 			while (it != m_asConstantRuleIndices.end())
 			{
 				// register in range ?
-				if ((unStartRegister < ((*it).m_dwConstantRuleRegister + (*it).m_dwConstantRuleRegisterCount)) && ((unStartRegister + unVector4fCount) > (*it).m_dwConstantRuleRegister))
+				if ((unStartRegister < ((*it).dwConstantRuleRegister + (*it).dwConstantRuleRegisterCount)) && ((unStartRegister + unVector4fCount) > (*it).dwConstantRuleRegister))
 				{
 					// apply to left and right data
 					bModified = true;
-					UINT unIndex = unInd;
-					UINT unStartRegisterConstant = (*it).m_dwConstantRuleRegister;
+					UINT unStartRegisterConstant = (*it).dwConstantRuleRegister;
 
 					// get the matrix
 					D3DXMATRIX sMatrix(&afRegisters[RegisterIndex(unStartRegisterConstant)]);
 					{
 						// matrix to be transposed ?
-						bool bTranspose = (*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_bTranspose;
+						bool bTranspose = (*m_pasConstantRules)[it->dwIndex].m_bTranspose;
 						if (bTranspose)
 						{
 							D3DXMatrixTranspose(&sMatrix, &sMatrix);
@@ -1154,7 +1151,7 @@ public:
 
 						// do modification
 						std::array<float, 16> afMatrixLeft, afMatrixRight;
-						((ShaderMatrixModification*)(*m_pasConstantRules)[m_asConstantRuleIndices[unIndex].m_dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+						((ShaderMatrixModification*)(*m_pasConstantRules)[it->dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
 						D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
 						D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
@@ -1165,8 +1162,8 @@ public:
 							D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
 						}
 
-						m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
-						m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)sMatrixRight;
+						it->asConstantDataLeft = (D3DMATRIX)sMatrixLeft;
+						it->asConstantDataRight = (D3DMATRIX)sMatrixRight;
 
 						// copy modified data to buffer
 						if (eRenderSide == RenderPosition::Left)
@@ -1185,7 +1182,7 @@ public:
 						}
 					}
 				}
-				it++; unInd++;
+				it++;
 			}
 		}
 
@@ -1375,15 +1372,15 @@ private:
 
 			// set constant rule index
 			Vireio_Constant_Rule_Index_DX9 sConstantRuleIndex;
-			sConstantRuleIndex.m_dwIndex = unRuleIndex;
-			sConstantRuleIndex.m_dwConstantRuleRegister = psDescription->RegisterIndex;
-			sConstantRuleIndex.m_dwConstantRuleRegisterCount = psDescription->RegisterCount;
+			sConstantRuleIndex.dwIndex = unRuleIndex;
+			sConstantRuleIndex.dwConstantRuleRegister = psDescription->RegisterIndex;
+			sConstantRuleIndex.dwConstantRuleRegisterCount = psDescription->RegisterCount;
 
 			// init data if default value present
 			if (pDefaultValue)
 			{
-				memcpy(&sConstantRuleIndex.m_afConstantDataLeft[0], pDefaultValue, psDescription->RegisterCount * sizeof(float) * 4);
-				memcpy(&sConstantRuleIndex.m_afConstantDataRight[0], pDefaultValue, psDescription->RegisterCount * sizeof(float) * 4);
+				memcpy(&sConstantRuleIndex.afConstantDataLeft[0], pDefaultValue, psDescription->RegisterCount * sizeof(float) * 4);
+				memcpy(&sConstantRuleIndex.afConstantDataRight[0], pDefaultValue, psDescription->RegisterCount * sizeof(float) * 4);
 			};
 
 			m_asConstantRuleIndices.push_back(sConstantRuleIndex);
