@@ -353,6 +353,9 @@ private:
 	void FillFetchedHashCodeList();
 #else
 	void FillShaderRuleShaderIndices();
+	void InitShaderRules(Vireio_D3D9_Shader* psShader);
+	HRESULT VerifyConstantDescriptionForRule(Vireio_Constant_Modification_Rule* psRule, SAFE_D3DXCONSTANT_DESC* psDescription, UINT unRuleIndex, Vireio_D3D9_Shader* psShader);
+	HRESULT SetXShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide, float* afRegisters, Vireio_D3D9_Shader* psShader);
 #endif
 
 	/// <summary>
@@ -601,18 +604,18 @@ private:
 	/// </summary>
 	struct PageShader
 	{
-		UINT m_dwUpdate;                           /**< [Button] : Activate to update all vertex shader data (ID) ***/
-		UINT m_dwSort;                             /**< [Switch] : Sort the shader list ***/
-		UINT m_dwHashCodes;                        /**< [List] : Contains ALL vertex shader hash codes (ID) ***/
-		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
-		UINT m_dwToName;                           /**< [Button] : Activate to fill the constant name control on the shader rule page (ID) ***/
-		UINT m_dwToRegister;                       /**< [Button] : Activate to fill the register control on the shader rule page (ID) ***/
-		UINT m_dwShaderType;                       /**< [Spin] Currently chosen shader type (ID) ***/
+		/**< [Button] : Activate to update all vertex shader data (ID) ***/
+		/**< [Switch] : Sort the shader list ***/
+		/**< [List] : Contains ALL vertex shader hash codes (ID) ***/
+		/**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
+		/**< [Button] : Activate to fill the constant name control on the shader rule page (ID) ***/
+		/**< [Button] : Activate to fill the register control on the shader rule page (ID) ***/
+		/**< [Spin] Currently chosen shader type (ID) ***/
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
-		UINT m_dwToBufferSize;                     /**< [Button] : Activate to fill the buffer size control on the shader rule page (ID) ***/
-		UINT m_dwToBufferIndex;                    /**< [Button] : Activate to fill the buffer index control on the shader rule page (ID) ***/
-		UINT m_dwToFetchedList;                    /**< [Button] : Activate to fill the fetched shader hash code list on the shader rule page (ID) ***/
+		/**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
+		/**< [Button] : Activate to fill the buffer size control on the shader rule page (ID) ***/
+		/**< [Button] : Activate to fill the buffer index control on the shader rule page (ID) ***/
+		/**< [Button] : Activate to fill the fetched shader hash code list on the shader rule page (ID) ***/
 #endif
 	} m_sPageShader;
 	/// <summary>
@@ -621,11 +624,11 @@ private:
 	/// </summary>
 	struct PageDebug
 	{
-		UINT m_dwOptions;                          /**< [Spin] The debug options (ID) ***/
-		UINT m_dwGrab;                             /**< [Button] Grabs debug data to trace (ID) **/
-		UINT m_dwClear;                            /**< [Button] Clears the debug trace (ID) ***/
-		UINT m_dwShaderConstants;                  /**< [List] Contains ALL possible shader constants (ID) ***/
-		UINT m_dwTrace;                            /**< [List] Debug output trace (ID) ***/
+		/**< [Spin] The debug options (ID) ***/
+		/**< [Button] Grabs debug data to trace (ID) **/
+		/**< [Button] Clears the debug trace (ID) ***/
+		/**< [List] Contains ALL possible shader constants (ID) ***/
+		/**< [List] Debug output trace (ID) ***/
 	} m_sPageDebug;
 	/// <summary>
 	/// Game Settings page control IDs.
@@ -634,23 +637,23 @@ private:
 	struct PageGameSettings
 	{
 		/*** PageGameSettings game configuration ***/
-		UINT m_dwGameSeparation;                   /**< [Float] Game Stereo Separation (ID) ***/
-		UINT m_dwConvergence;                      /**< [Float] Convergence or Neutral Point distance, in meters. **/
-		UINT m_dwAspectMultiplier;                 /**< [Float] Aspect multiplier allows adjusting virtual screen aspect ratio. */
-		UINT m_dwVRboostMinShaderCount;            /**< Minimum Vertex Shader Count to apply VRboost (security) */
-		UINT m_dwVRboostMaxShaderCount;            /**< Maximum Vertex Shader Count to apply VRboost (security) */
-		UINT m_dwIs64bit;                          /**< [StaticList] The game cpu-architecture, true for 64-bit games */
-		UINT m_dwRollImpl;                         /**< [Spin] 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
-		UINT m_dwConvergenceEnabled;               /**< [Switch] Whether convergence is enabled. Typically on for 3D monitors, off for head-mounted displays. **/
-		UINT m_dwYawMultiplier;                    /**< [Float] Game-specific tracking multiplier (yaw). */
-		UINT m_dwPitchMultiplier;                  /**< [Float] Game-specific tracking multiplier (pitch). */
-		UINT m_dwRollMultiplier;                   /**< [Float] Game-specific tracking multiplier (roll). */
-		UINT m_dwPositionMultiplier;               /**< [Float] Game-specific position overall multiplier (for X, Y and Z). */
-		UINT m_dwPositionXMultiplier;              /**< [Float] Game-specific position multiplier for X*/
-		UINT m_dwPositionYMultiplier;              /**< [Float] Game-specific position multiplier for Y*/
-		UINT m_dwPositionZMultiplier;              /**< [Float] Game-specific position multiplier for Z*/
-		UINT m_dwPFOV;                             /**< [Float] Projection FOV, alternative to modifying game's FOV **/
-		UINT m_dwPFOVToggle;                       /**< [Switch] Projection FOV, toggle for above **/
+		/**< [Float] Game Stereo Separation (ID) ***/
+		/**< [Float] Convergence or Neutral Point distance, in meters. **/
+		/**< [Float] Aspect multiplier allows adjusting virtual screen aspect ratio. */
+		/**< Minimum Vertex Shader Count to apply VRboost (security) */
+		/**< Maximum Vertex Shader Count to apply VRboost (security) */
+		/**< [StaticList] The game cpu-architecture, true for 64-bit games */
+		/**< [Spin] 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
+		/**< [Switch] Whether convergence is enabled. Typically on for 3D monitors, off for head-mounted displays. **/
+		/**< [Float] Game-specific tracking multiplier (yaw). */
+		/**< [Float] Game-specific tracking multiplier (pitch). */
+		/**< [Float] Game-specific tracking multiplier (roll). */
+		/**< [Float] Game-specific position overall multiplier (for X, Y and Z). */
+		/**< [Float] Game-specific position multiplier for X*/
+		/**< [Float] Game-specific position multiplier for Y*/
+		/**< [Float] Game-specific position multiplier for Z*/
+		/**< [Float] Projection FOV, alternative to modifying game's FOV **/
+		/**< [Switch] Projection FOV, toggle for above **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		/*** PageGameSettings technical options ***/
@@ -662,31 +665,31 @@ private:
 	/// </summary>
 	struct PageGameShaderRules
 	{
-		UINT m_dwTextlist;                          /**< [StaticList] The text of the controls. **/
-		UINT m_dwRuleIndices;                       /**< [List] List of all created shader rules **/
-		UINT m_dwRuleData;                          /**< [List] Data output for the chosen rule **/
-		UINT m_dwGeneralIndices;                    /**< [List] All general indices **/
+		/**< [StaticList] The text of the controls. **/
+		/**< [List] List of all created shader rules **/
+		/**< [List] Data output for the chosen rule **/
+		/**< [List] All general indices **/
 
-		UINT m_dwConstantName;                      /**< [Switch] Shader constant name **/
-		UINT m_dwPartialName;                       /**< [Switch] Shader constant partial name **/
+		/**< [Switch] Shader constant name **/
+		/**< [Switch] Shader constant partial name **/
 		UINT m_dwStartRegIndex;                     /**< [Switch] Start register index **/
 
 		UINT m_dwRegisterCount;                     /**< [Spin] Register count **/
 		UINT m_dwOperationToApply;                  /**< [Spin] Operation to apply **/
-		UINT m_dwTranspose;                         /**< [Switch] Transpose Yes/No **/
+		/**< [Switch] Transpose Yes/No **/
 
-		UINT m_dwCreate;                            /**< [Button] Create a rule **/
-		UINT m_dwDeleteLatest;                      /**< [Button] Delete latest rule **/
-		UINT m_dwAddGeneral;                        /**< [Button] Add to general indices **/
-		UINT m_dwDeleteGeneral;                     /**< [Button] Delete chosen general index **/
-		UINT m_dwImportXML;                         /**< [Button] Import v3 XML file **/
+		/**< [Button] Create a rule **/
+		/**< [Button] Delete latest rule **/
+		/**< [Button] Add to general indices **/
+		/**< [Button] Delete chosen general index **/
+		/**< [Button] Import v3 XML file **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		UINT m_dwFetchedShaderHashcodes;            /**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/
-		UINT m_dwBufferIndexDebug;                  /**< [Switch] : Activate to output all possible buffer sizes to the debug trace for the index in m_dwBufferIndex.***/
+		/**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/
+		/**< [Switch] : Activate to output all possible buffer sizes to the debug trace for the index in m_dwBufferIndex.***/
 
-		UINT m_dwBufferIndex;                       /**< [Switch] Buffer index **/
-		UINT m_dwBufferSize;                        /**< [Switch] Buffer size **/
+		/**< [Switch] Buffer index **/
+		/**< [Switch] Buffer size **/
 #endif
 		// string entries for the switches above
 		std::string m_szConstantName;
@@ -719,7 +722,7 @@ private:
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 
 #endif
-	} m_sTechnicalOptions;
+} m_sTechnicalOptions;
 	/// <summary>
 	/// List of all available vertex shader hash codes (std::wstring).
 	/// To be used on the shader page, the debug page
@@ -848,105 +851,57 @@ private:
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #pragma region /// => D3D10 methods
+	/*** MatrixModifier private D3D methods ***/
+
 #pragma endregion
 #else
 #pragma region /// => D3D9 methods
-	/// <summary>
-	/// Handles shader constants and modifications (float).
-	/// </summary>
-	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide, float* afRegisters, Vireio_D3D9_Shader* psShader);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShader(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShader(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShader(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShader(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetTransform(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT MultiplyTransform(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShaderConstantF(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShaderConstantF(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShaderConstantI(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShaderConstantI(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShaderConstantB(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShaderConstantB(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShaderConstantF(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShaderConstantF(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShaderConstantI(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShaderConstantI(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShaderConstantB(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShaderConstantB(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetStreamSource(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetStreamSource(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT CreateVertexShader(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT CreatePixelShader(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT VB_Apply(int& nFlags);
 
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShader_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShader_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShader_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShader_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetTransform_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT MultiplyTransform_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShaderConstantF_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShaderConstantF_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShaderConstantI_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShaderConstantI_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetVertexShaderConstantB_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetVertexShaderConstantB_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShaderConstantF_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShaderConstantF_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShaderConstantI_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShaderConstantI_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetPixelShaderConstantB_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetPixelShaderConstantB_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT SetStreamSource_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT GetStreamSource_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT CreateVertexShader_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT CreatePixelShader_Proxy(int& nFlags);
-	/// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 	HRESULT VB_Apply_Proxy(int& nFlags);
 #pragma endregion
 #endif

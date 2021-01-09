@@ -234,6 +234,7 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint
 					sDesc.eRegisterSet = static_cast<D3DXREGISTER_SET>(psInfo[i].uRegisterSet);
 					sDesc.uRegisterIndex = psInfo[i].uRegisterIndex;
 					sDesc.uRegisterCount = psInfo[i].uRegisterCount;
+					sDesc.eClass = (D3DXPARAMETER_CLASS)psType->uClass;
 					sDesc.uRows = psType->uRows;
 					sDesc.uColumns = psType->uColumns;
 					sDesc.uElements = psType->uElements;

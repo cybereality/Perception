@@ -576,8 +576,10 @@ public:
 	void ApplyModification(const float* inData, std::array<float, 16>* outLeft, std::array<float, 16>* outRight)
 	{
 		D3DXMATRIX sIn = D3DXMATRIX(inData);
-		(D3DXMATRIX)outLeft->data() = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
-		(D3DXMATRIX)outRight->data() = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
+		CopyMemory(outLeft->data(), inData, sizeof(D3DXMATRIX));
+		CopyMemory(outRight->data(), inData, sizeof(D3DXMATRIX));
+		//(D3DXMATRIX)outLeft->data() = sIn;// *m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
+		//(D3DXMATRIX)outRight->data() = sIn;// *m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
 	}
 	virtual void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight) {};
 };

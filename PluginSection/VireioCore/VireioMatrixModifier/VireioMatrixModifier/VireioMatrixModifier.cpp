@@ -392,6 +392,18 @@ m_aszShaderRuleGeneralIndices()
 	D3DXMatrixIdentity(&m_sModifierData.sMatView[1]);
 	D3DXMatrixIdentity(&m_sModifierData.sMatProj[0]);
 	D3DXMatrixIdentity(&m_sModifierData.sMatProj[1]);
+
+	/*** DELETE ***/
+	Vireio_Constant_Modification_Rule sRule = {};
+	sRule.m_bTranspose = false;
+	sRule.m_szConstantName = "Matrix";
+	sRule.m_dwRegisterCount = 4;
+	sRule.m_bUsePartialNameMatch = true;
+	sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation, sRule.m_bTranspose);
+	m_asConstantRules.push_back(sRule);
+	m_aunGlobalConstantRuleIndices.push_back(0);
+	/*** DELETE ***/
+
 #endif
 }
 
@@ -3292,7 +3304,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	if (ImGui::Button(szToGeneral.c_str()))
 	{
 	}
-	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Add to general\n(all shaders)\nindices."); ImGui::SameLine();
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Add to general\n(all shaders)\nindices."); /*ImGui::SameLine();*/
 	// TODO !! SHADER SPECIFIC RULES !!
 
 	// all shader rule indices/identifiers
@@ -3979,23 +3991,163 @@ void MatrixModifier::FillShaderRuleShaderIndices()
 		m_aszShaderRuleShaderIndices.push_back(szIndex.str());
 	}
 }
-#endif
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#pragma region /// => D3D10 methods
-#pragma endregion
-#else
-#pragma region /// => D3D9 methods
+/// <summary>
+/// => Init Shader Rules
+/// Inits or recreates all shader rule indices for a specified V/P-Shader 
+/// </summary>
+/// <param name="psShader">Shader pointer</param>
+void MatrixModifier::InitShaderRules(Vireio_D3D9_Shader* psShader)
+{
+	// @see ShaderModificationRepository::GetModifiedConstantsF from Vireio < v3
 
-HRESULT MatrixModifier::SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide, float* afRegisters, Vireio_D3D9_Shader* psShader)
+	// clear constant rule vector
+	psShader->asConstantRuleIndices = std::vector<Vireio_Constant_Rule_Index_DX9>();
+
+	// clear register indices to max uint
+	FillMemory(psShader->aunRegisterModificationIndex.data(), MAX_DX9_CONSTANT_REGISTERS * sizeof(UINT), 0xFF);
+
+	// D3DXCONSTANT_DESC pConstantDesc[64];
+
+	// loop throught constants
+	for (UINT unJ = 0; unJ < psShader->asConstantDescriptions.size(); unJ++)
+	{
+		// register count 1 (= vector) and 4 (= matrix) supported
+		if (((psShader->asConstantDescriptions[unJ].eClass == D3DXPC_VECTOR) && (psShader->asConstantDescriptions[unJ].uRegisterCount == 1))
+			|| (((psShader->asConstantDescriptions[unJ].eClass == D3DXPC_MATRIX_ROWS) || (psShader->asConstantDescriptions[unJ].eClass == D3DXPC_MATRIX_COLUMNS)) && (psShader->asConstantDescriptions[unJ].uRegisterCount == 4)))
+		{
+			// Check if any shader specific rules match this constant, first check shader specific indices
+			bool bShaderSpecificRulePresent = false;
+			for (UINT unK = 0; unK < (UINT)m_asShaderSpecificRuleIndices.size(); unK++)
+			{
+				// same hash code ?
+				if (m_asShaderSpecificRuleIndices[unK].unHash == psShader->uHash)
+				{
+					// compare rule->description, break in case of success
+					if (SUCCEEDED(VerifyConstantDescriptionForRule(&(m_asConstantRules[m_asShaderSpecificRuleIndices[unK].unRuleIndex]), &(psShader->asConstantDescriptions[unJ]), m_asShaderSpecificRuleIndices[unK].unRuleIndex, psShader)))
+					{
+						bShaderSpecificRulePresent = true;
+						break;
+					}
+				}
+			}
+
+			// now check general indices if no shader specific rule got applied
+			if (!bShaderSpecificRulePresent)
+			{
+				for (UINT unK = 0; unK < (UINT)m_aunGlobalConstantRuleIndices.size(); unK++)
+				{
+					// compare rule->description, break in case of success
+					if (SUCCEEDED(VerifyConstantDescriptionForRule(&(m_asConstantRules[m_aunGlobalConstantRuleIndices[unK]]), &(psShader->asConstantDescriptions[unJ]), m_aunGlobalConstantRuleIndices[unK], psShader)))
+						break;
+				}
+			}
+		}
+	}
+}
+
+/// <summary>
+/// => Verify Constant Description
+/// Verifies wether a specific modification rule
+/// applies to a specific shader constant provided
+/// by a (D3DX) constant description.
+/// </summary>
+/// <param name="psRule">modification rule</param>
+/// <param name="psDescription">constant description</param>
+/// <param name="unRuleIndex">the index of the modification rule</param>
+/// <param name="psShader">Vireio D3D9 shader</param>
+/// <returns>D3D_OK if match, E_NO_MATCH otherwise</returns>
+HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modification_Rule* psRule, SAFE_D3DXCONSTANT_DESC* psDescription, UINT unRuleIndex, Vireio_D3D9_Shader* psShader)
+{
+	// Type match
+	if (psRule->m_dwRegisterCount == psDescription->uRegisterCount)
+	{
+		// name match required
+		if (psRule->m_szConstantName.size() > 0)
+		{
+			bool bNameMatch = false;
+			if (psRule->m_bUsePartialNameMatch)
+				bNameMatch = std::strstr(psDescription->acName.c_str(), psRule->m_szConstantName.c_str()) != NULL;
+			else
+				bNameMatch = psRule->m_szConstantName.compare(psDescription->acName) == 0;
+
+			// no match ?
+			if (!bNameMatch)
+				return E_NO_MATCH;
+		}
+
+		// register match required... TODO !! UINT_MAX ??
+		if ((psRule->m_dwStartRegIndex != UINT_MAX) && (psRule->m_dwStartRegIndex != psDescription->uRegisterIndex))
+			return E_NO_MATCH;
+
+#ifdef _DEBUG
+		// output shader constant + index 
+		switch (psDescription->Class)
+		{
+		case D3DXPC_VECTOR:
+			OutputDebugString(L"VS: D3DXPC_VECTOR");
+			break;
+		case D3DXPC_MATRIX_ROWS:
+			OutputDebugString(L"VS: D3DXPC_MATRIX_ROWS");
+			break;
+		case D3DXPC_MATRIX_COLUMNS:
+			OutputDebugString(L"VS: D3DXPC_MATRIX_COLUMNS");
+			break;
+		default:
+			OutputDebugString(L"VS: UNKNOWN_CONSTANT");
+			break;
+		}
+		debugf("Register Index: %d", psDescription->RegisterIndex);
+#endif 
+		// set register index
+		psShader->aunRegisterModificationIndex[psDescription->uRegisterIndex] = (UINT)psShader->asConstantRuleIndices.size();
+
+		// set constant rule index
+		Vireio_Constant_Rule_Index_DX9 sConstantRuleIndex;
+		sConstantRuleIndex.dwIndex = unRuleIndex;
+		sConstantRuleIndex.dwConstantRuleRegister = psDescription->uRegisterIndex;
+		sConstantRuleIndex.dwConstantRuleRegisterCount = psDescription->uRegisterCount;
+
+		// init data if default value present
+		size_t uSize = (size_t)psDescription->uRegisterCount * sizeof(float) * 4;
+		if (psDescription->afDefaultValue.size() >= uSize)
+		{
+			memcpy(&sConstantRuleIndex.afConstantDataLeft[0], psDescription->afDefaultValue.data(), uSize);
+			memcpy(&sConstantRuleIndex.afConstantDataRight[0], psDescription->afDefaultValue.data(), uSize);
+		};
+
+		psShader->asConstantRuleIndices.push_back(sConstantRuleIndex);
+
+		// only the first matching rule is applied to a constant
+		return S_OK;
+	}
+	else return E_NO_MATCH;
+}
+
+/// <summary>
+/// => Set V/P Shader Constants Float
+/// Handle VS/PS constant input method.
+/// If the vector count is 4 (=Matrix size) it 
+/// will look for matrix modification, otherwise
+/// loops through the set registers.
+/// </summary>
+/// <param name="unStartRegister">D3D9 Method input</param>
+/// <param name="pfConstantData">D3D9 Method input</param>
+/// <param name="unVector4fCount">D3D9 Method input</param>
+/// <param name="bModified">Set true if registers are dirty</param>
+/// <param name="eRenderSide">Current render side</param>
+/// <param name="afRegisters">Pointer to currently set register data</param>
+/// <param name="psShader">Vireio D3D9 shader</param>
+/// <returns>D3D_OK</returns>
+HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, RenderPosition eRenderSide, float* afRegisters, Vireio_D3D9_Shader* psShader)
 {
 	// no rules present ? return
 	if (!psShader->asConstantRuleIndices.size()) return S_OK;
 
-	// set buffer
+	// set buffer... TODO !! MOVE DOWN !!
 	memcpy(&psShader->afRegisterBuffer[0], pfConstantData, unVector4fCount * 4 * sizeof(float));
 
-	// modification present for this index ?
+	// modification present for this index ? index for non-modified registers are set to 0xffffffff to allow zero index
 	uint32_t unIndex = psShader->aunRegisterModificationIndex[unStartRegister];
 	if ((unIndex < (UINT)psShader->asConstantRuleIndices.size()) && (unVector4fCount == 4))
 	{
@@ -4098,7 +4250,13 @@ HRESULT MatrixModifier::SetShaderConstantF(UINT unStartRegister, const float* pf
 
 	return D3D_OK;
 }
+#endif
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#pragma region /// => D3D10 methods
+#pragma endregion
+#else
+#pragma region /// => D3D9 methods
 /// <summary> 
 /// => Set Vertex Shader
 /// </summary>
@@ -4391,7 +4549,7 @@ HRESULT MatrixModifier::SetVertexShaderConstantF(int& nFlags)
 	{
 		// check wether the data gets modified or not
 		bool bModified = false;
-		SetShaderConstantF(*puStartRegister, *ppfConstantData, *puVector4fCount, bModified, m_sModifierData.eCurrentRenderingSide, &m_afRegistersVertex[0], &m_asVShaders[m_uActiveVSIx]);
+		SetXShaderConstantF(*puStartRegister, *ppfConstantData, *puVector4fCount, bModified, m_sModifierData.eCurrentRenderingSide, &m_afRegistersVertex[0], &m_asVShaders[m_uActiveVSIx]);
 
 		// was the data modified  ?
 		if (bModified)
@@ -4605,11 +4763,12 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 			sShaderDesc.asConstantDescriptions[unI].acName = asConstantDesc[unI].acName;
 		}
 
+		// init the shader rules
+		InitShaderRules(&sShaderDesc);
+
 		// set index, add to vector
 		uShaderIx = (uint32_t)m_asVShaders.size();
 		m_asVShaders.push_back(sShaderDesc);
-	
-		// TODO !! INIT SHADER RULES
 	}
 
 	// write down data to shader creator string hex strings
