@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<vector>
 #include<string>
+#include<array>
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
 
@@ -53,7 +54,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Universal Coded Character Set (UCS) shader stream constants
 constexpr uint32_t OPCODE_BYTEORDERMARK_LO = 0x0000FFFE;
-constexpr uint32_t OPCODE_HEADER_UTF32_FLEXIBLE = 0xFFFE0200;
+constexpr uint32_t OPCODE_HEADER_UTF32_02 = 0xFFFE0200;
+constexpr uint32_t OPCODE_HEADER_UTF32_03 = 0xFFFE0300;
 constexpr uint32_t OPCODE_FOOTER_UTF32_FLEXIBLE = 0x0000FFFF;
 constexpr uint32_t OPCODE_MASK_LO = 0x0000FFFF;
 constexpr uint32_t OPCODE_MASK_HI = 0xFFFF0000;
@@ -112,6 +114,44 @@ struct CTAB_ConstantType
 };
 
 /// <summary>
+/// Structure only used for shader specific rules.
+/// Contains hash code and rule index.
+/// </summary>
+struct Vireio_Hash_Rule_Index
+{
+	unsigned __int32 unHash;
+	unsigned __int32 unRuleIndex;
+};
+
+/// <summary>
+/// Simple enumeration of supported Shaders.
+/// </summary>
+enum class Vireio_Supported_Shaders : int
+{
+	VertexShader,
+	PixelShader,
+};
+
+/// <summary>
+/// Simple copy of the D3D9 constant description
+/// basically equals D3DXCONSTANT_DESC
+/// </summary>
+typedef struct VIREIO_D3D9_CONSTANT_DESC
+{
+	std::string         acName;         /**< Constant name ***/
+	D3DXREGISTER_SET    eRegisterSet;   /**< Register set ***/
+	UINT                uRegisterIndex; /**< Register index ***/
+	UINT                uRegisterCount; /**< Number of registers occupied ***/
+	D3DXPARAMETER_CLASS eClass;         /**< Class ***/
+	D3DXPARAMETER_TYPE  eType;          /**< Component type ***/
+	UINT                uRows;          /**< Number of rows ***/
+	UINT                uColumns;       /**< Number of columns ***/
+	UINT                uElements;      /**< Number of array elements ***/
+	UINT                uStructMembers; /**< Number of structure member sub-parameters ***/
+	std::vector<float>  afDefaultValue; /**< Default value ***/
+} SAFE_D3DXCONSTANT_DESC;
+
+/// <summary>
 /// Structure used to write data to the shader function.
 /// </summary>
 struct CreatorMod
@@ -127,259 +167,6 @@ struct CreatorMod
 		char acCreator[16];
 	};
 };
-
-#pragma region inline helper
-/// <summary>
-/// Convertes unsigned to hex string.
-/// </summary>
-/// <param name="acString">Output string</param>
-/// <param name="uValue">Input value</param>
-/// <param name="uDigits">Number of digits</param>
-inline void HexString(char* acString, uint32_t uValue, uint8_t uDigits)
-{
-	static const char* acDigits = "0123456789ABCDEF";
-	for (size_t i = 0, j = (uDigits - 1) * 4; i < uDigits; ++i, j -= 4)
-		acString[i] = acDigits[(uValue >> j) & 0x0f];
-}
-
-/// <summary>
-/// Simple hash code helper.
-/// </summary>
-inline uint32_t GetHashCode(BYTE* pcData, int32_t nLen, uint32_t uSeed)
-{
-	uint32_t uH = uSeed;
-
-	// create hash
-	for (int32_t i = 0; i < nLen; i++)
-	{
-		uH = 31 * uH + pcData[i];
-	}
-
-	return uH;
-}
-
-/// <summary>
-/// Parses D3D9 shader byte code, provides Hash code, Shader constants.
-/// Code base by gamedev user sebi707 by WINE reference (wine-1.6\dlls\d3dx9_36\shader.c)
-/// </summary>
-/// <param name="acFunc">Shader function byte code</param>
-/// <param name="uSizeOfData">Provides the size of the function</param>
-/// <param name="uCreatorIx">Provides the index of the creator string</param>
-/// <param name="asConstants">Provides the shader constants</param>
-/// <param name="uHash">Provides the hash code</param>
-/// <param name="uSeed">Hash code seed</param>
-/// <returns>S_OK if succeeded, E_ABORT if parsing aborted</returns>
-inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint32_t& uCreatorIx, std::vector<VIREIO_D3D9_CONSTANT_DESC>& asConstants, uint32_t& uHash, uint32_t uSeed)
-{
-	uint32_t* acPtr = acFunc;
-
-	// parse header
-	if (*acPtr != OPCODE_HEADER_UTF32_FLEXIBLE)
-	{
-		DEBUG_HEX(*acPtr);
-		DEBUG_HEX(OPCODE_HEADER_UTF32_FLEXIBLE);
-		return E_ABORT;
-	}
-	else
-		++acPtr;
-
-	// loop until footer
-	while (*acPtr != OPCODE_FOOTER_UTF32_FLEXIBLE)
-	{
-		// get byte order mark
-		if ((*acPtr & OPCODE_MASK_LO) == OPCODE_BYTEORDERMARK_LO)
-		{
-			// check for chunk type
-			ShaderChunkType eChunkType = ShaderChunkType::Unknown;
-			uint32_t uChunkSize = (*acPtr & OPCODE_MASK_HI_FSS_UTF) >> 16;
-			switch (*(acPtr + 1))
-			{
-			case OPCODE_ID_CTAB:
-				eChunkType = ShaderChunkType::CTAB;
-				break;
-			default:
-				acPtr += uChunkSize;
-				break;
-			}
-
-			switch (eChunkType)
-			{
-			case ShaderChunkType::CTAB:
-			{
-				// get CTAB data
-				const uint8_t* acCTAB = reinterpret_cast<const uint8_t*>(acPtr + 2);
-				size_t uCTABSize = (uChunkSize - 1) * 4;
-
-				const CTAB_Data* sCTable = reinterpret_cast<const CTAB_Data*>(acCTAB);
-				if (uCTABSize < sizeof(*sCTable) || sCTable->uSize != sizeof(*sCTable))
-					return E_ABORT;
-
-				// get creator name
-				std::string acCreator = (const char*)acCTAB + sCTable->uCreator;
-
-				// only provide creator string if size min 16
-				if (acCreator.length() >= 16)
-					uCreatorIx = sCTable->uCreator + (uint32_t)acCTAB - (uint32_t)acFunc;
-
-				// get constants
-				asConstants.reserve(sCTable->uConstantsNumber);
-				const CTAB_ConstantInfo* psInfo = reinterpret_cast<const CTAB_ConstantInfo*>(acCTAB + sCTable->uConstantInfo);
-				for (uint32_t i = 0; i < sCTable->uConstantsNumber; ++i)
-				{
-					const CTAB_ConstantType* psType = reinterpret_cast<const CTAB_ConstantType*>(acCTAB + psInfo[i].uTypeInfo);
-
-					// fill struct
-					VIREIO_D3D9_CONSTANT_DESC sDesc = {};
-					sDesc.acName = (const char*)acCTAB + psInfo[i].uName;
-					sDesc.eRegisterSet = static_cast<D3DXREGISTER_SET>(psInfo[i].uRegisterSet);
-					sDesc.uRegisterIndex = psInfo[i].uRegisterIndex;
-					sDesc.uRegisterCount = psInfo[i].uRegisterCount;
-					sDesc.eClass = (D3DXPARAMETER_CLASS)psType->uClass;
-					sDesc.uRows = psType->uRows;
-					sDesc.uColumns = psType->uColumns;
-					sDesc.uElements = psType->uElements;
-					sDesc.uStructMembers = psType->uStructMembers;
-					asConstants.push_back(sDesc);
-				}
-			}
-			break;
-			case ShaderChunkType::Unknown:
-				break;
-			default:
-				break;
-			}
-
-		}
-		// inc by byte-size
-		uint8_t* acP = (uint8_t*)acPtr;	acP++;
-		acPtr = (uint32_t*)acP;
-	}
-
-	// get the size and hash code
-	uSizeOfData = 4 + (uint32_t)acPtr - (uint32_t)acFunc;
-	uHash = GetHashCode((BYTE*)acFunc, (int32_t)uSizeOfData, VIREIO_SEED);
-
-	return S_OK;
-}
-
-/// <summary>
-/// Provides the index of the creator string within D3D9 shader function byte code.
-/// </summary>
-/// <param name="acFunc">Shader function byte code</param>
-/// <returns>Zero if no index found, otherwise the creator string index</returns>
-inline uint32_t GetCreatorIndex(uint32_t* acFunc)
-{
-	uint32_t* acPtr = acFunc;
-
-	// parse header
-	if (*acPtr != OPCODE_HEADER_UTF32_FLEXIBLE)
-	{
-		DEBUG_HEX(*acPtr);
-		DEBUG_HEX(OPCODE_HEADER_UTF32_FLEXIBLE);
-		return E_ABORT;
-	}
-	else
-		++acPtr;
-
-	// loop until footer
-	while (*acPtr != OPCODE_FOOTER_UTF32_FLEXIBLE)
-	{
-		// get byte order mark
-		if ((*acPtr & OPCODE_MASK_LO) == OPCODE_BYTEORDERMARK_LO)
-		{
-			// check for chunk type
-			ShaderChunkType eChunkType = ShaderChunkType::Unknown;
-			uint32_t uChunkSize = (*acPtr & OPCODE_MASK_HI_FSS_UTF) >> 16;
-			switch (*(acPtr + 1))
-			{
-			case OPCODE_ID_CTAB:
-				eChunkType = ShaderChunkType::CTAB;
-				break;
-			default:
-				acFunc += uChunkSize;
-				break;
-			}
-
-			switch (eChunkType)
-			{
-			case ShaderChunkType::CTAB:
-			{
-				// get CTAB data
-				const uint8_t* acCTAB = reinterpret_cast<const uint8_t*>(acPtr + 2);
-				size_t uCTABSize = (uChunkSize - 1) * 4;
-
-				const CTAB_Data* sCTable = reinterpret_cast<const CTAB_Data*>(acCTAB);
-				if (uCTABSize < sizeof(*sCTable) || sCTable->uSize != sizeof(*sCTable))
-					return E_ABORT;
-
-				// get creator name
-				std::string acCreator = (const char*)acCTAB + sCTable->uCreator;
-
-				// only provide creator string if size min 16
-				if (acCreator.length() >= 16)
-					return sCTable->uCreator + (uint32_t)acCTAB - (uint32_t)acFunc;
-			}
-			break;
-			case ShaderChunkType::Unknown:
-				break;
-			default:
-				break;
-			}
-
-		}
-		// inc by byte-size
-		uint8_t* acP = (uint8_t*)acPtr;	acP++;
-		acPtr = (uint32_t*)acP;
-	}
-
-	return 0;
-}
-
-/// <summary>
-/// Creates a stereo buffer out of a buffer.
-/// Assigns a right buffer to the main buffer
-/// as private data.
-/// </summary>
-/// <param name="pcDevice">The d3d11 device</param>
-/// <param name="pcContext">The d3d11 device context</param>
-/// <param name="pcBuffer">The mono constant buffer to assign stereo constant buffers</param>
-/// <param name="pDesc">Pointer to the buffer description</param>
-/// <param name="pInitialData">Pointer to the initial data, NULL if bCopyData is true</param>
-/// <param name="bCopyData">True if data from main buffer is to be copied to stereo buffers</param>
-inline void CreateStereoBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC* pDesc, D3D11_SUBRESOURCE_DATA* pInitialData, bool bCopyData)
-{
-	// create right buffer
-	ID3D11Buffer* pcBufferRight = nullptr;
-	if (FAILED(pcDevice->CreateBuffer(pDesc,
-		pInitialData,
-		&pcBufferRight)))
-	{
-		OutputDebugString(L"BindFlags;ByteWidth;CPUAccessFlags;MiscFlags;StructureByteStride;Usage");
-		DEBUG_UINT(pDesc->BindFlags);
-		DEBUG_UINT(pDesc->ByteWidth);
-		DEBUG_UINT(pDesc->CPUAccessFlags);
-		DEBUG_UINT(pDesc->MiscFlags);
-		DEBUG_UINT(pDesc->StructureByteStride);
-		DEBUG_UINT(pDesc->Usage);
-		OutputDebugString(L"MatrixModifier: Failed to create right buffer!");
-		return;
-	}
-
-	// copy resource ?
-	if (bCopyData)
-	{
-		//pcContext->CopyResource(pcBufferLeft, pcBuffer);
-		pcContext->CopyResource(pcBufferRight, pcBuffer);
-	}
-
-	// set as private data interface to the main buffer
-	pcBuffer->SetPrivateDataInterface(PDIID_ID3D11Buffer_Constant_Buffer_Right, pcBufferRight);
-
-	// reference counter must be 1 now (reference held by the main buffer)
-	ULONG nRef = pcBufferRight->Release();
-	if (nRef != 1) OutputDebugString(L"MatrixModifier: Reference counter invalid !");
-}
-#pragma endregion
 
 /// <summary>
 /// Shader-specific constant rule index.

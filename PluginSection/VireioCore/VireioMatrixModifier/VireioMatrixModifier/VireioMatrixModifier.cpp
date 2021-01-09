@@ -71,134 +71,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
 #endif
 
-#pragma region ImGui helpers
-namespace ImGui
-{
-	/// <summary>
-	/// Toggle button.
-	/// Automatically choses colors based on button color settings.
-	/// </summary>
-	/// <param name="acLabel">Button label</param>
-	/// <param name="pbToggle">Toggle boolean</param>
-	/// <returns>True if clicked</returns>
-	bool ToggleButton(const char* acLabel, bool* pbToggle)
-	{
-		bool bRet = false;
-		if (!pbToggle) return bRet;
-		if (*pbToggle == true)
-		{
-			ImGui::PushID(acLabel);
-			ImVec4 sColB = ImGui::GetStyleColorVec4(ImGuiCol_Button); sColB.x = 1.f - sColB.x; sColB.y = 1.f - sColB.y; sColB.z = 1.f - sColB.z;
-			ImVec4 sColBH = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered); sColBH.x = 1.f - sColBH.x; sColBH.y = 1.f - sColBH.y; sColBH.z = 1.f - sColBH.z;
-			ImVec4 sColBA = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive); sColBA.x = 1.f - sColBA.x; sColBA.y = 1.f - sColBA.y; sColBA.z = 1.f - sColBA.z;
-			ImGui::PushStyleColor(ImGuiCol_Button, sColB);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sColBH);
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, sColBA);
-			ImGui::Button(acLabel);
-			if (bRet = ImGui::IsItemClicked(0))
-			{
-				*pbToggle = !(*pbToggle);
-			}
-			ImGui::PopStyleColor(3);
-			ImGui::PopID();
-		}
-		else
-		{
-			if (bRet = ImGui::Button(acLabel))
-				*pbToggle = true;
-		}
-		return bRet;
-	}
-
-	/// <summary>
-	/// Helper callback for ImGui methods.
-	/// </summary>
-	static int InputTextCallback(ImGuiInputTextCallbackData* data)
-	{
-		if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
-		{
-			// Resize string callback
-			std::string* str = (std::string*)data->UserData;
-			IM_ASSERT(data->Buf == str->c_str());
-			str->resize(data->BufTextLen);
-			data->Buf = (char*)str->c_str();
-		}
-		return 0;
-	}
-
-	/// <summary>
-	/// ImGui InputText control using std::string wrapper
-	/// </summary>
-	/// <param name="acLabel">ImGui Label</param>
-	/// <param name="acText">Current text, to be edited by user</param>
-	/// <param name="nFlags">Additional flags, callback flag will be applied.</param>
-	/// <returns>True if input text has changed</returns>
-	bool InputText(const char* acLabel, std::string* acText, ImGuiInputTextFlags nFlags)
-	{
-		nFlags |= ImGuiInputTextFlags_CallbackResize;
-		return InputText(acLabel, (char*)acText->c_str(), acText->capacity() + 1, nFlags, InputTextCallback, (void*)acText);
-	}
-
-	/// <summary>
-	/// Helper callback for ImGui methods.
-	/// </summary>
-	static auto vector_getter = [](void* vec, int idx, const char** out_text)
-	{
-		auto& vector = *static_cast<std::vector<std::string>*>(vec);
-		if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
-		*out_text = vector.at(idx).c_str();
-		return true;
-	};
-
-	/// <summary>
-	/// ImGui combo box using std::vector
-	/// </summary>
-	/// <param name="acLabel">Combo box label</param>
-	/// <param name="nCurrIndex">Current combo box selection index</param>
-	/// <param name="aacValues">Vector of values (string)</param>
-	/// <returns>True if combo box selection is changed</returns>
-	bool Combo(const char* acLabel, int* nCurrIndex, std::vector<std::string>& aacValues)
-	{
-		if (aacValues.empty()) { return false; }
-		return Combo(acLabel, nCurrIndex, vector_getter,
-			static_cast<void*>(&aacValues), aacValues.size());
-	}
-
-	/// <summary>
-	/// ImGui list box using std::vector
-	/// </summary>
-	/// <param name="acLabel">List box label</param>
-	/// <param name="nCurrIndex">Current list box selection index</param>
-	/// <param name="aacValues">Vector of values (string)</param>
-	/// <param name="nHeight_in_items">Height of the list box (in items)</param>
-	/// <returns>True if list box selection is changed</returns>
-	bool ListBox(const char* acLabel, int* nCurrIndex, std::vector<std::string>& aacValues, int nHeight_in_items = -1)
-	{
-		if (aacValues.empty()) { return false; }
-		return ListBox(acLabel, nCurrIndex, vector_getter,
-			static_cast<void*>(&aacValues), aacValues.size(), nHeight_in_items);
-	}
-
-	/// <summary>
-	/// Shows a little help description if hovered.
-	/// </summary>
-	/// <param name="acLabel">Label, usually (?)</param>
-	/// <param name="acDesc">Help description</param>
-	static void HelpMarker(const char* acLabel, const char* acDesc)
-	{
-		ImGui::TextDisabled(acLabel);
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-			ImGui::TextUnformatted(acDesc);
-			ImGui::PopTextWrapPos();
-			ImGui::EndTooltip();
-		}
-	}
-}
-#pragma endregion
-
 /// <summary> 
 /// Constructor.
 /// </summary>
@@ -395,10 +267,12 @@ m_aszShaderRuleGeneralIndices()
 
 	/*** DELETE ***/
 	Vireio_Constant_Modification_Rule sRule = {};
-	sRule.m_bTranspose = false;
-	sRule.m_szConstantName = "Matrix";
+	sRule.m_bTranspose = true;
+	//sRule.m_szConstantName = "Matrix";
+	//sRule.m_bUsePartialNameMatch = true;
+	sRule.m_szConstantName = "mtxPVW";
+	sRule.m_bUseName = true;
 	sRule.m_dwRegisterCount = 4;
-	sRule.m_bUsePartialNameMatch = true;
 	sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation, sRule.m_bTranspose);
 	m_asConstantRules.push_back(sRule);
 	m_aunGlobalConstantRuleIndices.push_back(0);
@@ -2949,7 +2823,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 /// <summary>
 /// => Update ImGui Control
 /// Update node controls using ImGui. 
-/// Use zoom factor to align controls.
 /// </summary>
 /// <param name="fZoom">Current zoom factor on ImNodes canvas.</param>
 void MatrixModifier::UpdateImGuiControl(float fZoom)
@@ -4144,9 +4017,6 @@ HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* p
 	// no rules present ? return
 	if (!psShader->asConstantRuleIndices.size()) return S_OK;
 
-	// set buffer... TODO !! MOVE DOWN !!
-	memcpy(&psShader->afRegisterBuffer[0], pfConstantData, unVector4fCount * 4 * sizeof(float));
-
 	// modification present for this index ? index for non-modified registers are set to 0xffffffff to allow zero index
 	uint32_t unIndex = psShader->aunRegisterModificationIndex[unStartRegister];
 	if ((unIndex < (UINT)psShader->asConstantRuleIndices.size()) && (unVector4fCount == 4))
@@ -4185,7 +4055,6 @@ HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* p
 				memcpy(&psShader->afRegisterBuffer[0], &sMatrixLeft, sizeof(D3DMATRIX));
 			else
 				memcpy(&psShader->afRegisterBuffer[0], &sMatrixRight, sizeof(D3DMATRIX));
-
 		}
 	}
 	else
@@ -4198,7 +4067,12 @@ HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* p
 			if ((unStartRegister < ((*it).dwConstantRuleRegister + (*it).dwConstantRuleRegisterCount)) && ((unStartRegister + unVector4fCount) > (*it).dwConstantRuleRegister))
 			{
 				// apply to left and right data
-				bModified = true;
+				if (!bModified)
+				{
+					// set buffer...
+					memcpy(&psShader->afRegisterBuffer[0], pfConstantData, unVector4fCount * 4 * sizeof(float));
+					bModified = true;
+				}
 				UINT unStartRegisterConstant = (*it).dwConstantRuleRegister;
 
 				// get the matrix
@@ -4286,10 +4160,9 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 			// .. and the function itself
 			std::vector<BYTE> acFunction(uSizeOfData);
 			(*ppcShader)->GetFunction(acFunction.data(), &uSizeOfData);
-
+			
 			// get the creator index
 			uint32_t uCreatorIx = GetCreatorIndex((uint32_t*)acFunction.data());
-
 			if (uCreatorIx)
 			{
 				// provide the shader data by modified creator string and its stored shader index
@@ -4307,10 +4180,10 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 		{
 			// set index
 			m_uActiveVSIx = uIndex;
-
+			
 			// set constant rule indices pointer for stereo splitter
 			m_sModifierData.pasVSConstantRuleIndices = &(m_asVShaders[uIndex].asConstantRuleIndices);
-
+			
 			// update shader constants for active side
 			auto it = m_asVShaders[uIndex].asConstantRuleIndices.begin();
 			while (it != m_asVShaders[uIndex].asConstantRuleIndices.end())
@@ -4346,7 +4219,7 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 				}
 				it++;
 			}
-
+			
 			// set modified constants
 			if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 			{
@@ -4718,7 +4591,31 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	if (FAILED(ParseShaderFunction(auFunc, uSizeOfData, uCreatorIx, asConstantDesc, uHash, VIREIO_SEED)))
 	{
 		OutputDebugString(L"[MAM] Failed to parse shader function !!");
-		return S_OK;
+		
+		// create shader
+		HRESULT nHr = m_pcDeviceCurrent->CreateVertexShader(*ppuFunction, *pppcShader);
+
+		if (**pppcShader)
+		{
+			// get function and output to file
+			UINT uSizeOfData;
+			(**pppcShader)->GetFunction(NULL, &uSizeOfData);
+			std::vector<BYTE> acData(uSizeOfData);
+			(**pppcShader)->GetFunction(acData.data(), &uSizeOfData);
+
+			// output code to file
+			static unsigned uIx = 0;
+			char buf[32]; ZeroMemory(&buf[0], 32);
+			sprintf_s(buf, "VS%u.cso", uIx++);
+			std::ofstream oLogFile(buf, std::ios::ate);
+			if (oLogFile.is_open())
+			{
+				oLogFile.write((char*)acData.data(), uSizeOfData);
+				oLogFile.close();
+			}
+		}
+		nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		return nHr;
 	}
 
 	// create array by function
@@ -4792,7 +4689,7 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	{
 		std::string acCreator = std::string((char*)&acFunction[uCreatorIx]);
 		OutputDebugStringA(acCreator.c_str());
-	}
+}
 #endif		
 
 	// create shader using modified function byte code and return

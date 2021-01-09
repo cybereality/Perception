@@ -636,3 +636,131 @@ struct StereoData : public VireioPluginData
 
 #pragma endregion
 
+#pragma region /// => ImGui helpers
+namespace ImGui
+{
+	/// <summary>
+	/// Toggle button.
+	/// Automatically choses colors based on button color settings.
+	/// </summary>
+	/// <param name="acLabel">Button label</param>
+	/// <param name="pbToggle">Toggle boolean</param>
+	/// <returns>True if clicked</returns>
+	bool ToggleButton(const char* acLabel, bool* pbToggle)
+	{
+		bool bRet = false;
+		if (!pbToggle) return bRet;
+		if (*pbToggle == true)
+		{
+			ImGui::PushID(acLabel);
+			ImVec4 sColB = ImGui::GetStyleColorVec4(ImGuiCol_Button); sColB.x = 1.f - sColB.x; sColB.y = 1.f - sColB.y; sColB.z = 1.f - sColB.z;
+			ImVec4 sColBH = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered); sColBH.x = 1.f - sColBH.x; sColBH.y = 1.f - sColBH.y; sColBH.z = 1.f - sColBH.z;
+			ImVec4 sColBA = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive); sColBA.x = 1.f - sColBA.x; sColBA.y = 1.f - sColBA.y; sColBA.z = 1.f - sColBA.z;
+			ImGui::PushStyleColor(ImGuiCol_Button, sColB);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sColBH);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, sColBA);
+			ImGui::Button(acLabel);
+			if (bRet = ImGui::IsItemClicked(0))
+			{
+				*pbToggle = !(*pbToggle);
+			}
+			ImGui::PopStyleColor(3);
+			ImGui::PopID();
+		}
+		else
+		{
+			if (bRet = ImGui::Button(acLabel))
+				*pbToggle = true;
+		}
+		return bRet;
+	}
+
+	/// <summary>
+	/// Helper callback for ImGui methods.
+	/// </summary>
+	static int InputTextCallback(ImGuiInputTextCallbackData* data)
+	{
+		if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+		{
+			// Resize string callback
+			std::string* str = (std::string*)data->UserData;
+			IM_ASSERT(data->Buf == str->c_str());
+			str->resize(data->BufTextLen);
+			data->Buf = (char*)str->c_str();
+		}
+		return 0;
+	}
+
+	/// <summary>
+	/// ImGui InputText control using std::string wrapper
+	/// </summary>
+	/// <param name="acLabel">ImGui Label</param>
+	/// <param name="acText">Current text, to be edited by user</param>
+	/// <param name="nFlags">Additional flags, callback flag will be applied.</param>
+	/// <returns>True if input text has changed</returns>
+	bool InputText(const char* acLabel, std::string* acText, ImGuiInputTextFlags nFlags)
+	{
+		nFlags |= ImGuiInputTextFlags_CallbackResize;
+		return InputText(acLabel, (char*)acText->c_str(), acText->capacity() + 1, nFlags, InputTextCallback, (void*)acText);
+	}
+
+	/// <summary>
+	/// Helper callback for ImGui methods.
+	/// </summary>
+	static auto vector_getter = [](void* vec, int idx, const char** out_text)
+	{
+		auto& vector = *static_cast<std::vector<std::string>*>(vec);
+		if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+		*out_text = vector.at(idx).c_str();
+		return true;
+	};
+
+	/// <summary>
+	/// ImGui combo box using std::vector
+	/// </summary>
+	/// <param name="acLabel">Combo box label</param>
+	/// <param name="nCurrIndex">Current combo box selection index</param>
+	/// <param name="aacValues">Vector of values (string)</param>
+	/// <returns>True if combo box selection is changed</returns>
+	bool Combo(const char* acLabel, int* nCurrIndex, std::vector<std::string>& aacValues)
+	{
+		if (aacValues.empty()) { return false; }
+		return Combo(acLabel, nCurrIndex, vector_getter,
+			static_cast<void*>(&aacValues), aacValues.size());
+	}
+
+	/// <summary>
+	/// ImGui list box using std::vector
+	/// </summary>
+	/// <param name="acLabel">List box label</param>
+	/// <param name="nCurrIndex">Current list box selection index</param>
+	/// <param name="aacValues">Vector of values (string)</param>
+	/// <param name="nHeight_in_items">Height of the list box (in items)</param>
+	/// <returns>True if list box selection is changed</returns>
+	bool ListBox(const char* acLabel, int* nCurrIndex, std::vector<std::string>& aacValues, int nHeight_in_items = -1)
+	{
+		if (aacValues.empty()) { return false; }
+		return ListBox(acLabel, nCurrIndex, vector_getter,
+			static_cast<void*>(&aacValues), aacValues.size(), nHeight_in_items);
+	}
+
+	/// <summary>
+	/// Shows a little help description if hovered.
+	/// </summary>
+	/// <param name="acLabel">Label, usually (?)</param>
+	/// <param name="acDesc">Help description</param>
+	static void HelpMarker(const char* acLabel, const char* acDesc)
+	{
+		ImGui::TextDisabled(acLabel);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(acDesc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
+}
+#pragma endregion
+

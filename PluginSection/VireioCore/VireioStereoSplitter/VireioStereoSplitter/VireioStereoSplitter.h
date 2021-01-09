@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma region include
 #include<stdio.h>
 #include<vector>
+#include<time.h> 
 
 #include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
@@ -370,24 +371,25 @@ public:
 
 	/*** AQU_Nodus public methods ***/
 	virtual const char* GetNodeType();
-	virtual UINT            GetNodeTypeId();
-	virtual LPWSTR          GetCategory();
-	virtual HBITMAP         GetLogo();
-	virtual HBITMAP         GetControl();
-	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
-	virtual DWORD           GetSaveDataSize();
-	virtual char* GetSaveData(UINT* pdwSizeOfData);
-	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
-	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
-	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
-	virtual LPWSTR          GetCommanderName(DWORD unCommanderIndex);
-	virtual LPWSTR          GetDecommanderName(DWORD unDecommanderIndex);
-	virtual DWORD           GetCommanderType(DWORD unCommanderIndex);
-	virtual DWORD           GetDecommanderType(DWORD unDecommanderIndex);
-	virtual void* GetOutputPointer(DWORD unCommanderIndex);
-	virtual void            SetInputPointer(DWORD unDecommanderIndex, void* pData);
-	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
-	virtual void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex);
+	virtual        UINT GetNodeTypeId();
+	virtual      LPWSTR GetCategory();
+	virtual     HBITMAP GetLogo();
+	virtual     HBITMAP GetControl();
+	virtual      ImVec2 GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
+	virtual       DWORD GetSaveDataSize();
+	virtual       char* GetSaveData(UINT* pdwSizeOfData);
+	virtual        void InitNodeData(char* pData, UINT dwSizeOfData);
+	virtual       DWORD GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
+	virtual       DWORD GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual      LPWSTR GetCommanderName(DWORD unCommanderIndex);
+	virtual      LPWSTR GetDecommanderName(DWORD unDecommanderIndex);
+	virtual       DWORD GetCommanderType(DWORD unCommanderIndex);
+	virtual       DWORD GetDecommanderType(DWORD unDecommanderIndex);
+	virtual       void* GetOutputPointer(DWORD unCommanderIndex);
+	virtual        void SetInputPointer(DWORD unDecommanderIndex, void* pData);
+	virtual        bool SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
+	virtual       void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex);
+	virtual        void UpdateImGuiControl(float fZoom);
 
 private:
 	/*** StereoSplitter private D3D9 methods ***/
@@ -574,6 +576,10 @@ private:
 	/// True if stereo images should be streched to monitor output.
 	/// </summary>
 	bool m_bMonitorStereo;
+	/// <summary>
+	/// True if simple boxes as indicators for stereo should be drawn.
+	/// </summary>
+	bool m_bDrawStereoIndicators;
 	/// <summary>
 	/// Vireio menu.
 	/// </summary>

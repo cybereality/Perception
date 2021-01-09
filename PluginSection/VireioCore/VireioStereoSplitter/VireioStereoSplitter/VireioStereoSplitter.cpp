@@ -79,8 +79,9 @@ m_psModifierData(nullptr)
 	m_sGameSettings.nDuplicateCubeTexture = DetermineDuplicateCubeTexture::DT_IF_RENDER_TARGET;
 	m_sGameSettings.nSaveRenderStatesID = DetermineSaveRenderStates::DT_STATE_BLOCK;
 
-	// default... monitor stereo output on
+	// default... monitor stereo output on, indicators false
 	m_bMonitorStereo = true;
+	m_bDrawStereoIndicators = false;
 
 	// init d3d9ex specific vectors
 	m_aapcActiveProxyBackBufferSurfaces = std::vector<std::vector<IDirect3DStereoSurface9*>>();
@@ -697,7 +698,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		case (int)VMT_IDIRECT3DDEVICE9::BeginScene:
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
-			return nullptr;
 #pragma endregion 
 #pragma region EndScene
 		case (int)VMT_IDIRECT3DDEVICE9::EndScene:
@@ -1818,6 +1818,86 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	return nullptr;
 }
 
+/// <summary>
+/// => Update ImGui Control
+/// Update node controls using ImGui. 
+/// </summary>
+/// <param name="fZoom">Current zoom factor on ImNodes canvas.</param>
+void StereoSplitter::UpdateImGuiControl(float fZoom)
+{
+	ImGui::TextUnformatted("Vireio Perception Stereo Splitter Controls\n");
+#pragma region Static Text
+	static std::vector<std::string> aszGameSettingsStrings;
+	if (!aszGameSettingsStrings.size())
+	{
+		aszGameSettingsStrings.push_back("Duplicate Render Target");
+		aszGameSettingsStrings.push_back("Duplicate Depth Stencil");
+		aszGameSettingsStrings.push_back("Duplicate Texture");
+		aszGameSettingsStrings.push_back("Duplicate Cube Texture");
+		aszGameSettingsStrings.push_back("Save Render States");
+	}
+	static std::vector<std::string> aszDetermineRenderTargetStrings;
+	if (!aszDetermineRenderTargetStrings.size())
+	{
+		aszDetermineRenderTargetStrings.push_back("DT_FALSE");
+		aszDetermineRenderTargetStrings.push_back("DT_TRUE");
+		aszDetermineRenderTargetStrings.push_back("DT_WIDTH_UNEQUAL_HEIGHT");
+	}
+	static std::vector<std::string> aszDetermineDepthStencilStrings;
+	if (!aszDetermineDepthStencilStrings.size())
+	{
+		aszDetermineDepthStencilStrings.push_back("DT_FALSE");
+		aszDetermineDepthStencilStrings.push_back("DT_TRUE");
+		aszDetermineDepthStencilStrings.push_back("DT_WIDTH_UNEQUAL_HEIGHT");
+	}
+	static std::vector<std::string> aszDetermineTextureStrings;
+	if (!aszDetermineTextureStrings.size())
+	{
+		aszDetermineTextureStrings.push_back("DT_FALSE");
+		aszDetermineTextureStrings.push_back("DT_TRUE");
+		aszDetermineTextureStrings.push_back("DT_IF_RENDER_TARGET");
+		aszDetermineTextureStrings.push_back("DT_IF_RENDER_TARGET_AND_WIDTH_UNEQUAL_HEIGHT");
+	}
+	static std::vector<std::string> aszDetermineCubeTextureStrings;
+	if (!aszDetermineCubeTextureStrings.size())
+	{
+		aszDetermineCubeTextureStrings.push_back("DT_FALSE");
+		aszDetermineCubeTextureStrings.push_back("DT_TRUE");
+		aszDetermineCubeTextureStrings.push_back("DT_IF_RENDER_TARGET");
+	}
+	static std::vector<std::string> aszDetermineSaveRenderStates;
+	if (!aszDetermineSaveRenderStates.size())
+	{
+		aszDetermineSaveRenderStates.push_back("DT_STATE_BLOCK");
+		aszDetermineSaveRenderStates.push_back("DT_SELECTED_STATES_MANUALLY");
+		aszDetermineSaveRenderStates.push_back("DT_ALL_STATES_MANUALLY");
+		aszDetermineSaveRenderStates.push_back("DT_DO_NOT_SAVE_AND_RESTORE");
+	}
+#pragma endregion
+
+	bool bGameSettings = false;
+	bGameSettings |= ImGui::Checkbox("Monitor Stereo", &m_bMonitorStereo);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Render Stereo to\ngame window."); ImGui::SameLine();
+	bGameSettings |= ImGui::Checkbox("Stereo Indicators", &m_bDrawStereoIndicators);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Draw small color\nboxes as indicators\nfor stereo rendering.");
+	if (bGameSettings)
+	{
+		// m_sMenu.bOnChanged = true; // TODO !! DOES THIS WORK ?
+	}
+	// duplication rules
+	ImGui::Combo(aszGameSettingsStrings[0].c_str(), (int*)&m_sGameSettings.nDuplicateRenderTarget, aszDetermineRenderTargetStrings);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Determines which\nrender targets should\nbe created stereo\nand which mono.");
+	ImGui::Combo(aszGameSettingsStrings[1].c_str(), (int*)&m_sGameSettings.nDuplicateDepthStencil, aszDetermineDepthStencilStrings);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Determines which\ndepth stencils should\nbe created stereo\nand which mono.");
+	ImGui::Combo(aszGameSettingsStrings[2].c_str(), (int*)&m_sGameSettings.nDuplicateTexture, aszDetermineTextureStrings);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Determines which\ntextures should\nbe created stereo\nand which mono.");
+	ImGui::Combo(aszGameSettingsStrings[3].c_str(), (int*)&m_sGameSettings.nDuplicateCubeTexture, aszDetermineCubeTextureStrings);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Determines which\ncube textures should\nbe created stereo\nand which mono.");
+	//ImGui::Combo(aszGameSettingsStrings[4].c_str(), (int*)&m_sGameSettings.nSaveRenderStatesID, aszDetermineSaveRenderStates);
+	//ImGui::SameLine(); ImGui::HelpMarker("|?|", "Not implemented\ncurrently.");
+
+}
+
 /**
 * Incoming SetRenderTarget() call.
 * Set render targets internally, handle render target monitoring.
@@ -2229,27 +2309,29 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		pcDevice->SetViewport(&m_sLastViewportSet);
 	}
 
-#define DRAW_INDICATORS
-#ifdef DRAW_INDICATORS
-	if (eSide == RenderPosition::Left)
+	// draw stereo indicators to see wether the render targets are acutally 2
+	if (m_bDrawStereoIndicators)
 	{
-		RECT rc;
-		rc.top = 10;
-		rc.bottom = 60;
-		rc.left = 10;
-		rc.right = 60;
-		pcDevice->ColorFill(m_apcActiveRenderTargets[0], &rc, D3DCOLOR_ARGB(255, 100, 10, 200));
+		float fSec = (float)clock() / (float)CLOCKS_PER_SEC;
+		if (eSide == RenderPosition::Left)
+		{
+			RECT rc;
+			rc.left = (LONG)(100.f * fmod(fSec, 10.f));
+			rc.right = (LONG)(100.f * fmod(fSec, 10.f)) + 25;
+			rc.top = (LONG)(40.f * fmod(fSec, 20.f));
+			rc.bottom = (LONG)(40.f * fmod(fSec, 20.f)) + 20;
+			pcDevice->ColorFill(m_apcActiveRenderTargets[0], &rc, D3DCOLOR_ARGB(255, 100, 10, 200));
+		}
+		else
+		{
+			RECT rc;
+			rc.left = (LONG)(120.f * fmod(fSec, 8.f));
+			rc.right = (LONG)(120.f * fmod(fSec, 8.f)) + 25;
+			rc.top = (LONG)(48.f * fmod(fSec, 24.f));
+			rc.bottom = (LONG)(48.f * fmod(fSec, 24.f)) + 20;
+			pcDevice->ColorFill(m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT], &rc, D3DCOLOR_ARGB(255, 100, 200, 10));
+		}
 	}
-	else
-	{
-		RECT rc;
-		rc.top = 400;
-		rc.bottom = 450;
-		rc.left = 10;
-		rc.right = 60;
-		pcDevice->ColorFill(m_apcActiveRenderTargets[D3D9_SIMULTANEOUS_RENDER_TARGET_COUNT], &rc, D3DCOLOR_ARGB(255, 100, 200, 10));
-	}
-#endif
 
 	// switch depth stencil to new side
 	if (m_pcActiveDepthStencilSurface[0] != NULL)
@@ -2301,23 +2383,23 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		if (eSide == RenderPosition::Left)
 		{
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
-				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].m_dwConstantRuleRegister, (*pasVSIndices)[nI].m_afConstantDataLeft, (*pasVSIndices)[nI].m_dwConstantRuleRegisterCount);
+				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].dwConstantRuleRegister, (*pasVSIndices)[nI].afConstantDataLeft, (*pasVSIndices)[nI].dwConstantRuleRegisterCount);
 		}
 		else
 		{
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
-				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].m_dwConstantRuleRegister, (*pasVSIndices)[nI].m_afConstantDataRight, (*pasVSIndices)[nI].m_dwConstantRuleRegisterCount);
+				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].dwConstantRuleRegister, (*pasVSIndices)[nI].afConstantDataRight, (*pasVSIndices)[nI].dwConstantRuleRegisterCount);
 		}
 		std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSIndices = m_psModifierData->pasPSConstantRuleIndices;
 		if (eSide == RenderPosition::Left)
 		{
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
-				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].m_dwConstantRuleRegister, (*pasPSIndices)[nI].m_afConstantDataLeft, (*pasPSIndices)[nI].m_dwConstantRuleRegisterCount);
+				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataLeft, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
 		}
 		else
 		{
 			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
-				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].m_dwConstantRuleRegister, (*pasPSIndices)[nI].m_afConstantDataRight, (*pasPSIndices)[nI].m_dwConstantRuleRegisterCount);
+				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataRight, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
 		}
 	}
 
@@ -2382,7 +2464,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				* ppcStereoTwinTexture = nullptr;
-			}
+		}
 			else
 			{
 				// update the texture
@@ -2414,8 +2496,8 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 
 				}
 			}
-			}
-		}
+	}
+	}
 	break;
 	case D3DRTYPE_VOLUMETEXTURE:
 		// TODO !! VOLUME TEXTURE !!
@@ -2473,7 +2555,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				* ppcStereoTwinTexture = nullptr;
-			}
+		}
 			else
 			{
 				// update the texture
@@ -2508,12 +2590,12 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 					}
 				}
 			}
-			}
-		}
+	}
+}
 	default:
 		break;
 	}
-	}
+}
 
 /**
 * True if the by parameters described render target is to be duplicated for the handled game.

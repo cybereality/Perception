@@ -84,8 +84,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DStateBlock9.h"
 #include"..\..\..\Include\Vireio_GameConfig.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-#include"VireioMatrixModifierClasses.h"
 #include"VireioMatrixModifierDataStructures.h"
+#include"VireioMatrixModifierClasses.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
@@ -290,7 +290,7 @@ enum Vireio_Supported_Shaders
 #endif
 
 /// <summary>
-/// Vireio Matrix Modifier (DX9/10/11).
+/// => Vireio Matrix Modifier (DX9/10/11).
 /// Vireio Perception Stereo Matrix Modification Handler.
 /// </summary>
 class MatrixModifier : public AQU_Nodus
