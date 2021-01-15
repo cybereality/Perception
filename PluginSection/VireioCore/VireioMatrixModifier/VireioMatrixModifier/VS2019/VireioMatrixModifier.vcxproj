@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{08DE0036-DCA5-430C-9999-327D9D8DE387}</ProjectGuid>
+    <ProjectGuid>{7EAD2DFF-9644-44BC-B167-4981B8C63C3A}</ProjectGuid>
     <RootNamespace>VireioMatrixModifier</RootNamespace>
     <ProjectName>VireioMatrixModifier</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>

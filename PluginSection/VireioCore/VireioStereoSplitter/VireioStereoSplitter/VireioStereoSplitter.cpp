@@ -38,7 +38,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 #define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#define DEBUG_UINT_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %u", t, a); OutputDebugString(buf); }
+#define DEBUG_HEX_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %x", t, a); OutputDebugString(buf); }
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
+#define TRACE_SPLITTER
+#ifdef TRACE_SPLITTER
+#define SHOW_CALL_SPLITTER(b, name) { if (b) OutputDebugStringA(name); }
+#else
+#define SHOW_CALL_SPLITTER(b, name)
+#endif
 
 
 #include"VireioStereoSplitter.h"
@@ -56,6 +64,7 @@ m_unTextureNumber(0),
 m_unRenderTargetNumber(0),
 m_bPresent(false),
 m_bApply(true),
+m_bTrace(false),
 m_pcDeviceCurrent(nullptr),
 m_psModifierData(nullptr)
 {
@@ -614,11 +623,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// return if any method call is done by proxy classes
 	if (s_bDeviceInUseByProxy) return nullptr;
 
-	// #define _DEBUG_STEREO_SPLITTER
-#ifdef _DEBUG_STEREO_SPLITTER
-	{ wchar_t buf[128]; wsprintf(buf, L"[STS] if %u mt %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
-#endif
-
 	// save ini file ?
 	if (m_nIniFrameCount)
 	{
@@ -674,7 +678,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region Present
 		case (int)VMT_IDIRECT3DDEVICE9::Present:
 		{
-			SHOW_CALL("Present");
+			SHOW_CALL_SPLITTER(m_bTrace,"Present");
 
 			// TODO !! make this an option !!
 			static int s_nPresentStartCount = 3;
@@ -696,11 +700,17 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region BeginScene
 		case (int)VMT_IDIRECT3DDEVICE9::BeginScene:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "BeginScene");
+			
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 #pragma endregion 
 #pragma region EndScene
 		case (int)VMT_IDIRECT3DDEVICE9::EndScene:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "EndScene");
+			
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 			return nullptr;
@@ -708,7 +718,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetRenderTarget
 		case (int)VMT_IDIRECT3DDEVICE9::SetRenderTarget:
 		{
-			SHOW_CALL("SetRenderTarget");
+			SHOW_CALL_SPLITTER(m_bTrace,"SetRenderTarget");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -732,7 +742,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetDepthStencilSurface
 		case (int)VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:
 		{
-			SHOW_CALL("SetDepthStencilSurface");
+			SHOW_CALL_SPLITTER(m_bTrace,"SetDepthStencilSurface");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -756,7 +766,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetTexture
 		case (int)VMT_IDIRECT3DDEVICE9::SetTexture:
 		{
-			SHOW_CALL("SetTexture");
+			SHOW_CALL_SPLITTER(m_bTrace,"SetTexture");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -779,6 +789,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region Clear
 		case (int)VMT_IDIRECT3DDEVICE9::Clear:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "Clear");
+
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -801,6 +814,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DrawPrimitive
 		case (int)VMT_IDIRECT3DDEVICE9::DrawPrimitive:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "DrawPrimitive");
+
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -823,6 +839,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DrawIndexedPrimitive
 		case (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "DrawIndexedPrimitive");
+
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -845,6 +864,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DrawPrimitiveUP
 		case (int)VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "DrawPrimitiveUP");
+
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -867,6 +889,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DrawIndexedPrimitiveUP
 		case (int)VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP:
+
+			SHOW_CALL_SPLITTER(m_bTrace, "DrawIndexedPrimitiveUP");
+
 			if (m_bPresent)
 			{
 				bool bSwitched = true;
@@ -890,7 +915,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region UpdateSurface
 		case (int)VMT_IDIRECT3DDEVICE9::UpdateSurface:
 		{
-			SHOW_CALL("UpdateSurface");
+			SHOW_CALL_SPLITTER(m_bTrace,"UpdateSurface");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -914,7 +939,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region UpdateTexture
 		case (int)VMT_IDIRECT3DDEVICE9::UpdateTexture:
 		{
-			SHOW_CALL("UpdateTexture");
+			SHOW_CALL_SPLITTER(m_bTrace,"UpdateTexture");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -938,7 +963,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region StretchRect 
 		case (int)VMT_IDIRECT3DDEVICE9::StretchRect:
 		{
-			SHOW_CALL("StretchRect");
+			SHOW_CALL_SPLITTER(m_bTrace,"StretchRect");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -962,7 +987,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ColorFill
 		case (int)VMT_IDIRECT3DDEVICE9::ColorFill:
 		{
-			SHOW_CALL("ColorFill");
+			SHOW_CALL_SPLITTER(m_bTrace,"ColorFill");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -986,7 +1011,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetBackBuffer
 		case (int)VMT_IDIRECT3DDEVICE9::GetBackBuffer:
 		{
-			SHOW_CALL("GetBackBuffer");
+			SHOW_CALL_SPLITTER(m_bTrace,"GetBackBuffer");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1011,7 +1036,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetRenderTarget
 		case (int)VMT_IDIRECT3DDEVICE9::GetRenderTarget:
 		{
-			SHOW_CALL("GetRenderTarget");
+			SHOW_CALL_SPLITTER(m_bTrace,"GetRenderTarget");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1036,7 +1061,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetDepthStencilSurface
 		case (int)VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:
 		{
-			SHOW_CALL("GetDepthStencilSurface");
+			SHOW_CALL_SPLITTER(m_bTrace,"GetDepthStencilSurface");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1061,7 +1086,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetTexture 
 		case (int)VMT_IDIRECT3DDEVICE9::GetTexture:
 		{
-			SHOW_CALL("GetTexture");
+			SHOW_CALL_SPLITTER(m_bTrace,"GetTexture");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1086,7 +1111,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region Reset
 		case (int)VMT_IDIRECT3DDEVICE9::Reset:
 		{
-			SHOW_CALL("Reset");
+			SHOW_CALL_SPLITTER(m_bTrace,"Reset");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1111,15 +1136,18 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region DrawRectPatch
 		case (int)VMT_IDIRECT3DDEVICE9::DrawRectPatch:
 			// TODO !!
+			SHOW_CALL_SPLITTER(m_bTrace, "DrawRectPatch");
 			return nullptr;
 #pragma endregion  
 #pragma region DrawTriPatch
 		case (int)VMT_IDIRECT3DDEVICE9::DrawTriPatch:
 			// TODO !!
+			SHOW_CALL_SPLITTER(m_bTrace, "DrawTriPatch");
 			return nullptr;
 #pragma endregion 
 #pragma region SetRenderState
 		case (int)VMT_IDIRECT3DDEVICE9::SetRenderState:
+			SHOW_CALL_SPLITTER(m_bTrace, "SetRenderState");
 			if (!m_ppInput[(int)STS_Decommanders::SetRenderState]) return nullptr;
 			else
 			{
@@ -1175,6 +1203,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region SetViewport
 		case (int)VMT_IDIRECT3DDEVICE9::SetViewport:
+			SHOW_CALL_SPLITTER(m_bTrace, "SetViewport");
 			if (!m_ppInput[(int)STS_Decommanders::SetViewport]) return nullptr;
 			else
 			{
@@ -1234,7 +1263,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetRendertargetData
 		case  (int)VMT_IDIRECT3DDEVICE9::GetRenderTargetData:
 		{
-			SHOW_CALL("GetRenderTargetData");
+			SHOW_CALL_SPLITTER(m_bTrace,"GetRenderTargetData");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1306,6 +1335,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 		case (int)VMT_IDIRECT3DSWAPCHAIN9::Present:
 		{
+			SHOW_CALL_SPLITTER(m_bTrace, "IDirect3DSwapChain9->Present");
+
 			// get the device and call present
 			((LPDIRECT3DSWAPCHAIN9)pThis)->GetDevice(&m_pcDeviceCurrent);
 			if (m_pcDeviceCurrent)
@@ -1334,7 +1365,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 		case (int)VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer:
 		{
-			SHOW_CALL("GetBackBuffer");
+			SHOW_CALL_SPLITTER(m_bTrace,"IDirect3DSwapChain9->GetBackBuffer");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1357,7 +1388,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 		case (int)VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData:
 		{
-			SHOW_CALL("GetFrontBufferData");
+			SHOW_CALL_SPLITTER(m_bTrace,"IDirect3DSwapChain9->GetFrontBufferData");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1387,6 +1418,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 		case (int)VMT_IDIRECT3DSTATEBLOCK9::Apply:
 			// TODO !! v3 special handling here ?
+			SHOW_CALL_SPLITTER(m_bTrace, "IDirect3DStateBlock9->Apply");
 			Apply();
 			return nullptr;
 		}
@@ -1397,7 +1429,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			{
 	#pragma region D3D9_D3DXLoadSurfaceFromSurface
 			case MT_D3DX9::D3D9_D3DXLoadSurfaceFromSurface:
-				SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromSurface");
+				SHOW_CALL_SPLITTER(m_bTrace,"INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromSurface");
 				if (!m_ppcDestSurface) return nullptr;
 				if (!m_ppsDestPalette) return nullptr;
 				if (!m_ppsDestRect) return nullptr;
@@ -1458,7 +1490,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	#pragma endregion
 	#pragma region D3D9_D3DXLoadSurfaceFromMemory
 			case MT_D3DX9::D3D9_D3DXLoadSurfaceFromMemory:
-				SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromMemory");
+				SHOW_CALL_SPLITTER(m_bTrace,"INTERFACE_D3DX9::D3D9_D3DXLoadSurfaceFromMemory");
 				if (!m_ppcDestSurface) return nullptr;
 				if (!m_ppsDestPalette) return nullptr;
 				if (!m_ppsDestRect) return nullptr;
@@ -1516,7 +1548,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_peFormat) return nullptr;
 					if (!m_pePool) return nullptr;
 					if (!m_pppcTextureCreate) return nullptr;
-	#ifdef _DEBUGTHIS
+	#ifdef TRACE_SPLITTER
 					wchar_t buf[32];
 					wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
 					wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
@@ -1525,7 +1557,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
 					wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
 	#endif
-					SHOW_CALL("D3DXCreateTexture");
+					SHOW_CALL_SPLITTER(m_bTrace,"D3DXCreateTexture");
 
 					static IDirect3DTexture9* s_pcLeftTexture = NULL;
 					static IDirect3DTexture9* s_pcRightTexture = NULL;
@@ -1544,7 +1576,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						s_pcDirect3DDevice9Ex->Release();
 					}
 
-	#ifdef _DEBUGTHIS
+	#ifdef TRACE_SPLITTER
 					OutputDebugString(L"[STS] Create texture format :");
 					DEBUG_UINT(eFormat);
 					DEBUG_HEX(eFormat);
@@ -1586,7 +1618,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppSrcData) return nullptr;
 					if (!m_punSrcDataSize) return nullptr;
 					if (!m_pppcTextureCreate) return nullptr;
-	#ifdef _DEBUGTHIS
+	#ifdef TRACE_SPLITTER
 					wchar_t buf[32];
 					wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
 					wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
@@ -1595,14 +1627,14 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
 					wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
 	#endif
-					SHOW_CALL("D3DXCreateTextureFromFileInMemory");
+					SHOW_CALL_SPLITTER(m_bTrace,"D3DXCreateTextureFromFileInMemory");
 
 					static IDirect3DTexture9* s_pcLeftTexture = NULL;
 					static IDirect3DTexture9* s_pcRightTexture = NULL;
 					s_pcLeftTexture = NULL;
 					s_pcRightTexture = NULL;
 
-	#ifdef _DEBUGTHIS
+	#ifdef TRACE_SPLITTER
 					OutputDebugString(L"[STS] Create texture format :");
 					DEBUG_UINT(eFormat);
 					DEBUG_HEX(eFormat);
@@ -1665,7 +1697,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_ppsSrcInfo) return nullptr;
 					if (!m_ppsPalette) return nullptr;
 					if (!m_pppcTextureCreate) return nullptr;
-	#ifdef _DEBUGTHIS
+	#ifdef TRACE_SPLITTER
 					wchar_t buf[32];
 					wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
 					wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
@@ -1674,7 +1706,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
 					wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
 	#endif
-					SHOW_CALL("D3DXCreateTextureFromFileInMemoryEx");
+					SHOW_CALL_SPLITTER(m_bTrace,"D3DXCreateTextureFromFileInMemoryEx");
 
 					static IDirect3DTexture9* s_pcLeftTexture = NULL;
 					static IDirect3DTexture9* s_pcRightTexture = NULL;
@@ -1694,7 +1726,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						s_pcDirect3DDevice9Ex->Release();
 					}
 
-	#ifdef _DEBUGTHIS
+	#ifdef TRACE_SPLITTER
 					OutputDebugString(L"[STS] Create texture format :");
 					DEBUG_UINT(eFormat);
 					DEBUG_HEX(eFormat);
@@ -1731,7 +1763,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	#pragma endregion
 	#pragma region D3D9_D3DXFillTexture
 			case MT_D3DX9::D3D9_D3DXFillTexture:
-				SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXFillTexture");
+				SHOW_CALL_SPLITTER(m_bTrace,"INTERFACE_D3DX9::D3D9_D3DXFillTexture");
 				if (!m_ppcTexture_D3DX) return nullptr;
 				if (!m_ppFunction) return nullptr;
 				if (!m_ppData) return nullptr;
@@ -1770,7 +1802,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	#pragma endregion
 	#pragma region D3D9_D3DXFillVolumeTexture
 			case MT_D3DX9::D3D9_D3DXFillVolumeTexture:
-				SHOW_CALL("INTERFACE_D3DX9::D3D9_D3DXFillVolumeTexture");
+				SHOW_CALL_SPLITTER(m_bTrace,"INTERFACE_D3DX9::D3D9_D3DXFillVolumeTexture");
 				if (!m_ppcVolumeTexture) return nullptr;
 				if (!m_ppFunction) return nullptr;
 				if (!m_ppData) return nullptr;
@@ -1874,6 +1906,11 @@ void StereoSplitter::UpdateImGuiControl(float fZoom)
 		aszDetermineSaveRenderStates.push_back("DT_DO_NOT_SAVE_AND_RESTORE");
 	}
 #pragma endregion
+
+#ifdef TRACE_SPLITTER
+	ImGui::ToggleButton("Trace", &m_bTrace);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Debug Trace output.\n(DebugView)"); ImGui::SameLine();
+#endif
 
 	bool bGameSettings = false;
 	bGameSettings |= ImGui::Checkbox("Monitor Stereo", &m_bMonitorStereo);
@@ -2114,7 +2151,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 				if (FAILED(pcDevice->CreateDepthStencilSurface(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
 				{
 					OutputDebugString(L"[STS] Failed to create depth stencil surface.");
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 					wchar_t buf[32];
 					wsprintf(buf, L"desc.Width %u", sDesc.Width); OutputDebugString(buf);
 					wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
@@ -2130,7 +2167,7 @@ IDirect3DSurface9* StereoSplitter::VerifyPrivateDataInterfaces(IDirect3DDevice9*
 					if (FAILED(pcDevice->CreateRenderTarget(sDesc.Width, sDesc.Height, sDesc.Format, sDesc.MultiSampleType, sDesc.MultiSampleQuality, true, &pcStereoTwinSurface, NULL)))
 					{
 						OutputDebugString(L"[STS] Failed to create render target.");
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 						wchar_t buf[32];
 						wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
 						wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
@@ -2456,7 +2493,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 			if (FAILED(pcDevice->CreateTexture((UINT)sDesc.Width, (UINT)sDesc.Height, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DTexture9**)ppcStereoTwinTexture, NULL)))
 			{
 				OutputDebugString(L"[STS] Failed to create render target texture.");
-#ifdef _DEBUGTHIS							
+#ifdef TRACE_SPLITTER							
 				wchar_t buf[32];
 				wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
 				wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
@@ -2547,7 +2584,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 			if (FAILED(pcDevice->CreateCubeTexture((UINT)sDesc.Width, pcTexture->GetLevelCount(), sDesc.Usage, sDesc.Format, sDesc.Pool, (IDirect3DCubeTexture9**)ppcStereoTwinTexture, NULL)))
 			{
 				OutputDebugString(L"[STS] Failed to create render target texture.");
-#ifdef _DEBUGTHIS							
+#ifdef TRACE_SPLITTER							
 				wchar_t buf[32];
 				wsprintf(buf, L"sDesc.Width %u", sDesc.Width); OutputDebugString(buf);
 				wsprintf(buf, L"sDesc.Height %u", sDesc.Height); OutputDebugString(buf);
@@ -2980,14 +3017,14 @@ void StereoSplitter::Init_v3()
 				m_pcActiveDepthStencilSurface[0] = pcBackBufferStereo;
 				if (m_pcActiveDepthStencilSurface[0]) m_pcActiveDepthStencilSurface[0]->AddRef();
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 				OutputDebugString(L"[STS] Default back buffer format :");
 				DEBUG_UINT(sDesc.Format);
 				DEBUG_HEX(sDesc.Format);
 #endif
 			}
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 			// check device formats debug option
 			IDirect3D9* pD3D = nullptr;
 			pcDevice->GetDirect3D(&pD3D);
@@ -3340,7 +3377,7 @@ HRESULT StereoSplitter::CreateTexture_v3(int& nFlags)
 				if (!m_pppcTextureCreate) return nullptr;
 				if (!m_ppvSharedHandle) return nullptr;
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   wchar_t buf[32];
 													   wsprintf(buf, L"m_punWidth %u", *m_punWidth); OutputDebugString(buf);
 													   wsprintf(buf, L"m_punHeight %u", *m_punHeight); OutputDebugString(buf);
@@ -3349,7 +3386,7 @@ HRESULT StereoSplitter::CreateTexture_v3(int& nFlags)
 													   wsprintf(buf, L"m_peFormat %u", *m_peFormat); OutputDebugString(buf);
 													   wsprintf(buf, L"m_pePool %u", *m_pePool); OutputDebugString(buf);
 #endif
-													   SHOW_CALL("CreateTexture");
+													   SHOW_CALL_SPLITTER(m_bTrace,"CreateTexture");
 
 													   static IDirect3DTexture9* s_pcLeftTexture = NULL;
 													   static IDirect3DTexture9* s_pcRightTexture = NULL;
@@ -3369,7 +3406,7 @@ HRESULT StereoSplitter::CreateTexture_v3(int& nFlags)
 														   s_pcDirect3DDevice9Ex->Release();
 													   }
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create texture format :");
 													   DEBUG_UINT(eFormat);
 													   DEBUG_HEX(eFormat);
@@ -3431,7 +3468,7 @@ HRESULT StereoSplitter::CreateVolumeTexture_v3(int& nFlags)
 					ePool = D3DPOOL_DEFAULT;
 					s_pcDirect3DDevice9Ex->Release();
 				}
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create volume texture format :");
 													   DEBUG_UINT(eFormat);
 													   DEBUG_HEX(eFormat);
@@ -3486,7 +3523,7 @@ HRESULT StereoSplitter::CreateCubeTexture_v3(int& nFlags)
 	static IDirect3DCubeTexture9* s_pcRightCubeTexture = NULL;
 	s_pcRightCubeTexture = NULL;
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create cube texture format :");
 													   DEBUG_UINT(eFormat);
 													   DEBUG_HEX(eFormat);
@@ -3527,7 +3564,7 @@ HRESULT StereoSplitter::CreateVertexBuffer_v3(int& nFlags)
 {
 	/*if (m_bUseD3D9Ex)
 			{
-				SHOW_CALL("CreateVertexBuffer");
+				SHOW_CALL_SPLITTER(m_bTrace,"CreateVertexBuffer");
 
 				if (!m_punLength) return nullptr;
 				if (!m_punUsage) return nullptr;
@@ -3565,7 +3602,7 @@ HRESULT StereoSplitter::CreateIndexBuffer_v3(int& nFlags)
 {
 	/*if (m_bUseD3D9Ex)
 			{
-				SHOW_CALL("CreateIndexBuffer");
+				SHOW_CALL_SPLITTER(m_bTrace,"CreateIndexBuffer");
 				if (!m_pePool) return nullptr;
 
 				HRESULT hr = S_OK;
@@ -3595,7 +3632,7 @@ HRESULT StereoSplitter::CreateRenderTarget_v3(int& nFlags)
 	if (!m_pppcSurfaceCreate) return nullptr;
 	if (!m_ppvSharedHandle) return nullptr;
 
-	SHOW_CALL("CreateRenderTarget");
+	SHOW_CALL_SPLITTER(m_bTrace,"CreateRenderTarget");
 
 	static IDirect3DSurface9* s_pcLeftRenderTarget = NULL;
 	s_pcLeftRenderTarget = NULL;
@@ -3620,7 +3657,7 @@ HRESULT StereoSplitter::CreateRenderTarget_v3(int& nFlags)
 		//eMultiSampleQuality = 0;
 	}
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create render target format :");
 													   DEBUG_UINT(eFormat);
 													   DEBUG_HEX(eFormat);
@@ -3647,7 +3684,7 @@ HRESULT StereoSplitter::CreateRenderTarget_v3(int& nFlags)
 													   else
 													   {
 														   OutputDebugString(L"[STS] Failed to create render target\n");
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 														   wchar_t buf[32];
 														   wsprintf(buf, L"Width %u", *m_punWidth); OutputDebugString(buf);
 														   wsprintf(buf, L"Height %u", *m_punHeight); OutputDebugString(buf);
@@ -3690,7 +3727,7 @@ HRESULT StereoSplitter::CreateDepthStencilSurface_v3(int& nFlags)
 				if (!m_pppcSurfaceCreate) return nullptr;
 				if (!m_ppvSharedHandle) return nullptr;
 
-				SHOW_CALL("CreateDepthStencilSurface");
+				SHOW_CALL_SPLITTER(m_bTrace,"CreateDepthStencilSurface");
 
 				static IDirect3DSurface9* s_pcDepthStencilSurfaceLeft = NULL;
 				s_pcDepthStencilSurfaceLeft = NULL;
@@ -3712,7 +3749,7 @@ HRESULT StereoSplitter::CreateDepthStencilSurface_v3(int& nFlags)
 					s_pcDirect3DDevice9Ex->Release();
 				}
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create depth stencil format :");
 													   DEBUG_UINT(eFormat);
 													   DEBUG_HEX(eFormat);
@@ -4005,7 +4042,7 @@ HRESULT StereoSplitter::CreateOffscreenPlainSurface_v3(int& nFlags)
 				if (!m_pppcSurfaceCreate) return nullptr;
 				if (!m_ppvSharedHandle) return nullptr;
 
-				SHOW_CALL("CreateOffscreenPlainSurface");
+				SHOW_CALL_SPLITTER(m_bTrace,"CreateOffscreenPlainSurface");
 
 				D3DPOOL ePool = *m_pePool;
 				D3DFORMAT eFormat = *m_peFormat;
@@ -4020,7 +4057,7 @@ HRESULT StereoSplitter::CreateOffscreenPlainSurface_v3(int& nFlags)
 					s_pcDirect3DDevice9Ex->Release();
 				}
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create offscreen plain format :");
 													   DEBUG_UINT(eFormat);
 													   DEBUG_HEX(eFormat);
@@ -4203,7 +4240,7 @@ HRESULT StereoSplitter::SetDepthStencilSurface_v3(int& nFlags)
 				pActualStencilForCurrentSide = pNewDepthStencil->GetActualRight();
 		}
 
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 		D3DSURFACE_DESC sDesc = {};
 		if (pActualStencilForCurrentSide) pActualStencilForCurrentSide->GetDesc(&sDesc);
 		DEBUG_UINT(sDesc.Format);
@@ -4230,7 +4267,7 @@ HRESULT StereoSplitter::SetDepthStencilSurface_v3(int& nFlags)
 		else
 		{
 			{ wchar_t buf[128]; wsprintf(buf, L"[STS] Failed to set depth stencil surface - Error %x - Ifc %x", nHr, pActualStencilForCurrentSide); OutputDebugString(buf); }
-#ifdef _DEBUGTHIS
+#ifdef TRACE_SPLITTER
 			if (pActualStencilForCurrentSide)
 			{
 				D3DSURFACE_DESC sDesc = {};
@@ -4260,7 +4297,7 @@ HRESULT StereoSplitter::GetDepthStencilSurface_v3(int& nFlags)
 {
 	/*
 	{
-		SHOW_CALL("GetDepthStencilSurface");
+		SHOW_CALL_SPLITTER(m_bTrace,"GetDepthStencilSurface");
 
 		if (!m_pppcZStencilSurface) return nullptr;
 		if (!(*m_pppcZStencilSurface)) return nullptr;
@@ -4521,7 +4558,7 @@ HRESULT StereoSplitter::SC_GetFrontBufferData_v3(int& nFlags)
 {
 	/*if (m_bUseD3D9Ex)
 	{
-		SHOW_CALL("IDirect3DStereoSwapChain9::GetFrontBufferData");
+		SHOW_CALL_SPLITTER(m_bTrace,"IDirect3DStereoSwapChain9::GetFrontBufferData");
 
 		if (!m_ppcDestSurface) return nullptr;
 
@@ -4612,6 +4649,27 @@ void StereoSplitter::Init_v4()
 	{
 		m_pcActiveDepthStencilSurface[0] = pcDepthStencil;
 		m_pcActiveDepthStencilSurface[1] = VerifyPrivateDataInterfaces(m_pcDeviceCurrent, pcDepthStencil);
+		
+#ifdef _DEBUG
+		for (uint32_t uI = 0; uI < 2; uI++)
+		{
+			D3DSURFACE_DESC sDesc = {};
+			if (m_pcActiveDepthStencilSurface[uI])
+			{
+				m_pcActiveDepthStencilSurface[uI]->GetDesc(&sDesc);
+				DEBUG_UINT_EX(L"Format", sDesc.Format);
+				DEBUG_UINT_EX(L"Height", sDesc.Height);
+				DEBUG_UINT_EX(L"MultiSampleQuality", sDesc.MultiSampleQuality);
+				DEBUG_UINT_EX(L"MultiSampleType", sDesc.MultiSampleType);
+				DEBUG_UINT_EX(L"Pool", sDesc.Pool);
+				DEBUG_UINT_EX(L"Type", sDesc.Type);
+				DEBUG_UINT_EX(L"Usage", sDesc.Usage);
+				DEBUG_UINT_EX(L"Width", sDesc.Width);
+			}
+			else OutputDebugString(L"[STS] No Stereo Depth Buffer !!");
+		}
+#endif
+
 		pcDepthStencil->Release();
 	}
 

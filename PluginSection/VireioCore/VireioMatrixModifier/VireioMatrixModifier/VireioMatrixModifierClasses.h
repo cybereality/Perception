@@ -809,7 +809,7 @@ public:
 };
 
 /// <summary>
-/// Matrix modification base.
+/// => Matrix modification base.
 /// </summary>
 class ShaderMatrixModification : public ShaderConstantModification<float>
 {
@@ -831,12 +831,12 @@ public:
 		D3DXMATRIX sIn = D3DXMATRIX(inData);
 		D3DXMATRIX* psOutLeft = (D3DXMATRIX*)&outLeft[0];
 		D3DXMATRIX* psOutRight = (D3DXMATRIX*)&outRight[0];
-		//*psOutLeft = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
-		//*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
-		D3DXMATRIX sTransL; D3DXMatrixTranslation(&sTransL, .1f, -.1f, 0.f);
+		*psOutLeft = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
+		*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
+		/*D3DXMATRIX sTransL; D3DXMatrixTranslation(&sTransL, .1f, -.1f, 0.f);
 		D3DXMATRIX sTransR; D3DXMatrixTranslation(&sTransR, -.1f, .1f, 0.f);
 		*psOutLeft = sIn * sTransL;
-		*psOutRight = sIn * sTransR;
+		*psOutRight = sIn * sTransR;*/
 	}
 	virtual void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight) {};
 };

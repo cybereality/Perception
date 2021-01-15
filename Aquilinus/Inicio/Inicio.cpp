@@ -376,7 +376,7 @@ void ImGui_New()
 			break;
 		}
 		ImGui::SliderInt("Repeat Injection", &g_pAquilinusConfig->nInjectionRepetition, 0, 15, "%d times");
-		ImGui::SliderInt("Detour Time Delay", (int*)&g_pAquilinusConfig->dwDetourTimeDelay, 0, 15, "%d ms");
+		ImGui::SliderInt("Detour Time Delay", (int*)&g_pAquilinusConfig->dwDetourTimeDelay, 0, 5000, "%d ms");
 	}
 
 	// selected game

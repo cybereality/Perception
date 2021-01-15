@@ -566,7 +566,7 @@ private:
 		int nDuplicateDepthStencil;  /**< [Switch] Setting which depth stencils are to be duplicated. **/
 		int nDuplicateTexture;       /**< [Switch] Setting which textures are to be duplicated. **/
 		int nDuplicateCubeTexture;   /**< [Switch] Setting which cube textures are to be duplicated. **/
-		int nSaveRenderStatesID;   /**< [Switch] Setting how to save render states for stereo rendering. **/
+		int nSaveRenderStatesID;     /**< [Switch] Setting how to save render states for stereo rendering. **/
 	} m_sGameSettings;
 	/// <summary>
 	/// Data buffer to save this node.
@@ -588,6 +588,10 @@ private:
 	/// Frames to save the ini file.
 	/// </summary>
 	INT m_nIniFrameCount;
+	/// <summary>
+	/// Trace button. Only used if TRACE_SPLITTER is defined.
+	/// </summary>
+	bool m_bTrace;
 #pragma endregion
 
 	/*** StereoSplitter private D3D9 methods ***/

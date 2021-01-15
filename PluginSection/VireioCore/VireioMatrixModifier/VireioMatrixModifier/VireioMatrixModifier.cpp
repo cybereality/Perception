@@ -268,9 +268,10 @@ m_aszShaderRuleGeneralIndices()
 	/*** DELETE ***/
 	Vireio_Constant_Modification_Rule sRule = {};
 	sRule.m_bTranspose = true;
+	sRule.m_szConstantName = "cViewProj";
 	//sRule.m_szConstantName = "Matrix";
+	//sRule.m_szConstantName = "mtxPVW";
 	//sRule.m_bUsePartialNameMatch = true;
-	sRule.m_szConstantName = "mtxPVW";
 	sRule.m_bUseName = true;
 	sRule.m_dwRegisterCount = 4;
 	sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation, sRule.m_bTranspose);
@@ -545,8 +546,8 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 
 					dwSizeOfRules -= sizeof(UINT);
 				}
-			}
 		}
+	}
 #elif defined(VIREIO_D3D9)
 		// shader specific rules
 		if (dwSizeOfRules >= sizeof(UINT))
@@ -585,7 +586,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 #elif defined(VIREIO_D3D9)
 		FillShaderRuleShaderIndices();
 #endif
-	}
+}
 	else
 	{
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
@@ -2474,7 +2475,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ID3D10Device::PSGetConstantBuffers
 			// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
 #pragma endregion
-	}
+}
 #elif defined(VIREIO_D3D9)
 	switch (eD3DInterface)
 	{
@@ -3949,13 +3950,13 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 				return E_NO_MATCH;
 		}
 
-		// register match required... TODO !! UINT_MAX ??
-		if ((psRule->m_dwStartRegIndex != UINT_MAX) && (psRule->m_dwStartRegIndex != psDescription->uRegisterIndex))
+		// register match required...
+		if (psRule->m_dwStartRegIndex != psDescription->uRegisterIndex)
 			return E_NO_MATCH;
 
 #ifdef _DEBUG
 		// output shader constant + index 
-		switch (psDescription->Class)
+		switch (psDescription->eClass)
 		{
 		case D3DXPC_VECTOR:
 			OutputDebugString(L"VS: D3DXPC_VECTOR");
@@ -3969,8 +3970,8 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 		default:
 			OutputDebugString(L"VS: UNKNOWN_CONSTANT");
 			break;
-		}
-		debugf("Register Index: %d", psDescription->RegisterIndex);
+	}
+		debugf("Register Index: %d", psDescription->uRegisterIndex);
 #endif 
 		// set register index
 		psShader->aunRegisterModificationIndex[psDescription->uRegisterIndex] = (UINT)psShader->asConstantRuleIndices.size();
@@ -3993,7 +3994,7 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 
 		// only the first matching rule is applied to a constant
 		return S_OK;
-	}
+}
 	else return E_NO_MATCH;
 }
 
@@ -4160,7 +4161,7 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 			// .. and the function itself
 			std::vector<BYTE> acFunction(uSizeOfData);
 			(*ppcShader)->GetFunction(acFunction.data(), &uSizeOfData);
-			
+
 			// get the creator index
 			uint32_t uCreatorIx = GetCreatorIndex((uint32_t*)acFunction.data());
 			if (uCreatorIx)
@@ -4180,10 +4181,10 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 		{
 			// set index
 			m_uActiveVSIx = uIndex;
-			
+
 			// set constant rule indices pointer for stereo splitter
 			m_sModifierData.pasVSConstantRuleIndices = &(m_asVShaders[uIndex].asConstantRuleIndices);
-			
+
 			// update shader constants for active side
 			auto it = m_asVShaders[uIndex].asConstantRuleIndices.begin();
 			while (it != m_asVShaders[uIndex].asConstantRuleIndices.end())
@@ -4219,7 +4220,7 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 				}
 				it++;
 			}
-			
+
 			// set modified constants
 			if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
 			{
@@ -4591,7 +4592,7 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	if (FAILED(ParseShaderFunction(auFunc, uSizeOfData, uCreatorIx, asConstantDesc, uHash, VIREIO_SEED)))
 	{
 		OutputDebugString(L"[MAM] Failed to parse shader function !!");
-		
+
 		// create shader
 		HRESULT nHr = m_pcDeviceCurrent->CreateVertexShader(*ppuFunction, *pppcShader);
 

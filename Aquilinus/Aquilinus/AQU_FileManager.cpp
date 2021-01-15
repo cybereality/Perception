@@ -75,12 +75,12 @@ AQU_FileManager::~AQU_FileManager()
 /// Loads the basic information from a working area file for the Inicio app.
 /// TODO !! SIMPLIFY PARAMETERS
 /// </summary>
-HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath, 
-	DWORD& dwProcessIndex, 
-	DWORD& dwSupportedInterfacesNumber, 
+HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath,
+	DWORD& dwProcessIndex,
+	DWORD& dwSupportedInterfacesNumber,
 	__int32* pnInterfaceInjectionTechnique,
-	LPWSTR szPicturePath, 
-	BOOL& bPicture, 
+	LPWSTR szPicturePath,
+	BOOL& bPicture,
 	unsigned __int32& dwDetourTimeDelay,
 	__int32& nInjectionRepetition,
 	bool bKeepProcessName)
@@ -111,7 +111,7 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath,
 		if (inFile.is_open())
 		{
 			// write exact file path to the configuration
-			CopyMemory((PVOID)szWorkspacePath, ofn.lpstrFile, wcslen(ofn.lpstrFile) * sizeof(wchar_t));
+			CopyMemory((PVOID)szWorkspacePath, ofn.lpstrFile, (wcslen(ofn.lpstrFile) + 1) * sizeof(wchar_t));
 
 			// read header
 			int nVersion = -1;
@@ -205,7 +205,7 @@ HRESULT AQU_FileManager::LoadWorkingAreaBasics(LPWSTR szWorkspacePath,
 
 	// read the length of the additional option block (currently zero.. for future use)
 	unsigned __int32 auAdditionalDataBlockLength[OPTIONS_RESERVED] = {};
-	sstrDataStream.read((char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32)* OPTIONS_RESERVED);
+	sstrDataStream.read((char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32) * OPTIONS_RESERVED);
 
 	// read profile picture boolean and the path if true
 	sstrDataStream.read((char*)&bPicture, sizeof(BOOL));
@@ -354,7 +354,7 @@ HRESULT AQU_FileManager::LoadProfileBasics(LPCWSTR szProfilePath, AquilinusCfg* 
 
 	// read the length of the additional option block (currently zero.. for future use)
 	unsigned __int32 auAdditionalDataBlockLength[OPTIONS_RESERVED] = {};
-	sstrDataStream.read((char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32)* OPTIONS_RESERVED);
+	sstrDataStream.read((char*)&auAdditionalDataBlockLength[0], sizeof(unsigned __int32) * OPTIONS_RESERVED);
 
 	// read profile picture boolean and the path if true
 	sstrDataStream.read((char*)&psConfig->bProfileWindow, sizeof(BOOL));
@@ -1298,7 +1298,7 @@ HRESULT AQU_FileManager::AddProcess(LPCWSTR szName, LPCWSTR szWindow, LPCWSTR sz
 HRESULT AQU_FileManager::LoadProcessListCSV(AquilinusCfg* psConfig)
 {
 	UINT uI = 0;
-	
+
 	// clear old list
 	if (m_pcProcesses) free(m_pcProcesses);
 	m_pcProcesses = nullptr;
