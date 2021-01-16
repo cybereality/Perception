@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<d3dx9.h>
 #include"..//..//Aquilinus/Aquilinus//AQU_NodesStructures.h"
 #include"..\..\..\Include\VireioMenu.h"
+#include"..\VireioCore\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #pragma region global fields
 /// <summary>
@@ -462,33 +463,6 @@ enum RenderPosition
 };
 
 /// <summary>
-/// Constant rule index DX9.
-/// Stores register indexand shader rule index.
-/// For efficiency in DX9 we also store the modified constant data here.
-/// </summary>
-struct Vireio_Constant_Rule_Index_DX9
-{
-	UINT dwConstantRuleRegister;
-	UINT dwIndex;
-	UINT dwConstantRuleRegisterCount;
-
-	union
-	{
-		unsigned char acConstantDataLeft[4 * 4 * sizeof(float)]; /**< Constant data left in bytes. (max. sizeof(MATRIX 4*4)) **/
-		float afConstantDataLeft[4 * 4];                         /**< Constant data left in float. (max. sizeof(MATRIX 4*4)) **/
-		UINT32 aunConstantDataLeft[4 * 4];                       /**< Constant data left in unsigned int. (max. sizeof(MATRIX 4*4)) **/
-		D3DMATRIX asConstantDataLeft;
-	};
-	union
-	{
-		unsigned char acConstantDataRight[4 * 4 * sizeof(float)]; /**< Constant data right in bytes. (max. sizeof(MATRIX 4*4)) **/
-		float afConstantDataRight[4 * 4];                         /**< Constant data right in float. (max. sizeof(MATRIX 4*4)) **/
-		UINT32 aunConstantDataRight[4 * 4];                       /**< Constant data right in unsigned int. (max. sizeof(MATRIX 4*4)) **/
-		D3DMATRIX asConstantDataRight;
-	};
-};
-
-/// <summary>
 /// Base structure for all connections
 /// </summary>
 struct VireioPluginData
@@ -552,13 +526,33 @@ struct HMDTrackerData : public VireioPluginData
 struct ModifierData : public VireioPluginData
 {
 	/// <summary>
-	/// The indices of the shader rules assigned to the active vertex shader.
+	/// The d3d9 vertex shader description vector. /// TODO !! union with d3d11 shaders
+	/// Contains all enumerated shader data structures.
 	/// </summary>
-	std::vector<Vireio_Constant_Rule_Index_DX9>* pasVSConstantRuleIndices;
+	std::vector<Vireio_D3D9_Shader> asVShaders;
 	/// <summary>
-	/// The indices of the shader rules assigned to the active pixel shader.
+	/// The d3d9 pixel shader description vector. /// TODO !! union with d3d11 shaders
+	/// Contains all enumerated shader data structures.
 	/// </summary>
-	std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSConstantRuleIndices;
+	std::vector<Vireio_D3D9_Shader> asPShaders;
+	/// <summary>
+	/// The active vertex shader index.
+	/// Only used if codemod method is active.
+	/// </summary>
+	uint32_t uActiveVSIx;
+	/// <summary>
+	/// The active pixel shader index.
+	/// Only used if codemod method is active.
+	/// </summary>
+	uint32_t uActivePSIx;
+	/// <summary>
+	/// True if a vertex shader is active.
+	/// </summary>
+	bool bVSActive;
+	/// <summary>
+	/// True if a pixel shader is active.
+	/// </summary>
+	bool bPSActive;
 	/// <summary>
 	/// The stored view transform set via SetTransform() l/r.
 	/// </summary>

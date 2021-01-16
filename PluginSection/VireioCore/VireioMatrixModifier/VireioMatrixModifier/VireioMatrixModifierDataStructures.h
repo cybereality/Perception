@@ -52,6 +52,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VIREIO_CONSTANT_RULES_NOT_ADDRESSED - 1  /**< No shader rules addressed for this shader. ***/
 #define VIREIO_CONSTANT_RULES_NOT_AVAILABLE - 2  /**< No shader rules available for this shader. ***/
 
+#define VIREIO_SEED	                               12345                     /**< Do not change this !! ***/
+#define VECTOR_LENGTH 4                                                      /**< One shader register has 4 float values. ***/
+#define MAX_DX9_CONSTANT_REGISTERS                   224                     /**< Maximum shader registers for DX9 ***/
+#define RegisterIndex(x) (x * VECTOR_LENGTH)                                 /**< Simple helper to access shader register. ***/
+
 // Universal Coded Character Set (UCS) shader stream constants
 constexpr uint32_t OPCODE_BYTEORDERMARK_LO = 0x0000FFFE;
 constexpr uint32_t OPCODE_HEADER_UTF32_02 = 0xFFFE0200;
@@ -197,6 +202,33 @@ struct Vireio_Buffer_Rules_Index
 {
 	INT m_nRulesIndex;
 	UINT m_dwUpdateCounter;
+};
+
+/// <summary>
+/// Constant rule index DX9.
+/// Stores register indexand shader rule index.
+/// For efficiency in DX9 we also store the modified constant data here.
+/// </summary>
+struct Vireio_Constant_Rule_Index_DX9
+{
+	UINT dwConstantRuleRegister;
+	UINT dwIndex;
+	UINT dwConstantRuleRegisterCount;
+
+	union
+	{
+		unsigned char acConstantDataLeft[4 * 4 * sizeof(float)]; /**< Constant data left in bytes. (max. sizeof(MATRIX 4*4)) **/
+		float afConstantDataLeft[4 * 4];                         /**< Constant data left in float. (max. sizeof(MATRIX 4*4)) **/
+		UINT32 aunConstantDataLeft[4 * 4];                       /**< Constant data left in unsigned int. (max. sizeof(MATRIX 4*4)) **/
+		D3DMATRIX asConstantDataLeft;
+	};
+	union
+	{
+		unsigned char acConstantDataRight[4 * 4 * sizeof(float)]; /**< Constant data right in bytes. (max. sizeof(MATRIX 4*4)) **/
+		float afConstantDataRight[4 * 4];                         /**< Constant data right in float. (max. sizeof(MATRIX 4*4)) **/
+		UINT32 aunConstantDataRight[4 * 4];                       /**< Constant data right in unsigned int. (max. sizeof(MATRIX 4*4)) **/
+		D3DMATRIX asConstantDataRight;
+	};
 };
 
 /// <summary>

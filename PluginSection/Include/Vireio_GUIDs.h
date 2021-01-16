@@ -28,6 +28,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#ifndef VIREIO_GUIDS
+#define VIREIO_GUIDS
+
 #include<d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -107,3 +110,4 @@ const GUID PDIID_Shared_Handle = { 0x88522b10, 0xcab2, 0x4284, { 0xa2, 0xcc, 0xd
 const GUID PDIID_ID3D11Device_IDXGISwapChain = { 0x90de944a, 0xd1ee, 0x4921, { 0xb9, 0xa4, 0x65, 0x17, 0x31, 0x9d, 0x0f, 0x43 } };
 
 #pragma endregion
+#endif

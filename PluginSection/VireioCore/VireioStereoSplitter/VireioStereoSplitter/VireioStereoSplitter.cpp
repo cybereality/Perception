@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_UINT_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %u", t, a); OutputDebugString(buf); }
 #define DEBUG_HEX_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %x", t, a); OutputDebugString(buf); }
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
-#define TRACE_SPLITTER
+//#define TRACE_SPLITTER
 #ifdef TRACE_SPLITTER
 #define SHOW_CALL_SPLITTER(b, name) { if (b) OutputDebugStringA(name); }
 #else
@@ -543,6 +543,8 @@ void* StereoSplitter::GetOutputPointer(DWORD unCommanderIndex)
 ***/
 void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 {
+	if (unDecommanderIndex == (DWORD)STS_Decommanders::Modifier)
+		m_psModifierData = (ModifierData*)pData;
 	if (unDecommanderIndex < NUMBER_OF_DECOMMANDERS)
 		m_ppInput[unDecommanderIndex] = (pData);
 }
@@ -678,7 +680,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region Present
 		case (int)VMT_IDIRECT3DDEVICE9::Present:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"Present");
+			SHOW_CALL_SPLITTER(m_bTrace, "Present");
 
 			// TODO !! make this an option !!
 			static int s_nPresentStartCount = 3;
@@ -702,7 +704,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		case (int)VMT_IDIRECT3DDEVICE9::BeginScene:
 
 			SHOW_CALL_SPLITTER(m_bTrace, "BeginScene");
-			
+
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 #pragma endregion 
@@ -710,7 +712,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		case (int)VMT_IDIRECT3DDEVICE9::EndScene:
 
 			SHOW_CALL_SPLITTER(m_bTrace, "EndScene");
-			
+
 			// ensure left drawing side here
 			SetDrawingSide((LPDIRECT3DDEVICE9)pThis, RenderPosition::Left);
 			return nullptr;
@@ -718,7 +720,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetRenderTarget
 		case (int)VMT_IDIRECT3DDEVICE9::SetRenderTarget:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"SetRenderTarget");
+			SHOW_CALL_SPLITTER(m_bTrace, "SetRenderTarget");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -742,7 +744,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetDepthStencilSurface
 		case (int)VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"SetDepthStencilSurface");
+			SHOW_CALL_SPLITTER(m_bTrace, "SetDepthStencilSurface");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -766,7 +768,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetTexture
 		case (int)VMT_IDIRECT3DDEVICE9::SetTexture:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"SetTexture");
+			SHOW_CALL_SPLITTER(m_bTrace, "SetTexture");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -915,7 +917,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region UpdateSurface
 		case (int)VMT_IDIRECT3DDEVICE9::UpdateSurface:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"UpdateSurface");
+			SHOW_CALL_SPLITTER(m_bTrace, "UpdateSurface");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -939,7 +941,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region UpdateTexture
 		case (int)VMT_IDIRECT3DDEVICE9::UpdateTexture:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"UpdateTexture");
+			SHOW_CALL_SPLITTER(m_bTrace, "UpdateTexture");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -963,7 +965,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region StretchRect 
 		case (int)VMT_IDIRECT3DDEVICE9::StretchRect:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"StretchRect");
+			SHOW_CALL_SPLITTER(m_bTrace, "StretchRect");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -987,7 +989,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ColorFill
 		case (int)VMT_IDIRECT3DDEVICE9::ColorFill:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"ColorFill");
+			SHOW_CALL_SPLITTER(m_bTrace, "ColorFill");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1011,7 +1013,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetBackBuffer
 		case (int)VMT_IDIRECT3DDEVICE9::GetBackBuffer:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"GetBackBuffer");
+			SHOW_CALL_SPLITTER(m_bTrace, "GetBackBuffer");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1036,7 +1038,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetRenderTarget
 		case (int)VMT_IDIRECT3DDEVICE9::GetRenderTarget:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"GetRenderTarget");
+			SHOW_CALL_SPLITTER(m_bTrace, "GetRenderTarget");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1061,7 +1063,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetDepthStencilSurface
 		case (int)VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"GetDepthStencilSurface");
+			SHOW_CALL_SPLITTER(m_bTrace, "GetDepthStencilSurface");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1086,7 +1088,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetTexture 
 		case (int)VMT_IDIRECT3DDEVICE9::GetTexture:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"GetTexture");
+			SHOW_CALL_SPLITTER(m_bTrace, "GetTexture");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1111,7 +1113,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region Reset
 		case (int)VMT_IDIRECT3DDEVICE9::Reset:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"Reset");
+			SHOW_CALL_SPLITTER(m_bTrace, "Reset");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1263,7 +1265,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetRendertargetData
 		case  (int)VMT_IDIRECT3DDEVICE9::GetRenderTargetData:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"GetRenderTargetData");
+			SHOW_CALL_SPLITTER(m_bTrace, "GetRenderTargetData");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1365,7 +1367,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 		case (int)VMT_IDIRECT3DSWAPCHAIN9::GetBackBuffer:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"IDirect3DSwapChain9->GetBackBuffer");
+			SHOW_CALL_SPLITTER(m_bTrace, "IDirect3DSwapChain9->GetBackBuffer");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -1388,7 +1390,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 		case (int)VMT_IDIRECT3DSWAPCHAIN9::GetFrontBufferData:
 		{
-			SHOW_CALL_SPLITTER(m_bTrace,"IDirect3DSwapChain9->GetFrontBufferData");
+			SHOW_CALL_SPLITTER(m_bTrace, "IDirect3DSwapChain9->GetFrontBufferData");
 
 			int nFlags = 0;
 			switch (m_eTechnique)
@@ -2416,27 +2418,33 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		}
 
 		// set shader constants to new side, first vertex shader
-		std::vector<Vireio_Constant_Rule_Index_DX9>* pasVSIndices = m_psModifierData->pasVSConstantRuleIndices;
-		if (eSide == RenderPosition::Left)
+		std::vector<Vireio_Constant_Rule_Index_DX9>* pasVSIndices = &(m_psModifierData->asVShaders[m_psModifierData->uActiveVSIx].asConstantRuleIndices);
+		if ((m_psModifierData->bVSActive) && (pasVSIndices->size()))
 		{
-			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
-				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].dwConstantRuleRegister, (*pasVSIndices)[nI].afConstantDataLeft, (*pasVSIndices)[nI].dwConstantRuleRegisterCount);
+			if (eSide == RenderPosition::Left)
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
+					pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].dwConstantRuleRegister, (*pasVSIndices)[nI].afConstantDataLeft, (*pasVSIndices)[nI].dwConstantRuleRegisterCount);
+			}
+			else
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
+					pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].dwConstantRuleRegister, (*pasVSIndices)[nI].afConstantDataRight, (*pasVSIndices)[nI].dwConstantRuleRegisterCount);
+			}
 		}
-		else
+		std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSIndices = &(m_psModifierData->asPShaders[m_psModifierData->uActivePSIx].asConstantRuleIndices);
+		if ((m_psModifierData->bPSActive) && (pasPSIndices->size()))
 		{
-			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasVSIndices->size(); nI++)
-				pcDevice->SetVertexShaderConstantF((*pasVSIndices)[nI].dwConstantRuleRegister, (*pasVSIndices)[nI].afConstantDataRight, (*pasVSIndices)[nI].dwConstantRuleRegisterCount);
-		}
-		std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSIndices = m_psModifierData->pasPSConstantRuleIndices;
-		if (eSide == RenderPosition::Left)
-		{
-			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
-				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataLeft, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
-		}
-		else
-		{
-			for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
-				pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataRight, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
+			/*if (eSide == RenderPosition::Left)
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
+					pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataLeft, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
+			}
+			else
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
+					pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataRight, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
+			}*/
 		}
 	}
 
@@ -4649,7 +4657,7 @@ void StereoSplitter::Init_v4()
 	{
 		m_pcActiveDepthStencilSurface[0] = pcDepthStencil;
 		m_pcActiveDepthStencilSurface[1] = VerifyPrivateDataInterfaces(m_pcDeviceCurrent, pcDepthStencil);
-		
+
 #ifdef _DEBUG
 		for (uint32_t uI = 0; uI < 2; uI++)
 		{
@@ -4665,7 +4673,7 @@ void StereoSplitter::Init_v4()
 				DEBUG_UINT_EX(L"Type", sDesc.Type);
 				DEBUG_UINT_EX(L"Usage", sDesc.Usage);
 				DEBUG_UINT_EX(L"Width", sDesc.Width);
-			}
+}
 			else OutputDebugString(L"[STS] No Stereo Depth Buffer !!");
 		}
 #endif

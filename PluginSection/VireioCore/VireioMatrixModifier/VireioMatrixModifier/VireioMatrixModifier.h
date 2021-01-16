@@ -71,11 +71,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 #endif
 
-#define VIREIO_SEED	                               12345                     /**< Do not change this !! ***/
-#define VECTOR_LENGTH 4                                                      /**< One shader register has 4 float values. ***/
-#define MAX_DX9_CONSTANT_REGISTERS                   224                     /**< Maximum shader registers for DX9 ***/
-#define RegisterIndex(x) (x * VECTOR_LENGTH)                                 /**< Simple helper to access shader register. ***/
-
 #include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D9Interfaces.h"
@@ -84,7 +79,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DStateBlock9.h"
 #include"..\..\..\Include\Vireio_GameConfig.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-#include"VireioMatrixModifierDataStructures.h"
 #include"VireioMatrixModifierClasses.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
@@ -105,6 +99,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_UINT_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %u", t, a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#define DEBUG_HEX_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %x", t, a); OutputDebugString(buf); }
 #define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 void debugf(const char* fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
 
@@ -495,16 +490,6 @@ private:
 
 #elif defined(VIREIO_D3D9)
 	/// <summary>
-	/// The d3d9 vertex shader description vector.
-	/// Contains all enumerated shader data structures.
-	/// </summary>
-	std::vector<Vireio_D3D9_Shader> m_asVShaders;
-	/// <summary>
-	/// The d3d9 pixel shader description vector.
-	/// Contains all enumerated shader data structures.
-	/// </summary>
-	std::vector<Vireio_D3D9_Shader> m_asPShaders;
-	/// <summary>
 	/// The active vertex shader.
 	/// Only used if codemod method is active.
 	/// </summary>
@@ -514,16 +499,6 @@ private:
 	/// Only used if codemod method is active.
 	/// </summary>
 	IDirect3DPixelShader9* m_pcActivePixelShader;
-	/// <summary>
-	/// The active vertex shader index.
-	/// Only used if codemod method is active.
-	/// </summary>
-	uint32_t m_uActiveVSIx;
-	/// <summary>
-	/// The active pixel shader index.
-	/// Only used if codemod method is active.
-	/// </summary>
-	uint32_t m_uActivePSIx;
 	/// <summary>
 	/// The active vertex shader.
 	/// Only used if proxy method is active.

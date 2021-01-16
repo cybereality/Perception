@@ -831,13 +831,13 @@ public:
 		D3DXMATRIX sIn = D3DXMATRIX(inData);
 		D3DXMATRIX* psOutLeft = (D3DXMATRIX*)&outLeft[0];
 		D3DXMATRIX* psOutRight = (D3DXMATRIX*)&outRight[0];
-		*psOutLeft = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
-		*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
-		/*D3DXMATRIX sTransL; D3DXMatrixTranslation(&sTransL, .1f, -.1f, 0.f);
-		D3DXMATRIX sTransR; D3DXMatrixTranslation(&sTransR, -.1f, .1f, 0.f);
-		D3DXMATRIX sIdent; D3DXMatrixIdentity(&sIdent);
+		//*psOutLeft = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
+		//*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
+		D3DXMATRIX sTransL; D3DXMatrixTranslation(&sTransL, .1f, 0.f, 0.f);
+		D3DXMATRIX sTransR; D3DXMatrixTranslation(&sTransR, -.1f, 0.f, 0.f);
+		//D3DXMATRIX sIdent; D3DXMatrixIdentity(&sIdent);
 		*psOutLeft = sIn * sTransL;
-		*psOutRight = sIn * sTransR;*/
+		*psOutRight = sIn * sTransR;
 	}
 	virtual void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight) {};
 };
@@ -1562,7 +1562,7 @@ private:
 			}
 
 			// register match required
-			if (psRule->m_dwStartRegIndex != UINT_MAX)
+			if (psRule->m_bUseStartRegIndex)
 			{
 				if (psRule->m_dwStartRegIndex != psDescription->RegisterIndex)
 				{
