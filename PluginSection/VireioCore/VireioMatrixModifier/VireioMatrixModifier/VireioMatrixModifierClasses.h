@@ -485,7 +485,7 @@ public:
 	}
 
 	/// <summary>
-	/// Any computation (update) done here.
+	/// => Any computation (update) done here.
 	/// </summary>
 	/// <param name="eRegister">The register to be updated</param>
 	void Compute(MathRegisters eRegister)
@@ -584,14 +584,16 @@ public:
 			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR], fSeparation_World * fRIGHT_CONSTANT, 0, 0);
 
 			// update "no-roll" matrices here before roll is applied eventually
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollL] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollR] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
+			D3DXMATRIX* psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollL];
+			*psOutL =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL]);
+			D3DXMATRIX* psOutR = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollR];
+			*psOutR =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR]);
 
 			// head roll - only if using translation implementation
 			if (m_psConfig->nRollImpl == 1)
@@ -607,38 +609,46 @@ public:
 			if (m_psConfig->nRollImpl == 1)
 			{
 				// projection l/r
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionL] =
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Roll] *
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionR] =
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Roll] *
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
+				D3DXMATRIX* psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionL];
+				*psOutL =
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Roll]) *
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL]);
+				D3DXMATRIX* psOutR = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionR];
+				*psOutR =
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Roll]) *
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR]);
 			}
 			else
 			{
 				// projection l/r
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionL] =
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionR] =
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-					(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
+				D3DXMATRIX* psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionL];
+				*psOutL =
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL]);
+				D3DXMATRIX* psOutR = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionR];
+				*psOutR =
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+					D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR]);
 			}
 			break;
 		case MathRegisters::MAT_ViewProjectionTransL:
 		case MathRegisters::MAT_ViewProjectionTransR:
+		{
 			// projection l/r
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransL] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL];
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransR] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR];
-			break;
+			D3DXMATRIX* psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransL];
+			*psOutL =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL]);
+			D3DXMATRIX* psOutR = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransR];
+			*psOutR =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvR]);
+		}
+		break;
 		case MathRegisters::MAT_Position:
 			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Position],
 				m_aMathRegisters[(size_t)MathRegisters::VEC_PositionTransform].x,
@@ -684,28 +694,32 @@ public:
 			D3DXMatrixTranslation((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthR], -fGui3DDepth, 0, 0);
 
 			// gui/hud matrices - Just use the default projection not the PFOV
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudL] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthL] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudR] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthR] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_GuiL] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthL] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Squash] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
-			(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_GuiR] =
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthR] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_Squash] *
-				(D3DXMATRIX)m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection];
+			D3DXMATRIX* psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_HudL];
+			*psOutL =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthL]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
+			D3DXMATRIX* psOutR = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_HudR];
+			*psOutR =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Hud3dDepthR]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformR]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_HudDistance]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
+			psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_GuiL];
+			*psOutL =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthL]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Squash]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
+			psOutR = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_GuiR];
+			*psOutR =
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Gui3dDepthR]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_Squash]) *
+				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_BasicProjection]);
 		}
 		break;
 		default:
@@ -831,13 +845,8 @@ public:
 		D3DXMATRIX sIn = D3DXMATRIX(inData);
 		D3DXMATRIX* psOutLeft = (D3DXMATRIX*)&outLeft[0];
 		D3DXMATRIX* psOutRight = (D3DXMATRIX*)&outRight[0];
-		//*psOutLeft = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
-		//*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
-		D3DXMATRIX sTransL; D3DXMatrixTranslation(&sTransL, .1f, 0.f, 0.f);
-		D3DXMATRIX sTransR; D3DXMatrixTranslation(&sTransR, -.1f, 0.f, 0.f);
-		//D3DXMATRIX sIdent; D3DXMatrixIdentity(&sIdent);
-		*psOutLeft = sIn * sTransL;
-		*psOutRight = sIn * sTransR;
+		*psOutLeft = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransL, 4);
+		*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
 	}
 	virtual void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight) {};
 };
@@ -1183,7 +1192,7 @@ public:
 				{
 					// add to constant vector
 					SAFE_D3DXCONSTANT_DESC sDesc = {};
-					sDesc.acName= std::string(pConstantDesc[unJ].Name);
+					sDesc.acName = std::string(pConstantDesc[unJ].Name);
 					sDesc.eRegisterSet = pConstantDesc[unJ].RegisterSet;
 					sDesc.uRegisterIndex = pConstantDesc[unJ].RegisterIndex;
 					sDesc.uRegisterCount = pConstantDesc[unJ].RegisterCount;
