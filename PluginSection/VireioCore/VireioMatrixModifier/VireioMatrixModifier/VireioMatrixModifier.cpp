@@ -39,7 +39,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
-#define SHOW_CALL(name) // OutputDebugStringA(name) // CallLogger call(name)
+#define TRACE_MODIFIER
+#ifdef TRACE_MODIFIER
+#define SHOW_CALL_MODIFIER(b, name) { if (b) OutputDebugStringA(name); }
+#else
+#define SHOW_CALL_MODIFIER(b, name)
+#endif
 
 #include"VireioMatrixModifier.h"
 
@@ -99,7 +104,8 @@ m_sModifierData{},
 m_acData(),
 m_aszShaderRuleIndices(),
 m_aszShaderRuleData(),
-m_aszShaderRuleGeneralIndices()
+m_aszShaderRuleGeneralIndices(),
+m_bTrace(false)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -546,7 +552,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 
 					dwSizeOfRules -= sizeof(UINT);
 				}
-		}
+			}
 	}
 #elif defined(VIREIO_D3D9)
 		// shader specific rules
@@ -1322,11 +1328,6 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
 	static HRESULT nHr = S_OK;
-
-	//#define _DEBUG_MAM
-#ifdef _DEBUG_MAM
-	{ wchar_t buf[128]; wsprintf(buf, L"[MAM] ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
-#endif
 
 	// save ini file ?
 	if (m_nIniFrameCount)
@@ -2485,7 +2486,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetVertexShader
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShader:
 		{
-			SHOW_CALL("SetVertexShader");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetVertexShader");
 
 			int nFlags = 0;
 			nHr = SetVertexShader(nFlags);
@@ -2500,7 +2501,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetPixelShader
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShader:
 		{
-			SHOW_CALL("SetPixelShader");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetPixelShader");
 
 			int nFlags = 0;
 			nHr = SetPixelShader(nFlags);
@@ -2515,7 +2516,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetVertexShader
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShader:
 		{
-			SHOW_CALL("GetVertexShader");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetVertexShader");
 
 			int nFlags = 0;
 			nHr = GetVertexShader(nFlags);
@@ -2530,7 +2531,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetPixelShader
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShader:
 		{
-			SHOW_CALL("GetPixelShader");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetPixelShader");
 
 			int nFlags = 0;
 			nHr = GetPixelShader(nFlags);
@@ -2545,7 +2546,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetTransform
 		case (int)VMT_IDIRECT3DDEVICE9::SetTransform:
 		{
-			SHOW_CALL("SetTransform");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetTransform");
 
 			int nFlags = 0;
 			nHr = SetTransform(nFlags);
@@ -2560,7 +2561,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region MultiplyTransform
 		case (int)VMT_IDIRECT3DDEVICE9::MultiplyTransform:
 		{
-			SHOW_CALL("MultiplyTransform");
+			SHOW_CALL_MODIFIER(m_bTrace, "MultiplyTransform");
 
 			int nFlags = 0;
 			nHr = MultiplyTransform(nFlags);
@@ -2575,7 +2576,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetVertexShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF:
 		{
-			SHOW_CALL("SetVertexShaderConstantF");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetVertexShaderConstantF");
 
 			int nFlags = 0;
 			nHr = SetVertexShaderConstantF(nFlags);
@@ -2590,7 +2591,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetVertexShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF:
 		{
-			SHOW_CALL("GetVertexShaderConstantF");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetVertexShaderConstantF");
 
 			int nFlags = 0;
 			nHr = GetVertexShaderConstantF(nFlags);
@@ -2605,7 +2606,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetVertexShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI:
 		{
-			SHOW_CALL("SetVertexShaderConstantI");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetVertexShaderConstantI");
 
 			int nFlags = 0;
 			nHr = SetVertexShaderConstantI(nFlags);
@@ -2620,7 +2621,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetVertexShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI:
 		{
-			SHOW_CALL("GetVertexShaderConstantI");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetVertexShaderConstantI");
 
 			int nFlags = 0;
 			nHr = GetVertexShaderConstantI(nFlags);
@@ -2635,7 +2636,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetVertexShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB:
 		{
-			SHOW_CALL("SetVertexShaderConstantB");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetVertexShaderConstantB");
 
 			int nFlags = 0;
 			nHr = SetVertexShaderConstantB(nFlags);
@@ -2650,7 +2651,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetVertexShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB:
 		{
-			SHOW_CALL("GetVertexShaderConstantB");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetVertexShaderConstantB");
 
 			int nFlags = 0;
 			nHr = GetVertexShaderConstantB(nFlags);
@@ -2665,7 +2666,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetPixelShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF:
 		{
-			SHOW_CALL("SetPixelShaderConstantF");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetPixelShaderConstantF");
 
 			int nFlags = 0;
 			nHr = SetPixelShaderConstantF(nFlags);
@@ -2680,7 +2681,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetPixelShaderConstantF
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF:
 		{
-			SHOW_CALL("GetPixelShaderConstantF");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetPixelShaderConstantF");
 
 			int nFlags = 0;
 			nHr = GetPixelShaderConstantF(nFlags);
@@ -2695,7 +2696,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetPixelShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI:
 		{
-			SHOW_CALL("SetPixelShaderConstantI");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetPixelShaderConstantI");
 
 			int nFlags = 0;
 			nHr = SetPixelShaderConstantI(nFlags);
@@ -2710,7 +2711,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetPixelShaderConstantI
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI:
 		{
-			SHOW_CALL("GetPixelShaderConstantI");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetPixelShaderConstantI");
 
 			int nFlags = 0;
 			nHr = GetPixelShaderConstantI(nFlags);
@@ -2725,7 +2726,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetPixelShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB:
 		{
-			SHOW_CALL("SetPixelShaderConstantB");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetPixelShaderConstantB");
 
 			int nFlags = 0;
 			nHr = SetPixelShaderConstantB(nFlags);
@@ -2740,7 +2741,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetPixelShaderConstantB
 		case (int)VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB:
 		{
-			SHOW_CALL("GetPixelShaderConstantB");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetPixelShaderConstantB");
 
 			int nFlags = 0;
 			nHr = GetPixelShaderConstantB(nFlags);
@@ -2755,7 +2756,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region SetStreamSource
 		case (int)VMT_IDIRECT3DDEVICE9::SetStreamSource:
 		{
-			SHOW_CALL("SetStreamSource");
+			SHOW_CALL_MODIFIER(m_bTrace, "SetStreamSource");
 
 			int nFlags = 0;
 			nHr = SetStreamSource(nFlags);
@@ -2770,7 +2771,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region GetStreamSource
 		case (int)VMT_IDIRECT3DDEVICE9::GetStreamSource:
 		{
-			SHOW_CALL("GetStreamSource");
+			SHOW_CALL_MODIFIER(m_bTrace, "GetStreamSource");
 
 			int nFlags = 0;
 			nHr = GetStreamSource(nFlags);
@@ -2785,7 +2786,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region CreateVertexShader
 		case (int)VMT_IDIRECT3DDEVICE9::CreateVertexShader:
 		{
-			SHOW_CALL("CreateVertexShader");
+			SHOW_CALL_MODIFIER(m_bTrace, "CreateVertexShader");
 
 			int nFlags = 0;
 			nHr = CreateVertexShader(nFlags);
@@ -2800,7 +2801,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region CreatePixelShader
 		case (int)VMT_IDIRECT3DDEVICE9::CreatePixelShader:
 		{
-			SHOW_CALL("CreatePixelShader");
+			SHOW_CALL_MODIFIER(m_bTrace, "CreatePixelShader");
 
 			int nFlags = 0;
 			nHr = CreatePixelShader(nFlags);
@@ -2923,27 +2924,40 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	ImGui::TextUnformatted("Game Settings D3D9 ("); ImGui::SameLine();
 #endif
 	ImGui::TextUnformatted(sz64bit.c_str()); ImGui::SameLine(); ImGui::TextUnformatted(")");
+#ifdef TRACE_MODIFIER
+	ImGui::SameLine(); ImGui::ToggleButton("Trace MAM", &m_bTrace);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Debug Trace output.\n(DebugView)");
+#endif
 	bGameSettings |= ImGui::DragFloat(szGameSeparationText.c_str(), &m_sGameConfiguration.fWorldScaleFactor, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "3D horizontal stereo separation.\n(in Game Units)");
 	bGameSettings |= ImGui::DragFloat(szConvergence.c_str(), &m_sGameConfiguration.fConvergence, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Convergence l/r image shift.\n(NOT used for HMDs)");
 	bGameSettings |= ImGui::DragFloat(szAspectMultiplier.c_str(), &m_sGameConfiguration.fAspectMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Aspect Multiplier.\n(Not used currently)");
 	bGameSettings |= ImGui::DragFloat(szYawMultiplier.c_str(), &m_sGameConfiguration.fYawMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Yaw/Pitch/Roll tracker multiplier.\n(Not used currently)");
 	bGameSettings |= ImGui::DragFloat(szPitchMultiplier.c_str(), &m_sGameConfiguration.fPitchMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
 	bGameSettings |= ImGui::DragFloat(szRollMultiplier.c_str(), &m_sGameConfiguration.fRollMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
 	bGameSettings |= ImGui::DragFloat(szPositionMultiplier.c_str(), &m_sGameConfiguration.fPositionMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Positional Tracking multiplier.\n(for all 3 axes)");
 	bGameSettings |= ImGui::DragFloat(szPositionXMultiplier.c_str(), &m_sGameConfiguration.fPositionXMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Positional Tracking multiplier.\n(X/Y/Z separately)");
 	bGameSettings |= ImGui::DragFloat(szPositionYMultiplier.c_str(), &m_sGameConfiguration.fPositionYMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
 	bGameSettings |= ImGui::DragFloat(szPositionZMultiplier.c_str(), &m_sGameConfiguration.fPositionZMultiplier, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
 	bGameSettings |= ImGui::DragFloat(szPFOV.c_str(), &m_sGameConfiguration.fPFOV, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Projection Matrix\nField-of-View.\n(if FOV applied via Matrix)");
+	bGameSettings |= ImGui::Checkbox(szPFOVToggle.c_str(), &m_sGameConfiguration.bPFOVToggle); ImGui::SameLine();
 	bGameSettings |= ImGui::Checkbox(szConvergenceToggle.c_str(), &m_sGameConfiguration.bConvergenceEnabled);
-	bGameSettings |= ImGui::Checkbox(szPFOVToggle.c_str(), &m_sGameConfiguration.bPFOVToggle);
 	const char* acElem_name = (m_sGameConfiguration.nRollImpl >= 0 && m_sGameConfiguration.nRollImpl < 3) ? aacHearoll_names[m_sGameConfiguration.nRollImpl] : "Unknown";
 	bGameSettings |= ImGui::SliderInt("Head Roll", &m_sGameConfiguration.nRollImpl, 0, 2, acElem_name);
+	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Head-Roll aplliance\nvia Matrix.\n(via Vertex or Pixel Shader)");
 	if (bGameSettings)
 	{
 		// update Shader element calculation class !
 		m_pcShaderModificationCalculation->Load(&m_sGameConfiguration);
 		m_pcShaderModificationCalculation->SetFloat(MathFloatFields::AspectMultiplier, (float)1920.0f / (float)1080.0f);
 		m_pcShaderModificationCalculation->ComputeViewTransforms();
+		ImGui::SameLine(); ImGui::HelpMarker("|?|", "Convergence l/r image shift.\n(NOT used for HMDs)");
 	}
 	ImGui::Separator();
 #pragma endregion
@@ -3784,7 +3798,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		std::wstringstream szBufferSize;
 		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
 		m_aszShaderRuleData.push_back(szBufferSize.str());
-	}
+}
 #endif
 
 	// reg count ?
@@ -3954,8 +3968,9 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 		if (psRule->m_dwStartRegIndex != psDescription->uRegisterIndex)
 			return E_NO_MATCH;
 
-#ifdef _DEBUG
-		// output shader constant + index 
+#ifdef TRACE_MODIFIER
+		// output shader constant + index
+		OutputDebugStringA(psDescription->acName.c_str());
 		switch (psDescription->eClass)
 		{
 		case D3DXPC_VECTOR:
@@ -3970,7 +3985,7 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 		default:
 			OutputDebugString(L"VS: UNKNOWN_CONSTANT");
 			break;
-	}
+		}
 		debugf("Register Index: %d", psDescription->uRegisterIndex);
 #endif 
 		// set register index
@@ -3994,7 +4009,7 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 
 		// only the first matching rule is applied to a constant
 		return S_OK;
-}
+	}
 	else return E_NO_MATCH;
 }
 
@@ -4678,7 +4693,7 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	HexString(psModData->acIndex, uShaderIx, 4);
 
 
-#ifdef _DEBUG_MAM
+#ifdef TRACE_MODIFIER
 	// output constants...
 	for (VIREIO_D3D9_CONSTANT_DESC sDesc : asConstantDesc)
 	{
@@ -4690,7 +4705,7 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	{
 		std::string acCreator = std::string((char*)&acFunction[uCreatorIx]);
 		OutputDebugStringA(acCreator.c_str());
-}
+	}
 #endif		
 
 	// create shader using modified function byte code and return

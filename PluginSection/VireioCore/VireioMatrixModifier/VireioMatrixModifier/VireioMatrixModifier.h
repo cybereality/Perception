@@ -366,6 +366,10 @@ private:
 	/// [OUT] All data this node provides to other nodes.
 	/// </summary>
 	ModifierData m_sModifierData;
+	/// <summary>
+	/// Trace button. Only used if TRACE_MODIFIER is defined.
+	/// </summary>
+	bool m_bTrace;
 
 #pragma region => Internal Data
 

@@ -1908,7 +1908,7 @@ void StereoSplitter::UpdateImGuiControl(float fZoom)
 #pragma endregion
 
 #ifdef TRACE_SPLITTER
-	ImGui::ToggleButton("Trace", &m_bTrace);
+	ImGui::ToggleButton("Trace STS", &m_bTrace);
 	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Debug Trace output.\n(DebugView)"); ImGui::SameLine();
 #endif
 

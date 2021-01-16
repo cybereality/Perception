@@ -835,6 +835,7 @@ public:
 		*psOutRight = sIn * m_pcCalculation->Get(MathRegisters::MAT_ViewProjectionTransR, 4);
 		/*D3DXMATRIX sTransL; D3DXMatrixTranslation(&sTransL, .1f, -.1f, 0.f);
 		D3DXMATRIX sTransR; D3DXMatrixTranslation(&sTransR, -.1f, .1f, 0.f);
+		D3DXMATRIX sIdent; D3DXMatrixIdentity(&sIdent);
 		*psOutLeft = sIn * sTransL;
 		*psOutRight = sIn * sTransR;*/
 	}
