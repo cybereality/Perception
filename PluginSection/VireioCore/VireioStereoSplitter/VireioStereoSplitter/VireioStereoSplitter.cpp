@@ -48,7 +48,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SHOW_CALL_SPLITTER(b, name)
 #endif
 
-
 #include"VireioStereoSplitter.h"
 
 /**
@@ -4717,73 +4716,66 @@ HRESULT StereoSplitter::Present_v4(int& nFlags)
 	m_pcActiveBackBufferSurface[0] = pcBuffer;
 	SAFE_RELEASE(pcBuffer);
 
-	if (m_pcActiveBackBufferSurface[0])
+	if (m_pcActiveBackBufferSurface[STEREO_L])
 	{
 		// set twin by verifying
-		if (!m_pcActiveBackBufferSurface[1])
-			m_pcActiveBackBufferSurface[1] = VerifyPrivateDataInterfaces(m_pcDeviceCurrent, m_pcActiveBackBufferSurface[0]);
+		if (!m_pcActiveBackBufferSurface[STEREO_R])
+			m_pcActiveBackBufferSurface[STEREO_R] = VerifyPrivateDataInterfaces(m_pcDeviceCurrent, m_pcActiveBackBufferSurface[STEREO_L]);
 
-		if (m_pcActiveBackBufferSurface[1])
+		if (m_pcActiveBackBufferSurface[STEREO_R])
 		{
 			// create textures... (if not created)
-			if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1]))
+			if ((!m_pcStereoBuffer[STEREO_L]) || (!m_pcStereoBuffer[STEREO_R]))
 			{
 				D3DSURFACE_DESC sDesc = D3DSURFACE_DESC();
-				m_pcActiveBackBufferSurface[0]->GetDesc(&sDesc);
+				m_pcActiveBackBufferSurface[STEREO_L]->GetDesc(&sDesc);
 
 				// got the backbuffer ?
 				if (sDesc.Width > 0)
 				{
 					// create output textures
-					if (!m_pcStereoBuffer[0])
-						m_pcDeviceCurrent->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[0], NULL);
-					if (!m_pcStereoBuffer[1])
-						m_pcDeviceCurrent->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[1], NULL);
+					if (!m_pcStereoBuffer[STEREO_L])
+						m_pcDeviceCurrent->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[STEREO_L], NULL);
+					if (!m_pcStereoBuffer[STEREO_R])
+						m_pcDeviceCurrent->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoBuffer[STEREO_R], NULL);
 
-					if ((!m_pcStereoBuffer[0]) || (!m_pcStereoBuffer[1])) OutputDebugString(L"[STS] Failed to create texture default/dynamic.");
+					if ((!m_pcStereoBuffer[STEREO_L]) || (!m_pcStereoBuffer[STEREO_R])) OutputDebugString(L"[STS] Failed to create texture default/dynamic.");
 				}
 			}
 
-			// first stereo output test
-			if ((m_pcStereoBuffer[0]) && (m_pcStereoBuffer[1]))
+			// stereo output 
+			if ((m_pcStereoBuffer[STEREO_L]) && (m_pcStereoBuffer[STEREO_R]))
 			{
-				m_pcStereoBuffer[0]->GetSurfaceLevel(0, &m_pcStereoBufferSurface[0]);
-				m_pcStereoBuffer[1]->GetSurfaceLevel(0, &m_pcStereoBufferSurface[1]);
-				if (m_pcStereoBufferSurface[0])
+				// get output texture surfaces l/r
+				for (const unsigned uI : {STEREO_L, STEREO_R})
+					m_pcStereoBuffer[uI]->GetSurfaceLevel(0, &m_pcStereoBufferSurface[uI]);
+
+				D3DSURFACE_DESC sDesc = {};
+				if (m_pcActiveBackBufferSurface[STEREO_L]) m_pcActiveBackBufferSurface[STEREO_L]->GetDesc(&sDesc);
+
+				RECT asRect[2];
+				asRect[STEREO_L] = { 0, 0, (LONG)sDesc.Width >> 1, (LONG)sDesc.Height };
+				asRect[STEREO_R] = { (LONG)sDesc.Width >> 1, 0, (LONG)sDesc.Width, (LONG)sDesc.Height };
+
+				for (const unsigned uI : {STEREO_L, STEREO_R})
 				{
-					m_pcDeviceCurrent->StretchRect(m_pcActiveBackBufferSurface[0], NULL, m_pcStereoBufferSurface[0], NULL, D3DTEXF_NONE);
-
-					// monitor stereo output ?
-					if (m_bMonitorStereo)
+					if (m_pcStereoBufferSurface[uI])
 					{
-						D3DSURFACE_DESC sDesc = {};
-						if (m_pcActiveBackBufferSurface[0]) m_pcActiveBackBufferSurface[0]->GetDesc(&sDesc);
-						RECT sRect = { 0, 0, (LONG)sDesc.Width >> 1, (LONG)sDesc.Height };
-						m_pcDeviceCurrent->StretchRect(m_pcStereoBufferSurface[0], NULL, m_pcActiveBackBufferSurface[0], &sRect, D3DTEXF_NONE);
+						// copy back buffer to output surface
+						m_pcDeviceCurrent->StretchRect(m_pcActiveBackBufferSurface[uI], NULL, m_pcStereoBufferSurface[uI], NULL, D3DTEXF_NONE);
+
+						// monitor stereo output ? in case copy output surface back to back buffer surface (streched to l/r side)
+						if (m_bMonitorStereo)
+							m_pcDeviceCurrent->StretchRect(m_pcStereoBufferSurface[uI], NULL, m_pcActiveBackBufferSurface[STEREO_L], &asRect[uI], D3DTEXF_NONE);
+
+						m_pcStereoBufferSurface[uI]->Release();
 					}
-
-					m_pcStereoBufferSurface[0]->Release();
-				}
-				if (m_pcStereoBufferSurface[1])
-				{
-					m_pcDeviceCurrent->StretchRect(m_pcActiveBackBufferSurface[1], NULL, m_pcStereoBufferSurface[1], NULL, D3DTEXF_NONE);
-
-					// monitor stereo output ?
-					if (m_bMonitorStereo)
-					{
-						D3DSURFACE_DESC sDesc = {};
-						if (m_pcActiveBackBufferSurface[0]) m_pcActiveBackBufferSurface[0]->GetDesc(&sDesc);
-						RECT sRect = { (LONG)sDesc.Width >> 1, 0, (LONG)sDesc.Width, (LONG)sDesc.Height };
-						m_pcDeviceCurrent->StretchRect(m_pcStereoBufferSurface[1], NULL, m_pcActiveBackBufferSurface[0], &sRect, D3DTEXF_NONE);
-					}
-
-					m_pcStereoBufferSurface[1]->Release();
 				}
 			}
 		}
 	}
 	else
-		OutputDebugString(L"Vireio Stereo Splitter : No primary swap chain found.");
+		OutputDebugString(L"[STS] : No primary swap chain found.");
 
 	return S_OK;
 }

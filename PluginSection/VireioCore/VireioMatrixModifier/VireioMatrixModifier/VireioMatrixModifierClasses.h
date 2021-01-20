@@ -785,7 +785,7 @@ class ShaderConstantModification
 public:
 	/// <summary> Constructor/Desctructor </summary>
 	/// <param name="modID">Identifier of the modification. Identifier enumerations defined in ShaderConstantModificationFactory</param>
-	ShaderConstantModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculaion) : m_ModificationID(uModID), m_pcCalculation(pcCalculaion) {}
+	ShaderConstantModification(unsigned uModID, std::shared_ptr<ModificationCalculation> pcCalculaion) : m_ModificationID(uModID), m_pcCalculation(pcCalculaion) {}
 	virtual ~ShaderConstantModification() {}
 
 	/// <summary> Pure virtual method, should apply the modification to produce left and right versions </summary>
@@ -809,9 +809,9 @@ public:
 	/// <summary>
 	/// Same constructor as base class.
 	/// </summary>
-	ShaderVectorModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {}
+	ShaderVectorModification(unsigned uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {}
 
-	void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight)
+	virtual void ApplyModification(const float* inData, std::array<float, 4>* outLeft, std::array<float, 4>* outRight)
 	{
 		D3DXVECTOR4 sIn(inData);
 
@@ -832,7 +832,7 @@ public:
 	/// <summary>
 	/// Same constructor as base class.
 	/// </summary>
-	ShaderMatrixModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {}
+	ShaderMatrixModification(unsigned uModID, std::shared_ptr<ModificationCalculation> pcCalculation) : ShaderConstantModification(uModID, pcCalculation) {}
 
 	/// <summary>
 	/// Apply projection transform matrix here.
@@ -840,7 +840,7 @@ public:
 	/// <param name="inData">Input data (D3DMATRIX)</param>
 	/// <param name="outLeft">Left output (matrix as float array)</param>
 	/// <param name="outRight">Right output (matrix as float array)</param>
-	void ApplyModification(const float* inData, std::array<float, 16>* outLeft, std::array<float, 16>* outRight)
+	virtual void ApplyModification(const float* inData, std::array<float, 16>* outLeft, std::array<float, 16>* outRight)
 	{
 		D3DXMATRIX sIn = D3DXMATRIX(inData);
 		D3DXMATRIX* psOutLeft = (D3DXMATRIX*)&outLeft[0];
@@ -1004,30 +1004,6 @@ struct Vireio_Constant_Modification_Rule
 	/// </summary>
 	std::shared_ptr<ShaderConstantModification<>> m_pcModification;
 };
-
-/// <summary>
-/// TODO !! create different modifications
-/// </summary>
-/// <param name="uModID">Modification Identifier</param>
-/// <param name="pcCalculation">Elements Calculation class</param>
-/// <returns></returns>
-static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation)
-{
-	return std::make_shared<ShaderVectorModification>(uModID, pcCalculation);
-}
-
-/// <summary>
-/// TODO !! create different modifications
-/// </summary>
-/// <param name="uModID">Modification Identifier</param>
-/// <param name="pcCalculation">Elements Calculation class</param>
-/// <returns></returns>
-static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT uModID, std::shared_ptr<ModificationCalculation> pcCalculation, bool bTranspose)
-{
-	UNREFERENCED_PARAMETER(bTranspose);
-
-	return std::make_shared<ShaderMatrixModification>(uModID, pcCalculation);
-}
 #pragma endregion
 
 #pragma region /// => Managed shader class

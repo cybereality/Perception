@@ -88,6 +88,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PI 3.141592654
 #define RADIANS_TO_DEGREES(fRad) ((float) fRad * (float) (180.0 / PI))
 
+#define STEREO_L 0
+#define STEREO_R 1
+
 #define D3DFMT_ATI1N ((D3DFORMAT)MAKEFOURCC('A','T','I','1'))
 #define D3DFMT_ATI2N ((D3DFORMAT)MAKEFOURCC('A','T','I','2'))
 #define D3DFMT_AYUV ((D3DFORMAT)MAKEFOURCC('A','Y','U','V'))

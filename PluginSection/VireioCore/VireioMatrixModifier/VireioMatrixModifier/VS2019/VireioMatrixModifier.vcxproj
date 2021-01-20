@@ -194,6 +194,7 @@
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioMatrixModifierClasses.h" />
     <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
+    <ClInclude Include="..\VireioMatrixModifierMods.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp" />

@@ -79,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DStateBlock9.h"
 #include"..\..\..\Include\Vireio_GameConfig.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-#include"VireioMatrixModifierClasses.h"
+#include"VireioMatrixModifierMods.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/

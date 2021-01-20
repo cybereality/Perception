@@ -50,6 +50,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ENTRY_FONT 0
 
+#define STEREO_L 0
+#define STEREO_R 1
+
 /// <summary>
 /// Constructor
 /// </summary>
@@ -856,7 +859,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if (bAllCreated)
 				{
 					// left/right eye
-					for (int nEye = 0; nEye < 2; nEye++)
+					for (const int nEye : {STEREO_L, STEREO_R})
 					{
 						// Set the input layout
 						pcContext->IASetInputLayout(m_pcVertexLayout11);

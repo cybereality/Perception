@@ -276,7 +276,7 @@ m_bTrace(false)
 	//sRule.m_bUsePartialNameMatch = true;
 	sRule.m_bUseName = true;
 	sRule.m_dwRegisterCount = 4;
-	sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation, sRule.m_bTranspose);
+	sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation);
 	m_asConstantRules.push_back(sRule);
 	m_aunGlobalConstantRuleIndices.push_back(0);
 	/*** DELETE ***/
@@ -485,7 +485,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 					if (sRule.m_dwRegisterCount == 1)
 						sRule.m_pcModification = CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation);
 					else if (sRule.m_dwRegisterCount == 4)
-						sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation, sRule.m_bTranspose);
+						sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation);
 					else sRule.m_pcModification = nullptr;
 					m_asConstantRules.push_back(sRule);
 
@@ -3070,7 +3070,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	// update all shaders info
 	if (ImGui::Button(szUpdate.c_str()))
 	{
-		for (unsigned uI = 0; uI < 2; uI++)
+		for (const unsigned uI : { 0, 1 })
 		{
 			// update both.. vertex and pixel shader
 			switch (uI)

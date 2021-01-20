@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h">
       <Filter>Vireio</Filter>
     </ClInclude>
+    <ClInclude Include="..\VireioMatrixModifierMods.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioMatrixModifier.cpp" />
