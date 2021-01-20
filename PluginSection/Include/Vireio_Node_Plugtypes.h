@@ -755,6 +755,22 @@ namespace ImGui
 			ImGui::EndTooltip();
 		}
 	}
+
+	/// <summary>
+	/// Shows a little help description if last item hovered.
+	/// </summary>
+	/// <param name="acDesc">Help description</param>
+	static void HelpTooltip(const char* acDesc)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(acDesc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
 }
 #pragma endregion
 

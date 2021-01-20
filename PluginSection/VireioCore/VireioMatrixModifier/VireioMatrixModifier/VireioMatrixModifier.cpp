@@ -103,6 +103,9 @@ m_acData(),
 m_aszShaderRuleIndices(),
 m_aszShaderRuleData(),
 m_aszShaderRuleGeneralIndices(),
+m_aszShaderConstantsCurrent(),
+m_auShaderConstantsCurrentStartReg(),
+m_aszShaderBuffersizes(),
 m_bTrace(false)
 {
 	// create a new HRESULT pointer
@@ -147,7 +150,7 @@ m_bTrace(false)
 	m_sPageGameShaderRules.m_szConstantName = std::string("WorldViewProj");
 
 	// reg count to 4 on shader page by default (=Matrix), operation by default to 1 (=Simple Translate)
-	m_sPageGameShaderRules.m_dwRegCountValue = 4;
+	m_sPageGameShaderRules.m_dwRegisterCount = 4;
 	m_sPageGameShaderRules.m_dwOperationToApply = 1;
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -266,21 +269,6 @@ m_bTrace(false)
 	D3DXMatrixIdentity(&m_sModifierData.sMatView[1]);
 	D3DXMatrixIdentity(&m_sModifierData.sMatProj[0]);
 	D3DXMatrixIdentity(&m_sModifierData.sMatProj[1]);
-
-	/*** DELETE ***/
-	Vireio_Constant_Modification_Rule sRule = {};
-	sRule.m_bTranspose = true;
-	sRule.m_szConstantName = "cViewProj";
-	//sRule.m_szConstantName = "Matrix";
-	//sRule.m_szConstantName = "mtxPVW";
-	//sRule.m_bUsePartialNameMatch = true;
-	sRule.m_bUseName = true;
-	sRule.m_dwRegisterCount = 4;
-	sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation);
-	m_asConstantRules.push_back(sRule);
-	m_aunGlobalConstantRuleIndices.push_back(0);
-	/*** DELETE ***/
-
 #endif
 }
 
@@ -549,7 +537,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 					dwSizeOfRules -= sizeof(UINT);
 				}
 			}
-	}
+		}
 #elif defined(VIREIO_D3D9)
 		// shader specific rules
 		if (dwSizeOfRules >= sizeof(UINT))
@@ -588,7 +576,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 #elif defined(VIREIO_D3D9)
 		FillShaderRuleShaderIndices();
 #endif
-}
+	}
 	else
 	{
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
@@ -2472,7 +2460,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ID3D10Device::PSGetConstantBuffers
 			// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
 #pragma endregion
-}
+	}
 #elif defined(VIREIO_D3D9)
 	switch (eD3DInterface)
 	{
@@ -2835,7 +2823,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 
 	ImGui::TextUnformatted("Vireio Perception Matrix Modifier Controls\n");
 
-#pragma region Static Text
+#pragma region /// => GUI Static Text
 	// game configuration
 	static std::string szGameSeparationText = std::string("World Scale Factor");
 	static std::string szConvergence = std::string("Convergence");
@@ -2875,27 +2863,16 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	static std::string szBufferIndex = std::string("Buffer Index");
 #endif
 	static std::string szTranspose = std::string("Transpose");
-	static std::vector<std::wstring> aszEntriesShaderRulePage;
-	//aszEntriesShaderRulePage.push_back(szConstantName); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
-	//aszEntriesShaderRulePage.push_back(szPartialNameMatch); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
-	//aszEntriesShaderRulePage.push_back(szStartRegIndex); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	aszEntriesShaderRulePage.push_back(szBufferSize); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
-	aszEntriesShaderRulePage.push_back(szBufferIndex); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
-#endif
 	static std::string szCreate = std::string("Create");
 	static std::string szToGeneral = std::string("To General");
 	static std::string szDelete = std::string("Delete");
 
+	// get modification names for the selection
 	static std::vector<std::string> aszOperations;
-	/*for (UINT nMod = 0; nMod < ShaderConstantModificationFactory::m_unMatrixModificationNumber; nMod++)
-	{
-		aszOperations.push_back(ShaderConstantModificationFactory::GetMatrixModificationName(nMod));
-	}*/
 	if (!aszOperations.size())
 	{
-		aszOperations.push_back("Modification_01");
-		aszOperations.push_back("Modification_02");
+		for (unsigned uMod = 0; uMod < uMatrixModificationNumber; uMod++)
+			aszOperations.push_back(GetMatrixModificationName(uMod));
 	}
 
 	std::string sz1 = std::string("1 - Vector 4f");
@@ -2910,7 +2887,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	}
 #pragma endregion
 
-#pragma region Game settings
+#pragma region /// => GUI Game settings
 
 	/// => Game settings
 	bool bGameSettings = false;
@@ -2958,12 +2935,12 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	ImGui::Separator();
 #pragma endregion
 
-#pragma region Shader
+#pragma region /// => GUI Shader
 
 	ImGui::TextUnformatted("Shader controls");
 	// TODO !! (D3D11) m_sPageShader.m_dwCurrentBuffersizes -> m_aszShaderBuffersizes
 
-	// Shader controls.. TODO !! ADD TO MENU STRUCTURES
+	// Shader controls..
 	static int nItem_ShaderConstants = -1;
 	static int nItem_VShader = 1;
 	static int nItem_PShader = -1;
@@ -3042,6 +3019,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 
 		// allocate vectors
 		m_aszShaderConstantsCurrent = std::vector<std::string>();
+		m_auShaderConstantsCurrentStartReg = std::vector<uint32_t>();
 		m_aszShaderBuffersizes = std::vector<std::string>();
 
 		// find the hash code in the shader list
@@ -3063,6 +3041,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			// get std::string and add to vector
 			std::string szNameA = std::string((*pasShaders)[dwIndex].asConstantDescriptions[dwK].acName);
 			m_aszShaderConstantsCurrent.push_back(szNameA);
+			m_auShaderConstantsCurrentStartReg.push_back((*pasShaders)[dwIndex].asConstantDescriptions[dwK].uRegisterIndex);
 		}
 
 		//#endif
@@ -3136,7 +3115,11 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	// Copy constant register index
 	if (ImGui::Button(szToRegister.c_str()))
 	{
-		// TODO !! NEED THIS FOR D3D9 ??
+		if ((nItem_ShaderConstants >= 0) && (nItem_ShaderConstants < (INT)m_auShaderConstantsCurrentStartReg.size()))
+		{
+			// set the name to the name control of the shader rules page
+			m_sPageGameShaderRules.m_dwStartRegIndex = m_auShaderConstantsCurrentStartReg[nItem_ShaderConstants];
+		}
 	}
 	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Copy the Shader\nConstant register\nindex to the\nShader rule creation\ntext input box.");
 
@@ -3146,7 +3129,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 
 #pragma endregion
 
-#pragma region Shader Rules
+#pragma region /// => GUI Shader Rules
 
 	ImGui::TextUnformatted("Shader Rules Creation");
 
@@ -3166,6 +3149,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	ImGui::SameLine(120.f); ImGui::HelpMarker("|?|", "Shader Constant\nstart registere to\nbe used in the\nrule to be created.\nSwitch to use/not use."); ImGui::NextColumn();
 	// operation to apply
 	ImGui::Combo("Modification", (int*)&m_sPageGameShaderRules.m_dwOperationToApply, aszOperations);
+	ImGui::HelpTooltip(GetMatrixModificationDesc(m_sPageGameShaderRules.m_dwOperationToApply).c_str());
 	ImGui::NextColumn(); ImGui::Checkbox(szTranspose.c_str(), &m_sPageGameShaderRules.m_bTranspose);
 	ImGui::SameLine(120.f); ImGui::HelpMarker("|?|", "Modification to\nbe applied\nto the rule\n to be created.\nSwitch checkbox to\ntranspose matrices."); ImGui::NextColumn();
 	// register count
@@ -3177,6 +3161,69 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	// Create shader rule
 	if (ImGui::Button(szCreate.c_str()))
 	{
+		// create rule, first parse input data
+		Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule();
+
+		// full name
+		if (m_sPageGameShaderRules.m_bConstantName)
+		{
+			sRule.m_szConstantName = m_sPageGameShaderRules.m_szConstantName;
+			sRule.m_bUseName = true;
+		}
+
+		// partial name
+		if (m_sPageGameShaderRules.m_bPartialName)
+		{
+			sRule.m_szConstantName = m_sPageGameShaderRules.m_szPartialName;
+			sRule.m_bUsePartialNameMatch = true;
+		}
+
+		// start register
+		if (m_sPageGameShaderRules.m_bStartRegIndex)
+		{
+			sRule.m_dwStartRegIndex = m_sPageGameShaderRules.m_dwStartRegIndex;
+			sRule.m_bUseStartRegIndex = true;
+		}
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		// buffer size
+		if (m_sPageGameShaderRules.m_bBufferSize)
+		{
+			std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferSize);
+			sz >> sRule.m_dwBufferSize;
+			sRule.m_bUseBufferSize = true;
+		}
+
+		// buffer index
+		if (m_sPageGameShaderRules.m_bBufferIndex)
+		{
+			std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferIndex);
+			sz >> sRule.m_dwBufferIndex;
+			sRule.m_bUseBufferIndex = true;
+		}
+#endif
+
+		// operation
+		sRule.m_dwOperationToApply = m_sPageGameShaderRules.m_dwOperationToApply;
+
+		// register count
+		sRule.m_dwRegisterCount = m_sPageGameShaderRules.m_dwRegisterCount;
+
+		// transpose
+		sRule.m_bTranspose = m_sPageGameShaderRules.m_bTranspose;
+
+		// create modification
+		if (sRule.m_dwRegisterCount == 1)
+			sRule.m_pcModification = CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation);
+		else if (sRule.m_dwRegisterCount == 4)
+			sRule.m_pcModification = CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderModificationCalculation);
+		else sRule.m_pcModification = nullptr;
+
+		// add the rule
+		m_asConstantRules.push_back(sRule);
+
+		// update the control string list
+		FillShaderRuleIndices();
 	}
 	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Create the\neventual shader\nrule."); ImGui::SameLine();
 	// Delete shader rule
@@ -3187,6 +3234,21 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	// Delete shader rule
 	if (ImGui::Button(szToGeneral.c_str()))
 	{
+		// increase the update counter to reverify the constant buffers for rules
+		m_dwConstantRulesUpdateCounter++;
+
+		// in range ? add to general rules
+		if ((nItem_ShaderRuleIndices >= 0) && (nItem_ShaderRuleIndices < (INT)m_aszShaderRuleIndices.size()))
+			m_aunGlobalConstantRuleIndices.push_back((UINT)nItem_ShaderRuleIndices);
+
+		// init all shaders new
+		for (Vireio_D3D9_Shader& sShader : m_sModifierData.asVShaders)
+			InitShaderRules(&sShader);
+		for (Vireio_D3D9_Shader& sShader : m_sModifierData.asPShaders)
+			InitShaderRules(&sShader);
+
+		// update the list
+		FillShaderRuleGeneralIndices();
 	}
 	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Add to general\n(all shaders)\nindices."); /*ImGui::SameLine();*/
 	// TODO !! SHADER SPECIFIC RULES !!
@@ -3196,6 +3258,9 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	{
 		if (ImGui::ListBox("Shader rule indices\n(index = id)", &nItem_ShaderRuleIndices, m_aszShaderRuleIndices, 4))
 		{
+			// in range ? call the method to fill the rule data
+			if ((nItem_ShaderRuleIndices >= 0) && (nItem_ShaderRuleIndices < (INT)m_aszShaderRuleIndices.size()))
+				FillShaderRuleData((UINT)nItem_ShaderRuleIndices);
 		}
 		ImGui::SameLine(); ImGui::HelpMarker("|?|", "All created shader\nrules indices. Each\nindex is the rule\nidentifier as well.");
 	}
@@ -3204,7 +3269,11 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	{
 		for (std::string acText : m_aszShaderRuleData)
 			ImGui::TextUnformatted(acText.c_str());
-		ImGui::SameLine(); ImGui::HelpMarker("|?|", "The data of the\nchosen shader rule.");
+		ImGui::SameLine();
+		if (m_szShaderRuleDesc.size())
+			ImGui::HelpMarker("|?|", m_szShaderRuleDesc.c_str());
+		else
+			ImGui::HelpMarker("|?|", "The data of the\nchosen shader rule.");
 	}
 	// shader rule indices general
 	if (m_aszShaderRuleGeneralIndices.size())
@@ -3217,7 +3286,8 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 		ImGui::SameLine(); ImGui::HelpMarker("|?|", "All shader rule\nindices applied to\nall shaders.");
 	}
 
-	//#elif defined(VIREIO_D3D9)
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#elif defined(VIREIO_D3D9)
 	// shader rule indices shader specific
 	if (m_aszShaderRuleShaderIndices.size())
 	{
@@ -3228,7 +3298,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 		}
 		ImGui::SameLine(); ImGui::HelpMarker("|?|", "Shader rule\nindices applied to\nspecific shaders.");
 	}
-	//#endif
+#endif
 #pragma endregion
 
 	return;
@@ -3594,9 +3664,9 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 
 					memcpy((void*)pvLeft, &sMatrixLeft, sizeof(D3DXMATRIX));
 					memcpy((void*)pvRight, &sMatrixRight, sizeof(D3DXMATRIX));
-				}
-			}
-		}
+}
+	}
+}
 	}
 }
 #endif
@@ -3749,6 +3819,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		return;
 
 	m_aszShaderRuleData = std::vector<std::string>();
+	m_szShaderRuleDesc = std::string();
 
 	// add the data strings
 	std::stringstream szIndex;
@@ -3794,7 +3865,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		std::wstringstream szBufferSize;
 		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
 		m_aszShaderRuleData.push_back(szBufferSize.str());
-}
+	}
 #endif
 
 	// reg count ?
@@ -3820,13 +3891,16 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		m_aszShaderRuleData.push_back(szTranspose.str());
 	}
 
-	// operation ? TODO !!
-	/*{
+	// operation
+	{
 		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
-			m_aszShaderRuleData.push_back(ShaderConstantModificationFactory::GetVector4ModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
+			m_aszShaderRuleData.push_back("X");// ShaderConstantModificationFactory::GetVector4ModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply)); /// TODO !!
 		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
-			m_aszShaderRuleData.push_back(ShaderConstantModificationFactory::GetMatrixModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
-	}*/
+		{
+			m_aszShaderRuleData.push_back(GetMatrixModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
+			m_szShaderRuleDesc = GetMatrixModificationDesc(m_asConstantRules[dwRuleIndex].m_dwOperationToApply);
+		}
+	}
 }
 
 /// <summary>
@@ -3984,7 +4058,7 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 		default:
 			OutputDebugString(L"VS: UNKNOWN_CONSTANT");
 			break;
-		}
+	}
 		debugf("Register Index: %d", psDescription->uRegisterIndex);
 #endif 
 		// set register index
@@ -4008,7 +4082,7 @@ HRESULT MatrixModifier::VerifyConstantDescriptionForRule(Vireio_Constant_Modific
 
 		// only the first matching rule is applied to a constant
 		return S_OK;
-	}
+}
 	else return E_NO_MATCH;
 }
 
@@ -4138,7 +4212,7 @@ HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* p
 	}
 
 	return D3D_OK;
-}
+	}
 #endif
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -4196,7 +4270,7 @@ HRESULT MatrixModifier::SetVertexShader(int& nFlags)
 		{
 			// set index
 			m_sModifierData.uActiveVSIx = uIndex;
-			
+
 			// update shader constants for active side
 			auto it = m_sModifierData.asVShaders[uIndex].asConstantRuleIndices.begin();
 			while (it != m_sModifierData.asVShaders[uIndex].asConstantRuleIndices.end())

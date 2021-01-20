@@ -651,10 +651,10 @@ private:
 
 		/**< [Switch] Shader constant name **/
 		/**< [Switch] Shader constant partial name **/
-		UINT m_dwStartRegIndex;                     /**< [Switch] Start register index **/
+		/**< [Switch] Start register index **/
 
-		UINT m_dwRegisterCount;                     /**< [Spin] Register count **/
-		UINT m_dwOperationToApply;                  /**< [Spin] Operation to apply **/
+		/**< [Spin] Register count **/
+		/**< [Spin] Operation to apply **/
 		/**< [Switch] Transpose Yes/No **/
 
 		/**< [Button] Create a rule **/
@@ -682,8 +682,9 @@ private:
 		bool m_bPartialName;
 		bool m_bStartRegIndex;
 		bool m_bTranspose;
-		UINT m_dwOperationValue;
-		UINT m_dwRegCountValue;
+		UINT m_dwStartRegIndex;
+		UINT m_dwOperationToApply;
+		UINT m_dwRegisterCount;
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		bool m_bBufferIndex;
@@ -749,6 +750,12 @@ private:
 	/// </summary>
 	std::vector<std::string> m_aszShaderConstantsCurrent;
 	/// <summary>
+	/// List of shader constant start registers for the currently chosen shader. (uint32_t)
+	/// To be used on the shader modifaction page
+	/// and to create shader rules.
+	/// </summary>
+	std::vector<uint32_t> m_auShaderConstantsCurrentStartReg;
+	/// <summary>
 	/// List of shader buffer sizes for the currently chosen shader. (std::string).
 	/// To be used on the shader modifaction page
 	/// and to create shader rules.
@@ -760,12 +767,17 @@ private:
 	/// </summary>
 	std::vector<std::string> m_aszShaderRuleIndices;
 	/// <summary>
-	/// List of shader rule data for the chosen shader rule index (std::wstring).
+	/// List of shader rule data for the chosen shader rule index (std::string).
 	/// To be used on the shader rules page.
 	/// </summary>
 	std::vector<std::string> m_aszShaderRuleData;
 	/// <summary>
-	/// List of all shader rule indices generally used. (std::wstring).
+	/// The description for the modification of the currently chosen shader rule.
+	/// To be used on the shader rules page.
+	/// </summary>
+	std::string m_szShaderRuleDesc;
+	/// <summary>
+	/// List of all shader rule indices generally used. (std::string).
 	/// To be used on the shader rules page.
 	/// </summary>
 	std::vector<std::string> m_aszShaderRuleGeneralIndices;
