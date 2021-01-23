@@ -2434,7 +2434,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 		std::vector<Vireio_Constant_Rule_Index_DX9>* pasPSIndices = &(m_psModifierData->asPShaders[m_psModifierData->uActivePSIx].asConstantRuleIndices);
 		if ((m_psModifierData->bPSActive) && (pasPSIndices->size()))
 		{
-			/*if (eSide == RenderPosition::Left)
+			if (eSide == RenderPosition::Left)
 			{
 				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
 					pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataLeft, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
@@ -2443,7 +2443,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			{
 				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasPSIndices->size(); nI++)
 					pcDevice->SetPixelShaderConstantF((*pasPSIndices)[nI].dwConstantRuleRegister, (*pasPSIndices)[nI].afConstantDataRight, (*pasPSIndices)[nI].dwConstantRuleRegisterCount);
-			}*/
+			}
 		}
 	}
 

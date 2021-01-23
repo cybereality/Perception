@@ -500,16 +500,6 @@ private:
 	/// </summary>
 	IDirect3DPixelShader9* m_pcActivePixelShader;
 	/// <summary>
-	/// The active vertex shader.
-	/// Only used if proxy method is active.
-	/// </summary>
-	IDirect3DManagedStereoShader9<IDirect3DVertexShader9>* m_pcActiveVertexShaderProxy;
-	/// <summary>
-	/// The active pixel shader proxy.
-	/// Only used if proxy method is active.
-	/// </summary>
-	IDirect3DManagedStereoShader9<IDirect3DPixelShader9>* m_pcActivePixelShaderProxy;
-	/// <summary>
 	/// Shader-specific constant rule indices array.
 	/// </summary>
 	std::vector<Vireio_Hash_Rule_Index> m_asShaderSpecificRuleIndices;
@@ -530,9 +520,13 @@ private:
 	/// </summary>
 	std::array<float, MAX_DX9_CONSTANT_REGISTERS* VECTOR_LENGTH> m_afRegistersPixel;
 	/// <summary>
-	/// The currently provided D3D9 device.
+	/// The currently provided D3D9 device. (or state block)
 	/// </summary>
-	IDirect3DDevice9* m_pcDeviceCurrent;
+	union
+	{
+		IDirect3DDevice9* m_pcDeviceCurrent;
+		IDirect3DStateBlock9* m_pcStateBlockCurrent;
+	};
 #endif
 
 	/// <summary>
@@ -870,30 +864,6 @@ private:
 	HRESULT CreateVertexShader(int& nFlags);
 	HRESULT CreatePixelShader(int& nFlags);
 	HRESULT VB_Apply(int& nFlags);
-
-	HRESULT SetVertexShader_Proxy(int& nFlags);
-	HRESULT SetPixelShader_Proxy(int& nFlags);
-	HRESULT GetVertexShader_Proxy(int& nFlags);
-	HRESULT GetPixelShader_Proxy(int& nFlags);
-	HRESULT SetTransform_Proxy(int& nFlags);
-	HRESULT MultiplyTransform_Proxy(int& nFlags);
-	HRESULT SetVertexShaderConstantF_Proxy(int& nFlags);
-	HRESULT GetVertexShaderConstantF_Proxy(int& nFlags);
-	HRESULT SetVertexShaderConstantI_Proxy(int& nFlags);
-	HRESULT GetVertexShaderConstantI_Proxy(int& nFlags);
-	HRESULT SetVertexShaderConstantB_Proxy(int& nFlags);
-	HRESULT GetVertexShaderConstantB_Proxy(int& nFlags);
-	HRESULT SetPixelShaderConstantF_Proxy(int& nFlags);
-	HRESULT GetPixelShaderConstantF_Proxy(int& nFlags);
-	HRESULT SetPixelShaderConstantI_Proxy(int& nFlags);
-	HRESULT GetPixelShaderConstantI_Proxy(int& nFlags);
-	HRESULT SetPixelShaderConstantB_Proxy(int& nFlags);
-	HRESULT GetPixelShaderConstantB_Proxy(int& nFlags);
-	HRESULT SetStreamSource_Proxy(int& nFlags);
-	HRESULT GetStreamSource_Proxy(int& nFlags);
-	HRESULT CreateVertexShader_Proxy(int& nFlags);
-	HRESULT CreatePixelShader_Proxy(int& nFlags);
-	HRESULT VB_Apply_Proxy(int& nFlags);
 #pragma endregion
 #endif
 

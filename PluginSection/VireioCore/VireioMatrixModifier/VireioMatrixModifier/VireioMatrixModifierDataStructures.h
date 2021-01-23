@@ -59,8 +59,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Universal Coded Character Set (UCS) shader stream constants
 constexpr uint32_t OPCODE_BYTEORDERMARK_LO = 0x0000FFFE;
-constexpr uint32_t OPCODE_HEADER_UTF32_02 = 0xFFFE0200;
-constexpr uint32_t OPCODE_HEADER_UTF32_03 = 0xFFFE0300;
+constexpr uint32_t OPCODE_HEADER_UTF32[5] = { 0xFFFE0200, 0xFFFE0300, 0xFFFF0200, 0xFFFF0201, 0xFFFF0300 };
 constexpr uint32_t OPCODE_FOOTER_UTF32_FLEXIBLE = 0x0000FFFF;
 constexpr uint32_t OPCODE_MASK_LO = 0x0000FFFF;
 constexpr uint32_t OPCODE_MASK_HI = 0xFFFF0000;
