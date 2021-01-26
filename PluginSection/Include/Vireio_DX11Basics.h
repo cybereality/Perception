@@ -40,6 +40,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3d11.lib")
 #endif
 
+#ifndef _D3D9_H_
+#include <d3d9.h>
+#pragma comment(lib, "d3d9.lib")
+#endif
+
 #include <DirectXMath.h>
 #include <stdio.h>
 #include <stdlib.h>

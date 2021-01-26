@@ -12,8 +12,6 @@ Copyright (C) 2015 Denis Reischl
 Parts of this class directly derive from Vireio source code originally
 authored by Chris Drain (v1.1.x 2013).
 
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -40,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<vector>
 
-#include"AQU_Nodus.h"
+#include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
 
 #include <DXGI.h>
@@ -61,118 +59,70 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx10.h>
 #pragma comment(lib, "d3dx10.lib")
 
+#include "directxmath.h"
+
+#define VIREIO_D3D11
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D11Interfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_DXGIInterfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_ID3D11DeviceContext.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDXGISwapChain.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
+#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-#include"..\..\..\Include\VireioMenu.h"
-#include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
+#include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierClasses.h"
 
-#define NUMBER_OF_COMMANDERS                           3
-#define NUMBER_OF_DECOMMANDERS                         58
+#define NUMBER_OF_COMMANDERS                           1
+#define NUMBER_OF_DECOMMANDERS                         28
 
-// enable for debug -> #define _DEBUG_VIREIO
+#define STEREO_L 0
+#define STEREO_R 1
 
-/**
-* Node Commander Enumeration.
-***/
-enum STS_Commanders
+/// <summary>
+/// Node Commander Enumeration.
+/// </summary>
+enum struct STS_Commanders : int
 {
-	StereoTextureLeft,
-	StereoTextureRight,
-	VireioMenu,                  /**<  The Vireio Menu node connector. ***/
+	StereoData_Splitter
 };
 
-/**
-* Node Commander Enumeration.
-***/
-enum STS_Decommanders
+/// <summary>
+/// Node Commander Enumeration.
+/// </summary>
+enum struct STS_Decommanders : int
 {
-	/*** OMSetRenderTargets ***/
-	NumViews,                                              /** Number of render targets to bind. **/
-	ppRenderTargetViews_DX10,                              /** Pointer to an array of render targets (see ID3D10RenderTargetView) to bind to the device. **/
-	pDepthStencilView_DX10,                                /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
-	ppRenderTargetViews_DX11,                              /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
-	pDepthStencilView_DX11,                                /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
-	/*** OMSetRenderTargetsAndUnorderedAccessViews ***/
-	NumRTVs,                                               /** Number of render targets to bind. **/
-	ppRenderTargetViewsUAV_DX11,                           /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
-	pDepthStencilViewUAV_DX11,                             /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
-	UAVStartSlot,
-	NumUAVs,
-	ppUnorderedAccessViews,
-	pUAVInitialCounts,
-	/*** ClearRenderTargetView ***/
-	pRenderTargetView_DX10,                                /** Pointer to the render target. */
-	pRenderTargetView_DX11,                                /** Pointer to the render target. */
-	ColorRGBA,                                             /** A 4-component array that represents the color to fill the render target with. */
-	/*** ClearDepthStencilView ***/
-	pDepthStencilViewCDS_DX10,                             /** Pointer to the depth stencil to be cleared. */
-	pDepthStencilViewCDS_DX11,                             /** Pointer to the depth stencil to be cleared. */
-	ClearFlags,                                            /** Identify the type of data to clear */
-	Depth,                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
-	Stencil,                                               /** Clear the stencil buffer with this value. */
-	/*** PSSetShaderResources ***/
-	StartSlot,                                             /** Index into the device's zero-based array to begin setting shader resources to (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1). **/
-	NumSRVs,                                               /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
-	ppShaderResourceViews_DX10,                            /** Array of shader resource view interfaces to set to the device. **/
-	ppShaderResourceViews_DX11,                            /** Array of shader resource view interfaces to set to the device. **/
-	/*** Map ***/
-	pResource,
-	Subresource,
-	/*** Unmap ***/
-	pResource_Unmap,
-	Subresource_Unmap,
-	/*** Dispatch ***/
-	ThreadGroupCountX,
-	ThreadGroupCountY,
-	ThreadGroupCountZ,
-	/*** DispatchIndirect ***/
-	pBufferForArgs,
-	AlignedByteOffsetForArgs,
-	/*** CSSetShaderResources ***/
-	StartSlot_CS,
-	NumViews_CS,
-	ppShaderResourceViews,
-	/*** CSSetUnorderedAccessViews ***/
-	StartSlot_CSUAV,
-	NumUAVs_CS,
-	ppUnorderedAccessViews_CS,
-	pUAVInitialCounts_CS,
-	/*** CSSetConstantBuffers ***/
-	StartSlot_CSCB,
-	NumBuffers,
-	ppConstantBuffers,
-	/*** Active constant buffers ***/
-	eDrawingSide,                                          /**< Left/Right drawing side enumeration. Switches once per draw call ***/
-	ppActiveConstantBuffers_DX10_VertexShader,             /**< Active D3D10 vertex shader constant buffers ***/
-	ppActiveConstantBuffers_DX10_GeometryShader,           /**< Active D3D10 geometry shader constant buffers ***/
-	ppActiveConstantBuffers_DX10_PixelShader,              /**< Active D3D10 pixel shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_VertexShader,             /**< Active D3D11 vertex shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_HullShader,               /**< Active D3D11 hull shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_DomainShader,             /**< Active D3D11 domain shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_GeometryShader,           /**< Active D3D11 geometry shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_PixelShader,              /**< Active D3D11 pixel shader constant buffers ***/
-	/*** Additional parameters ***/
-	dwVerifyConstantBuffers,                               /**< The number of frames the constant buffers are to be verified **/
-	bSwitchRenderTargets,                                  /**< Option to switch the render targets for game HUD or GUI ***/
-	ppActiveRenderTargets_DX10,                            /**< Active render targets DX10. Backup for render target operations. ***/
-	ppActiveRenderTargets_DX11,                            /**< Active render targets DX11. Backup for render target operations. ***/
-	ppActiveDepthStencil_DX10,                             /**< Active depth stencil DX10. Backup for render target operations. ***/
-	ppActiveDepthStencil_DX11,                             /**< Active depth stencil DX11. Backup for render target operations. ***/
+	Modifier,
+	CSSetConstantBuffers,
+	CSSetSamplers,
+	CSSetShader,
+	CSSetShaderResources,
+	CSSetUnorderedAccessViews,
+	ClearDepthStencilView,
+	ClearRenderTargetView,
+	ClearState,
+	Dispatch,
+	DispatchIndirect,
+	Draw,
+	DrawAuto,
+	DrawIndexed,
+	DrawIndexedInstanced,
+	DrawIndexedInstancedIndirect,
+	DrawInstanced,
+	DrawInstancedIndirect,
+	Map,
+	OMGetRenderTargets,
+	OMGetRenderTargetsAndUnorderedAccessViews,
+	OMSetRenderTargets,
+	OMSetRenderTargetsAndUnorderedAccessViews,
+	PSGetShaderResources,
+	PSSetShaderResources,
+	Present,
+	Unmap,
+	VSSetShader
 };
 
-/**
-* Simple left, right enumeration.
-***/
-enum RenderPosition
-{
-	// probably need an 'Original' here
-	Left = 1,
-	Right = 2
-};
-
-/**
-* Simple D3D10/11 enumeration
-***/
+/// <summary>
+/// Simple D3D10/11 enumeration
+/// </summary>
 enum D3DVersion
 {
 	NotDefined,
@@ -180,324 +130,304 @@ enum D3DVersion
 	Direct3D11,
 };
 
-/**
-* Vireio Stereo Splitter Node Plugin (Direct3D 9).
-* Vireio Perception Stereo Render Target Handler.
-***/
+/// <summary>
+/// => Vireio Stereo Splitter Node Plugin (Direct3D 9).
+/// Vireio Perception Stereo Render Target Handler.
+/// </summary>
 class StereoSplitter : public AQU_Nodus
 {
 public:
-	StereoSplitter();
+	StereoSplitter(ImGuiContext* sCtx);
 	virtual ~StereoSplitter();
 
 	/*** AQU_Nodus public methods ***/
-	virtual const char*     GetNodeType();
-	virtual UINT            GetNodeTypeId();
-	virtual LPWSTR          GetCategory();
-	virtual HBITMAP         GetLogo();
-	virtual HBITMAP         GetControl();
-	virtual ImVec2          GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)GUI_HEIGHT); }
-	//virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
-	//virtual DWORD           GetNodeHeight() { return 128; }
-	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
-	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
-	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
-	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
-	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
-	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
-	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
-	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
-	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
-	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+	virtual const char* GetNodeType();
+	virtual        UINT GetNodeTypeId();
+	virtual      LPWSTR GetCategory();
+	virtual     HBITMAP GetLogo();
+	virtual     HBITMAP GetControl();
+	virtual      ImVec2 GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
+	virtual       DWORD GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
+	virtual       DWORD GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual      LPWSTR GetCommanderName(DWORD uCommanderIndex);
+	virtual      LPWSTR GetDecommanderName(DWORD uDecommanderIndex);
+	virtual       DWORD GetCommanderType(DWORD uCommanderIndex);
+	virtual       DWORD GetDecommanderType(DWORD uDecommanderIndex);
+	virtual       void* GetOutputPointer(DWORD uCommanderIndex);
+	virtual        void SetInputPointer(DWORD uDecommanderIndex, void* pData);
+	virtual        bool SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
+	virtual       void* Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+	virtual        void UpdateImGuiControl(float fZoom);
 
 private:
-	/*** StereoSplitter private D3D10+ stub methods ***/
-	void                    Present(IDXGISwapChain* pcSwapChain);
-
 	/*** StereoSplitter private D3D10+ methods ***/
-	void                    OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown *const *ppRenderTargetViews, IUnknown *pDepthStencilView);
-	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext* pcContext, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView *const *ppcUnorderedAccessViews, const UINT *pdwUAVInitialCounts);
-	void                    XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceView*> &apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView *const *ppShaderResourceViews);
+	void                    OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown* const* ppRenderTargetViews, IUnknown* pDepthStencilView);
+	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext* pcContext, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView* const* ppcUnorderedAccessViews, const UINT* pdwUAVInitialCounts);
+	void                    XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceView*>& apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews);
 
 	/*** StereoSplitter private methods ***/
-	void                       CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11View* pcView);
-	ID3D11RenderTargetView*    VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
-	ID3D11DepthStencilView*    VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
+	void                    CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11View* pcView);
+	ID3D11RenderTargetView* VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
+	ID3D11DepthStencilView* VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
 	ID3D11UnorderedAccessView* VerifyPrivateDataInterfaces(ID3D11UnorderedAccessView* pcUnorderedAccessView);
-	bool                       SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
-	bool                       SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
-	void                       SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
+	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
+	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
+	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_psModifierData) m_psModifierData->eCurrentRenderingSide = eSide; }
 
-	/**
-	* Input pointers.
-	***/
-	DWORD* m_pdwNumViews;                                             /** Number of render targets to bind. **/
-	IUnknown*** m_pppcRenderTargetViews_DX10;                         /** Pointer to an array of render targets (see ID3D10RenderTargetView) to bind to the device. **/
-	IUnknown** m_ppcDepthStencilView_DX10;                            /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
-	IUnknown*** m_pppcRenderTargetViews_DX11;                         /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
-	IUnknown** m_ppcDepthStencilView_DX11;                            /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
-	DWORD* m_pdwNumRTVs;                                              /** Number of render targets to bind. **/
-	IUnknown*** m_pppcRenderTargetViewsUAV_DX11;                      /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
-	IUnknown** m_ppcDepthStencilViewUAV_DX11;                         /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
-	ID3D10RenderTargetView** m_ppcRenderTargetView_DX10;              /** Pointer to the render target. */
-	ID3D11RenderTargetView** m_ppcRenderTargetView_DX11;              /** Pointer to the render target. */
-	float** m_ppfColorRGBA;                                           /** A 4-component array that represents the color to fill the render target with. */
-	ID3D10DepthStencilView** m_ppcDepthStencilViewClear_DX10;         /** Pointer to the depth stencil to be cleared. */
-	ID3D11DepthStencilView** m_ppcDepthStencilViewClear_DX11;         /** Pointer to the depth stencil to be cleared. */
-	UINT* m_pdwClearFlags;                                            /** Identify the type of data to clear */
-	FLOAT* m_pfDepth;                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
-	UINT8* m_pchStencil;                                              /** Clear the stencil buffer with this value. */
-	RenderPosition* m_peDrawingSide;                                  /** Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
-	ID3D11Buffer*** m_appcVSActiveConstantBuffers11;                  /** The d3d11 vertex shader constant buffer array. ***/
-	ID3D11Buffer*** m_appcHSActiveConstantBuffers11;                  /** The d3d11 hull shader constant buffer array. ***/
-	ID3D11Buffer*** m_appcDSActiveConstantBuffers11;                  /** The d3d11 domain shader constant buffer array. ***/
-	ID3D11Buffer*** m_appcGSActiveConstantBuffers11;                  /** The d3d11 geometry shader constant buffer array. ***/
-	ID3D11Buffer*** m_appcPSActiveConstantBuffers11;                  /** The d3d11 pixel shader constant buffer array. ***/
-	UINT* m_pdwStartSlot;                                             /** Index into the device's zero-based array to begin setting shader resources to (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1). **/
-	UINT* m_pdwNumViewsSRVs;                                          /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
-	ID3D10ShaderResourceView*** m_pppcShaderResourceViews10;          /** Array of shader resource view interfaces to set to the device. **/
-	ID3D11ShaderResourceView*** m_pppcShaderResourceViews11;          /** Array of shader resource view interfaces to set to the device. **/
-	ID3D11Resource **m_ppcResource;
-	UINT *m_pdwSubresource;
-	ID3D11Resource **m_ppcResource_Unmap;
-	UINT *m_pdwSubresource_Unmap;
+	/// <summary>
+	/// [OUT] All data this node outputs.
+	/// </summary>
+	StereoData m_sStereoData;
+	/// <summary>
+	/// [IN] Input pointers array.
+	/// </summary>
+	void* m_ppInput[NUMBER_OF_DECOMMANDERS];
 
-	UINT* m_pdwUAVStartSlot;
-	UINT* m_pdwNumUAVs;
-	ID3D11UnorderedAccessView*** m_pppcUnorderedAccessViews;
-	UINT** m_ppdwUAVInitialCounts;
-
-	UINT* m_pdwThreadGroupCountX;
-	UINT* m_pdwThreadGroupCountY;
-	UINT* m_pdwThreadGroupCountZ;
-
-	ID3D11Buffer** m_ppcBufferForArgs;
-	UINT* m_pdwpAlignedByteOffsetForArgs;
-
-	UINT* m_pdwStartSlot_CS;
-	UINT* m_pdwNumViews_CS;
-	ID3D11ShaderResourceView*** m_pppcShaderResourceViews;
-
-	UINT* m_pdwStartSlot_CSUAV;
-	UINT* m_pdwNumUAVs_CS;
-	ID3D11UnorderedAccessView*** m_pppcUnorderedAccessViews_CS;
-	UINT** m_ppdwUAVInitialCounts_CS;
-
-	UINT* m_pdwStartSlot_CSCB;
-	UINT* m_pdwNumBuffers;
-	ID3D11Buffer*** m_pppcConstantBuffers;
-
-	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
-	INT* m_pbSwitchRenderTarget;                                      /** Option to switch the render target for HUD and GUI ***/
-
-	ID3D11RenderTargetView*** m_appcRenderTargetViews11;                            /** Pointer to an array of ID3D11RenderTargetView, copy for matrix modifier. **/
-	ID3D11DepthStencilView*** m_appcDepthStencilViews11;                            /** Pointer to an array of ID3D11DepthStencilView, copy for matrix modifier. **/
-
-
-	/**
-	* Active stored render target views.
-	* The render targets that are currently in use.
-	* (IUnknown*) for compatibility to DX10+DX11.
-	* DX11 :
-	* 0---------------------------------------------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
-	* D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
-	***/
-	std::vector<IUnknown *> m_apcActiveRenderTargetViews;
-	/**
-	* Active stored texture views.
-	* The textures that are currently in use.
-	* (IUnknown*) for compatibility to DX10+DX11.
-	* DX11 :
-	* 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
-	* D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
-	***/
+	/// <summary>
+	/// Matrix Modifier data.
+	/// Used both in Matrix Modifier and in Stereo Splitter.
+	/// </summary>
+	ModifierData* m_psModifierData;
+	/// <summary>
+	/// Current drawing side, only changed in StereoSplitter->SetDrawingSide().
+	/// </summary>
+	RenderPosition m_eCurrentRenderingSide;
+	/// <summary>
+	/// Active stored render target views.
+	/// The render targets that are currently in use.
+	/// (IUnknown*) for compatibility to DX10+DX11.
+	/// DX11 :
+	/// 0---------------------------------------------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
+	/// D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
+	/// </summary>
+	std::vector<IUnknown*> m_apcActiveRenderTargetViews;
+	/// <summary>
+	/// Active stored texture views.
+	/// The textures that are currently in use.
+	/// (IUnknown*) for compatibility to DX10+DX11.
+	/// DX11 :
+	/// 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
+	/// D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
+	/// </summary>
 	std::vector<ID3D11ShaderResourceView*> m_apcActivePSShaderResourceViews;
-	/**
-	* Active stored compute shader resource views.
-	* The textures (INPUT!!) and buffers that are currently in use.
-	* DX11 :
-	* 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
-	* D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
-	***/
+	/// <summary>
+	/// Active stored compute shader resource views.
+	/// The textures (INPUT!!) and buffers that are currently in use.
+	/// DX11 :
+	/// 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
+	/// D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
+	/// </summary>
 	std::vector<ID3D11ShaderResourceView*> m_apcActiveCSShaderResourceViews;
-	/**
-	* The d3d11 active constant buffer vector, for left and right side.
-	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
-	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
-	***/
+	/// <summary>
+	/// The d3d11 active constant buffer vector, for left and right side.
+	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	/// D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
+	/// </summary>
 	std::vector<ID3D11Buffer*> m_apcActiveCSConstantBuffers;
-	/**
-	* The d3d11 active unordered access views, for left and right side.
-	* 0 ------------------------------> D3D11_PS_CS_UAV_REGISTER_COUNT ----- Left views   (DX 11.0)
-	* D3D11_PS_CS_UAV_REGISTER_COUNT--> D3D11_PS_CS_UAV_REGISTER_COUNT * 2 - Right views. (DX 11.0)
-	* 0 ----------------------> D3D11_1_UAV_SLOT_COUNT ----- Left views   (DX 11.1)
-	* D3D11_1_UAV_SLOT_COUNT--> D3D11_1_UAV_SLOT_COUNT * 2 - Right views. (DX 11.1)
-	***/
+	/// <summary>
+	/// The d3d11 active unordered access views, for left and right side.
+	/// 0 ------------------------------> D3D11_PS_CS_UAV_REGISTER_COUNT ----- Left views   (DX 11.0)
+	/// D3D11_PS_CS_UAV_REGISTER_COUNT--> D3D11_PS_CS_UAV_REGISTER_COUNT * 2 - Right views. (DX 11.0)
+	/// 0 ----------------------> D3D11_1_UAV_SLOT_COUNT ----- Left views   (DX 11.1)
+	/// D3D11_1_UAV_SLOT_COUNT--> D3D11_1_UAV_SLOT_COUNT * 2 - Right views. (DX 11.1)
+	/// </summary>
 	std::vector<ID3D11UnorderedAccessView*> m_apcActiveUnorderedAccessViews;
-	/**
-	* Active stored depth stencil view.
-	* The depth stencil surface that is currently in use.
-	* (IUnknown*) for compatibility to DX10+DX11.
-	***/
+	/// <summary>
+	/// Active stored depth stencil view.
+	/// The depth stencil surface that is currently in use.
+	/// (IUnknown*) for compatibility to DX10+DX11.
+	/// </summary>
 	IUnknown* m_pcActiveDepthStencilView;
-	/**
-	* Stereo twin for active depth stencil.
-	* (IUnknown*) for compatibility to DX10+DX11.
-	***/
+	/// <summary>
+	/// Stereo twin for active depth stencil.
+	/// (IUnknown*) for compatibility to DX10+DX11.
+	/// </summary>
 	IUnknown* m_pcActiveStereoTwinDepthStencilView;
-	/**
-	* Active back buffer.
-	* The back buffer surface that is currently in use.
-	***/
+	/// <summary>
+	/// Active back buffer.
+	/// The back buffer surface that is currently in use.
+	/// </summary>
 	union
 	{
 		ID3D10Texture2D* m_pcActiveBackBuffer10;
 		ID3D11Texture2D* m_pcActiveBackBuffer11;
 	};
-	/**
-	* Stereo twin for active back buffer.
-	* The back buffer surface that is currently in use.
-	***/
+	/// <summary>
+	/// Stereo twin for active back buffer.
+	/// The back buffer surface that is currently in use.
+	/// </summary>
 	union
 	{
 		ID3D10Texture2D* m_pcActiveStereoTwinBackBuffer10;
 		ID3D11Texture2D* m_pcActiveStereoTwinBackBuffer11;
 	};
-	/**
-	* Stereo twin view for active back buffer.
-	* The back buffer surface view that is currently in use.
-	***/
+	/// <summary>
+	/// Stereo twin view for active back buffer.
+	/// The back buffer surface view that is currently in use.
+	/// </summary>
 	union
 	{
 		ID3D10RenderTargetView* m_pcActiveStereoTwinBackBufferView10;
 		ID3D11RenderTargetView* m_pcActiveStereoTwinBackBufferView11;
 	};
-	/**
-	* Active output textures (shader bind flag), for both eyes.
-	* The back buffer surface copies.
-	***/
+	/// <summary>
+	/// Active output textures (shader bind flag), for both eyes.
+	/// The back buffer surface copies.
+	/// </summary>
 	union
 	{
 		ID3D10Texture2D* m_pcTex10[2];
 		ID3D11Texture2D* m_pcTex11[2];
 	};
-	/**
-	* Active back buffer view, for both eyes.
-	* The back buffer surface copy views.
-	***/
+	/// <summary>
+	/// Active back buffer view, for both eyes.
+	/// The back buffer surface copy views.
+	/// </summary>
 	union
 	{
 		ID3D10ShaderResourceView* m_pcTexView10[2];
 		ID3D11ShaderResourceView* m_pcTexView11[2];
 	};
-	/**
-	* New depth stencils.
-	* Processed in next Present() call.
-	***/
+	/// <summary>
+	/// New depth stencils.
+	/// Processed in next Present() call.
+	/// </summary>
 	std::vector<ID3D11DepthStencilView*> m_apcNewDepthStencilViews11;
-	/**
-	* New render targets.
-	* Processed in next Present() call.
-	***/
+	/// <summary>
+	/// New render targets.
+	/// Processed in next Present() call.
+	/// </summary>
 	std::vector<ID3D11RenderTargetView*> m_apcNewRenderTargetViews11;
-	/**
-	* New resource views (Texture).
-	* Processed in next Present() call.
-	***/
+	/// <summary>
+	/// New resource views (Texture).
+	/// Processed in next Present() call.
+	/// </summary>
 	std::vector<ID3D11ShaderResourceView*> m_apcNewShaderResourceViews11;
-	/**
-	* New unordered access views (Texture).
-	* Processed in next Present() call.
-	***/
+	/// <summary>
+	/// New unordered access views (Texture).
+	/// Processed in next Present() call.
+	/// </summary>
 	std::vector<ID3D11UnorderedAccessView*> m_apcNewUnorderedAccessViews11;
-	/**
-	* Captured HUD render target view.
-	***/
+	/// <summary>
+	/// Captured HUD render target view.
+	/// </summary>
 	ID3D11RenderTargetView* m_pcHUDRenderTargetView;
-	/**
-	* True if HUD render target is to be cleared.
-	***/
+	/// <summary>
+	/// True if HUD render target is to be cleared.
+	/// </summary>
 	bool m_bClearHUDRenderTarget;
-	/**
-	* True if Present() was called at least once.
-	* Game can crash if Present() is not connected,
-	* so this is added for security.
-	***/
+	/// <summary>
+	/// True if Present() was called at least once.
+	/// Game can crash if Present() is not connected,
+	/// so this is added for security.
+	/// </summary>
 	bool m_bPresent;
-	/**
-	* State of the back buffer verification process.
-	* Eventually this will be optional, only relevant
-	* if back buffer gets discarded for each frame.
-	***/
-	enum BackBufferVerificationState
+	/// <summary>
+	/// State of the back buffer verification process.
+	/// Eventually this will be optional, only relevant
+	/// if back buffer gets discarded for each frame.
+	/// </summary>
+	enum struct BackBufferVerificationState : unsigned
 	{
-		NotVerified = 0,                       /**< The back buffer is not verified for the current frame. ***/
-		NewBuffer = 1,                         /**< The back buffer is new for this frame, stereo buffer interfaces to be assigned. ***/
-		Verified = 2,                          /**< The current back buffer is stereo. ***/
+		NotVerified = 0, /// <summary>< The back buffer is not verified for the current frame. /// </summary>
+		NewBuffer = 1,   /// <summary>< The back buffer is new for this frame, stereo buffer interfaces to be assigned. /// </summary>
+		Verified = 2,    /// <summary>< The current back buffer is stereo. /// </summary>
 	} m_eBackBufferVerified;
-	/**
-	* Number of set PS Shader Resource Views.
-	* Number of textures not set to NULL.
-	***/
+	/// <summary>
+	/// Number of set PS Shader Resource Views.
+	/// Number of textures not set to NULL.
+	/// </summary>
 	UINT m_dwPSShaderResourceViewsNumber;
-	/**
-	* Number of set CS Shader Resource Views.
-	* Number of textures not set to NULL.
-	***/
+	/// <summary>
+	/// Number of set CS Shader Resource Views.
+	/// Number of textures not set to NULL.
+	/// </summary>
 	UINT m_dwCSShaderResourceViewsNumber;
-	/**
-	* Number of render targets.
-	* Number of render targets not set to NULL.
-	***/
+	/// <summary>
+	/// Number of render targets.
+	/// Number of render targets not set to NULL.
+	/// </summary>
 	UINT m_dwRenderTargetNumber;
-	/**
-	* Current drawing side, only changed in SetDrawingSide().
-	**/
-	RenderPosition m_eCurrentRenderingSide;
-	/**
-	* The control bitmap.
-	***/
+	/// <summary>
+	/// Union, pointer is either context or swapchain.
+	/// </summary>
+	union
+	{
+		ID3D11DeviceContext* m_pcContextCurrent;
+		IDXGISwapChain* m_pcSwapChainCurrent;
+	};
+	/// <summary>
+	/// The control bitmap.
+	/// </summary>
 	HBITMAP m_hBitmapControl;
-	/**
-	* The control update bool.
-	***/
+	/// <summary>
+	/// The control update bool.
+	/// </summary>
 	bool m_bControlUpdate;
-	/**
-	* The font used.
-	***/
+	/// <summary>
+	/// The font used.
+	/// </summary>
 	HFONT m_hFont;
-	/**
-	* The used Direct3D version.
-	***/
+	/// <summary>
+	/// The used Direct3D version.
+	/// </summary>
 	D3DVersion m_eD3DVersion;
-	/**
-	* The number of frames the constant buffers are to be verified.
-	***/
+	/// <summary>
+	/// The number of frames the constant buffers are to be verified.
+	/// </summary>
 	UINT m_dwVerifyConstantBuffers;
-	/**
-	* A needless field of "-1" UINTs needed for CSSetUnorderedAccessViews.
-	***/
+	/// <summary>
+	/// A needless field of "-1" UINTs needed for CSSetUnorderedAccessViews.
+	/// </summary>
 	UINT m_aunMinusOne[D3D11_PS_CS_UAV_REGISTER_COUNT];
-	/**
-	* True if render target was switched.
-	***/
+	/// <summary>
+	/// True if render target was switched.
+	/// </summary>
 	bool m_bRenderTargetWasSwitched;
-	/**
-	* Vireio menu.
-	***/
+	/// <summary>
+	/// Vireio menu.
+	/// </summary>
 	VireioSubMenu m_sMenu;
-	/**
-	* Frames to save the ini file.
-	***/
+	/// <summary>
+	/// Frames to save the ini file.
+	/// </summary>
 	INT m_nIniFrameCount;
+
+	HRESULT CSSetConstantBuffers(int& nFlags);
+	HRESULT CSSetSamplers(int& nFlags);
+	HRESULT CSSetShader(int& nFlags);
+	HRESULT CSSetShaderResources(int& nFlags);
+	HRESULT CSSetUnorderedAccessViews(int& nFlags);
+	HRESULT ClearDepthStencilView(int& nFlags);
+	HRESULT ClearRenderTargetView(int& nFlags);
+	HRESULT ClearState(int& nFlags);
+	HRESULT Dispatch(int& nFlags);
+	HRESULT DispatchIndirect(int& nFlags);
+	HRESULT Draw(int& nFlags);
+	HRESULT DrawAuto(int& nFlags);
+	HRESULT DrawIndexed(int& nFlags);
+	HRESULT DrawIndexedInstanced(int& nFlags);
+	HRESULT DrawIndexedInstancedIndirect(int& nFlags);
+	HRESULT DrawInstanced(int& nFlags);
+	HRESULT DrawInstancedIndirect(int& nFlags);
+	HRESULT Map(int& nFlags);
+	HRESULT OMGetRenderTargets(int& nFlags);
+	HRESULT OMGetRenderTargetsAndUnorderedAccessViews(int& nFlags);
+	HRESULT OMSetRenderTargets(int& nFlags);
+	HRESULT OMSetRenderTargetsAndUnorderedAccessViews(int& nFlags);
+	HRESULT PSGetShaderResources(int& nFlags);
+	HRESULT PSSetShaderResources(int& nFlags);
+	void    Present(int& nFlags);
+	HRESULT Unmap(int& nFlags);
+	HRESULT VSSetShader(int& nFlags);
 };
 
-/**
-* Exported Constructor Method.
-***/
-extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
+/// <summary>
+/// Exported Constructor Method.
+/// </summary>
+extern "C" __declspec(dllexport) AQU_Nodus * AQU_Nodus_Create(ImGuiContext * sCtx)
 {
-	StereoSplitter* pStereoSplitter = new StereoSplitter();
+	StereoSplitter* pStereoSplitter = new StereoSplitter(sCtx);
 	return static_cast<AQU_Nodus*>(pStereoSplitter);
 }
 

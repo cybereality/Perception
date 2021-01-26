@@ -720,7 +720,7 @@ namespace ImGui
 	{
 		if (aacValues.empty()) { return false; }
 		return Combo(acLabel, nCurrIndex, vector_getter,
-			static_cast<void*>(&aacValues), aacValues.size());
+			static_cast<void*>(&aacValues), (int)aacValues.size());
 	}
 
 	/// <summary>
@@ -735,7 +735,7 @@ namespace ImGui
 	{
 		if (aacValues.empty()) { return false; }
 		return ListBox(acLabel, nCurrIndex, vector_getter,
-			static_cast<void*>(&aacValues), aacValues.size(), nHeight_in_items);
+			static_cast<void*>(&aacValues), (int)aacValues.size(), nHeight_in_items);
 	}
 
 	/// <summary>

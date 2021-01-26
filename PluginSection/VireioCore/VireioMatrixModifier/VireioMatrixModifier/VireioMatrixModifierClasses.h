@@ -71,7 +71,15 @@ constexpr float fRIGHT_CONSTANT = 1.f;
 
 #define E_NO_MATCH         _HRESULT_TYPEDEF_(0x8A596AF85)
 
-#define loop(cnt, mtd) { for (uint32_t _uXX = 0; _uXX < cnt; _uXX++) mtd; } 
+#define loop(cnt, mtd) { for (uint32_t _uXX = 0; _uXX < cnt; _uXX++) mtd; }
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+typedef D3DXVECTOR4 REGISTER4F;
+typedef D3DXMATRIX MATRIX16F;
+#elif defined(VIREIO_D3D9)
+typedef D3DXVECTOR4 REGISTER4F;
+typedef D3DXMATRIX MATRIX16F;
+#endif
 
 #pragma region /// => inline helper
 /// <summary>
@@ -414,11 +422,6 @@ enum class MathRegisters : size_t
 };
 constexpr size_t Math_Registers_Size = (size_t)MathRegisters::Math_Registers_Size;
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#elif defined(VIREIO_D3D9)
-typedef D3DXVECTOR4 REGISTER4F;
-#endif
-
 /// <summary>
 /// Class for any matrix/vector calculation.
 /// Calculates different matrices and vertices (shader registers) for different nodes.
@@ -537,7 +540,7 @@ public:
 			// TODO !! NO HMD ?? see ViewAdjustment::UpdateProjectionMatrices()
 
 			// Calculate vertical fov from provided horizontal
-			float fFOV_vert = m_aMathFloat[(size_t)MathFloatFields::FOV_V] = 2.0f * atan(tan(D3DXToRadian(fFOV_horiz) / 2.0f) * fAspect);
+			float fFOV_vert = m_aMathFloat[(size_t)MathFloatFields::FOV_V] = 2.0f * (float)atan(tan(D3DXToRadian(fFOV_horiz) / 2.0f) * fAspect);
 
 			// And left and right (identical in this case)
 			D3DXMatrixPerspectiveFovLH((D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionFOV], fFOV_vert, fAspect, n, f);
@@ -598,7 +601,7 @@ public:
 
 			// update "no-roll" matrices here before roll is applied eventually
 			D3DXMATRIX* psOutL = (D3DXMATRIX*)&m_aMathRegisters[(size_t)MathRegisters::MAT_ViewProjectionTransNoRollL];
-			*psOutL =
+			*psOutL = 
 				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionInv]) *
 				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_TransformL]) *
 				D3DXMATRIX(m_aMathRegisters[(size_t)MathRegisters::MAT_ProjectionConvL]);

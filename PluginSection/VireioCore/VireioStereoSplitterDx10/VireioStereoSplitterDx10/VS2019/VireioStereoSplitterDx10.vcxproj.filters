@@ -7,11 +7,42 @@
     <ClInclude Include="..\..\..\..\Include\Vireio_DX11Basics.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_Node_Plugtypes.h" />
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_helpers.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioStereoSplitterDx10.cpp" />
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\VireioStereoSplitter_Resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{e2fb146f-55c4-4250-84f0-5a9d71d86589}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.natvis">
+      <Filter>ImGui</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

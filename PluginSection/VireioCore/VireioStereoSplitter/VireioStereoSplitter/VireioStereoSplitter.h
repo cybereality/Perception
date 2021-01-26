@@ -132,7 +132,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /// <summary>
 /// Node Commander Enumeration.
 /// </summary>
-enum class STS_Commanders :int
+enum class STS_Commanders : int
 {
 	StereoData_Splitter
 };
@@ -260,18 +260,6 @@ enum MT_D3DX9
 	D3D9_D3DXFillCubeTextureTX,
 	D3D9_D3DXFillVolumeTextureTX,
 	D3D9_D3DXComputeNormalMap,
-};
-
-/// <summary>
-/// All GUI pages for the Stereo Splitter.
-/// Must be added in following order.
-/// </summary>
-enum GUI_Pages
-{
-	MainPage = 0,
-	DescriptionPage = 1,
-	GameSettingsPage = 2,
-	NumberOfPages = 3,
 };
 
 /// <summary>
