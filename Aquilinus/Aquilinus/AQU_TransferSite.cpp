@@ -40,8 +40,6 @@ AQU_TransferSite::AQU_TransferSite(AquilinusCfg* pConfig) :
 	m_bNodesInitialized(false),
 	m_bIsWorkingArea(false),
 	m_bCreateShaderHash(false),
-	m_bGatherVShaderBySet(false),
-	m_bGatherPShaderBySet(false),
 	m_nVertexShaderTabIndex(-1),
 	m_nPixelShaderTabIndex(-1),
 	m_ppNOD_IDirect3DDevice9(nullptr),

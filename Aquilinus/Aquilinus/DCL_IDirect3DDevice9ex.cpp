@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -44,15 +44,15 @@ template<typename T> tstringstream& operator,(tstringstream& tss, T t) { tss << 
 #pragma region helper
 /**
 * Get hash code helper, same as in file manager class.
-***/ 
+***/
 inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 {
 	DWORD h = 0;
 
 	// create hash
-	for (DWORD i = 0; i < dwSize; i++) 
+	for (DWORD i = 0; i < dwSize; i++)
 	{
-		h = 31*h + pcData[i];
+		h = 31 * h + pcData[i];
 	}
 
 	return h;
@@ -64,14 +64,14 @@ inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 /**
 * Constructor.
 ***/
-DCL_IDirect3DDevice9Ex::DCL_IDirect3DDevice9Ex(AQU_TransferSite* pcTransferSite) : 
+DCL_IDirect3DDevice9Ex::DCL_IDirect3DDevice9Ex(AQU_TransferSite* pcTransferSite) :
 	m_pcTransferSite(pcTransferSite)
 {}
 
 /**
 *
 ***/
-DCL_IDirect3DDevice9Ex::~DCL_IDirect3DDevice9Ex(){}
+DCL_IDirect3DDevice9Ex::~DCL_IDirect3DDevice9Ex() {}
 
 #pragma endregion
 
@@ -81,7 +81,7 @@ DCL_IDirect3DDevice9Ex::~DCL_IDirect3DDevice9Ex(){}
 *
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::QueryInterface(IDirect3DDevice9Ex* pcThis, REFIID riid, void** ppvObj)
-{ 
+{
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::QueryInterface");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
@@ -100,7 +100,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::QueryInterface(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IUNKNOWN::QueryInterface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -114,7 +114,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::QueryInterface(IDirect3DDevice9Ex* pcThis
 *
 ***/
 ULONG WINAPI DCL_IDirect3DDevice9Ex::AddRef(IDirect3DDevice9Ex* pcThis)
-{ 
+{
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::AddRef");
 
 	//// not force D3D, node present and invokers connected ? set node output data and return node provoke
@@ -149,7 +149,7 @@ ULONG WINAPI DCL_IDirect3DDevice9Ex::AddRef(IDirect3DDevice9Ex* pcThis)
 *
 ***/
 ULONG WINAPI DCL_IDirect3DDevice9Ex::Release(IDirect3DDevice9Ex* pcThis)
-{ 
+{
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::Release");
 
 
@@ -203,7 +203,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::TestCooperativeLevel(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::TestCooperativeLevel]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -213,8 +213,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::TestCooperativeLevel(IDirect3DDevice9Ex* 
 		return D3D929_IDirect3DDevice9Ex_TestCooperativeLevel_Super(pcThis);
 }
 
-/** 
-* 
+/**
+*
 ***/
 UINT WINAPI DCL_IDirect3DDevice9Ex::GetAvailableTextureMem(IDirect3DDevice9Ex* pcThis)
 {
@@ -232,7 +232,7 @@ UINT WINAPI DCL_IDirect3DDevice9Ex::GetAvailableTextureMem(IDirect3DDevice9Ex* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static UINT ui = (UINT)*(UINT*)pvRet;
+			static UINT ui = (UINT) * (UINT*)pvRet;
 			return ui;
 		}
 		else
@@ -243,11 +243,11 @@ UINT WINAPI DCL_IDirect3DDevice9Ex::GetAvailableTextureMem(IDirect3DDevice9Ex* p
 }
 
 /**
-* 
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::EvictManagedResources(IDirect3DDevice9Ex* pcThis)
 {
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::EvictManagedResources"); 
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::EvictManagedResources");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EvictManagedResources]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EvictManagedResources]->m_cProvoker.m_paInvokers.size() > 0))
@@ -261,7 +261,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EvictManagedResources(IDirect3DDevice9Ex*
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EvictManagedResources]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -272,11 +272,11 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EvictManagedResources(IDirect3DDevice9Ex*
 }
 
 /**
-* 
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDirect3D(IDirect3DDevice9Ex* pcThis, IDirect3D9** ppD3D9)
 {
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDirect3D"); 
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDirect3D");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]->m_cProvoker.m_paInvokers.size() > 0))
@@ -293,7 +293,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDirect3D(IDirect3DDevice9Ex* pcThis, I
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDirect3D]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -303,12 +303,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDirect3D(IDirect3DDevice9Ex* pcThis, I
 		return D3D929_IDirect3DDevice9Ex_GetDirect3D_Super(pcThis, ppD3D9);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDeviceCaps(IDirect3DDevice9Ex* pcThis, D3DCAPS9* pCaps)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDeviceCaps"); 
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDeviceCaps");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]->m_cProvoker.m_paInvokers.size() > 0))
@@ -325,7 +325,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDeviceCaps(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDeviceCaps]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -335,12 +335,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDeviceCaps(IDirect3DDevice9Ex* pcThis,
 		return D3D929_IDirect3DDevice9Ex_GetDeviceCaps_Super(pcThis, pCaps);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayMode(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,D3DDISPLAYMODE* pMode)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDisplayMode"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayMode(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, D3DDISPLAYMODE* pMode)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDisplayMode");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_cProvoker.m_paInvokers.size() > 0))
@@ -358,7 +358,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayMode(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDisplayMode]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -368,12 +368,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayMode(IDirect3DDevice9Ex* pcThis
 		return D3D929_IDirect3DDevice9Ex_GetDisplayMode_Super(pcThis, iSwapChain, pMode);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCreationParameters(IDirect3DDevice9Ex* pcThis, D3DDEVICE_CREATION_PARAMETERS *pParameters)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetCreationParameters"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCreationParameters(IDirect3DDevice9Ex* pcThis, D3DDEVICE_CREATION_PARAMETERS* pParameters)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetCreationParameters");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]->m_cProvoker.m_paInvokers.size() > 0))
@@ -390,7 +390,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCreationParameters(IDirect3DDevice9Ex*
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCreationParameters]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -400,12 +400,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCreationParameters(IDirect3DDevice9Ex*
 		return D3D929_IDirect3DDevice9Ex_GetCreationParameters_Super(pcThis, pParameters);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCursorProperties(IDirect3DDevice9Ex* pcThis, UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetCursorProperties"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCursorProperties(IDirect3DDevice9Ex* pcThis, UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetCursorProperties");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_cProvoker.m_paInvokers.size() > 0))
@@ -424,7 +424,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCursorProperties(IDirect3DDevice9Ex* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorProperties]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -434,12 +434,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCursorProperties(IDirect3DDevice9Ex* p
 		return D3D929_IDirect3DDevice9Ex_SetCursorProperties_Super(pcThis, XHotSpot, YHotSpot, pCursorBitmap);
 }
 
-/** 
-* 
+/**
+*
 ***/
-void WINAPI DCL_IDirect3DDevice9Ex::SetCursorPosition(IDirect3DDevice9Ex* pcThis, int X,int Y,DWORD Flags)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetCursorPosition"); 
+void WINAPI DCL_IDirect3DDevice9Ex::SetCursorPosition(IDirect3DDevice9Ex* pcThis, int X, int Y, DWORD Flags)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetCursorPosition");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCursorPosition]->m_cProvoker.m_paInvokers.size() > 0))
@@ -464,12 +464,12 @@ void WINAPI DCL_IDirect3DDevice9Ex::SetCursorPosition(IDirect3DDevice9Ex* pcThis
 		return D3D929_IDirect3DDevice9Ex_SetCursorPosition_Super(pcThis, X, Y, Flags);
 }
 
-/** 
-* 
+/**
+*
 ***/
 BOOL    WINAPI DCL_IDirect3DDevice9Ex::ShowCursor(IDirect3DDevice9Ex* pcThis, BOOL bShow)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ShowCursor"); 
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ShowCursor");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]->m_cProvoker.m_paInvokers.size() > 0))
@@ -486,7 +486,7 @@ BOOL    WINAPI DCL_IDirect3DDevice9Ex::ShowCursor(IDirect3DDevice9Ex* pcThis, BO
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ShowCursor]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static BOOL b = (BOOL)*(BOOL*)pvRet;
+			static BOOL b = (BOOL) * (BOOL*)pvRet;
 			return b;
 		}
 		else
@@ -496,12 +496,12 @@ BOOL    WINAPI DCL_IDirect3DDevice9Ex::ShowCursor(IDirect3DDevice9Ex* pcThis, BO
 		return D3D929_IDirect3DDevice9Ex_ShowCursor_Super(pcThis, bShow);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateAdditionalSwapChain(IDirect3DDevice9Ex* pcThis, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateAdditionalSwapChain"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateAdditionalSwapChain(IDirect3DDevice9Ex* pcThis, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DSwapChain9** pSwapChain)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateAdditionalSwapChain");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_cProvoker.m_paInvokers.size() > 0))
@@ -519,7 +519,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateAdditionalSwapChain(IDirect3DDevice
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -529,12 +529,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateAdditionalSwapChain(IDirect3DDevice
 		return D3D929_IDirect3DDevice9Ex_CreateAdditionalSwapChain_Super(pcThis, pPresentationParameters, pSwapChain);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSwapChain(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetSwapChain"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSwapChain(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, IDirect3DSwapChain9** pSwapChain)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetSwapChain");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_cProvoker.m_paInvokers.size() > 0))
@@ -552,7 +552,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSwapChain(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSwapChain]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -562,12 +562,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSwapChain(IDirect3DDevice9Ex* pcThis, 
 		return D3D929_IDirect3DDevice9Ex_GetSwapChain_Super(pcThis, iSwapChain, pSwapChain);
 }
 
-/** 
-* 
+/**
+*
 ***/
 UINT WINAPI DCL_IDirect3DDevice9Ex::GetNumberOfSwapChains(IDirect3DDevice9Ex* pcThis)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetNumberOfSwapChains"); 
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetNumberOfSwapChains");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains]->m_cProvoker.m_paInvokers.size() > 0))
@@ -581,7 +581,7 @@ UINT WINAPI DCL_IDirect3DDevice9Ex::GetNumberOfSwapChains(IDirect3DDevice9Ex* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static UINT ui = (UINT)*(UINT*)pvRet;
+			static UINT ui = (UINT) * (UINT*)pvRet;
 			return ui;
 		}
 		else
@@ -591,12 +591,12 @@ UINT WINAPI DCL_IDirect3DDevice9Ex::GetNumberOfSwapChains(IDirect3DDevice9Ex* pc
 		return D3D929_IDirect3DDevice9Ex_GetNumberOfSwapChains_Super(pcThis);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::Reset(IDirect3DDevice9Ex* pcThis, D3DPRESENT_PARAMETERS* pPresentationParameters)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::Reset"); 
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::Reset");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]->m_cProvoker.m_paInvokers.size() > 0))
@@ -613,7 +613,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Reset(IDirect3DDevice9Ex* pcThis, D3DPRES
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Reset]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -623,11 +623,11 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Reset(IDirect3DDevice9Ex* pcThis, D3DPRES
 		return D3D929_IDirect3DDevice9Ex_Reset_Super(pcThis, pPresentationParameters);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::Present(IDirect3DDevice9Ex* pcThis, CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{ 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::Present(IDirect3DDevice9Ex* pcThis, CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion)
+{
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::Present");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
@@ -648,7 +648,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Present(IDirect3DDevice9Ex* pcThis, CONST
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Present]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -658,12 +658,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Present(IDirect3DDevice9Ex* pcThis, CONST
 		return D3D929_IDirect3DDevice9Ex_Present_Super(pcThis, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetBackBuffer(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
-{ 
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetBackBuffer"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetBackBuffer(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetBackBuffer");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_cProvoker.m_paInvokers.size() > 0))
@@ -683,7 +683,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetBackBuffer(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetBackBuffer]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -693,12 +693,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetBackBuffer(IDirect3DDevice9Ex* pcThis,
 		return D3D929_IDirect3DDevice9Ex_GetBackBuffer_Super(pcThis, iSwapChain, iBackBuffer, Type, ppBackBuffer);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRasterStatus(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetRasterStatus"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRasterStatus(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, D3DRASTER_STATUS* pRasterStatus)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetRasterStatus");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_cProvoker.m_paInvokers.size() > 0))
@@ -716,7 +716,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRasterStatus(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRasterStatus]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -726,12 +726,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRasterStatus(IDirect3DDevice9Ex* pcThi
 		return D3D929_IDirect3DDevice9Ex_GetRasterStatus_Super(pcThis, iSwapChain, pRasterStatus);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDialogBoxMode(IDirect3DDevice9Ex* pcThis, BOOL bEnableDialogs)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetDialogBoxMode"); 
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetDialogBoxMode");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]->m_cProvoker.m_paInvokers.size() > 0))
@@ -748,7 +748,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDialogBoxMode(IDirect3DDevice9Ex* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -758,12 +758,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDialogBoxMode(IDirect3DDevice9Ex* pcTh
 		return D3D929_IDirect3DDevice9Ex_SetDialogBoxMode_Super(pcThis, bEnableDialogs);
 }
 
-/** 
-* 
+/**
+*
 ***/
-void WINAPI DCL_IDirect3DDevice9Ex::SetGammaRamp(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetGammaRamp"); 
+void WINAPI DCL_IDirect3DDevice9Ex::SetGammaRamp(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, DWORD Flags, CONST D3DGAMMARAMP* pRamp)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetGammaRamp");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetGammaRamp]->m_cProvoker.m_paInvokers.size() > 0))
@@ -788,12 +788,12 @@ void WINAPI DCL_IDirect3DDevice9Ex::SetGammaRamp(IDirect3DDevice9Ex* pcThis, UIN
 		return D3D929_IDirect3DDevice9Ex_SetGammaRamp_Super(pcThis, iSwapChain, Flags, pRamp);
 }
 
-/** 
-* 
+/**
+*
 ***/
-void WINAPI DCL_IDirect3DDevice9Ex::GetGammaRamp(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,D3DGAMMARAMP* pRamp)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetGammaRamp"); 
+void WINAPI DCL_IDirect3DDevice9Ex::GetGammaRamp(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, D3DGAMMARAMP* pRamp)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetGammaRamp");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetGammaRamp]->m_cProvoker.m_paInvokers.size() > 0))
@@ -817,12 +817,12 @@ void WINAPI DCL_IDirect3DDevice9Ex::GetGammaRamp(IDirect3DDevice9Ex* pcThis, UIN
 		return D3D929_IDirect3DDevice9Ex_GetGammaRamp_Super(pcThis, iSwapChain, pRamp);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateTexture(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateTexture"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateTexture(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DTexture9** ppTexture, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateTexture");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_cProvoker.m_paInvokers.size() > 0))
@@ -846,7 +846,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateTexture(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -856,12 +856,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateTexture(IDirect3DDevice9Ex* pcThis,
 		return D3D929_IDirect3DDevice9Ex_CreateTexture_Super(pcThis, Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVolumeTexture(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateVolumeTexture"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVolumeTexture(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DVolumeTexture9** ppVolumeTexture, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateVolumeTexture");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_cProvoker.m_paInvokers.size() > 0))
@@ -886,7 +886,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVolumeTexture(IDirect3DDevice9Ex* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -896,12 +896,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVolumeTexture(IDirect3DDevice9Ex* p
 		return D3D929_IDirect3DDevice9Ex_CreateVolumeTexture_Super(pcThis, Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateCubeTexture(IDirect3DDevice9Ex* pcThis, UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateCubeTexture"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateCubeTexture(IDirect3DDevice9Ex* pcThis, UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateCubeTexture");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_cProvoker.m_paInvokers.size() > 0))
@@ -924,7 +924,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateCubeTexture(IDirect3DDevice9Ex* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateCubeTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -934,12 +934,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateCubeTexture(IDirect3DDevice9Ex* pcT
 		return D3D929_IDirect3DDevice9Ex_CreateCubeTexture_Super(pcThis, EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexBuffer(IDirect3DDevice9Ex* pcThis, UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateVertexBuffer"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexBuffer(IDirect3DDevice9Ex* pcThis, UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateVertexBuffer");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_cProvoker.m_paInvokers.size() > 0))
@@ -961,7 +961,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexBuffer(IDirect3DDevice9Ex* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -971,12 +971,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexBuffer(IDirect3DDevice9Ex* pc
 		return D3D929_IDirect3DDevice9Ex_CreateVertexBuffer_Super(pcThis, Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateIndexBuffer(IDirect3DDevice9Ex* pcThis, UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
-{ 
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateIndexBuffer"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateIndexBuffer(IDirect3DDevice9Ex* pcThis, UINT Length, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DIndexBuffer9** ppIndexBuffer, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateIndexBuffer");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_cProvoker.m_paInvokers.size() > 0))
@@ -998,7 +998,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateIndexBuffer(IDirect3DDevice9Ex* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1008,12 +1008,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateIndexBuffer(IDirect3DDevice9Ex* pcT
 		return D3D929_IDirect3DDevice9Ex_CreateIndexBuffer_Super(pcThis, Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTarget(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateRenderTarget"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTarget(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateRenderTarget");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1037,7 +1037,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTarget(IDirect3DDevice9Ex* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateRenderTarget]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1047,12 +1047,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTarget(IDirect3DDevice9Ex* pc
 		return D3D929_IDirect3DDevice9Ex_CreateRenderTarget_Super(pcThis, Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurface(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateDepthStencilSurface"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurface(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateDepthStencilSurface");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1076,7 +1076,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurface(IDirect3DDevice
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1086,12 +1086,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurface(IDirect3DDevice
 		return D3D929_IDirect3DDevice9Ex_CreateDepthStencilSurface_Super(pcThis, Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateSurface(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::UpdateSurface"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateSurface(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestinationSurface, CONST POINT* pDestPoint)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::UpdateSurface");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1111,7 +1111,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateSurface(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1121,12 +1121,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateSurface(IDirect3DDevice9Ex* pcThis,
 		return D3D929_IDirect3DDevice9Ex_UpdateSurface_Super(pcThis, pSourceSurface, pSourceRect, pDestinationSurface, pDestPoint);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateTexture(IDirect3DDevice9Ex* pcThis, IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::UpdateTexture"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateTexture(IDirect3DDevice9Ex* pcThis, IDirect3DBaseTexture9* pSourceTexture, IDirect3DBaseTexture9* pDestinationTexture)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::UpdateTexture");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1144,7 +1144,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateTexture(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::UpdateTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1154,12 +1154,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::UpdateTexture(IDirect3DDevice9Ex* pcThis,
 		return D3D929_IDirect3DDevice9Ex_UpdateTexture_Super(pcThis, pSourceTexture, pDestinationTexture);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTargetData(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetRenderTargetData"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTargetData(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pRenderTarget, IDirect3DSurface9* pDestSurface)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetRenderTargetData");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1177,7 +1177,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTargetData(IDirect3DDevice9Ex* p
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTargetData]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1187,12 +1187,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTargetData(IDirect3DDevice9Ex* p
 		return D3D929_IDirect3DDevice9Ex_GetRenderTargetData_Super(pcThis, pRenderTarget, pDestSurface);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFrontBufferData(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,IDirect3DSurface9* pDestSurface)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetFrontBufferData"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFrontBufferData(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, IDirect3DSurface9* pDestSurface)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetFrontBufferData");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1210,7 +1210,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFrontBufferData(IDirect3DDevice9Ex* pc
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFrontBufferData]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1220,12 +1220,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFrontBufferData(IDirect3DDevice9Ex* pc
 		return D3D929_IDirect3DDevice9Ex_GetFrontBufferData_Super(pcThis, iSwapChain, pDestSurface);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::StretchRect(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
-{ 
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::StretchRect"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::StretchRect(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestSurface, CONST RECT* pDestRect, D3DTEXTUREFILTERTYPE Filter)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::StretchRect");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1246,7 +1246,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::StretchRect(IDirect3DDevice9Ex* pcThis, I
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::StretchRect]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1257,11 +1257,11 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::StretchRect(IDirect3DDevice9Ex* pcThis, I
 }
 
 /**
-* 
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::ColorFill(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSurface, CONST RECT* pRect, D3DCOLOR color)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ColorFill"); 
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ColorFill");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1280,7 +1280,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ColorFill(IDirect3DDevice9Ex* pcThis, IDi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ColorFill]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1290,12 +1290,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ColorFill(IDirect3DDevice9Ex* pcThis, IDi
 		return D3D929_IDirect3DDevice9Ex_ColorFill_Super(pcThis, pSurface, pRect, color);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateOffscreenPlainSurface"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, D3DFORMAT Format, D3DPOOL Pool, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateOffscreenPlainSurface");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1317,7 +1317,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(IDirect3DDevi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1327,12 +1327,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurface(IDirect3DDevi
 		return D3D929_IDirect3DDevice9Ex_CreateOffscreenPlainSurface_Super(pcThis, Width, Height, Format, Pool, ppSurface, pSharedHandle);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderTarget(IDirect3DDevice9Ex* pcThis, DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetRenderTarget"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderTarget(IDirect3DDevice9Ex* pcThis, DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetRenderTarget");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1350,7 +1350,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderTarget(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderTarget]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1360,12 +1360,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderTarget(IDirect3DDevice9Ex* pcThi
 		return D3D929_IDirect3DDevice9Ex_SetRenderTarget_Super(pcThis, RenderTargetIndex, pRenderTarget);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTarget(IDirect3DDevice9Ex* pcThis, DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
-{  
-	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetRenderTarget"); 
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTarget(IDirect3DDevice9Ex* pcThis, DWORD RenderTargetIndex, IDirect3DSurface9** ppRenderTarget)
+{
+	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetRenderTarget");
 
 	// not force D3D, node present and invokers connected ? set node output data and return node provoke
 	if ((!m_pcTransferSite->m_bForceD3D) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]) && (m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_cProvoker.m_paInvokers.size() > 0))
@@ -1383,7 +1383,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTarget(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderTarget]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1393,8 +1393,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderTarget(IDirect3DDevice9Ex* pcThi
 		return D3D929_IDirect3DDevice9Ex_GetRenderTarget_Super(pcThis, RenderTargetIndex, ppRenderTarget);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDepthStencilSurface(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pNewZStencil)
 {
@@ -1415,7 +1415,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDepthStencilSurface(IDirect3DDevice9Ex
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1423,10 +1423,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetDepthStencilSurface(IDirect3DDevice9Ex
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetDepthStencilSurface_Super(pcThis, pNewZStencil);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDepthStencilSurface(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9** ppZStencilSurface)
 {
@@ -1447,7 +1447,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDepthStencilSurface(IDirect3DDevice9Ex
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1455,10 +1455,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDepthStencilSurface(IDirect3DDevice9Ex
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetDepthStencilSurface_Super(pcThis, ppZStencilSurface);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::BeginScene(IDirect3DDevice9Ex* pcThis)
 {
@@ -1476,7 +1476,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::BeginScene(IDirect3DDevice9Ex* pcThis)
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::BeginScene]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1484,10 +1484,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::BeginScene(IDirect3DDevice9Ex* pcThis)
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_BeginScene_Super(pcThis);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndScene(IDirect3DDevice9Ex* pcThis)
 {
@@ -1505,7 +1505,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndScene(IDirect3DDevice9Ex* pcThis)
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EndScene]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1513,12 +1513,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndScene(IDirect3DDevice9Ex* pcThis)
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_EndScene_Super(pcThis);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::Clear(IDirect3DDevice9Ex* pcThis, DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::Clear(IDirect3DDevice9Ex* pcThis, DWORD Count, CONST D3DRECT* pRects, DWORD Flags, D3DCOLOR Color, float Z, DWORD Stencil)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::Clear");
 
@@ -1542,7 +1542,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Clear(IDirect3DDevice9Ex* pcThis, DWORD C
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::Clear]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1550,12 +1550,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::Clear(IDirect3DDevice9Ex* pcThis, DWORD C
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_Clear_Super(pcThis, Count, pRects, Flags, Color, Z, Stencil);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTransform(IDirect3DDevice9Ex* pcThis, D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTransform(IDirect3DDevice9Ex* pcThis, D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetTransform");
 
@@ -1575,7 +1575,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTransform(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTransform]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1583,10 +1583,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTransform(IDirect3DDevice9Ex* pcThis, 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetTransform_Super(pcThis, State, pMatrix);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTransform(IDirect3DDevice9Ex* pcThis, D3DTRANSFORMSTATETYPE State, D3DMATRIX* pMatrix)
 {
@@ -1608,7 +1608,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTransform(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTransform]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1616,10 +1616,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTransform(IDirect3DDevice9Ex* pcThis, 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetTransform_Super(pcThis, State, pMatrix);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::MultiplyTransform(IDirect3DDevice9Ex* pcThis, D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
@@ -1641,7 +1641,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::MultiplyTransform(IDirect3DDevice9Ex* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::MultiplyTransform]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1649,10 +1649,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::MultiplyTransform(IDirect3DDevice9Ex* pcT
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_MultiplyTransform_Super(pcThis, State, pMatrix);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetViewport(IDirect3DDevice9Ex* pcThis, CONST D3DVIEWPORT9* pViewport)
 {
@@ -1673,7 +1673,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetViewport(IDirect3DDevice9Ex* pcThis, C
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetViewport]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1681,10 +1681,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetViewport(IDirect3DDevice9Ex* pcThis, C
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetViewport_Super(pcThis, pViewport);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetViewport(IDirect3DDevice9Ex* pcThis, D3DVIEWPORT9* pViewport)
 {
@@ -1705,7 +1705,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetViewport(IDirect3DDevice9Ex* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetViewport]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1713,10 +1713,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetViewport(IDirect3DDevice9Ex* pcThis, D
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetViewport_Super(pcThis, pViewport);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaterial(IDirect3DDevice9Ex* pcThis, CONST D3DMATERIAL9* pMaterial)
 {
@@ -1737,7 +1737,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaterial(IDirect3DDevice9Ex* pcThis, C
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetMaterial]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1745,10 +1745,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaterial(IDirect3DDevice9Ex* pcThis, C
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetMaterial_Super(pcThis, pMaterial);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaterial(IDirect3DDevice9Ex* pcThis, D3DMATERIAL9* pMaterial)
 {
@@ -1769,7 +1769,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaterial(IDirect3DDevice9Ex* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetMaterial]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1777,10 +1777,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaterial(IDirect3DDevice9Ex* pcThis, D
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetMaterial_Super(pcThis, pMaterial);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetLight(IDirect3DDevice9Ex* pcThis, DWORD Index, CONST D3DLIGHT9* pLight)
 {
@@ -1802,7 +1802,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetLight(IDirect3DDevice9Ex* pcThis, DWOR
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetLight]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1810,10 +1810,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetLight(IDirect3DDevice9Ex* pcThis, DWOR
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetLight_Super(pcThis, Index, pLight);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLight(IDirect3DDevice9Ex* pcThis, DWORD Index, D3DLIGHT9* pLight)
 {
@@ -1835,7 +1835,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLight(IDirect3DDevice9Ex* pcThis, DWOR
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLight]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1843,10 +1843,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLight(IDirect3DDevice9Ex* pcThis, DWOR
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetLight_Super(pcThis, Index, pLight);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::LightEnable(IDirect3DDevice9Ex* pcThis, DWORD Index, BOOL Enable)
 {
@@ -1868,7 +1868,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::LightEnable(IDirect3DDevice9Ex* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::LightEnable]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1876,10 +1876,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::LightEnable(IDirect3DDevice9Ex* pcThis, D
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_LightEnable_Super(pcThis, Index, Enable);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLightEnable(IDirect3DDevice9Ex* pcThis, DWORD Index, BOOL* pEnable)
 {
@@ -1901,7 +1901,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLightEnable(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetLightEnable]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1909,10 +1909,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetLightEnable(IDirect3DDevice9Ex* pcThis
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetLightEnable_Super(pcThis, Index, pEnable);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipPlane(IDirect3DDevice9Ex* pcThis, DWORD Index, CONST float* pPlane)
 {
@@ -1934,7 +1934,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipPlane(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipPlane]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1942,10 +1942,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipPlane(IDirect3DDevice9Ex* pcThis, 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetClipPlane_Super(pcThis, Index, pPlane);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipPlane(IDirect3DDevice9Ex* pcThis, DWORD Index, float* pPlane)
 {
@@ -1967,7 +1967,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipPlane(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipPlane]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -1975,10 +1975,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipPlane(IDirect3DDevice9Ex* pcThis, 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetClipPlane_Super(pcThis, Index, pPlane);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderState(IDirect3DDevice9Ex* pcThis, D3DRENDERSTATETYPE State, DWORD Value)
 {
@@ -2000,7 +2000,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderState(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetRenderState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2008,10 +2008,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetRenderState(IDirect3DDevice9Ex* pcThis
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetRenderState_Super(pcThis, State, Value);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderState(IDirect3DDevice9Ex* pcThis, D3DRENDERSTATETYPE State, DWORD* pValue)
 {
@@ -2033,7 +2033,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderState(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetRenderState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2041,10 +2041,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetRenderState(IDirect3DDevice9Ex* pcThis
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetRenderState_Super(pcThis, State, pValue);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateStateBlock(IDirect3DDevice9Ex* pcThis, D3DSTATEBLOCKTYPE Type, IDirect3DStateBlock9** ppSB)
 {
@@ -2066,7 +2066,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateStateBlock(IDirect3DDevice9Ex* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateStateBlock]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2074,10 +2074,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateStateBlock(IDirect3DDevice9Ex* pcTh
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_CreateStateBlock_Super(pcThis, Type, ppSB);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::BeginStateBlock(IDirect3DDevice9Ex* pcThis)
 {
@@ -2095,7 +2095,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::BeginStateBlock(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::BeginStateBlock]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2103,10 +2103,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::BeginStateBlock(IDirect3DDevice9Ex* pcThi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_BeginStateBlock_Super(pcThis);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndStateBlock(IDirect3DDevice9Ex* pcThis, IDirect3DStateBlock9** ppSB)
 {
@@ -2127,7 +2127,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndStateBlock(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::EndStateBlock]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2135,10 +2135,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::EndStateBlock(IDirect3DDevice9Ex* pcThis,
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_EndStateBlock_Super(pcThis, ppSB);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipStatus(IDirect3DDevice9Ex* pcThis, CONST D3DCLIPSTATUS9* pClipStatus)
 {
@@ -2159,7 +2159,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipStatus(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetClipStatus]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2167,10 +2167,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetClipStatus(IDirect3DDevice9Ex* pcThis,
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetClipStatus_Super(pcThis, pClipStatus);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipStatus(IDirect3DDevice9Ex* pcThis, D3DCLIPSTATUS9* pClipStatus)
 {
@@ -2191,7 +2191,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipStatus(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetClipStatus]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2199,10 +2199,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetClipStatus(IDirect3DDevice9Ex* pcThis,
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetClipStatus_Super(pcThis, pClipStatus);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTexture(IDirect3DDevice9Ex* pcThis, DWORD Stage, IDirect3DBaseTexture9** ppTexture)
 {
@@ -2224,7 +2224,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTexture(IDirect3DDevice9Ex* pcThis, DW
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2232,12 +2232,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTexture(IDirect3DDevice9Ex* pcThis, DW
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetTexture_Super(pcThis, Stage, ppTexture);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTexture(IDirect3DDevice9Ex* pcThis, DWORD Stage,IDirect3DBaseTexture9* pTexture)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTexture(IDirect3DDevice9Ex* pcThis, DWORD Stage, IDirect3DBaseTexture9* pTexture)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetTexture");
 
@@ -2257,7 +2257,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTexture(IDirect3DDevice9Ex* pcThis, DW
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTexture]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2265,10 +2265,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTexture(IDirect3DDevice9Ex* pcThis, DW
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetTexture_Super(pcThis, Stage, pTexture);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTextureStageState(IDirect3DDevice9Ex* pcThis, DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD* pValue)
 {
@@ -2291,7 +2291,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTextureStageState(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetTextureStageState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2299,10 +2299,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetTextureStageState(IDirect3DDevice9Ex* 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetTextureStageState_Super(pcThis, Stage, Type, pValue);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTextureStageState(IDirect3DDevice9Ex* pcThis, DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
 {
@@ -2325,7 +2325,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTextureStageState(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetTextureStageState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2333,10 +2333,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetTextureStageState(IDirect3DDevice9Ex* 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetTextureStageState_Super(pcThis, Stage, Type, Value);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSamplerState(IDirect3DDevice9Ex* pcThis, DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD* pValue)
 {
@@ -2359,7 +2359,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSamplerState(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSamplerState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2367,10 +2367,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetSamplerState(IDirect3DDevice9Ex* pcThi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetSamplerState_Super(pcThis, Sampler, Type, pValue);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSamplerState(IDirect3DDevice9Ex* pcThis, DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 {
@@ -2393,7 +2393,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSamplerState(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSamplerState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2401,10 +2401,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSamplerState(IDirect3DDevice9Ex* pcThi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetSamplerState_Super(pcThis, Sampler, Type, Value);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::ValidateDevice(IDirect3DDevice9Ex* pcThis, DWORD* pNumPasses)
 {
@@ -2425,7 +2425,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ValidateDevice(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ValidateDevice]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2433,10 +2433,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ValidateDevice(IDirect3DDevice9Ex* pcThis
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_ValidateDevice_Super(pcThis, pNumPasses);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPaletteEntries(IDirect3DDevice9Ex* pcThis, UINT PaletteNumber, CONST PALETTEENTRY* pEntries)
 {
@@ -2458,7 +2458,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPaletteEntries(IDirect3DDevice9Ex* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPaletteEntries]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2466,10 +2466,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPaletteEntries(IDirect3DDevice9Ex* pcT
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetPaletteEntries_Super(pcThis, PaletteNumber, pEntries);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPaletteEntries(IDirect3DDevice9Ex* pcThis, UINT PaletteNumber, PALETTEENTRY* pEntries)
 {
@@ -2491,7 +2491,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPaletteEntries(IDirect3DDevice9Ex* pcT
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPaletteEntries]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2499,10 +2499,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPaletteEntries(IDirect3DDevice9Ex* pcT
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetPaletteEntries_Super(pcThis, PaletteNumber, pEntries);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCurrentTexturePalette(IDirect3DDevice9Ex* pcThis, UINT PaletteNumber)
 {
@@ -2523,7 +2523,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCurrentTexturePalette(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2531,12 +2531,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetCurrentTexturePalette(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetCurrentTexturePalette_Super(pcThis, PaletteNumber);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCurrentTexturePalette(IDirect3DDevice9Ex* pcThis, UINT *PaletteNumber)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCurrentTexturePalette(IDirect3DDevice9Ex* pcThis, UINT* PaletteNumber)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetCurrentTexturePalette");
 
@@ -2555,7 +2555,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCurrentTexturePalette(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2563,10 +2563,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetCurrentTexturePalette(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetCurrentTexturePalette_Super(pcThis, PaletteNumber);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetScissorRect(IDirect3DDevice9Ex* pcThis, CONST RECT* pRect)
 {
@@ -2587,7 +2587,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetScissorRect(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetScissorRect]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2595,10 +2595,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetScissorRect(IDirect3DDevice9Ex* pcThis
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetScissorRect_Super(pcThis, pRect);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetScissorRect(IDirect3DDevice9Ex* pcThis, RECT* pRect)
 {
@@ -2619,7 +2619,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetScissorRect(IDirect3DDevice9Ex* pcThis
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetScissorRect]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2627,10 +2627,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetScissorRect(IDirect3DDevice9Ex* pcThis
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetScissorRect_Super(pcThis, pRect);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSoftwareVertexProcessing(IDirect3DDevice9Ex* pcThis, BOOL bSoftware)
 {
@@ -2651,7 +2651,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSoftwareVertexProcessing(IDirect3DDevi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2659,10 +2659,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetSoftwareVertexProcessing(IDirect3DDevi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetSoftwareVertexProcessing_Super(pcThis, bSoftware);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 BOOL    WINAPI DCL_IDirect3DDevice9Ex::GetSoftwareVertexProcessing(IDirect3DDevice9Ex* pcThis)
 {
@@ -2680,7 +2680,7 @@ BOOL    WINAPI DCL_IDirect3DDevice9Ex::GetSoftwareVertexProcessing(IDirect3DDevi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static BOOL b = (BOOL)*(BOOL*)pvRet;
+			static BOOL b = (BOOL) * (BOOL*)pvRet;
 			return b;
 		}
 		else
@@ -2688,10 +2688,10 @@ BOOL    WINAPI DCL_IDirect3DDevice9Ex::GetSoftwareVertexProcessing(IDirect3DDevi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetSoftwareVertexProcessing_Super(pcThis);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetNPatchMode(IDirect3DDevice9Ex* pcThis, float nSegments)
 {
@@ -2712,7 +2712,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetNPatchMode(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetNPatchMode]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2720,10 +2720,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetNPatchMode(IDirect3DDevice9Ex* pcThis,
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetNPatchMode_Super(pcThis, nSegments);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 float   WINAPI DCL_IDirect3DDevice9Ex::GetNPatchMode(IDirect3DDevice9Ex* pcThis)
 {
@@ -2749,10 +2749,10 @@ float   WINAPI DCL_IDirect3DDevice9Ex::GetNPatchMode(IDirect3DDevice9Ex* pcThis)
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetNPatchMode_Super(pcThis);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitive(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount)
 {
@@ -2775,7 +2775,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitive(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitive]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2783,12 +2783,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitive(IDirect3DDevice9Ex* pcThis,
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DrawPrimitive_Super(pcThis, PrimitiveType, StartVertex, PrimitiveCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitive(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType ,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitive(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType, INT BaseVertexIndex, UINT MinVertexIndex, UINT NumVertices, UINT startIndex, UINT primCount)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::DrawIndexedPrimitive");
 
@@ -2812,7 +2812,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitive(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2820,12 +2820,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitive(IDirect3DDevice9Ex* 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitive_Super(pcThis, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitiveUP(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitiveUP(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, CONST void* pVertexStreamZeroData, UINT VertexStreamZeroStride)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::DrawPrimitiveUP");
 
@@ -2847,7 +2847,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitiveUP(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2855,12 +2855,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawPrimitiveUP(IDirect3DDevice9Ex* pcThi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DrawPrimitiveUP_Super(pcThis, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(IDirect3DDevice9Ex* pcThis, D3DPRIMITIVETYPE PrimitiveType, UINT MinVertexIndex, UINT NumVertices, UINT PrimitiveCount, CONST void* pIndexData, D3DFORMAT IndexDataFormat, CONST void* pVertexStreamZeroData, UINT VertexStreamZeroStride)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::DrawIndexedPrimitiveUP");
 
@@ -2886,7 +2886,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(IDirect3DDevice9Ex
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2894,12 +2894,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawIndexedPrimitiveUP(IDirect3DDevice9Ex
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitiveUP_Super(pcThis, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::ProcessVertices(IDirect3DDevice9Ex* pcThis, UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::ProcessVertices(IDirect3DDevice9Ex* pcThis, UINT SrcStartIndex, UINT DestIndex, UINT VertexCount, IDirect3DVertexBuffer9* pDestBuffer, IDirect3DVertexDeclaration9* pVertexDecl, DWORD Flags)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ProcessVertices");
 
@@ -2923,7 +2923,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ProcessVertices(IDirect3DDevice9Ex* pcThi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::ProcessVertices]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2931,12 +2931,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ProcessVertices(IDirect3DDevice9Ex* pcThi
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_ProcessVertices_Super(pcThis, SrcStartIndex, DestIndex, VertexCount, pDestBuffer, pVertexDecl, Flags);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexDeclaration(IDirect3DDevice9Ex* pcThis, CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexDeclaration(IDirect3DDevice9Ex* pcThis, CONST D3DVERTEXELEMENT9* pVertexElements, IDirect3DVertexDeclaration9** ppDecl)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateVertexDeclaration");
 
@@ -2956,7 +2956,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexDeclaration(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2964,10 +2964,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexDeclaration(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_CreateVertexDeclaration_Super(pcThis, pVertexElements, ppDecl);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexDeclaration(IDirect3DDevice9Ex* pcThis, IDirect3DVertexDeclaration9* pDecl)
 {
@@ -2988,7 +2988,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexDeclaration(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -2996,10 +2996,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexDeclaration(IDirect3DDevice9Ex* 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetVertexDeclaration_Super(pcThis, pDecl);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexDeclaration(IDirect3DDevice9Ex* pcThis, IDirect3DVertexDeclaration9** ppDecl)
 {
@@ -3020,7 +3020,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexDeclaration(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3028,10 +3028,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexDeclaration(IDirect3DDevice9Ex* 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetVertexDeclaration_Super(pcThis, ppDecl);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetFVF(IDirect3DDevice9Ex* pcThis, DWORD FVF)
 {
@@ -3052,7 +3052,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetFVF(IDirect3DDevice9Ex* pcThis, DWORD 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetFVF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3060,10 +3060,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetFVF(IDirect3DDevice9Ex* pcThis, DWORD 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetFVF_Super(pcThis, FVF);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFVF(IDirect3DDevice9Ex* pcThis, DWORD* pFVF)
 {
@@ -3084,7 +3084,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFVF(IDirect3DDevice9Ex* pcThis, DWORD*
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetFVF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3092,12 +3092,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetFVF(IDirect3DDevice9Ex* pcThis, DWORD*
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetFVF_Super(pcThis, pFVF);
-} 
+}
 
-/** 
+/**
 * Vertex Shader detour method, creates data sheet entry for new shader if workspace is present.
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pcThis, CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pcThis, CONST DWORD* pFunction, IDirect3DVertexShader9** ppShader)
 {
 	static HRESULT hr;
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateVertexShader");
@@ -3116,7 +3116,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 
 		// replace method call only if the nodes first connected node wants to replace the call
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateVertexShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-			hr = (HRESULT)*(HRESULT*)pvRet;
+			hr = (HRESULT) * (HRESULT*)pvRet;
 		else
 			hr = D3D929_IDirect3DDevice9Ex_CreateVertexShader_Super(pcThis, pFunction, ppShader);
 	}
@@ -3125,7 +3125,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 
 	if (!m_pcTransferSite->m_bIsWorkingArea) return hr;
 
-	if (SUCCEEDED(hr) && ((*ppShader))) 
+	if (SUCCEEDED(hr) && ((*ppShader)))
 	{
 		LPD3DXCONSTANTTABLE pConstantTable = NULL;
 		BYTE* pData = NULL;
@@ -3151,7 +3151,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 
 		// get constants
 		D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
-		if(pConstantTable == NULL) 
+		if (pConstantTable == NULL)
 			return hr;
 
 		// get constant table description
@@ -3161,10 +3161,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 		// create constant description array, count possible entries
 		D3DXCONSTANT_DESC* aConstDesc = new D3DXCONSTANT_DESC[pDesc.Constants];
 		UINT dwEntryNumber = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
+		for (UINT i = 0; i < pDesc.Constants; i++)
 		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
+			D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
+			if (handle == NULL) continue;
 
 			UINT dwCount;
 			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
@@ -3180,16 +3180,16 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 
 		std::vector<std::wstring> aapSubEntries;
 		UINT dwIndex = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
+		for (UINT i = 0; i < pDesc.Constants; i++)
 		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
+			D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
+			if (handle == NULL) continue;
 
 			UINT dwCount;
 			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
 
 			// add all constants to shader entry vector
-			for(UINT j = 0; j < dwCount; j++)
+			for (UINT j = 0; j < dwCount; j++)
 			{
 				// add constant name to sub entry array
 				std::string szName(aConstDesc[j].Name);
@@ -3206,15 +3206,15 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateVertexShader(IDirect3DDevice9Ex* pc
 		else
 			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwSizeOfData);
 
-		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
+		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; }
 		if (pData) delete[] pData;
 	}
 
 	return hr;
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThis, IDirect3DVertexShader9* pShader)
 {
@@ -3236,105 +3236,18 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShader(IDirect3DDevice9Ex* pcThi
 		// replace method call only if the nodes first connected node wants to replace the call
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 			// get return value.. MUST be STATIC !
-				hr = (HRESULT)*(HRESULT*)pvRet;
+			hr = (HRESULT) * (HRESULT*)pvRet;
 		else
 			hr = D3D929_IDirect3DDevice9Ex_SetVertexShader_Super(pcThis, pShader);
 	}
 	else
 		hr = D3D929_IDirect3DDevice9Ex_SetVertexShader_Super(pcThis, pShader);
 
-	if ((!m_pcTransferSite->m_bIsWorkingArea) || (!m_pcTransferSite->m_bGatherVShaderBySet)) return hr;
-
-	if (SUCCEEDED(hr) && (pShader)) 
-	{
-		LPD3DXCONSTANTTABLE pConstantTable = NULL;
-		BYTE* pData = NULL;
-		UINT dwSizeOfData;
-		UINT dwHash;
-
-		// get shader function
-		pShader->GetFunction(NULL, &dwSizeOfData);
-		pData = new BYTE[dwSizeOfData];
-		pShader->GetFunction(pData, &dwSizeOfData);
-
-		if (m_pcTransferSite->m_bCreateShaderHash)
-		{
-			// get hash code
-			dwHash = GetHashCode(pData, dwSizeOfData);
-
-			// return if hash code already present
-			if (m_pcTransferSite->VertexShaderPresent(dwHash)) return hr;
-		}
-		else
-			// return if shader length already present
-			if (m_pcTransferSite->VertexShaderPresent(dwSizeOfData)) return hr;
-
-		// get constants
-		D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
-		if(pConstantTable == NULL) 
-			return hr;
-
-		// get constant table description
-		D3DXCONSTANTTABLE_DESC pDesc;
-		pConstantTable->GetDesc(&pDesc);
-
-		// create constant description array, count possible entries
-		D3DXCONSTANT_DESC* aConstDesc = new D3DXCONSTANT_DESC[pDesc.Constants];
-		UINT dwEntryNumber = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
-		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
-
-			UINT dwCount;
-			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
-			dwEntryNumber += dwCount;
-		}
-
-		// loop again, create entry
-		wchar_t* szTitle = new wchar_t[64];
-		if (m_pcTransferSite->m_bCreateShaderHash)
-			wsprintf(szTitle, L"%I32u", dwHash);
-		else
-			wsprintf(szTitle, L"%I32u", dwSizeOfData);
-
-		std::vector<std::wstring> aapSubEntries;
-		UINT dwIndex = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
-		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
-
-			UINT dwCount;
-			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
-
-			// add all constants to shader entry vector
-			for(UINT j = 0; j < dwCount; j++)
-			{
-				// add constant name to sub entry array
-				std::string szName(aConstDesc[j].Name);
-				std::wstring szNameW(szName.begin(), szName.end());
-				aapSubEntries.push_back(szNameW);
-				dwIndex++;
-			}
-			// if (aConstDesc) delete [] aConstDesc; - how to release ??
-		}
-
-		// register the shader entry to the data sheet via the transfer site class
-		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwHash);
-		else
-			m_pcTransferSite->RegisterDataSheetVertexShader(szTitle, aapSubEntries, dwSizeOfData);
-
-		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
-		if (pData) delete[] pData;
-	}
-
 	return hr;
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShader(IDirect3DDevice9Ex* pcThis, IDirect3DVertexShader9** ppShader)
 {
@@ -3363,12 +3276,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShader(IDirect3DDevice9Ex* pcThi
 	//}
 	//else
 	return D3D929_IDirect3DDevice9Ex_GetVertexShader_Super(pcThis, ppShader);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantF(IDirect3DDevice9Ex* pcThis, UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantF(IDirect3DDevice9Ex* pcThis, UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetVertexShaderConstantF");
 
@@ -3389,7 +3302,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantF(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3397,12 +3310,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantF(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantF(IDirect3DDevice9Ex* pcThis, UINT StartRegister,float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantF(IDirect3DDevice9Ex* pcThis, UINT StartRegister, float* pConstantData, UINT Vector4fCount)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetVertexShaderConstantF");
 
@@ -3423,7 +3336,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantF(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3431,12 +3344,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantF(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantI(IDirect3DDevice9Ex* pcThis, UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantI(IDirect3DDevice9Ex* pcThis, UINT StartRegister, CONST int* pConstantData, UINT Vector4iCount)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetVertexShaderConstantI");
 
@@ -3457,7 +3370,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantI(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3465,12 +3378,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantI(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantI(IDirect3DDevice9Ex* pcThis, UINT StartRegister,int* pConstantData,UINT Vector4iCount)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantI(IDirect3DDevice9Ex* pcThis, UINT StartRegister, int* pConstantData, UINT Vector4iCount)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetVertexShaderConstantI");
 
@@ -3491,7 +3404,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantI(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3499,10 +3412,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantI(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantB(IDirect3DDevice9Ex* pcThis, UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
 {
@@ -3525,7 +3438,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantB(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3533,10 +3446,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetVertexShaderConstantB(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantB(IDirect3DDevice9Ex* pcThis, UINT StartRegister, BOOL* pConstantData, UINT BoolCount)
 {
@@ -3559,7 +3472,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantB(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3567,10 +3480,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetVertexShaderConstantB(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSource(IDirect3DDevice9Ex* pcThis, UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
 {
@@ -3602,12 +3515,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSource(IDirect3DDevice9Ex* pcThi
 	//}
 	//else
 	return D3D929_IDirect3DDevice9Ex_SetStreamSource_Super(pcThis, StreamNumber, pStreamData, OffsetInBytes, Stride);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSource(IDirect3DDevice9Ex* pcThis, UINT StreamNumber,IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSource(IDirect3DDevice9Ex* pcThis, UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData, UINT* pOffsetInBytes, UINT* pStride)
 {
 	// OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetStreamSource");
 
@@ -3637,12 +3550,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSource(IDirect3DDevice9Ex* pcThi
 	//}
 	//else
 	return D3D929_IDirect3DDevice9Ex_GetStreamSource_Super(pcThis, StreamNumber, ppStreamData, pOffsetInBytes, pStride);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSourceFreq(IDirect3DDevice9Ex* pcThis, UINT StreamNumber,UINT Setting)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSourceFreq(IDirect3DDevice9Ex* pcThis, UINT StreamNumber, UINT Setting)
 {
 	//OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetStreamSourceFreq");
 
@@ -3670,10 +3583,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetStreamSourceFreq(IDirect3DDevice9Ex* p
 	//}
 	//else
 	return D3D929_IDirect3DDevice9Ex_SetStreamSourceFreq_Super(pcThis, StreamNumber, Setting);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSourceFreq(IDirect3DDevice9Ex* pcThis, UINT StreamNumber, UINT* pSetting)
 {
@@ -3703,10 +3616,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetStreamSourceFreq(IDirect3DDevice9Ex* p
 	//}
 	//else
 	return D3D929_IDirect3DDevice9Ex_GetStreamSourceFreq_Super(pcThis, StreamNumber, pSetting);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetIndices(IDirect3DDevice9Ex* pcThis, IDirect3DIndexBuffer9* pIndexData)
 {
@@ -3727,7 +3640,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetIndices(IDirect3DDevice9Ex* pcThis, ID
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetIndices]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3735,10 +3648,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetIndices(IDirect3DDevice9Ex* pcThis, ID
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetIndices_Super(pcThis, pIndexData);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetIndices(IDirect3DDevice9Ex* pcThis, IDirect3DIndexBuffer9** ppIndexData)
 {
@@ -3759,7 +3672,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetIndices(IDirect3DDevice9Ex* pcThis, ID
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetIndices]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -3767,10 +3680,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetIndices(IDirect3DDevice9Ex* pcThis, ID
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetIndices_Super(pcThis, ppIndexData);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcThis, CONST DWORD* pFunction, IDirect3DPixelShader9** ppShader)
 {
@@ -3793,7 +3706,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 		// replace method call only if the nodes first connected node wants to replace the call
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreatePixelShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 			// get return value.. MUST be STATIC !
-				hr = (HRESULT)*(HRESULT*)pvRet;
+			hr = (HRESULT) * (HRESULT*)pvRet;
 		else
 			hr = D3D929_IDirect3DDevice9Ex_CreatePixelShader_Super(pcThis, pFunction, ppShader);
 	}
@@ -3802,7 +3715,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 
 	if (!m_pcTransferSite->m_bIsWorkingArea) return hr;
 
-	if (SUCCEEDED(hr) && ((*ppShader))) 
+	if (SUCCEEDED(hr) && ((*ppShader)))
 	{
 		LPD3DXCONSTANTTABLE pConstantTable = NULL;
 		BYTE* pData = NULL;
@@ -3828,7 +3741,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 
 		// get constants
 		D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
-		if(pConstantTable == NULL) 
+		if (pConstantTable == NULL)
 			return hr;
 
 		// get constant table description
@@ -3838,10 +3751,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 		// create constant description array, count possible entries
 		D3DXCONSTANT_DESC* aConstDesc = new D3DXCONSTANT_DESC[pDesc.Constants];
 		UINT dwEntryNumber = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
+		for (UINT i = 0; i < pDesc.Constants; i++)
 		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
+			D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
+			if (handle == NULL) continue;
 
 			UINT dwCount;
 			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
@@ -3857,16 +3770,16 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 
 		std::vector<std::wstring> aapSubEntries;
 		UINT dwIndex = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
+		for (UINT i = 0; i < pDesc.Constants; i++)
 		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
+			D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
+			if (handle == NULL) continue;
 
 			UINT dwCount;
 			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
 
 			// add all constants to shader entry vector
-			for(UINT j = 0; j < dwCount; j++)
+			for (UINT j = 0; j < dwCount; j++)
 			{
 				// add constant name to sub entry array
 				std::string szName(aConstDesc[j].Name);
@@ -3883,15 +3796,15 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreatePixelShader(IDirect3DDevice9Ex* pcT
 		else
 			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwSizeOfData);
 
-		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
+		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; }
 		if (pData) delete[] pData;
 	}
 
 	return hr;
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis, IDirect3DPixelShader9* pShader)
 {
@@ -3913,105 +3826,18 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShader(IDirect3DDevice9Ex* pcThis
 		// replace method call only if the nodes first connected node wants to replace the call
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShader]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 			// get return value.. MUST be STATIC !
-				hr = (HRESULT)*(HRESULT*)pvRet;
+			hr = (HRESULT) * (HRESULT*)pvRet;
 		else
 			hr = D3D929_IDirect3DDevice9Ex_SetPixelShader_Super(pcThis, pShader);
 	}
 	else
 		hr = D3D929_IDirect3DDevice9Ex_SetPixelShader_Super(pcThis, pShader);
 
-	if ((!m_pcTransferSite->m_bIsWorkingArea) || (!m_pcTransferSite->m_bGatherVShaderBySet)) return hr;
-
-	if (SUCCEEDED(hr) && (pShader)) 
-	{
-		LPD3DXCONSTANTTABLE pConstantTable = NULL;
-		BYTE* pData = NULL;
-		UINT dwSizeOfData;
-		UINT dwHash;
-
-		// get shader function
-		pShader->GetFunction(NULL, &dwSizeOfData);
-		pData = new BYTE[dwSizeOfData];
-		pShader->GetFunction(pData, &dwSizeOfData);
-
-		if (m_pcTransferSite->m_bCreateShaderHash)
-		{
-			// get hash code
-			dwHash = GetHashCode(pData, dwSizeOfData);
-
-			// return if hash code already present
-			if (m_pcTransferSite->PixelShaderPresent(dwHash)) return hr;
-		}
-		else
-			// return if shader length already present
-			if (m_pcTransferSite->PixelShaderPresent(dwSizeOfData)) return hr;
-
-		// get constants
-		D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
-		if(pConstantTable == NULL) 
-			return hr;
-
-		// get constant table description
-		D3DXCONSTANTTABLE_DESC pDesc;
-		pConstantTable->GetDesc(&pDesc);
-
-		// create constant description array, count possible entries
-		D3DXCONSTANT_DESC* aConstDesc = new D3DXCONSTANT_DESC[pDesc.Constants];
-		UINT dwEntryNumber = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
-		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
-
-			UINT dwCount;
-			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
-			dwEntryNumber += dwCount;
-		}
-
-		// loop again, create entry
-		wchar_t* szTitle = new wchar_t[64];
-		if (m_pcTransferSite->m_bCreateShaderHash)
-			wsprintf(szTitle, L"%I32u", dwHash);
-		else
-			wsprintf(szTitle, L"%I32u", dwSizeOfData);
-
-		std::vector<std::wstring> aapSubEntries;
-		UINT dwIndex = 0;
-		for(UINT i = 0; i < pDesc.Constants; i++)
-		{
-			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-			if(handle == NULL) continue;
-
-			UINT dwCount;
-			pConstantTable->GetConstantDesc(handle, aConstDesc, &dwCount);
-
-			// add all constants to shader entry vector
-			for(UINT j = 0; j < dwCount; j++)
-			{
-				// add constant name to sub entry array
-				std::string szName(aConstDesc[j].Name);
-				std::wstring szNameW(szName.begin(), szName.end());
-				aapSubEntries.push_back(szNameW);
-				dwIndex++;
-			}
-			// if (aConstDesc) delete [] aConstDesc; - how to release ??
-		}
-
-		// register the shader entry to the data sheet via the transfer site class
-		if (m_pcTransferSite->m_bCreateShaderHash)
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwHash);
-		else
-			m_pcTransferSite->RegisterDataSheetPixelShader(szTitle, aapSubEntries, dwSizeOfData);
-
-		if (pConstantTable) { pConstantTable->Release(); pConstantTable = NULL; } 
-		if (pData) delete[] pData;
-	}
-
 	return hr;
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShader(IDirect3DDevice9Ex* pcThis, IDirect3DPixelShader9** ppShader)
 {
@@ -4040,10 +3866,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShader(IDirect3DDevice9Ex* pcThis
 	//}
 	//else
 	return D3D929_IDirect3DDevice9Ex_GetPixelShader_Super(pcThis, ppShader);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantF(IDirect3DDevice9Ex* pcThis, UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 {
@@ -4066,7 +3892,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantF(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4074,10 +3900,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantF(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantF(IDirect3DDevice9Ex* pcThis, UINT StartRegister, float* pConstantData, UINT Vector4fCount)
 {
@@ -4100,7 +3926,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantF(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4108,10 +3934,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantF(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantF_Super(pcThis, StartRegister, pConstantData, Vector4fCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantI(IDirect3DDevice9Ex* pcThis, UINT StartRegister, CONST int* pConstantData, UINT Vector4iCount)
 {
@@ -4134,7 +3960,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantI(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4142,10 +3968,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantI(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantI(IDirect3DDevice9Ex* pcThis, UINT StartRegister, int* pConstantData, UINT Vector4iCount)
 {
@@ -4168,7 +3994,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantI(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4176,10 +4002,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantI(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantI_Super(pcThis, StartRegister, pConstantData, Vector4iCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantB(IDirect3DDevice9Ex* pcThis, UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
 {
@@ -4202,7 +4028,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantB(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4210,10 +4036,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetPixelShaderConstantB(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantB(IDirect3DDevice9Ex* pcThis, UINT StartRegister, BOOL* pConstantData, UINT BoolCount)
 {
@@ -4236,7 +4062,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantB(IDirect3DDevice9E
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4244,10 +4070,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetPixelShaderConstantB(IDirect3DDevice9E
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantB_Super(pcThis, StartRegister, pConstantData, BoolCount);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawRectPatch(IDirect3DDevice9Ex* pcThis, UINT Handle, CONST float* pNumSegs, CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
@@ -4270,7 +4096,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawRectPatch(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawRectPatch]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4278,10 +4104,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawRectPatch(IDirect3DDevice9Ex* pcThis,
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DrawRectPatch_Super(pcThis, Handle, pNumSegs, pRectPatchInfo);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawTriPatch(IDirect3DDevice9Ex* pcThis, UINT Handle, CONST float* pNumSegs, CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
@@ -4304,7 +4130,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawTriPatch(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DrawTriPatch]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4312,10 +4138,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DrawTriPatch(IDirect3DDevice9Ex* pcThis, 
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DrawTriPatch_Super(pcThis, Handle, pNumSegs, pTriPatchInfo);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::DeletePatch(IDirect3DDevice9Ex* pcThis, UINT Handle)
 {
@@ -4336,7 +4162,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DeletePatch(IDirect3DDevice9Ex* pcThis, U
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::DeletePatch]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4344,10 +4170,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::DeletePatch(IDirect3DDevice9Ex* pcThis, U
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_DeletePatch_Super(pcThis, Handle);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateQuery(IDirect3DDevice9Ex* pcThis, D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery)
 {
@@ -4369,7 +4195,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateQuery(IDirect3DDevice9Ex* pcThis, D
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9::CreateQuery]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4377,16 +4203,16 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateQuery(IDirect3DDevice9Ex* pcThis, D
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_CreateQuery_Super(pcThis, Type, ppQuery);
-} 
+}
 
 #pragma endregion
 
 #pragma region IDirect3DDevice9Ex methods
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetConvolutionMonoKernel(IDirect3DDevice9Ex* pcThis, UINT width,UINT height,float* rows,float* columns)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetConvolutionMonoKernel(IDirect3DDevice9Ex* pcThis, UINT width, UINT height, float* rows, float* columns)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::SetConvolutionMonoKernel");
 
@@ -4408,7 +4234,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetConvolutionMonoKernel(IDirect3DDevice9
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetConvolutionMonoKernel]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4416,12 +4242,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetConvolutionMonoKernel(IDirect3DDevice9
 	}
 	else
 		return D3D929_IDirect3DDevice9Ex_SetConvolutionMonoKernel_Super(pcThis, width, height, rows, columns);
-} 
+}
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::ComposeRects(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSrc,IDirect3DSurface9* pDst,IDirect3DVertexBuffer9* pSrcRectDescs,UINT NumRects,IDirect3DVertexBuffer9* pDstRectDescs,D3DCOMPOSERECTSOP Operation,int Xoffset,int Yoffset)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::ComposeRects(IDirect3DDevice9Ex* pcThis, IDirect3DSurface9* pSrc, IDirect3DSurface9* pDst, IDirect3DVertexBuffer9* pSrcRectDescs, UINT NumRects, IDirect3DVertexBuffer9* pDstRectDescs, D3DCOMPOSERECTSOP Operation, int Xoffset, int Yoffset)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ComposeRects");
 
@@ -4447,7 +4273,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ComposeRects(IDirect3DDevice9Ex* pcThis, 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ComposeRects]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4457,10 +4283,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ComposeRects(IDirect3DDevice9Ex* pcThis, 
 		return D3D929_IDirect3DDevice9Ex_ComposeRects_Super(pcThis, pSrc, pDst, pSrcRectDescs, NumRects, pDstRectDescs, Operation, Xoffset, Yoffset);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::PresentEx(IDirect3DDevice9Ex* pcThis, CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion,DWORD dwFlags)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::PresentEx(IDirect3DDevice9Ex* pcThis, CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::PresentEx");
 
@@ -4483,7 +4309,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::PresentEx(IDirect3DDevice9Ex* pcThis, CON
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::PresentEx]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4493,8 +4319,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::PresentEx(IDirect3DDevice9Ex* pcThis, CON
 		return D3D929_IDirect3DDevice9Ex_PresentEx_Super(pcThis, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetGPUThreadPriority(IDirect3DDevice9Ex* pcThis, INT* pPriority)
 {
@@ -4515,7 +4341,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetGPUThreadPriority(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetGPUThreadPriority]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4525,8 +4351,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetGPUThreadPriority(IDirect3DDevice9Ex* 
 		return D3D929_IDirect3DDevice9Ex_GetGPUThreadPriority_Super(pcThis, pPriority);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetGPUThreadPriority(IDirect3DDevice9Ex* pcThis, INT Priority)
 {
@@ -4547,7 +4373,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetGPUThreadPriority(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetGPUThreadPriority]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4557,8 +4383,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetGPUThreadPriority(IDirect3DDevice9Ex* 
 		return D3D929_IDirect3DDevice9Ex_SetGPUThreadPriority_Super(pcThis, Priority);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::WaitForVBlank(IDirect3DDevice9Ex* pcThis, UINT iSwapChain)
 {
@@ -4579,7 +4405,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::WaitForVBlank(IDirect3DDevice9Ex* pcThis,
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::WaitForVBlank]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4589,10 +4415,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::WaitForVBlank(IDirect3DDevice9Ex* pcThis,
 		return D3D929_IDirect3DDevice9Ex_WaitForVBlank_Super(pcThis, iSwapChain);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckResourceResidency(IDirect3DDevice9Ex* pcThis, IDirect3DResource9** pResourceArray,UINT32 NumResources)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckResourceResidency(IDirect3DDevice9Ex* pcThis, IDirect3DResource9** pResourceArray, UINT32 NumResources)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CheckResourceResidency");
 
@@ -4612,7 +4438,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckResourceResidency(IDirect3DDevice9Ex
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckResourceResidency]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4622,8 +4448,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckResourceResidency(IDirect3DDevice9Ex
 		return D3D929_IDirect3DDevice9Ex_CheckResourceResidency_Super(pcThis, pResourceArray, NumResources);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaximumFrameLatency(IDirect3DDevice9Ex* pcThis, UINT MaxLatency)
 {
@@ -4644,7 +4470,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaximumFrameLatency(IDirect3DDevice9Ex
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::SetMaximumFrameLatency]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4654,8 +4480,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::SetMaximumFrameLatency(IDirect3DDevice9Ex
 		return D3D929_IDirect3DDevice9Ex_SetMaximumFrameLatency_Super(pcThis, MaxLatency);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaximumFrameLatency(IDirect3DDevice9Ex* pcThis, UINT* pMaxLatency)
 {
@@ -4676,7 +4502,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaximumFrameLatency(IDirect3DDevice9Ex
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetMaximumFrameLatency]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4686,8 +4512,8 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetMaximumFrameLatency(IDirect3DDevice9Ex
 		return D3D929_IDirect3DDevice9Ex_GetMaximumFrameLatency_Super(pcThis, pMaxLatency);
 }
 
-/** 
-* 
+/**
+*
 ***/
 HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckDeviceState(IDirect3DDevice9Ex* pcThis, HWND hDestinationWindow)
 {
@@ -4708,7 +4534,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckDeviceState(IDirect3DDevice9Ex* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CheckDeviceState]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4718,10 +4544,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CheckDeviceState(IDirect3DDevice9Ex* pcTh
 		return D3D929_IDirect3DDevice9Ex_CheckDeviceState_Super(pcThis, hDestinationWindow);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTargetEx(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTargetEx(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle, DWORD Usage)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateRenderTargetEx");
 
@@ -4748,7 +4574,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTargetEx(IDirect3DDevice9Ex* 
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateRenderTargetEx]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4758,10 +4584,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateRenderTargetEx(IDirect3DDevice9Ex* 
 		return D3D929_IDirect3DDevice9Ex_CreateRenderTargetEx_Super(pcThis, Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, Usage);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, D3DFORMAT Format, D3DPOOL Pool, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle, DWORD Usage)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx");
 
@@ -4786,7 +4612,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(IDirect3DDe
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateOffscreenPlainSurfaceEx]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4796,10 +4622,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(IDirect3DDe
 		return D3D929_IDirect3DDevice9Ex_CreateOffscreenPlainSurfaceEx_Super(pcThis, Width, Height, Format, Pool, ppSurface, pSharedHandle, Usage);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(IDirect3DDevice9Ex* pcThis, UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(IDirect3DDevice9Ex* pcThis, UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle, DWORD Usage)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx");
 
@@ -4826,7 +4652,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(IDirect3DDevi
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::CreateDepthStencilSurfaceEx]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4836,10 +4662,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(IDirect3DDevi
 		return D3D929_IDirect3DDevice9Ex_CreateDepthStencilSurfaceEx_Super(pcThis, Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface, pSharedHandle, Usage);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::ResetEx(IDirect3DDevice9Ex* pcThis, D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX *pFullscreenDisplayMode)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::ResetEx(IDirect3DDevice9Ex* pcThis, D3DPRESENT_PARAMETERS* pPresentationParameters, D3DDISPLAYMODEEX* pFullscreenDisplayMode)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::ResetEx");
 
@@ -4859,7 +4685,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ResetEx(IDirect3DDevice9Ex* pcThis, D3DPR
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::ResetEx]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4869,10 +4695,10 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::ResetEx(IDirect3DDevice9Ex* pcThis, D3DPR
 		return D3D929_IDirect3DDevice9Ex_ResetEx_Super(pcThis, pPresentationParameters, pFullscreenDisplayMode);
 }
 
-/** 
-* 
+/**
+*
 ***/
-HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayModeEx(IDirect3DDevice9Ex* pcThis, UINT iSwapChain,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation)
+HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayModeEx(IDirect3DDevice9Ex* pcThis, UINT iSwapChain, D3DDISPLAYMODEEX* pMode, D3DDISPLAYROTATION* pRotation)
 {
 	OUTPUT_DEBUG_STRING_IDirect3DDevice9Ex(L"IDirect3DDevice9Ex::GetDisplayModeEx");
 
@@ -4893,7 +4719,7 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayModeEx(IDirect3DDevice9Ex* pcTh
 		if ((*m_pcTransferSite->m_ppaNodes)[m_pcTransferSite->m_ppNOD_IDirect3DDevice9Ex[VMT_IDIRECT3DDEVICE9EX::GetDisplayModeEx]->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
 		{
 			// get return value.. MUST be STATIC !
-			static HRESULT hr = (HRESULT)*(HRESULT*)pvRet;
+			static HRESULT hr = (HRESULT) * (HRESULT*)pvRet;
 			return hr;
 		}
 		else
@@ -4913,12 +4739,12 @@ HRESULT WINAPI DCL_IDirect3DDevice9Ex::GetDisplayModeEx(IDirect3DDevice9Ex* pcTh
 ***/
 HRESULT DCL_IDirect3DDevice9Ex::SetSuperFunctionPointer(VMT_IUNKNOWN::VMT_IUnknown eFunc, UINT_PTR dwFunc)
 {
-	switch(eFunc)
+	switch (eFunc)
 	{
 		/*** IUnknown super methods ***/
-	case VMT_IUNKNOWN::QueryInterface:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_QueryInterface_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IUNKNOWN::AddRef:                      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_AddRef_Super                      = (UINT_PTR)dwFunc; break;
-	case VMT_IUNKNOWN::Release:                     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Release_Super                     = (UINT_PTR)dwFunc; break;
+	case VMT_IUNKNOWN::QueryInterface:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_QueryInterface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IUNKNOWN::AddRef:                      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_AddRef_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IUNKNOWN::Release:                     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Release_Super = (UINT_PTR)dwFunc; break;
 	}
 
 	return S_OK;
@@ -4931,125 +4757,125 @@ HRESULT DCL_IDirect3DDevice9Ex::SetSuperFunctionPointer(VMT_IUNKNOWN::VMT_IUnkno
 ***/
 HRESULT DCL_IDirect3DDevice9Ex::SetSuperFunctionPointer(VMT_IDIRECT3DDEVICE9::VMT_IDirect3DDevice9 eFunc, UINT_PTR dwFunc)
 {
-	switch(eFunc)
+	switch (eFunc)
 	{
 		/*** IDirect3DDevice9Ex super methods ***/
-	case VMT_IDIRECT3DDEVICE9::TestCooperativeLevel:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_TestCooperativeLevel_Super        = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetAvailableTextureMem_Super      = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::EvictManagedResources:       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EvictManagedResources_Super       = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetDirect3D:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDirect3D_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetDeviceCaps:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDeviceCaps_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetDisplayMode:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDisplayMode_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetCreationParameters:       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCreationParameters_Super       = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetCursorProperties:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorProperties_Super         = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetCursorPosition:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorPosition_Super           = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::ShowCursor:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ShowCursor_Super                  = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain:   *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateAdditionalSwapChain_Super   = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetSwapChain:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSwapChain_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains:       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNumberOfSwapChains_Super       = (UINT_PTR)dwFunc; break; 
-	case VMT_IDIRECT3DDEVICE9::Reset:                       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Reset_Super                       = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::Present:                     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Present_Super                     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetBackBuffer:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetBackBuffer_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetRasterStatus:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRasterStatus_Super             = (UINT_PTR)dwFunc; break; 
-	case VMT_IDIRECT3DDEVICE9::SetDialogBoxMode:            *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDialogBoxMode_Super            = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetGammaRamp:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetGammaRamp_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetGammaRamp:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetGammaRamp_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateTexture:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateTexture_Super               = (UINT_PTR)dwFunc; break; 
-	case VMT_IDIRECT3DDEVICE9::CreateVolumeTexture:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVolumeTexture_Super         = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateCubeTexture:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateCubeTexture_Super           = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateVertexBuffer:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexBuffer_Super          = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateIndexBuffer:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateIndexBuffer_Super           = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateRenderTarget:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateRenderTarget_Super          = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface:   *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateDepthStencilSurface_Super   = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::UpdateSurface:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateSurface_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::UpdateTexture:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateTexture_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetRenderTargetData:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTargetData_Super         = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetFrontBufferData:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFrontBufferData_Super          = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::StretchRect:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_StretchRect_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::ColorFill:                   *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ColorFill_Super                   = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::TestCooperativeLevel:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_TestCooperativeLevel_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetAvailableTextureMem_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::EvictManagedResources:       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EvictManagedResources_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDirect3D:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDirect3D_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDeviceCaps:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDeviceCaps_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDisplayMode:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDisplayMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetCreationParameters:       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCreationParameters_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetCursorProperties:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorProperties_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetCursorPosition:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorPosition_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ShowCursor:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ShowCursor_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain:   *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateAdditionalSwapChain_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetSwapChain:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSwapChain_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains:       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNumberOfSwapChains_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::Reset:                       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Reset_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::Present:                     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Present_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetBackBuffer:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetBackBuffer_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRasterStatus:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRasterStatus_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetDialogBoxMode:            *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDialogBoxMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetGammaRamp:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetGammaRamp_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetGammaRamp:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetGammaRamp_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateTexture:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVolumeTexture:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVolumeTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateCubeTexture:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateCubeTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVertexBuffer:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexBuffer_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateIndexBuffer:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateIndexBuffer_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateRenderTarget:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateRenderTarget_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface:   *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::UpdateSurface:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::UpdateTexture:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRenderTargetData:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTargetData_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetFrontBufferData:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFrontBufferData_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::StretchRect:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_StretchRect_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ColorFill:                   *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ColorFill_Super = (UINT_PTR)dwFunc; break;
 	case VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface: *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateOffscreenPlainSurface_Super = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetRenderTarget:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderTarget_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetRenderTarget:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTarget_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDepthStencilSurface_Super      = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDepthStencilSurface_Super      = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::BeginScene:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginScene_Super                  = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::EndScene:                    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndScene_Super                    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::Clear:                       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Clear_Super                       = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetTransform:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTransform_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetTransform:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTransform_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::MultiplyTransform:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_MultiplyTransform_Super           = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetViewport:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetViewport_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetViewport:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetViewport_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetMaterial:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetMaterial_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetMaterial:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetMaterial_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetLight:                    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetLight_Super                    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetLight:                    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLight_Super                    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::LightEnable:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_LightEnable_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetLightEnable:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLightEnable_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetClipPlane:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipPlane_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetClipPlane:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipPlane_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetRenderState:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderState_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetRenderState:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderState_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateStateBlock:            *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateStateBlock_Super            = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::BeginStateBlock:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginStateBlock_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::EndStateBlock:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndStateBlock_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetClipStatus:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipStatus_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetClipStatus:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipStatus_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetTexture:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTexture_Super                  = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetTexture:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTexture_Super                  = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetTextureStageState:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTextureStageState_Super        = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetTextureStageState:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTextureStageState_Super        = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetSamplerState:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSamplerState_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetSamplerState:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetSamplerState_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::ValidateDevice:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ValidateDevice_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetPaletteEntries:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPaletteEntries_Super           = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetPaletteEntries:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPaletteEntries_Super           = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCurrentTexturePalette_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCurrentTexturePalette_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetScissorRect:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetScissorRect_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetScissorRect:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetScissorRect_Super              = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetRenderTarget:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderTarget_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRenderTarget:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTarget_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDepthStencilSurface_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::BeginScene:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginScene_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::EndScene:                    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndScene_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::Clear:                       *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Clear_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetTransform:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTransform_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetTransform:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTransform_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::MultiplyTransform:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_MultiplyTransform_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetViewport:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetViewport_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetViewport:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetViewport_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetMaterial:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetMaterial_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetMaterial:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetMaterial_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetLight:                    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetLight_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetLight:                    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLight_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::LightEnable:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_LightEnable_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetLightEnable:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLightEnable_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetClipPlane:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipPlane_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetClipPlane:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipPlane_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetRenderState:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetRenderState:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateStateBlock:            *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateStateBlock_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::BeginStateBlock:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginStateBlock_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::EndStateBlock:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndStateBlock_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetClipStatus:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipStatus_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetClipStatus:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipStatus_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetTexture:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetTexture:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTexture_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetTextureStageState:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTextureStageState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetTextureStageState:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTextureStageState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetSamplerState:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSamplerState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetSamplerState:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetSamplerState_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ValidateDevice:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ValidateDevice_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPaletteEntries:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPaletteEntries_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPaletteEntries:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPaletteEntries_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCurrentTexturePalette_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCurrentTexturePalette_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetScissorRect:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetScissorRect_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetScissorRect:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetScissorRect_Super = (UINT_PTR)dwFunc; break;
 	case VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing: *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetSoftwareVertexProcessing_Super = (UINT_PTR)dwFunc; break;
 	case VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing: *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSoftwareVertexProcessing_Super = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetNPatchMode:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetNPatchMode_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetNPatchMode:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNPatchMode_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DrawPrimitive:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitive_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitive_Super        = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitiveUP_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitiveUP_Super      = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::ProcessVertices:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ProcessVertices_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexDeclaration_Super     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetVertexDeclaration:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexDeclaration_Super        = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetVertexDeclaration:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexDeclaration_Super        = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetFVF:                      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetFVF_Super                      = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetFVF:                      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFVF_Super                      = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateVertexShader:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexShader_Super          = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetVertexShader:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShader_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetVertexShader:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShader_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantF_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantF_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantI_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantI_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantB_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantB_Super    = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetStreamSource:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSource_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetStreamSource:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSource_Super             = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSourceFreq_Super         = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSourceFreq_Super         = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetIndices:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetIndices_Super                  = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetIndices:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetIndices_Super                  = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreatePixelShader:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreatePixelShader_Super           = (UINT_PTR)dwFunc; break; 
-	case VMT_IDIRECT3DDEVICE9::SetPixelShader:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShader_Super              = (UINT_PTR)dwFunc; break; 
-	case VMT_IDIRECT3DDEVICE9::GetPixelShader:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShader_Super              = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantF_Super     = (UINT_PTR)dwFunc; break; 
-	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantF_Super     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantI_Super     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantI_Super     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantB_Super     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantB_Super     = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DrawRectPatch:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawRectPatch_Super               = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DrawTriPatch:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawTriPatch_Super                = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::DeletePatch:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DeletePatch_Super                 = (UINT_PTR)dwFunc; break;
-	case VMT_IDIRECT3DDEVICE9::CreateQuery:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateQuery_Super                 = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetNPatchMode:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetNPatchMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetNPatchMode:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNPatchMode_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawPrimitive:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitive_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitive_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitiveUP_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP:      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitiveUP_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::ProcessVertices:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ProcessVertices_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexDeclaration:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexDeclaration:        *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexDeclaration_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetFVF:                      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetFVF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetFVF:                      *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFVF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateVertexShader:          *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShader:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShader:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB:    *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetStreamSource:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSource_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetStreamSource:             *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSource_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSourceFreq_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq:         *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSourceFreq_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetIndices:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetIndices_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetIndices:                  *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetIndices_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreatePixelShader:           *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreatePixelShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShader:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShader:              *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShader_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantF_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantI_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB:     *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantB_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawRectPatch:               *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawRectPatch_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DrawTriPatch:                *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawTriPatch_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::DeletePatch:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DeletePatch_Super = (UINT_PTR)dwFunc; break;
+	case VMT_IDIRECT3DDEVICE9::CreateQuery:                 *(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateQuery_Super = (UINT_PTR)dwFunc; break;
 	}
 	return S_OK;
 }
@@ -5063,127 +4889,127 @@ HRESULT DCL_IDirect3DDevice9Ex::SetSuperFunctionPointers(PUINT_PTR pVMTable)
 	if (!pVMTable) return E_FAIL;
 
 	/*** IUnknown super methods ***/
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_QueryInterface_Super              = (UINT_PTR)pVMTable[VMT_IUNKNOWN::QueryInterface];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_AddRef_Super                      = (UINT_PTR)pVMTable[VMT_IUNKNOWN::AddRef];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Release_Super                     = (UINT_PTR)pVMTable[VMT_IUNKNOWN::Release];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_QueryInterface_Super = (UINT_PTR)pVMTable[VMT_IUNKNOWN::QueryInterface];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_AddRef_Super = (UINT_PTR)pVMTable[VMT_IUNKNOWN::AddRef];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Release_Super = (UINT_PTR)pVMTable[VMT_IUNKNOWN::Release];
 
 	/*** IDirect3DDevice9Ex super methods ***/
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_TestCooperativeLevel_Super        = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::TestCooperativeLevel];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetAvailableTextureMem_Super      = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EvictManagedResources_Super       = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::EvictManagedResources];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDirect3D_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDirect3D];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDeviceCaps_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDeviceCaps];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDisplayMode_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDisplayMode];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCreationParameters_Super       = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetCreationParameters];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorProperties_Super         = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetCursorProperties];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorPosition_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetCursorPosition];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ShowCursor_Super                  = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ShowCursor];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateAdditionalSwapChain_Super   = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSwapChain_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetSwapChain];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNumberOfSwapChains_Super       = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains]; 
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Reset_Super                       = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::Reset];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Present_Super                     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::Present];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetBackBuffer_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetBackBuffer];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRasterStatus_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRasterStatus]; 
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDialogBoxMode_Super            = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetGammaRamp_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetGammaRamp];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetGammaRamp_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetGammaRamp];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateTexture_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateTexture]; 
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVolumeTexture_Super         = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateCubeTexture_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateCubeTexture];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexBuffer_Super          = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateIndexBuffer_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateRenderTarget_Super          = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateRenderTarget];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateDepthStencilSurface_Super   = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateSurface_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::UpdateSurface];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateTexture_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::UpdateTexture];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTargetData_Super         = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRenderTargetData];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFrontBufferData_Super          = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetFrontBufferData];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_StretchRect_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::StretchRect];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ColorFill_Super                   = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ColorFill];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_TestCooperativeLevel_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::TestCooperativeLevel];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetAvailableTextureMem_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetAvailableTextureMem];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EvictManagedResources_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::EvictManagedResources];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDirect3D_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDirect3D];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDeviceCaps_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDeviceCaps];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDisplayMode_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDisplayMode];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCreationParameters_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetCreationParameters];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorProperties_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetCursorProperties];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCursorPosition_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetCursorPosition];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ShowCursor_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ShowCursor];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateAdditionalSwapChain_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateAdditionalSwapChain];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSwapChain_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetSwapChain];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNumberOfSwapChains_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetNumberOfSwapChains];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Reset_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::Reset];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Present_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::Present];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetBackBuffer_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetBackBuffer];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRasterStatus_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRasterStatus];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDialogBoxMode_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetDialogBoxMode];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetGammaRamp_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetGammaRamp];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetGammaRamp_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetGammaRamp];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateTexture_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateTexture];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVolumeTexture_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVolumeTexture];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateCubeTexture_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateCubeTexture];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexBuffer_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVertexBuffer];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateIndexBuffer_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateIndexBuffer];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateRenderTarget_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateRenderTarget];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateDepthStencilSurface_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateDepthStencilSurface];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateSurface_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::UpdateSurface];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_UpdateTexture_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::UpdateTexture];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTargetData_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRenderTargetData];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFrontBufferData_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetFrontBufferData];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_StretchRect_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::StretchRect];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ColorFill_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ColorFill];
 	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateOffscreenPlainSurface_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateOffscreenPlainSurface];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderTarget_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetRenderTarget];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTarget_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRenderTarget];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDepthStencilSurface_Super      = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDepthStencilSurface_Super      = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginScene_Super                  = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::BeginScene];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndScene_Super                    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::EndScene];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Clear_Super                       = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::Clear];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTransform_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetTransform];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTransform_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetTransform];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_MultiplyTransform_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::MultiplyTransform];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetViewport_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetViewport];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetViewport_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetViewport];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetMaterial_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetMaterial];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetMaterial_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetMaterial];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetLight_Super                    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetLight];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLight_Super                    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetLight];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_LightEnable_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::LightEnable];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLightEnable_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetLightEnable];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipPlane_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetClipPlane];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipPlane_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetClipPlane];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderState_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetRenderState];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderState_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRenderState];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateStateBlock_Super            = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateStateBlock];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginStateBlock_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::BeginStateBlock];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndStateBlock_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::EndStateBlock];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipStatus_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetClipStatus];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipStatus_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetClipStatus];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTexture_Super                  = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetTexture];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTexture_Super                  = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetTexture];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTextureStageState_Super        = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetTextureStageState];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTextureStageState_Super        = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetTextureStageState];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSamplerState_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetSamplerState];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetSamplerState_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetSamplerState];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ValidateDevice_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ValidateDevice];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPaletteEntries_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPaletteEntries];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPaletteEntries_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPaletteEntries];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCurrentTexturePalette_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCurrentTexturePalette_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetScissorRect_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetScissorRect];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetScissorRect_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetScissorRect];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderTarget_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetRenderTarget];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderTarget_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRenderTarget];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetDepthStencilSurface_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetDepthStencilSurface];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetDepthStencilSurface_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetDepthStencilSurface];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginScene_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::BeginScene];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndScene_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::EndScene];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_Clear_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::Clear];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTransform_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetTransform];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTransform_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetTransform];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_MultiplyTransform_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::MultiplyTransform];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetViewport_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetViewport];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetViewport_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetViewport];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetMaterial_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetMaterial];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetMaterial_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetMaterial];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetLight_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetLight];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLight_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetLight];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_LightEnable_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::LightEnable];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetLightEnable_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetLightEnable];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipPlane_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetClipPlane];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipPlane_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetClipPlane];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetRenderState_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetRenderState];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetRenderState_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetRenderState];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateStateBlock_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateStateBlock];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_BeginStateBlock_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::BeginStateBlock];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_EndStateBlock_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::EndStateBlock];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetClipStatus_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetClipStatus];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetClipStatus_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetClipStatus];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTexture_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetTexture];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTexture_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetTexture];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetTextureStageState_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetTextureStageState];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetTextureStageState_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetTextureStageState];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSamplerState_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetSamplerState];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetSamplerState_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetSamplerState];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ValidateDevice_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ValidateDevice];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPaletteEntries_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPaletteEntries];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPaletteEntries_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPaletteEntries];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetCurrentTexturePalette_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetCurrentTexturePalette];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetCurrentTexturePalette_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetCurrentTexturePalette];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetScissorRect_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetScissorRect];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetScissorRect_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetScissorRect];
 	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetSoftwareVertexProcessing_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetSoftwareVertexProcessing];
 	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetSoftwareVertexProcessing_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetSoftwareVertexProcessing];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetNPatchMode_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetNPatchMode];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNPatchMode_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetNPatchMode];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitive_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawPrimitive];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitive_Super        = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitiveUP_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitiveUP_Super      = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ProcessVertices_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ProcessVertices];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexDeclaration_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexDeclaration_Super        = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexDeclaration_Super        = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetFVF_Super                      = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetFVF];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFVF_Super                      = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetFVF];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexShader_Super          = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVertexShader];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShader_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShader];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShader_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShader];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantF_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantF_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantI_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantI_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantB_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantB_Super    = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSource_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetStreamSource];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSource_Super             = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetStreamSource];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSourceFreq_Super         = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSourceFreq_Super         = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetIndices_Super                  = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetIndices];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetIndices_Super                  = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetIndices];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreatePixelShader_Super           = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreatePixelShader]; 
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShader_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShader]; 
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShader_Super              = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShader];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantF_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF]; 
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantF_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantI_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantI_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantB_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantB_Super     = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawRectPatch_Super               = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawRectPatch];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawTriPatch_Super                = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawTriPatch];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DeletePatch_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DeletePatch];
-	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateQuery_Super                 = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateQuery];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetNPatchMode_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetNPatchMode];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetNPatchMode_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetNPatchMode];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitive_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawPrimitive];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitive_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitive];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawPrimitiveUP_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawPrimitiveUP];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawIndexedPrimitiveUP_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawIndexedPrimitiveUP];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_ProcessVertices_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::ProcessVertices];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexDeclaration_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVertexDeclaration];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexDeclaration_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexDeclaration];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexDeclaration_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexDeclaration];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetFVF_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetFVF];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetFVF_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetFVF];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateVertexShader_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateVertexShader];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShader_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShader];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShader_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShader];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantF_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantF];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantF_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantF];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantI_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantI];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantI_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantI];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetVertexShaderConstantB_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetVertexShaderConstantB];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetVertexShaderConstantB_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetVertexShaderConstantB];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSource_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetStreamSource];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSource_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetStreamSource];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetStreamSourceFreq_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetStreamSourceFreq];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetStreamSourceFreq_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetStreamSourceFreq];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetIndices_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetIndices];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetIndices_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetIndices];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreatePixelShader_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreatePixelShader];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShader_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShader];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShader_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShader];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantF_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantF];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantF_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantF];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantI_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantI];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantI_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantI];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_SetPixelShaderConstantB_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::SetPixelShaderConstantB];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_GetPixelShaderConstantB_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::GetPixelShaderConstantB];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawRectPatch_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawRectPatch];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DrawTriPatch_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DrawTriPatch];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_DeletePatch_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::DeletePatch];
+	*(PUINT_PTR)&D3D929_IDirect3DDevice9Ex_CreateQuery_Super = (UINT_PTR)pVMTable[VMT_IDIRECT3DDEVICE9::CreateQuery];
 
 	return S_OK;
 }

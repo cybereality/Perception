@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -55,52 +55,70 @@ inline void OverrideFullVTable(LPVOID lpAddress, LPVOID lpTable, DWORD dwSize)
 	if (VirtualProtect(lpAddress, dwSize, /*PAGE_READWRITE*/PAGE_EXECUTE_READWRITE, &dwVirtualProtectBackup) != NULL)
 	{
 		memcpy(lpAddress, lpTable, dwSize);
-		VirtualProtect(lpAddress, dwSize, dwVirtualProtectBackup, &dwVirtualProtectBackup); 
+		VirtualProtect(lpAddress, dwSize, dwVirtualProtectBackup, &dwVirtualProtectBackup);
 	}
 }
 
 /**
-* Main detour function. 
+* Main detour function.
 * @param src [in, out] Source function to be detoured.
 * @param dst [in] New detour function.
 * @returns Pointer to the old function.
 ***/
-void *DetourFunc(BYTE *src, const BYTE *dst, const int len)
+void* DetourFunc(BYTE* src, const BYTE* dst, const int len)
 {
 	DWORD dwback;
 
 	// allocate a place in memory for the bytes we are going to overwrite in the original, plus the size of a jump 
-	BYTE *jmp = (BYTE*)malloc(len+JMP32_SZ);
+	BYTE* jmp = (BYTE*)malloc(len + JMP32_SZ);
 	if (!jmp) return nullptr;
 
 	// allow read & write access to the memory at the original function
 	VirtualProtect(src, len, PAGE_READWRITE, &dwback);
 
 	// copy the bytes of original + length to the allocated memory place
-	memcpy(jmp, src, len);	
+	memcpy(jmp, src, len);
 
 	// increment to the end of the copied bytes
 	jmp += len;
 
 	// insert a jump back to the original + length at the end of those intructions we just copied over
 	jmp[0] = JMP;
-	*(DWORD*)(jmp+1) = (DWORD)(src+len - jmp) - JMP32_SZ;
+	*(DWORD*)(jmp + 1) = (DWORD)(src + len - jmp) - JMP32_SZ;
 
 	// NOP out all the bytes at the original that we have saved to the memory allocated place
 	memset(src, NOP, len);
 
 	// write a jump at the original to the hooked function
 	src[0] = JMP;
-	*(DWORD*)(src+1) = (DWORD)(dst-src) - JMP32_SZ;
+	*(DWORD*)(src + 1) = (DWORD)(dst - src) - JMP32_SZ;
 
 	// put back the old protection flags
 	VirtualProtect(src, len, dwback, &dwback);
 
 	// allow execute, read & write access to the allocated memory place
-	VirtualProtect((void*)(jmp-len), 10, PAGE_EXECUTE_READWRITE, &dwback);
+	VirtualProtect((void*)(jmp - len), 10, PAGE_EXECUTE_READWRITE, &dwback);
 
 	// return a pointer to the start of the memory allocated place
-	return (jmp-len);
+	return (jmp - len);
+}
+
+/// <summary>
+/// MinHook helper.
+/// </summary>
+void* DetourFuncMinHook(void* pSrc, void* pDst)
+{
+	void* pRet = nullptr;
+	MH_CreateHook(pSrc, pDst, &pRet);
+	
+	// enable the hook 
+	if (MH_EnableHook(pSrc) != MH_OK)
+	{
+		OutputDebugString(L"[AQU] Failed to detour method (MinHook) !!");
+	}
+	else OutputDebugStringW(L"[AQU] Enable Hook success !");
+
+	return pRet;
 }
 
 #endif

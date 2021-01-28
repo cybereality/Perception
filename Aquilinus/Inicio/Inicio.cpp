@@ -1383,7 +1383,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					for (int i = 0; i < SUPPORTED_INTERFACES_NUMBER; i++)
 						g_pAquilinusConfig->eInjectionTechnique[i] = AQU_InjectionTechniques::NoInjection;
 
-					// set injection technique based on d3d selection
+					// set injection technique
 					switch (g_eGameProfile)
 					{
 					case InjectionProfile::IP_D3D9:
@@ -1396,9 +1396,12 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain] = AQU_InjectionTechniques::VMTable;
 						break;
 					case InjectionProfile::IP_D3D11:
-						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device] = AQU_InjectionTechniques::VMTable;
-						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext] = AQU_InjectionTechniques::VMTable;
-						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain] = AQU_InjectionTechniques::VMTable;
+						///g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device] = AQU_InjectionTechniques::VMTable;
+						///g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext] = AQU_InjectionTechniques::VMTable;
+						///g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain] = AQU_InjectionTechniques::VMTable;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11Device] = AQU_InjectionTechniques::Detour;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext] = AQU_InjectionTechniques::Detour;
+						g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::IDXGISwapChain] = AQU_InjectionTechniques::Detour;
 						break;
 					default:
 						break;

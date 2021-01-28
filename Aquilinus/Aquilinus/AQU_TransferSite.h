@@ -158,14 +158,6 @@ public:
 	***/
 	bool m_bIsWorkingArea;
 	/**
-	* True if vertex shader should be gathered by every SetVertexShader call.
-	**/
-	bool m_bGatherVShaderBySet;
-	/**
-	* True if pixel shader should be gathered by every SetPixelShader call.
-	**/
-	bool m_bGatherPShaderBySet;
-	/**
 	* True if shader hash codes are to be created. Warning ! Can cause games to crash.
 	***/
 	bool m_bCreateShaderHash;

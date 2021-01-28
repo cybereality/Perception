@@ -295,6 +295,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{a8c1f320-67a1-4cdf-972c-2df48fc506e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="minhook">
+      <UniqueIdentifier>{846e464d-acdf-4711-80ca-f780628c090b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Aquilinus.h" />
@@ -807,6 +810,30 @@
     <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\include\MinHook.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\buffer.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\trampoline.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\hde\hde32.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\hde\hde64.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\hde\pstdint.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\hde\table32.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\minhook\src\hde\table64.h">
+      <Filter>minhook</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Aquilinus.cpp" />
@@ -926,6 +953,21 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Perception\dependecies\imgui\ImNodes.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Perception\dependecies\minhook\src\buffer.c">
+      <Filter>minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Perception\dependecies\minhook\src\hook.c">
+      <Filter>minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Perception\dependecies\minhook\src\trampoline.c">
+      <Filter>minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Perception\dependecies\minhook\src\hde\hde32.c">
+      <Filter>minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Perception\dependecies\minhook\src\hde\hde64.c">
+      <Filter>minhook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

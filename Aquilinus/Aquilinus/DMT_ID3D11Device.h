@@ -195,10 +195,10 @@ void Override_D3D11_ID3D11Device_VMTable_by_Array()
 		(D3D11_DEVICE_METHODS_NUMBER)*sizeof(DWORD)+1);
 }
 
-/**
-* Overrides the Virtual Methods Table of the DirectX 11 Device
-***/
-void Detour_D3D11_ID3D11Device_VMTable()
+/// <summary>
+/// Backup (old method)
+/// </summary>
+void __Detour_D3D11_ID3D11Device_VMTable()
 {
 	/*** IUnknown super methods ***/
 	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_IUNKNOWN::QueryInterface, (UINT_PTR)DetourFunc((PBYTE)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::QueryInterface], (PBYTE)D3D11_ID3D11Device_QueryInterface, JMP32_SZ));
@@ -246,6 +246,61 @@ void Detour_D3D11_ID3D11Device_VMTable()
 	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetImmediateContext, (UINT_PTR)DetourFunc((PBYTE)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetImmediateContext], (PBYTE)D3D11_ID3D11Device_GetImmediateContext, JMP32_SZ));
 	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::SetExceptionMode, (UINT_PTR)DetourFunc((PBYTE)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::SetExceptionMode], (PBYTE)D3D11_ID3D11Device_SetExceptionMode, JMP32_SZ));
 	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetExceptionMode, (UINT_PTR)DetourFunc((PBYTE)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetExceptionMode], (PBYTE)D3D11_ID3D11Device_GetExceptionMode, JMP32_SZ));
+}
+
+/// <summary>
+/// Overrides the Virtual Methods Table of the DirectX 11 Device
+/// </summary>
+void Detour_D3D11_ID3D11Device_VMTable()
+{
+	OutputDebugString(L"[AQU] Detour_D3D11_ID3D11Device_VMTable");
+
+	/*** IUnknown super methods ***/
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_IUNKNOWN::QueryInterface, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::QueryInterface], (void*)D3D11_ID3D11Device_QueryInterface));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_IUNKNOWN::AddRef, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::AddRef], (void*)D3D11_ID3D11Device_AddRef));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_IUNKNOWN::Release, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::Release], (void*)D3D11_ID3D11Device_Release));
+
+	/*** ID3D11Device super methods ***/
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateBuffer, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateBuffer], (void*)D3D11_ID3D11Device_CreateBuffer));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateTexture1D, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateTexture1D], (void*)D3D11_ID3D11Device_CreateTexture1D));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateTexture2D, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateTexture2D], (void*)D3D11_ID3D11Device_CreateTexture2D));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateTexture3D, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateTexture3D], (void*)D3D11_ID3D11Device_CreateTexture3D));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateShaderResourceView, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateShaderResourceView], (void*)D3D11_ID3D11Device_CreateShaderResourceView));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateUnorderedAccessView, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateUnorderedAccessView], (void*)D3D11_ID3D11Device_CreateUnorderedAccessView));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateRenderTargetView, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateRenderTargetView], (void*)D3D11_ID3D11Device_CreateRenderTargetView));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateDepthStencilView, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateDepthStencilView], (void*)D3D11_ID3D11Device_CreateDepthStencilView));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateInputLayout, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateInputLayout], (void*)D3D11_ID3D11Device_CreateInputLayout));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateVertexShader, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateVertexShader], (void*)D3D11_ID3D11Device_CreateVertexShader));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateGeometryShader, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateGeometryShader], (void*)D3D11_ID3D11Device_CreateGeometryShader));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateGeometryShaderWithStreamOutput, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateGeometryShaderWithStreamOutput], (void*)D3D11_ID3D11Device_CreateGeometryShaderWithStreamOutput));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreatePixelShader, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreatePixelShader], (void*)D3D11_ID3D11Device_CreatePixelShader));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateHullShader, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateHullShader], (void*)D3D11_ID3D11Device_CreateHullShader));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateDomainShader, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateDomainShader], (void*)D3D11_ID3D11Device_CreateDomainShader));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateComputeShader, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateComputeShader], (void*)D3D11_ID3D11Device_CreateComputeShader));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateClassLinkage, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateClassLinkage], (void*)D3D11_ID3D11Device_CreateClassLinkage));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateBlendState, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateBlendState], (void*)D3D11_ID3D11Device_CreateBlendState));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateDepthStencilState, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateDepthStencilState], (void*)D3D11_ID3D11Device_CreateDepthStencilState));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateRasterizerState, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateRasterizerState], (void*)D3D11_ID3D11Device_CreateRasterizerState));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateSamplerState, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateSamplerState], (void*)D3D11_ID3D11Device_CreateSamplerState));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateQuery, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateQuery], (void*)D3D11_ID3D11Device_CreateQuery));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreatePredicate, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreatePredicate], (void*)D3D11_ID3D11Device_CreatePredicate));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateCounter, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateCounter], (void*)D3D11_ID3D11Device_CreateCounter));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CreateDeferredContext, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CreateDeferredContext], (void*)D3D11_ID3D11Device_CreateDeferredContext));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::OpenSharedResource, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::OpenSharedResource], (void*)D3D11_ID3D11Device_OpenSharedResource));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CheckFormatSupport, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CheckFormatSupport], (void*)D3D11_ID3D11Device_CheckFormatSupport));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CheckMultisampleQualityLevels, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CheckMultisampleQualityLevels], (void*)D3D11_ID3D11Device_CheckMultisampleQualityLevels));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CheckCounterInfo, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CheckCounterInfo], (void*)D3D11_ID3D11Device_CheckCounterInfo));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CheckCounter, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CheckCounter], (void*)D3D11_ID3D11Device_CheckCounter));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::CheckFeatureSupport, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::CheckFeatureSupport], (void*)D3D11_ID3D11Device_CheckFeatureSupport));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetPrivateData, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetPrivateData], (void*)D3D11_ID3D11Device_GetPrivateData));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::SetPrivateData, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::SetPrivateData], (void*)D3D11_ID3D11Device_SetPrivateData));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::SetPrivateDataInterface, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::SetPrivateDataInterface], (void*)D3D11_ID3D11Device_SetPrivateDataInterface));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetFeatureLevel, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetFeatureLevel], (void*)D3D11_ID3D11Device_GetFeatureLevel));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetCreationFlags, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetCreationFlags], (void*)D3D11_ID3D11Device_GetCreationFlags));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetDeviceRemovedReason, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetDeviceRemovedReason], (void*)D3D11_ID3D11Device_GetDeviceRemovedReason));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetImmediateContext, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetImmediateContext], (void*)D3D11_ID3D11Device_GetImmediateContext));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::SetExceptionMode, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::SetExceptionMode], (void*)D3D11_ID3D11Device_SetExceptionMode));
+	pDCL_ID3D11Device->SetSuperFunctionPointer(VMT_ID3D11DEVICE::GetExceptionMode, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_ID3D11DEVICE::GetExceptionMode], (void*)D3D11_ID3D11Device_GetExceptionMode));
 }
 
 #endif

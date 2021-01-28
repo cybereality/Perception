@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -46,35 +46,39 @@ public:
 	~DCL_IDXGISwapChain();
 
 	/*** IUnknown methods ***/
-	HRESULT WINAPI QueryInterface           (IDXGISwapChain* pcThis, REFIID riid, void **ppvObject);
-	ULONG   WINAPI AddRef                   (IDXGISwapChain* pcThis);
-	ULONG   WINAPI Release                  (IDXGISwapChain* pcThis);
+	HRESULT WINAPI QueryInterface(IDXGISwapChain* pcThis, REFIID riid, void** ppvObject);
+	ULONG   WINAPI AddRef(IDXGISwapChain* pcThis);
+	ULONG   WINAPI Release(IDXGISwapChain* pcThis);
 
 	/*** IDXGIObject methods ***/
-	HRESULT WINAPI SetPrivateData           (IDXGISwapChain* pcThis, REFGUID Name, UINT DataSize, const void *pData);
-	HRESULT WINAPI SetPrivateDataInterface  (IDXGISwapChain* pcThis, REFGUID Name, const IUnknown *pUnknown);
-	HRESULT WINAPI GetPrivateData           (IDXGISwapChain* pcThis, REFGUID Name,UINT *pDataSize, void *pData);
-	HRESULT WINAPI GetParent                (IDXGISwapChain* pcThis, REFIID riid, void **ppParent);
+	HRESULT WINAPI SetPrivateData(IDXGISwapChain* pcThis, REFGUID Name, UINT DataSize, const void* pData);
+	HRESULT WINAPI SetPrivateDataInterface(IDXGISwapChain* pcThis, REFGUID Name, const IUnknown* pUnknown);
+	HRESULT WINAPI GetPrivateData(IDXGISwapChain* pcThis, REFGUID Name, UINT* pDataSize, void* pData);
+	HRESULT WINAPI GetParent(IDXGISwapChain* pcThis, REFIID riid, void** ppParent);
 
 	/*** IDXGIDeviceSubObject methods ***/
-	HRESULT WINAPI GetDevice                (IDXGISwapChain* pcThis, REFIID riid, void **ppDevice);
+	HRESULT WINAPI GetDevice(IDXGISwapChain* pcThis, REFIID riid, void** ppDevice);
 
 	/*** IDXGISwapChain methods ***/
-	HRESULT WINAPI Present                  (IDXGISwapChain* pcThis, UINT SyncInterval, UINT Flags);
-	HRESULT WINAPI GetBuffer                (IDXGISwapChain* pcThis, UINT Buffer, REFIID riid, void **ppSurface);
-	HRESULT WINAPI SetFullscreenState       (IDXGISwapChain* pcThis, BOOL Fullscreen, IDXGIOutput *pTarget);
-	HRESULT WINAPI GetFullscreenState       (IDXGISwapChain* pcThis, BOOL *pFullscreen, IDXGIOutput **ppTarget);
-	HRESULT WINAPI GetDesc                  (IDXGISwapChain* pcThis, DXGI_SWAP_CHAIN_DESC *pDesc);
-	HRESULT WINAPI ResizeBuffers            (IDXGISwapChain* pcThis, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
-	HRESULT WINAPI ResizeTarget             (IDXGISwapChain* pcThis, const DXGI_MODE_DESC *pNewTargetParameters);
-	HRESULT WINAPI GetContainingOutput      (IDXGISwapChain* pcThis, IDXGIOutput **ppOutput);
-	HRESULT WINAPI GetFrameStatistics       (IDXGISwapChain* pcThis, DXGI_FRAME_STATISTICS *pStats);
-	HRESULT WINAPI GetLastPresentCount      (IDXGISwapChain* pcThis, UINT *pLastPresentCount);
+	HRESULT WINAPI Present(IDXGISwapChain* pcThis, UINT SyncInterval, UINT Flags);
+	HRESULT WINAPI GetBuffer(IDXGISwapChain* pcThis, UINT Buffer, REFIID riid, void** ppSurface);
+	HRESULT WINAPI SetFullscreenState(IDXGISwapChain* pcThis, BOOL Fullscreen, IDXGIOutput* pTarget);
+	HRESULT WINAPI GetFullscreenState(IDXGISwapChain* pcThis, BOOL* pFullscreen, IDXGIOutput** ppTarget);
+	HRESULT WINAPI GetDesc(IDXGISwapChain* pcThis, DXGI_SWAP_CHAIN_DESC* pDesc);
+	HRESULT WINAPI ResizeBuffers(IDXGISwapChain* pcThis, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
+	HRESULT WINAPI ResizeTarget(IDXGISwapChain* pcThis, const DXGI_MODE_DESC* pNewTargetParameters);
+	HRESULT WINAPI GetContainingOutput(IDXGISwapChain* pcThis, IDXGIOutput** ppOutput);
+	HRESULT WINAPI GetFrameStatistics(IDXGISwapChain* pcThis, DXGI_FRAME_STATISTICS* pStats);
+	HRESULT WINAPI GetLastPresentCount(IDXGISwapChain* pcThis, UINT* pLastPresentCount);
 
 	/*** DCL_IDXGISwapChain public methods ***/
-	HRESULT        SetSuperFunctionPointers (PUINT_PTR pVMTable);
-	HRESULT        GetD3D10Device           (ID3D10Device** ppDevice);
-	HRESULT        GetD3D11Device           (ID3D11Device** ppDevice);
+	HRESULT        SetSuperFunctionPointer(VMT_IUNKNOWN::VMT_IUnknown eFunc, UINT_PTR dwFunc);
+	HRESULT        SetSuperFunctionPointer(VMT_IDXGIOBJECT::VMT_IDXGIObject eFunc, UINT_PTR dwFunc);
+	HRESULT        SetSuperFunctionPointer(VMT_IDXGIDEVICESUBOBJECT::VMT_IDXGIDeviceSubObject eFunc, UINT_PTR dwFunc);
+	HRESULT        SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::VMT_IDXGISwapChain eFunc, UINT_PTR dwFunc);
+	HRESULT        SetSuperFunctionPointers(PUINT_PTR pVMTable);
+	HRESULT        GetD3D10Device(ID3D10Device** ppDevice);
+	HRESULT        GetD3D11Device(ID3D11Device** ppDevice);
 
 private:
 	/**

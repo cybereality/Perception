@@ -91,4 +91,38 @@ void Override_D3D10_IDXGISwapChain_VMTable()
 	OverrideVTable(&D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetLastPresentCount],     (UINT_PTR)D3D10_IDXGISwapChain_GetLastPresentCount);
 }
 
+/// <summary>
+/// Overrides the Virtual Methods Table of the DirectX 11 Device
+/// </summary>
+void Detour_D3D10_IDXGISwapChain_VMTable()
+{
+	OutputDebugString(L"[AQU] Detour_D3D10_IDXGISwapChain_VMTable");
+
+	/*** IUnknown super methods ***/
+	/*pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IUNKNOWN::QueryInterface, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::QueryInterface], (void*)D3D11_ID3D11Device_QueryInterface));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IUNKNOWN::AddRef, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::AddRef], (void*)D3D11_ID3D11Device_AddRef));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IUNKNOWN::Release, (UINT_PTR)DetourFuncMinHook((void*)D3D11_ID3D11Device_VMTable[VMT_IUNKNOWN::Release], (void*)D3D11_ID3D11Device_Release));*/
+
+	/*** IDXGIObject super methods ***/
+	/*pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGIOBJECT::SetPrivateData, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGIOBJECT::SetPrivateData], (void*)D3D10_IDXGISwapChain_SetPrivateData));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGIOBJECT::SetPrivateDataInterface, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGIOBJECT::SetPrivateDataInterface], (void*)D3D10_IDXGISwapChain_SetPrivateDataInterface));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGIOBJECT::GetPrivateData, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGIOBJECT::GetPrivateData], (void*)D3D10_IDXGISwapChain_GetPrivateData));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGIOBJECT::GetParent, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGIOBJECT::GetParent], (void*)D3D10_IDXGISwapChain_GetParent));*/
+
+	/*** IDXGIDeviceSubObject super methods ***/
+	/*pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGIDEVICESUBOBJECT::GetDevice, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGIDEVICESUBOBJECT::GetDevice], (void*)D3D10_IDXGISwapChain_GetDevice));*/
+
+	/*** IDXGISwapChain super methods ***/
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::Present, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::Present], (void*)D3D10_IDXGISwapChain_Present));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::GetBuffer, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetBuffer], (void*)D3D10_IDXGISwapChain_GetBuffer));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::SetFullscreenState, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::SetFullscreenState], (void*)D3D10_IDXGISwapChain_SetFullscreenState));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::GetFullscreenState, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetFullscreenState], (void*)D3D10_IDXGISwapChain_GetFullscreenState));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::GetDesc, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetDesc], (void*)D3D10_IDXGISwapChain_GetDesc));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::ResizeBuffers, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::ResizeBuffers], (void*)D3D10_IDXGISwapChain_ResizeBuffers));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::ResizeTarget, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::ResizeTarget], (void*)D3D10_IDXGISwapChain_ResizeTarget));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::GetContainingOutput, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetContainingOutput], (void*)D3D10_IDXGISwapChain_GetContainingOutput));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::GetFrameStatistics, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetFrameStatistics], (void*)D3D10_IDXGISwapChain_GetFrameStatistics));
+	pDCL_IDXGISwapChain->SetSuperFunctionPointer(VMT_IDXGISWAPCHAIN::GetLastPresentCount, (UINT_PTR)DetourFuncMinHook((void*)D3D10_IDXGISwapChain_VMTable[VMT_IDXGISWAPCHAIN::GetLastPresentCount], (void*)D3D10_IDXGISwapChain_GetLastPresentCount));
+}
+
 #endif

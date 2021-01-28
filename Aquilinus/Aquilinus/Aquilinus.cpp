@@ -53,13 +53,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"DMT_ID3D10Device1.h"
 #include"DMT_ID3D11Device.h"
 #include"DMT_ID3D11Device1.h"
-#include"DMT_ID3D11Device2.h"//#include"DMT_ID3D11Device3.h"
+#include"DMT_ID3D11Device2.h"
 #include"DMT_IDXGISwapChain.h"
 #include"DMT_IDXGISwapChain1.h"
-#include"DMT_IDXGISwapChain2.h"//#include"DMT_IDXGISwapChain3.h"
+#include"DMT_IDXGISwapChain2.h"
 #include"DMT_ID3D11DeviceContext.h"
 #include"DMT_ID3D11DeviceContext1.h"
-#include"DMT_ID3D11DeviceContext2.h"//#include"DMT_ID3D11DeviceContext3.h"
+#include"DMT_ID3D11DeviceContext2.h"
 
 #pragma region Aquilinus global helpers
 /// <summary>
@@ -165,6 +165,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstModule, DWORD dwReason, LPVOID lpvReserved)
 		if (g_pAQU_WorkingArea) delete g_pAQU_WorkingArea;
 		UnmapViewOfFile((LPCVOID)g_pAquilinusConfig);
 		CloseHandle(g_hConfigMapFile);
+		MH_Uninitialize();
 	}
 	return FALSE;
 }
@@ -175,47 +176,35 @@ BOOL WINAPI DllMain(HINSTANCE hinstModule, DWORD dwReason, LPVOID lpvReserved)
 HRESULT WINAPI AquilinusInit(VOID)
 {
 	// get the config map handle
-	g_hConfigMapFile = OpenFileMapping(
-		FILE_MAP_ALL_ACCESS,   // read/write access
-		FALSE,                 // do not inherit the name
-		g_szMemoryPageName);   // name of the Aquilinus config
+	g_hConfigMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, g_szMemoryPageName);
 
 	// return if failed
 	if (g_hConfigMapFile == NULL)
 	{
-		OutputDebugString(TEXT("Aquilinus : Could not create file mapping object.\n"));
+		OutputDebugString(TEXT("[AQU] Could not create file mapping object.\n"));
 		return E_FAIL;
 	}
 
 	// create map view
 	g_pAquilinusConfig = (AquilinusCfg*)
-		MapViewOfFile(g_hConfigMapFile,   // handle to map object
-			FILE_MAP_ALL_ACCESS,              // read/write permission
-			0,
-			0,
-			sizeof(AquilinusCfg));
+		MapViewOfFile(g_hConfigMapFile, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(AquilinusCfg));
 
 	// return if failed
 	if (g_pAquilinusConfig == NULL)
 	{
-		OutputDebugString(TEXT("Aquilinus : Could not map view of file.\n"));
+		OutputDebugString(TEXT("[AQU] Could not map view of file.\n"));
 		CloseHandle(g_hConfigMapFile);
 		return E_FAIL;
 	}
 
-	// TODO !! set m_bGatherVShaderBySet + m_bGatherPShaderBySet
 	// create the global transfer site class
 	g_pAQU_TransferSite = new AQU_TransferSite(g_pAquilinusConfig);
 	g_pAQU_TransferSite->InitD3DNodes();
 
 	// set vmtable threads
 	g_pAQU_TransferSite->m_pD3D9ReinstateInterfaces = D3D9_VMT_Repatch;
-	//g_pAQU_TransferSite->m_pD3D9ReinstateInterfaces = D3D929_VMT_Repatch;
 	g_pAQU_TransferSite->m_pD3D10ReinstateInterfaces = D3D10_VMT_Repatch;
-	//g_pAQU_TransferSite->m_pD3D10_1ReinstateInterfaces = D3D10_1_VMT_Repatch;
 	g_pAQU_TransferSite->m_pD3D11ReinstateInterfaces = D3D11_VMT_Repatch;
-	//g_pAQU_TransferSite->m_pD3D11_1ReinstateInterfaces = D3D11_1_VMT_Repatch;
-	//g_pAQU_TransferSite->m_pD3D11_2ReinstateInterfaces = D3D11_2_VMT_Repatch;
 
 	// is there a chosen DX9 interface ?
 	bool bDX9 = false;
@@ -234,7 +223,7 @@ HRESULT WINAPI AquilinusInit(VOID)
 			D3D9_Hook_Object,
 			D3D9_Hook_Device_Mask,
 			D3D9_Hook_Device_Create
-		} eD3D9_Hook_Type = D3D9_Hook_Device_Create; // D3D9_Hook_Object;
+		} eD3D9_Hook_Type = D3D9_Hook_Device_Create;
 
 		if (eD3D9_Hook_Type == D3D9_Hook_Object)
 		{
@@ -250,17 +239,10 @@ HRESULT WINAPI AquilinusInit(VOID)
 		}
 		else if (eD3D9_Hook_Type == D3D9_Hook_Device_Create)
 		{
-			// get device by ->CreateDevice() detour ?
-			/*pRootThread = CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
-			if (pRootThread == NULL)
-			return E_FAIL;*/
-
 			// NO thread here !! we call the method directly to save time..
 			if (FAILED(D3D9_VMT_Create(nullptr))) return E_FAIL;
 		}
 	}
-
-	// D3D9.29 ??
 
 	// is there a chosen DX10 interface ?
 	bool bDX10 = false;
@@ -268,7 +250,7 @@ HRESULT WINAPI AquilinusInit(VOID)
 		bDX10 |= (g_pAquilinusConfig->eInjectionTechnique[i] == AQU_InjectionTechniques::VMTable) ||
 		(g_pAquilinusConfig->eInjectionTechnique[i] == AQU_InjectionTechniques::Detour);
 
-	// start DX9 thread
+	/// => Start DX9 thread
 	if (bDX10)
 	{
 		// get device by memory pattern or by ->CreateDevice() detour ?
@@ -290,52 +272,25 @@ HRESULT WINAPI AquilinusInit(VOID)
 		bDX11 |= (g_pAquilinusConfig->eInjectionTechnique[i] == AQU_InjectionTechniques::VMTable) ||
 		(g_pAquilinusConfig->eInjectionTechnique[i] == AQU_InjectionTechniques::Detour);
 
-	// start DX11 thread
+	/// => Start DX11 thread
 	if (bDX11)
 	{
 		// get device by memory pattern or by ->CreateDevice() detour ?
 		if (true)
 		{
+			// VMT mask not working anymore ??
 			if ((pRootThread = CreateThread(NULL, 0, D3D11_VMT_Mask, NULL, 0, NULL)) == NULL)
 				return E_FAIL;
 		}
 		else
 		{
-			// METHOD OBSOLETE !
+			// use MinHook 
 			if ((pRootThread = CreateThread(NULL, 0, D3D11_VMT_Create, NULL, 0, NULL)) == NULL)
 				return E_FAIL;
 		}
 	}
 
-	// TODO !! d3d 10.1 / 11.1 / 11.2
-
-	if (false)
-	{
-		// resume the suspended process
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-		ZeroMemory(&si, sizeof(si));
-		si.cb = sizeof(si);
-		ZeroMemory(&pi, sizeof(pi));
-
-		// call external suspend tool
-		std::wstringstream szAppName = std::wstringstream();
-		std::wstringstream szCmd = std::wstringstream();
-#ifdef _WIN64
-		szAppName << g_pAquilinusConfig->szAquilinusPath << L"pssuspend64.exe";
-		szCmd << "pssuspend64 -r " << g_pAquilinusConfig->dwID;
-#else
-		szAppName << g_pAquilinusConfig->szAquilinusPath << L"pssuspend.exe";
-		szCmd << "pssuspend -r " << g_pAquilinusConfig->dwID;
-#endif
-		CreateProcess(szAppName.str().c_str(), (LPWSTR)&szCmd.str().c_str()[0], NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
-
-		// Close process and thread handles.
-		CloseHandle(pi.hProcess);
-		CloseHandle(pi.hThread);
-	}
-
-	OutputDebugString(L"Aquilinus : initialized.... :");
+	OutputDebugString(L"[AQU] initialized.... :");
 
 	return S_OK;
 }
@@ -346,7 +301,7 @@ HRESULT WINAPI AquilinusInit(VOID)
 /// </summary>
 HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 {
-	OutputDebugString(L"Aquilinus : Init Project ");
+	OutputDebugString(L"[AQU] Init Project ");
 
 	switch (g_pAquilinusConfig->eProjectStage)
 	{
@@ -476,7 +431,7 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 					// debug output
 					wchar_t buf[64];
-					wsprintf(buf, L"Aquilinus : Unknown node type %u", id);
+					wsprintf(buf, L"[AQU] Unknown node type %u", id);
 					OutputDebugString(buf);
 
 					for (UINT j = 0; j < i; j++)
@@ -579,13 +534,13 @@ HRESULT WINAPI AquilinusInitProject(HINSTANCE hInstance)
 
 #pragma region VMT Threads
 
-#pragma region DirectX 9.0
+#pragma region /// => DirectX 9.0
 /// <summary>
 /// => D3D9 Create D3D Detour
 /// </summary>
 IDirect3D9* WINAPI D3D9_Direct3DCreate9_Detour(UINT SDKVersion)
 {
-	OutputDebugString(L"Aquilinus : D3D9_Direct3DCreate9_Detour");
+	OutputDebugString(L"[AQU] D3D9_Direct3DCreate9_Detour");
 	if (g_pAquilinusConfig->bCreateD3D9Ex)
 	{
 		static IDirect3D9Ex* pcD3D = nullptr;
@@ -613,7 +568,8 @@ HRESULT WINAPI D3D9_QueryInterface_Detour(LPDIRECT3D9 pcD3D, REFIID riid, void**
 			if (ppvObj == NULL)
 				return E_POINTER;
 
-			pcD3D->AddRef(); // TODO : NEED THIS ?
+			// need ->AddRef() here ?
+			pcD3D->AddRef();
 			*ppvObj = NULL;
 			return E_NOINTERFACE;
 		}
@@ -754,7 +710,7 @@ HRESULT WINAPI D3D9_CreateDevice_Detour(
 		LPDIRECT3DDEVICE9 pDevice = *ppReturnedDeviceInterface;
 		if (!pDevice)
 		{
-			OutputDebugString(L"Aquilinus : Device null pointer!");
+			OutputDebugString(L"[AQU] Device null pointer!");
 			CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 			return hr;
 		}
@@ -779,7 +735,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 	// set old function pointers
 	if (FAILED(pDCL_IDirect3DDevice9->SetSuperFunctionPointers(D3D9_IDirect3DDevice9_VMTable)))
-		OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+		OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 	// create any d3d 9 interface to get its vmtable
 	// first...IDirect3DTexture9 + IDirect3DBaseTexture9
@@ -794,12 +750,12 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DTexture9->SetSuperFunctionPointers(D3D9_IDirect3DTexture9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		// query IDirect3DBaseTexture9
 		if (FAILED(pIDirect3DTexture9->QueryInterface(IID_IDirect3DBaseTexture9, (void**)&pIDirect3DBaseTexture9)))
 		{
-			OutputDebugString(L"Aquilinus : Failed to query base texture. (d3d9)");
+			OutputDebugString(L"[AQU] Failed to query base texture. (d3d9)");
 			CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 		}
 		else
@@ -810,12 +766,12 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 			// set old function pointers
 			if (FAILED(pDCL_IDirect3DBaseTexture9->SetSuperFunctionPointers(D3D9_IDirect3DBaseTexture9_VMTable)))
-				OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+				OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 			// query IDirect3DResource9
 			if (FAILED(pIDirect3DBaseTexture9->QueryInterface(IID_IDirect3DResource9, (void**)&pIDirect3DResource9)))
 			{
-				OutputDebugString(L"Aquilinus : Failed to query resource. (d3d9)");
+				OutputDebugString(L"[AQU] Failed to query resource. (d3d9)");
 				CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 			}
 			else
@@ -826,7 +782,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 				// set old function pointers
 				if (FAILED(pDCL_IDirect3DResource9->SetSuperFunctionPointers(D3D9_IDirect3DResource9_VMTable)))
-					OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+					OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 				pIDirect3DResource9->Release();
 			}
@@ -838,7 +794,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Texture (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Texture (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -852,13 +808,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DCubeTexture9->SetSuperFunctionPointers(D3D9_IDirect3DCubeTexture9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DCubeTexture9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Cube Texture (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Cube Texture (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -872,7 +828,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DVolumeTexture9->SetSuperFunctionPointers(D3D9_IDirect3DVolumeTexture9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		// IDirect3DVolume9
 		LPDIRECT3DVOLUME9 pIDirect3DVolume9;
@@ -884,13 +840,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 			// set old function pointers
 			if (FAILED(pDCL_IDirect3DVolume9->SetSuperFunctionPointers(D3D9_IDirect3DVolume9_VMTable)))
-				OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+				OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 			pIDirect3DVolume9->Release();
 		}
 		else
 		{
-			OutputDebugString(L"Aquilinus : Failed to get Volume (d3d9).");
+			OutputDebugString(L"[AQU] Failed to get Volume (d3d9).");
 			CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 		}
 
@@ -898,7 +854,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Volume Texture (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Volume Texture (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -912,13 +868,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DSurface9->SetSuperFunctionPointers(D3D9_IDirect3DSurface9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DSurface9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to Surface (d3d9).");
+		OutputDebugString(L"[AQU] Failed to Surface (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -926,14 +882,14 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPDIRECT3DSWAPCHAIN9 pIDirect3DSwapChain9;
 	if (SUCCEEDED(pDevice->CreateAdditionalSwapChain(pPresentationParameters, &pIDirect3DSwapChain9)))
 	{
-		OutputDebugString(L"Aquilinus : Additional swap chain created !");
+		OutputDebugString(L"[AQU] Additional swap chain created !");
 		D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DSwapChain9;
 		// create the aquilinus detour class
 		pDCL_IDirect3DSwapChain9 = new DCL_IDirect3DSwapChain9(g_pAQU_TransferSite);
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DSwapChain9->SetSuperFunctionPointers(D3D9_IDirect3DSwapChain9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DSwapChain9->Release();
 	}
@@ -942,20 +898,20 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 		pDevice->GetSwapChain(0, &pIDirect3DSwapChain9);
 		if (pIDirect3DSwapChain9)
 		{
-			OutputDebugString(L"Aquilinus : Got swap chain (d3d9) !");
+			OutputDebugString(L"[AQU] Got swap chain (d3d9) !");
 			D3D9_IDirect3DSwapChain9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DSwapChain9;
 			// create the aquilinus detour class
 			pDCL_IDirect3DSwapChain9 = new DCL_IDirect3DSwapChain9(g_pAQU_TransferSite);
 
 			// set old function pointers
 			if (FAILED(pDCL_IDirect3DSwapChain9->SetSuperFunctionPointers(D3D9_IDirect3DSwapChain9_VMTable)))
-				OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+				OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 			pIDirect3DSwapChain9->Release();
 		}
 		else
 		{
-			OutputDebugString(L"Aquilinus : Failed to create Swap Chain (d3d9).");
+			OutputDebugString(L"[AQU] Failed to create Swap Chain (d3d9).");
 			CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 		}
 	}
@@ -970,13 +926,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DIndexBuffer9->SetSuperFunctionPointers(D3D9_IDirect3DIndexBuffer9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DIndexBuffer9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Index Buffer (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Index Buffer (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -990,13 +946,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DVertexBuffer9->SetSuperFunctionPointers(D3D9_IDirect3DVertexBuffer9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DVertexBuffer9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Vertex Buffer (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Vertex Buffer (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -1016,7 +972,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	LPD3DXCONSTANTTABLE	ct = nullptr;
 	HRESULT hr = D3DXCompileShader(PixelShader, (UINT)strlen(PixelShader), NULL, NULL, "PSMain", "ps_3_0", NULL, &pShader, NULL, &ct);
 	if (SUCCEEDED(hr)) hr = pDevice->CreatePixelShader((DWORD*)pShader->GetBufferPointer(), &pIDirect3DPixelShader9);
-	else OutputDebugString(L"Aquilinus : Failed to compile Pixel Shader (d3d9).");
+	else OutputDebugString(L"[AQU] Failed to compile Pixel Shader (d3d9).");
 	if (SUCCEEDED(hr))
 	{
 		D3D9_IDirect3DPixelShader9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DPixelShader9;
@@ -1025,7 +981,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DPixelShader9->SetSuperFunctionPointers(D3D9_IDirect3DPixelShader9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		ct->Release();
 		pShader->Release();
@@ -1033,7 +989,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Pixel Shader (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Pixel Shader (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 		pShader->Release();
 		ct->Release();
@@ -1052,7 +1008,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	ct = nullptr;
 	hr = D3DXCompileShader(VertexShader, (UINT)strlen(VertexShader), NULL, NULL, "VSMain", "vs_3_0", NULL, &pShader, NULL, &ct);
 	if (SUCCEEDED(hr)) hr = pDevice->CreateVertexShader((DWORD*)pShader->GetBufferPointer(), &pIDirect3DVertexShader9);
-	else OutputDebugString(L"Aquilinus : Failed to compile Vertex Shader (d3d9).");
+	else OutputDebugString(L"[AQU] Failed to compile Vertex Shader (d3d9).");
 	if (SUCCEEDED(hr))
 	{
 		D3D9_IDirect3DVertexShader9_VMTable = (PUINT_PTR) * (PUINT_PTR)pIDirect3DVertexShader9;
@@ -1061,7 +1017,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DVertexShader9->SetSuperFunctionPointers(D3D9_IDirect3DVertexShader9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		ct->Release();
 		pShader->Release();
@@ -1069,7 +1025,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Vertex Shader (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Vertex Shader (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 		pShader->Release();
 		ct->Release();
@@ -1085,13 +1041,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DQuery9->SetSuperFunctionPointers(D3D9_IDirect3DQuery9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DQuery9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create Query (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create Query (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -1105,13 +1061,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DStateBlock9->SetSuperFunctionPointers(D3D9_IDirect3DStateBlock9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DStateBlock9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create StateBlock (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create StateBlock (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -1132,13 +1088,13 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 
 		// set old function pointers
 		if (FAILED(pDCL_IDirect3DVertexDeclaration9->SetSuperFunctionPointers(D3D9_IDirect3DVertexDeclaration9_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		pIDirect3DVertexDeclaration9->Release();
 	}
 	else
 	{
-		OutputDebugString(L"Aquilinus : Failed to create VertexDeclaration (d3d9).");
+		OutputDebugString(L"[AQU] Failed to create VertexDeclaration (d3d9).");
 		CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 	}
 
@@ -1158,7 +1114,7 @@ HRESULT D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESEN
 }
 
 /// <summary>
-/// => D3D9 Super methods
+/// => D3D9 detour
 /// </summary>
 DWORD WINAPI D3D9_Detour(LPVOID Param)
 {
@@ -1166,71 +1122,6 @@ DWORD WINAPI D3D9_Detour(LPVOID Param)
 	OutputDebugString(L"Aquilinus: D3D9_Detour is set.");
 	CreateThread(NULL, 0, D3D9_VMT_Create, NULL, 0, NULL);
 
-	// detour D3DX methods
-	D3D9_D3DXLoadSurfaceFromFileA_Super = (D3D9_D3DXLoadSurfaceFromFileA)DetourFunc((BYTE*)D3DXLoadSurfaceFromFileA, (BYTE*)D3D9_D3DXLoadSurfaceFromFileA_Detour, JMP32_SZ);
-	D3D9_D3DXLoadSurfaceFromFileW_Super = (D3D9_D3DXLoadSurfaceFromFileW)DetourFunc((BYTE*)D3DXLoadSurfaceFromFileW, (BYTE*)D3D9_D3DXLoadSurfaceFromFileW_Detour, JMP32_SZ);
-	D3D9_D3DXLoadSurfaceFromResourceA_Super = (D3D9_D3DXLoadSurfaceFromResourceA)DetourFunc((BYTE*)D3DXLoadSurfaceFromResourceA, (BYTE*)D3D9_D3DXLoadSurfaceFromResourceA_Detour, JMP32_SZ);
-	D3D9_D3DXLoadSurfaceFromResourceW_Super = (D3D9_D3DXLoadSurfaceFromResourceW)DetourFunc((BYTE*)D3DXLoadSurfaceFromResourceW, (BYTE*)D3D9_D3DXLoadSurfaceFromResourceW_Detour, JMP32_SZ);
-	D3D9_D3DXLoadSurfaceFromFileInMemory_Super = (D3D9_D3DXLoadSurfaceFromFileInMemory)DetourFunc((BYTE*)D3DXLoadSurfaceFromFileInMemory, (BYTE*)D3D9_D3DXLoadSurfaceFromFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXLoadSurfaceFromSurface_Super = (D3D9_D3DXLoadSurfaceFromSurface)DetourFunc((BYTE*)D3DXLoadSurfaceFromSurface, (BYTE*)D3D9_D3DXLoadSurfaceFromSurface_Detour, JMP32_SZ);
-	D3D9_D3DXLoadSurfaceFromMemory_Super = (D3D9_D3DXLoadSurfaceFromMemory)DetourFunc((BYTE*)D3DXLoadSurfaceFromMemory, (BYTE*)D3D9_D3DXLoadSurfaceFromMemory_Detour, JMP32_SZ);
-	D3D9_D3DXSaveSurfaceToFileA_Super = (D3D9_D3DXSaveSurfaceToFileA)DetourFunc((BYTE*)D3DXSaveSurfaceToFileA, (BYTE*)D3D9_D3DXSaveSurfaceToFileA_Detour, JMP32_SZ);
-	D3D9_D3DXSaveSurfaceToFileW_Super = (D3D9_D3DXSaveSurfaceToFileW)DetourFunc((BYTE*)D3DXSaveSurfaceToFileW, (BYTE*)D3D9_D3DXSaveSurfaceToFileW_Detour, JMP32_SZ);
-	D3D9_D3DXSaveSurfaceToFileInMemory_Super = (D3D9_D3DXSaveSurfaceToFileInMemory)DetourFunc((BYTE*)D3DXSaveSurfaceToFileInMemory, (BYTE*)D3D9_D3DXSaveSurfaceToFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromFileA_Super = (D3D9_D3DXLoadVolumeFromFileA)DetourFunc((BYTE*)D3DXLoadVolumeFromFileA, (BYTE*)D3D9_D3DXLoadVolumeFromFileA_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromFileW_Super = (D3D9_D3DXLoadVolumeFromFileW)DetourFunc((BYTE*)D3DXLoadVolumeFromFileW, (BYTE*)D3D9_D3DXLoadVolumeFromFileW_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromResourceA_Super = (D3D9_D3DXLoadVolumeFromResourceA)DetourFunc((BYTE*)D3DXLoadVolumeFromResourceA, (BYTE*)D3D9_D3DXLoadVolumeFromResourceA_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromResourceW_Super = (D3D9_D3DXLoadVolumeFromResourceW)DetourFunc((BYTE*)D3DXLoadVolumeFromResourceW, (BYTE*)D3D9_D3DXLoadVolumeFromResourceW_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromFileInMemory_Super = (D3D9_D3DXLoadVolumeFromFileInMemory)DetourFunc((BYTE*)D3DXLoadVolumeFromFileInMemory, (BYTE*)D3D9_D3DXLoadVolumeFromFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromVolume_Super = (D3D9_D3DXLoadVolumeFromVolume)DetourFunc((BYTE*)D3DXLoadVolumeFromVolume, (BYTE*)D3D9_D3DXLoadVolumeFromVolume_Detour, JMP32_SZ);
-	D3D9_D3DXLoadVolumeFromMemory_Super = (D3D9_D3DXLoadVolumeFromMemory)DetourFunc((BYTE*)D3DXLoadVolumeFromMemory, (BYTE*)D3D9_D3DXLoadVolumeFromMemory_Detour, JMP32_SZ);
-	D3D9_D3DXSaveVolumeToFileA_Super = (D3D9_D3DXSaveVolumeToFileA)DetourFunc((BYTE*)D3DXSaveVolumeToFileA, (BYTE*)D3D9_D3DXSaveVolumeToFileA_Detour, JMP32_SZ);
-	D3D9_D3DXSaveVolumeToFileW_Super = (D3D9_D3DXSaveVolumeToFileW)DetourFunc((BYTE*)D3DXSaveVolumeToFileW, (BYTE*)D3D9_D3DXSaveVolumeToFileW_Detour, JMP32_SZ);
-	D3D9_D3DXSaveVolumeToFileInMemory_Super = (D3D9_D3DXSaveVolumeToFileInMemory)DetourFunc((BYTE*)D3DXSaveVolumeToFileInMemory, (BYTE*)D3D9_D3DXSaveVolumeToFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTexture_Super = (D3D9_D3DXCreateTexture)DetourFunc((BYTE*)D3DXCreateTexture, (BYTE*)D3D9_D3DXCreateTexture_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTexture_Super = (D3D9_D3DXCreateCubeTexture)DetourFunc((BYTE*)D3DXCreateCubeTexture, (BYTE*)D3D9_D3DXCreateCubeTexture_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTexture_Super = (D3D9_D3DXCreateVolumeTexture)DetourFunc((BYTE*)D3DXCreateVolumeTexture, (BYTE*)D3D9_D3DXCreateVolumeTexture_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromFileA_Super = (D3D9_D3DXCreateTextureFromFileA)DetourFunc((BYTE*)D3DXCreateTextureFromFileA, (BYTE*)D3D9_D3DXCreateTextureFromFileA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromFileW_Super = (D3D9_D3DXCreateTextureFromFileW)DetourFunc((BYTE*)D3DXCreateTextureFromFileW, (BYTE*)D3D9_D3DXCreateTextureFromFileW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromFileA_Super = (D3D9_D3DXCreateCubeTextureFromFileA)DetourFunc((BYTE*)D3DXCreateCubeTextureFromFileA, (BYTE*)D3D9_D3DXCreateCubeTextureFromFileA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromFileW_Super = (D3D9_D3DXCreateCubeTextureFromFileW)DetourFunc((BYTE*)D3DXCreateCubeTextureFromFileW, (BYTE*)D3D9_D3DXCreateCubeTextureFromFileW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromFileA_Super = (D3D9_D3DXCreateVolumeTextureFromFileA)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromFileA, (BYTE*)D3D9_D3DXCreateVolumeTextureFromFileA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromFileW_Super = (D3D9_D3DXCreateVolumeTextureFromFileW)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromFileW, (BYTE*)D3D9_D3DXCreateVolumeTextureFromFileW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromResourceA_Super = (D3D9_D3DXCreateTextureFromResourceA)DetourFunc((BYTE*)D3DXCreateTextureFromResourceA, (BYTE*)D3D9_D3DXCreateTextureFromResourceA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromResourceW_Super = (D3D9_D3DXCreateTextureFromResourceW)DetourFunc((BYTE*)D3DXCreateTextureFromResourceW, (BYTE*)D3D9_D3DXCreateTextureFromResourceW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromResourceA_Super = (D3D9_D3DXCreateCubeTextureFromResourceA)DetourFunc((BYTE*)D3DXCreateCubeTextureFromResourceA, (BYTE*)D3D9_D3DXCreateCubeTextureFromResourceA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromResourceW_Super = (D3D9_D3DXCreateCubeTextureFromResourceW)DetourFunc((BYTE*)D3DXCreateCubeTextureFromResourceW, (BYTE*)D3D9_D3DXCreateCubeTextureFromResourceW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromResourceA_Super = (D3D9_D3DXCreateVolumeTextureFromResourceA)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromResourceA, (BYTE*)D3D9_D3DXCreateVolumeTextureFromResourceA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromResourceW_Super = (D3D9_D3DXCreateVolumeTextureFromResourceW)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromResourceW, (BYTE*)D3D9_D3DXCreateVolumeTextureFromResourceW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromFileExA_Super = (D3D9_D3DXCreateTextureFromFileExA)DetourFunc((BYTE*)D3DXCreateTextureFromFileExA, (BYTE*)D3D9_D3DXCreateTextureFromFileExA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromFileExW_Super = (D3D9_D3DXCreateTextureFromFileExW)DetourFunc((BYTE*)D3DXCreateTextureFromFileExW, (BYTE*)D3D9_D3DXCreateTextureFromFileExW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromFileExA_Super = (D3D9_D3DXCreateCubeTextureFromFileExA)DetourFunc((BYTE*)D3DXCreateCubeTextureFromFileExA, (BYTE*)D3D9_D3DXCreateCubeTextureFromFileExA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromFileExW_Super = (D3D9_D3DXCreateCubeTextureFromFileExW)DetourFunc((BYTE*)D3DXCreateCubeTextureFromFileExW, (BYTE*)D3D9_D3DXCreateCubeTextureFromFileExW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromFileExA_Super = (D3D9_D3DXCreateVolumeTextureFromFileExA)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromFileExA, (BYTE*)D3D9_D3DXCreateVolumeTextureFromFileExA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromFileExW_Super = (D3D9_D3DXCreateVolumeTextureFromFileExW)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromFileExW, (BYTE*)D3D9_D3DXCreateVolumeTextureFromFileExW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromResourceExA_Super = (D3D9_D3DXCreateTextureFromResourceExA)DetourFunc((BYTE*)D3DXCreateTextureFromResourceExA, (BYTE*)D3D9_D3DXCreateTextureFromResourceExA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromResourceExW_Super = (D3D9_D3DXCreateTextureFromResourceExW)DetourFunc((BYTE*)D3DXCreateTextureFromResourceExW, (BYTE*)D3D9_D3DXCreateTextureFromResourceExW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromResourceExA_Super = (D3D9_D3DXCreateCubeTextureFromResourceExA)DetourFunc((BYTE*)D3DXCreateCubeTextureFromResourceExA, (BYTE*)D3D9_D3DXCreateCubeTextureFromResourceExA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromResourceExW_Super = (D3D9_D3DXCreateCubeTextureFromResourceExW)DetourFunc((BYTE*)D3DXCreateCubeTextureFromResourceExW, (BYTE*)D3D9_D3DXCreateCubeTextureFromResourceExW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromResourceExA_Super = (D3D9_D3DXCreateVolumeTextureFromResourceExA)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromResourceExA, (BYTE*)D3D9_D3DXCreateVolumeTextureFromResourceExA_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromResourceExW_Super = (D3D9_D3DXCreateVolumeTextureFromResourceExW)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromResourceExW, (BYTE*)D3D9_D3DXCreateVolumeTextureFromResourceExW_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromFileInMemory_Super = (D3D9_D3DXCreateTextureFromFileInMemory)DetourFunc((BYTE*)D3DXCreateTextureFromFileInMemory, (BYTE*)D3D9_D3DXCreateTextureFromFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromFileInMemory_Super = (D3D9_D3DXCreateCubeTextureFromFileInMemory)DetourFunc((BYTE*)D3DXCreateCubeTextureFromFileInMemory, (BYTE*)D3D9_D3DXCreateCubeTextureFromFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromFileInMemory_Super = (D3D9_D3DXCreateVolumeTextureFromFileInMemory)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromFileInMemory, (BYTE*)D3D9_D3DXCreateVolumeTextureFromFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXCreateTextureFromFileInMemoryEx_Super = (D3D9_D3DXCreateTextureFromFileInMemoryEx)DetourFunc((BYTE*)D3DXCreateTextureFromFileInMemoryEx, (BYTE*)D3D9_D3DXCreateTextureFromFileInMemoryEx_Detour, JMP32_SZ);
-	D3D9_D3DXCreateCubeTextureFromFileInMemoryEx_Super = (D3D9_D3DXCreateCubeTextureFromFileInMemoryEx)DetourFunc((BYTE*)D3DXCreateCubeTextureFromFileInMemoryEx, (BYTE*)D3D9_D3DXCreateCubeTextureFromFileInMemoryEx_Detour, JMP32_SZ);
-	D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx_Super = (D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx)DetourFunc((BYTE*)D3DXCreateVolumeTextureFromFileInMemoryEx, (BYTE*)D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx_Detour, JMP32_SZ);
-	D3D9_D3DXSaveTextureToFileA_Super = (D3D9_D3DXSaveTextureToFileA)DetourFunc((BYTE*)D3DXSaveTextureToFileA, (BYTE*)D3D9_D3DXSaveTextureToFileA_Detour, JMP32_SZ);
-	D3D9_D3DXSaveTextureToFileW_Super = (D3D9_D3DXSaveTextureToFileW)DetourFunc((BYTE*)D3DXSaveTextureToFileW, (BYTE*)D3D9_D3DXSaveTextureToFileW_Detour, JMP32_SZ);
-	D3D9_D3DXSaveTextureToFileInMemory_Super = (D3D9_D3DXSaveTextureToFileInMemory)DetourFunc((BYTE*)D3DXSaveTextureToFileInMemory, (BYTE*)D3D9_D3DXSaveTextureToFileInMemory_Detour, JMP32_SZ);
-	D3D9_D3DXFilterTexture_Super = (D3D9_D3DXFilterTexture)DetourFunc((BYTE*)D3DXFilterTexture, (BYTE*)D3D9_D3DXFilterTexture_Detour, JMP32_SZ);
-	D3D9_D3DXFillTexture_Super = (D3D9_D3DXFillTexture)DetourFunc((BYTE*)D3DXFillTexture, (BYTE*)D3D9_D3DXFillTexture_Detour, JMP32_SZ);
-	D3D9_D3DXFillCubeTexture_Super = (D3D9_D3DXFillCubeTexture)DetourFunc((BYTE*)D3DXFillCubeTexture, (BYTE*)D3D9_D3DXFillCubeTexture_Detour, JMP32_SZ);
-	D3D9_D3DXFillVolumeTexture_Super = (D3D9_D3DXFillVolumeTexture)DetourFunc((BYTE*)D3DXFillVolumeTexture, (BYTE*)D3D9_D3DXFillVolumeTexture_Detour, JMP32_SZ);
-	D3D9_D3DXFillTextureTX_Super = (D3D9_D3DXFillTextureTX)DetourFunc((BYTE*)D3DXFillTextureTX, (BYTE*)D3D9_D3DXFillTextureTX_Detour, JMP32_SZ);
-	D3D9_D3DXFillCubeTextureTX_Super = (D3D9_D3DXFillCubeTextureTX)DetourFunc((BYTE*)D3DXFillCubeTextureTX, (BYTE*)D3D9_D3DXFillCubeTextureTX_Detour, JMP32_SZ);
-	D3D9_D3DXFillVolumeTextureTX_Super = (D3D9_D3DXFillVolumeTextureTX)DetourFunc((BYTE*)D3DXFillVolumeTextureTX, (BYTE*)D3D9_D3DXFillVolumeTextureTX_Detour, JMP32_SZ);
-	D3D9_D3DXComputeNormalMap_Super = (D3D9_D3DXComputeNormalMap)DetourFunc((BYTE*)D3DXComputeNormalMap, (BYTE*)D3D9_D3DXComputeNormalMap_Detour, JMP32_SZ);
 	return 0;
 }
 
@@ -1245,7 +1136,7 @@ DWORD WINAPI D3D9_VMT_Mask(LPVOID Param)
 		Sleep(g_pAquilinusConfig->dwDetourTimeDelay);
 
 #ifdef _WIN64
-	// TODO !! 64 bit ?? any know D3D9 games in 64 bit available ?
+	OutputDebugStringA("[AQU] D3D9 x64 NOT supported !!");
 #else
 	// get the root vmtable by pattern search
 	DWORD dwDXDevice = (DWORD)FindPattern((DWORD)GetModuleHandle(L"d3d9.dll"), 0x128000, (PBYTE)"\xC7\x06\x00\x00\x00\x00\x89\x86\x00\x00\x00\x00\x89\x86", "xx????xx????xx");
@@ -1267,14 +1158,13 @@ DWORD WINAPI D3D9_VMT_Mask(LPVOID Param)
 				OutputDebug("Scan %x", pdwScan);
 				OutputDebug("pdwScan[0] %x", pdwScan[0]);
 
-				// TODO !! COMPARE WHOLE VMTABLE
+				// continue this ??
 			}
 		}
 	}
 
 	if (D3D9_IDirect3DDevice9_VMTable)
 	{
-		// TODO ! C6011 pcDevice = nullptr; *pcDevice ??
 		// get a device pointer, create all
 		/*PUINT_PTR pcDevice = nullptr;
 		*pcDevice = (UINT_PTR)D3D9_IDirect3DDevice9_VMTable;
@@ -1607,11 +1497,11 @@ DWORD WINAPI D3D9_VMT_Repatch(LPVOID Param)
 
 #pragma endregion
 
-#pragma region DirectX 10.0
+#pragma region /// => DirectX 10.0
 
-/**
-* Thread to get the d3d10 device by mask.
-***/
+/// <summary>
+/// Thread to get the d3d10 device by mask.
+/// </summary>
 DWORD WINAPI D3D10_VMT_Mask(LPVOID Param)
 {
 	// time delay ?
@@ -1620,7 +1510,6 @@ DWORD WINAPI D3D10_VMT_Mask(LPVOID Param)
 
 
 #ifdef AQUILINUS_64
-	// TODO !! 64 bit !!
 #else
 	ID3D10Device* pDevice;
 
@@ -1682,7 +1571,7 @@ DWORD WINAPI D3D10_VMT_Mask(LPVOID Param)
 		OutputDebug("D3D10_ID3D10Device_Draw %x", D3D10_ID3D10Device_Draw);
 
 		if (FAILED(pDCL_ID3D10Device->SetSuperFunctionPointers(D3D10_ID3D10Device_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		// create the thread to override the virtual methods table
 		if (CreateThread(NULL, 0, D3D10_VMT_Repatch, NULL, 0, NULL) == NULL)
@@ -1693,16 +1582,14 @@ DWORD WINAPI D3D10_VMT_Mask(LPVOID Param)
 	return D3D_OK;
 }
 
-/**
-* Thread to create the virtual method table for DirectX v10.0.
-***/
+/// <summary>
+/// Thread to create the virtual method table for DirectX v10.0.
+/// </summary>
 DWORD WINAPI D3D10_VMT_Create(LPVOID Param)
 {
 	ID3D10Device* pDevice;
 
 	// find the window we want to inject
-	//HWND hWnd = FindWindow(NULL, AQU_WINDOW_NAME);
-	//while (!hWnd) hWnd = FindWindow(NULL, AQU_WINDOW_NAME);
 	HWND hWnd = GetForegroundWindow();
 
 	// create a sample device and swapchain
@@ -1716,8 +1603,6 @@ DWORD WINAPI D3D10_VMT_Create(LPVOID Param)
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.OutputWindow = hWnd;
 	swapChainDesc.Windowed = true;//((GetWindowLong(hWnd, GWL_STYLE) & WS_POPUP) != 0) ? false : true;
-
-	// TODO !! WINDOWED/FULLSCREEN SETTING
 
 	if (FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE::D3D10_DRIVER_TYPE_HARDWARE, NULL, 0,
 		D3D10_SDK_VERSION, &swapChainDesc, &pSwapChain, &pDevice)))
@@ -1744,11 +1629,10 @@ DWORD WINAPI D3D10_VMT_Create(LPVOID Param)
 
 	// set old function pointers
 	if (FAILED(pDCL_ID3D10Device->SetSuperFunctionPointers(D3D10_ID3D10Device_VMTable)))
-		OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+		OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 	if (FAILED(pDCL_IDXGISwapChain->SetSuperFunctionPointers(D3D10_IDXGISwapChain_VMTable)))
-		OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+		OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
-	// TODO !! HANDLE FAILURE PROPERLY
 
 	pDevice->Release();
 	pSwapChain->Release();
@@ -1760,9 +1644,9 @@ DWORD WINAPI D3D10_VMT_Create(LPVOID Param)
 	return S_OK;
 }
 
-/**
-* Thread to set detour functions.
-***/
+/// <summary>
+/// Thread to set detour functions.
+/// </summary>
 DWORD WINAPI D3D10_VMT_Repatch(LPVOID Param)
 {
 	UNREFERENCED_PARAMETER(Param);
@@ -1802,7 +1686,7 @@ DWORD WINAPI D3D10_VMT_Repatch(LPVOID Param)
 
 			// set super methods
 			if (FAILED(pDCL_IDXGISwapChain->SetSuperFunctionPointers(D3D10_IDXGISwapChain_VMTable)))
-				OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+				OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 		}
 	}
 
@@ -1814,7 +1698,6 @@ DWORD WINAPI D3D10_VMT_Repatch(LPVOID Param)
 			Override_D3D10_IDXGISwapChain_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		// TODO !! WRITE FUNCTION.
 		//Detour_D3D10_IDXGISwapChain_VMTable();
 		break;
 	}
@@ -1824,20 +1707,65 @@ DWORD WINAPI D3D10_VMT_Repatch(LPVOID Param)
 
 #pragma endregion
 
-#pragma region DirectX 11.0
+#pragma region /// => DirectX 11.0
 
-/**
-* Thread to get the d3d11 device by mask.
-* This method does following :
-* - it creates a test device + context + swapchain
-* - it gets the first VM-table address from both device and context
-* - it releases the test device + context + swapchain
-* - it locates the VM-table for both the device and context in "d3d11.dll"
-* - it sets/creates all necessary hooking fields
-* - it starts the repatching thread
-***/
+/// <summary>
+/// => D3D9 Create Device Detour
+/// </summary>
+HRESULT WINAPI D3D11CreateDeviceAndSwapChain_Detour(
+	_In_opt_ IDXGIAdapter* pAdapter,
+	D3D_DRIVER_TYPE DriverType,
+	HMODULE Software,
+	UINT Flags,
+	_In_reads_opt_(FeatureLevels) CONST D3D_FEATURE_LEVEL* pFeatureLevels,
+	UINT FeatureLevels,
+	UINT SDKVersion,
+	_In_opt_ CONST DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
+	_COM_Outptr_opt_ IDXGISwapChain** ppSwapChain,
+	_COM_Outptr_opt_ ID3D11Device** ppDevice,
+	_Out_opt_ D3D_FEATURE_LEVEL* pFeatureLevel,
+	_COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext)
+{
+	static bool s_bIsOwnCall = false;
+	OutputDebugString(L"[AQU] D3D11CreateDeviceAndSwapChain_Detour");
+
+	// call super method... normal device created
+	return D3D11CreateDeviceAndSwapChain_Super(pAdapter, DriverType, Software, Flags, pFeatureLevels,
+		FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+
+	return S_OK;
+}
+
+/// <summary>
+/// => D3D11 VMT Mask
+/// Thread to get the d3d11 device by mask.
+/// This method does following :
+/// - it creates a test device + context + swapchain
+/// - it gets the first VM-table address from both device and context
+/// - it releases the test device + context + swapchain
+/// - it locates the VM-table for both the device and context in "d3d11.dll"
+/// - it sets/creates all necessary hooking fields
+/// - it starts the repatching thread
+/// </summary>
 DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 {
+	MH_Initialize();
+
+	/*/////////////////////////////////////////////////////////////
+
+	MH_CreateHook(&D3D11CreateDeviceAndSwapChain, &D3D11CreateDeviceAndSwapChain_Detour, reinterpret_cast<LPVOID*>(&D3D11CreateDeviceAndSwapChain_Super));
+
+	// enable the hook
+	if (MH_EnableHook(&D3D11CreateDeviceAndSwapChain) != MH_OK)
+	{
+		OutputDebugString(L"[AQU] Failed to detour method (MinHook) !!");
+	}
+	else OutputDebugStringW(L"[AQU] Enable Hook success !");
+
+	return 0;
+
+	/////////////////////////////////////////////////////////////*/
+
 	// time delay ?
 	if (g_pAquilinusConfig->dwDetourTimeDelay > 15)
 	{
@@ -1980,6 +1908,7 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 		pDCL_ID3D11DeviceContext = new DCL_ID3D11DeviceContext(g_pAQU_TransferSite);
 
 		//#ifdef _DEBUG
+		OutputDebugStringA("[AQU] D3D11 VMTable found within d3d11.dll !!");
 		OutputDebug("dwDXVMTableRoot %x", dwDXVMTableRoot);
 		OutputDebug("dwDXContextVMTableRoot %x", dwDXContextVMTableRoot);
 		OutputDebug("D3D11_ID3D11Device_VMTable: %x", D3D11_ID3D11Device_VMTable);
@@ -1988,37 +1917,38 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 
 		// set super methods
 		if (FAILED(pDCL_ID3D11Device->SetSuperFunctionPointers(D3D11_ID3D11Device_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 		if (FAILED(pDCL_ID3D11DeviceContext->SetSuperFunctionPointers(D3D11_ID3D11DeviceContext_VMTable)))
-			OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+			OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 
 		// create the thread to override the virtual methods table
 		if (CreateThread(NULL, 0, D3D11_VMT_Repatch, NULL, 0, NULL) == NULL)
 			return E_FAIL;
 	}
+	else
+		OutputDebugStringA("[AQU] NO D3D11 VMTable found within d3d11.dll !!");
 
-	OutputDebugString(L"Aquilinus : VMTable hook installed.");
+	OutputDebugString(L"[AQU] VMTable hook installed.");
 
 	return D3D_OK;
 }
 
-/**
-* Thread to create the virtual method table for DirectX v10.0.
-* METHOD OBSOLETE !
-***/
+/// <summary>
+/// Thread to create the virtual method table for DirectX v10.0.
+/// </summary>
 DWORD WINAPI D3D11_VMT_Create(LPVOID Param)
 {
 	return E_NOTIMPL;
 }
 
-/**
-* Thread to set detour functions.
-* This method does following for the chosen DX11 VMTable hooks:
-* - it overrides device + context in "d3d11.dll", this will automatically
-*   override the device and all context drawing methods in the game process
-* - it catches the swapchain and the context from the device class
-* - it overrides the swapchain and the (full) context
-***/
+/// <summary>
+/// Thread to set detour functions.
+/// This method does following for the chosen DX11 VMTable hooks:
+/// - it overrides device + context in "d3d11.dll", this will automatically
+///   override the device and all context drawing methods in the game process
+/// - it catches the swapchain and the context from the device class
+/// - it overrides the swapchain and the (full) context
+/// </summary>
 DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 {
 	UNREFERENCED_PARAMETER(Param);
@@ -2037,20 +1967,22 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 			Override_D3D11_ID3D11Device_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		Detour_D3D11_ID3D11Device_VMTable();
+		if (D3D11_ID3D11Device_VMTable)
+			Detour_D3D11_ID3D11Device_VMTable();
 		break;
 	}
 	// which technique ?
-	switch (g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext])
+	/*switch (g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext])
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (D3D11_ID3D11DeviceContext_VMTable)
 			Override_D3D11_ID3D11DeviceContext_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		// TODO !! WRITE FUNCTION // Detour_D3D10_IDXGISwapChain_VMTable();
+		if (D3D11_ID3D11DeviceContext_VMTable)
+			Detour_D3D11_ID3D11DeviceContext_VMTable();
 		break;
-	}
+	}*/
 
 	// get the DXGI SwapChain + Context
 	D3D10_IDXGISwapChain_VMTable = NULL;
@@ -2087,7 +2019,7 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 
 				// set super methods
 				if (FAILED(pDCL_IDXGISwapChain->SetSuperFunctionPointers(D3D10_IDXGISwapChain_VMTable)))
-					OutputDebugString(L"Aquilinus : Failed to set old function pointers !!");
+					OutputDebugString(L"[AQU] Failed to set old function pointers !!");
 			}
 		}
 	}
@@ -2100,7 +2032,8 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 			Override_D3D11_ID3D11DeviceContext_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		// TODO !! WRITE FUNCTION // Detour_D3D10_IDXGISwapChain_VMTable();
+		if (D3D11_ID3D11DeviceContext_VMTable)
+			Detour_D3D11_ID3D11DeviceContext_VMTable();
 		break;
 	}
 
@@ -2116,11 +2049,12 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 			Override_D3D10_IDXGISwapChain_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		// TODO !! WRITE FUNCTION // Detour_D3D10_IDXGISwapChain_VMTable();
+		if (D3D10_IDXGISwapChain_VMTable)
+			Detour_D3D10_IDXGISwapChain_VMTable();
 		break;
 	}
 
-	OutputDebugString(L"Aquilinus : VMTable hook successfull.");
+	OutputDebugString(L"[AQU] VMTable hook successfull.");
 
 	return D3D_OK;
 }
@@ -2129,3071 +2063,4 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 
 #pragma endregion
 
-#pragma region D3DX methods
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileA_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, LPCSTR pSrcFile, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadSurfaceFromFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromFileA_Super(pDestSurface, pDestPalette, pDestRect, pSrcFile, pSrcRect, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileW_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, LPCWSTR pSrcFile, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadSurfaceFromFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromFileW_Super(pDestSurface, pDestPalette, pDestRect, pSrcFile, pSrcRect, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromResourceA_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, HMODULE hSrcModule, LPCSTR pSrcResource, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadSurfaceFromResourceA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromResourceA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromResourceA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromResourceA_Super(pDestSurface, pDestPalette, pDestRect, hSrcModule, pSrcResource, pSrcRect, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromResourceW_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, HMODULE hSrcModule, LPCWSTR pSrcResource, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadSurfaceFromResourceW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromResourceW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromResourceW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromResourceW_Super(pDestSurface, pDestPalette, pDestRect, hSrcModule, pSrcResource, pSrcRect, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromFileInMemory_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, LPCVOID pSrcData, UINT SrcDataSize, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadSurfaceFromFileInMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromFileInMemory_Super(pDestSurface, pDestPalette, pDestRect, pSrcData, SrcDataSize, pSrcRect, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromSurface_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, LPDIRECT3DSURFACE9 pSrcSurface, CONST PALETTEENTRY* pSrcPalette, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromSurface");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromSurface;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromSurface_Super(pDestSurface, pDestPalette, pDestRect, pSrcSurface, pSrcPalette, pSrcRect, Filter, ColorKey);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadSurfaceFromMemory_Detour(LPDIRECT3DSURFACE9 pDestSurface, CONST PALETTEENTRY* pDestPalette, CONST RECT* pDestRect, LPCVOID pSrcMemory, D3DFORMAT SrcFormat, UINT SrcPitch, CONST PALETTEENTRY* pSrcPalette, CONST RECT* pSrcRect, DWORD Filter, D3DCOLOR ColorKey)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadSurfaceFromMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestSurface) pDestSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pDestSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestRect]->m_pOutput = (void*)&pDestRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcMemory]->m_pOutput = (void*)&pSrcMemory;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcFormat]->m_pOutput = (void*)&SrcFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcPitch]->m_pOutput = (void*)&SrcPitch;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadSurfaceFromMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadSurfaceFromMemory_Super(pDestSurface, pDestPalette, pDestRect, pSrcMemory, SrcFormat, SrcPitch, pSrcPalette, pSrcRect, Filter, ColorKey);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DSURFACE9 pSrcSurface, CONST PALETTEENTRY* pSrcPalette, CONST RECT* pSrcRect)
-{
-	OutputDebugString(L"D3D9::D3DXSaveSurfaceToFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveSurfaceToFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveSurfaceToFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveSurfaceToFileA_Super(pDestFile, DestFormat, pSrcSurface, pSrcPalette, pSrcRect);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DSURFACE9 pSrcSurface, CONST PALETTEENTRY* pSrcPalette, CONST RECT* pSrcRect)
-{
-	OutputDebugString(L"D3D9::D3DXSaveSurfaceToFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveSurfaceToFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveSurfaceToFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveSurfaceToFileW_Super(pDestFile, DestFormat, pSrcSurface, pSrcPalette, pSrcRect);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveSurfaceToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DSURFACE9 pSrcSurface, CONST PALETTEENTRY* pSrcPalette, CONST RECT* pSrcRect)
-{
-	OutputDebugString(L"D3D9::D3DXSaveSurfaceToFileInMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveSurfaceToFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcSurface) pSrcSurface->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcSurface]->m_pOutput = (void*)&pSrcSurface;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcRect]->m_pOutput = (void*)&pSrcRect;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveSurfaceToFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveSurfaceToFileInMemory_Super(ppDestBuf, DestFormat, pSrcSurface, pSrcPalette, pSrcRect);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileA_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, LPCSTR pSrcFile, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromFileA_Super(pDestVolume, pDestPalette, pDestBox, pSrcFile, pSrcBox, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileW_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, LPCWSTR pSrcFile, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromFileW_Super(pDestVolume, pDestPalette, pDestBox, pSrcFile, pSrcBox, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromResourceA_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, HMODULE hSrcModule, LPCSTR pSrcResource, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromResourceA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromResourceA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromResourceA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromResourceA_Super(pDestVolume, pDestPalette, pDestBox, hSrcModule, pSrcResource, pSrcBox, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromResourceW_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, HMODULE hSrcModule, LPCWSTR pSrcResource, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromResourceW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromResourceW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromResourceW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromResourceW_Super(pDestVolume, pDestPalette, pDestBox, hSrcModule, pSrcResource, pSrcBox, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromFileInMemory_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, LPCVOID pSrcData, UINT SrcDataSize, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromFileInMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromFileInMemory_Super(pDestVolume, pDestPalette, pDestBox, pSrcData, SrcDataSize, pSrcBox, Filter, ColorKey, pSrcInfo);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromVolume_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, LPDIRECT3DVOLUME9 pSrcVolume, CONST PALETTEENTRY* pSrcPalette, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromVolume");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromVolume");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromVolume;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromVolume_Super(pDestVolume, pDestPalette, pDestBox, pSrcVolume, pSrcPalette, pSrcBox, Filter, ColorKey);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXLoadVolumeFromMemory_Detour(LPDIRECT3DVOLUME9 pDestVolume, CONST PALETTEENTRY* pDestPalette, CONST D3DBOX* pDestBox, LPCVOID pSrcMemory, D3DFORMAT SrcFormat, UINT SrcRowPitch, UINT SrcSlicePitch, CONST PALETTEENTRY* pSrcPalette, CONST D3DBOX* pSrcBox, DWORD Filter, D3DCOLOR ColorKey)
-{
-	OutputDebugString(L"D3D9::D3DXLoadVolumeFromMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXLoadVolumeFromMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pDestVolume) pDestVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestVolume]->m_pOutput = (void*)&pDestVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&pDestPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestBox]->m_pOutput = (void*)&pDestBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcMemory]->m_pOutput = (void*)&pSrcMemory;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcFormat]->m_pOutput = (void*)&SrcFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcRowPitch]->m_pOutput = (void*)&SrcRowPitch;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcSlicePitch]->m_pOutput = (void*)&SrcSlicePitch;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXLoadVolumeFromMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXLoadVolumeFromMemory_Super(pDestVolume, pDestPalette, pDestBox, pSrcMemory, SrcFormat, SrcRowPitch, SrcSlicePitch, pSrcPalette, pSrcBox, Filter, ColorKey);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveVolumeToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DVOLUME9 pSrcVolume, CONST PALETTEENTRY* pSrcPalette, CONST D3DBOX* pSrcBox)
-{
-	OutputDebugString(L"D3D9::D3DXSaveVolumeToFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveVolumeToFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcVolume) pSrcVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveVolumeToFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveVolumeToFileA_Super(pDestFile, DestFormat, pSrcVolume, pSrcPalette, pSrcBox);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveVolumeToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DVOLUME9 pSrcVolume, CONST PALETTEENTRY* pSrcPalette, CONST D3DBOX* pSrcBox)
-{
-	OutputDebugString(L"D3D9::D3DXSaveVolumeToFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveVolumeToFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcVolume) pSrcVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveVolumeToFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveVolumeToFileW_Super(pDestFile, DestFormat, pSrcVolume, pSrcPalette, pSrcBox);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveVolumeToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DVOLUME9 pSrcVolume, CONST PALETTEENTRY* pSrcPalette, CONST D3DBOX* pSrcBox)
-{
-	OutputDebugString(L"D3D9::D3DXSaveVolumeToFileInMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveVolumeToFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcVolume) pSrcVolume->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcVolume]->m_pOutput = (void*)&pSrcVolume;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcBox]->m_pOutput = (void*)&pSrcBox;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveVolumeToFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveVolumeToFileInMemory_Super(ppDestBuf, DestFormat, pSrcVolume, pSrcPalette, pSrcBox);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTexture_Super(pDevice, Width, Height, MipLevels, Usage, Format, Pool, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT Size, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTexture");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTexture_Super(pDevice, Size, MipLevels, Usage, Format, Pool, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTexture_Detour(LPDIRECT3DDEVICE9 pDevice, UINT Width, UINT Height, UINT Depth, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTexture");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTexture_Super(pDevice, Width, Height, Depth, MipLevels, Usage, Format, Pool, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDevice, LPCSTR pSrcFile, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestSurface]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestPalette]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromFileA_Super(pDevice, pSrcFile, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDevice, LPCWSTR pSrcFile, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromFileW_Super(pDevice, pSrcFile, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDevice, LPCSTR pSrcFile, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromFileA_Super(pDevice, pSrcFile, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDevice, LPCWSTR pSrcFile, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromFileW_Super(pDevice, pSrcFile, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileA_Detour(LPDIRECT3DDEVICE9 pDevice, LPCSTR pSrcFile, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromFileA_Super(pDevice, pSrcFile, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileW_Detour(LPDIRECT3DDEVICE9 pDevice, LPCWSTR pSrcFile, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromFileW_Super(pDevice, pSrcFile, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCSTR pSrcResource, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromResourceA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromResourceA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromResourceA_Super(pDevice, hSrcModule, pSrcResource, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCWSTR pSrcResource, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromResourceW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromResourceW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromResourceW_Super(pDevice, hSrcModule, pSrcResource, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCSTR pSrcResource, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromResourceA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromResourceA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromResourceA_Super(pDevice, hSrcModule, pSrcResource, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCWSTR pSrcResource, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromResourceW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromResourceW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromResourceW_Super(pDevice, hSrcModule, pSrcResource, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceA_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCSTR pSrcResource, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromResourceA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromResourceA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromResourceA_Super(pDevice, hSrcModule, pSrcResource, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceW_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCWSTR pSrcResource, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromResourceW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromResourceW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromResourceW_Super(pDevice, hSrcModule, pSrcResource, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pDevice, LPCSTR pSrcFile, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromFileExA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromFileExA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileExA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromFileExA_Super(pDevice, pSrcFile, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pDevice, LPCWSTR pSrcFile, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromFileExW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromFileExW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileExW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromFileExW_Super(pDevice, pSrcFile, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pDevice, LPCSTR pSrcFile, UINT Size, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromFileExA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromFileExA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileExA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromFileExA_Super(pDevice, pSrcFile, Size, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pDevice, LPCWSTR pSrcFile, UINT Size, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromFileExW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromFileExW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileExW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromFileExW_Super(pDevice, pSrcFile, Size, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileExA_Detour(LPDIRECT3DDEVICE9 pDevice, LPCSTR pSrcFile, UINT Width, UINT Height, UINT Depth, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromFileExA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromFileExA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFile]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileExA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromFileExA_Super(pDevice, pSrcFile, Width, Height, Depth, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileExW_Detour(LPDIRECT3DDEVICE9 pDevice, LPCWSTR pSrcFile, UINT Width, UINT Height, UINT Depth, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromFileExW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromFileExW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcFileW]->m_pOutput = (void*)&pSrcFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileExW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromFileExW_Super(pDevice, pSrcFile, Width, Height, Depth, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceExA_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCSTR pSrcResource, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromResourceExA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromResourceExA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceExA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromResourceExA_Super(pDevice, hSrcModule, pSrcResource, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromResourceExW_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCWSTR pSrcResource, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateTextureFromResourceExW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromResourceExW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromResourceExW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromResourceExW_Super(pDevice, hSrcModule, pSrcResource, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceExA_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCSTR pSrcResource, UINT Size, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromResourceExA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromResourceExA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceExA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromResourceExA_Super(pDevice, hSrcModule, pSrcResource, Size, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromResourceExW_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCWSTR pSrcResource, UINT Size, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromResourceExW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromResourceExW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromResourceExW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromResourceExW_Super(pDevice, hSrcModule, pSrcResource, Size, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceExA_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCSTR pSrcResource, UINT Width, UINT Height, UINT Depth, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromResourceExA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromResourceExA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResource]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceExA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromResourceExA_Super(pDevice, hSrcModule, pSrcResource, Width, Height, Depth, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromResourceExW_Detour(LPDIRECT3DDEVICE9 pDevice, HMODULE hSrcModule, LPCWSTR pSrcResource, UINT Width, UINT Height, UINT Depth, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromResourceExW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromResourceExW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::hSrcModule]->m_pOutput = (void*)&hSrcModule;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcResourceW]->m_pOutput = (void*)&pSrcResource;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromResourceExW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromResourceExW_Super(pDevice, hSrcModule, pSrcResource, Width, Height, Depth, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromFileInMemory_Detour(LPDIRECT3DDEVICE9 pDevice, LPCVOID pSrcData, UINT SrcDataSize, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromFileInMemory_Super(pDevice, pSrcData, SrcDataSize, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileInMemory_Detour(LPDIRECT3DDEVICE9 pDevice, LPCVOID pSrcData, UINT SrcDataSize, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromFileInMemory_Super(pDevice, pSrcData, SrcDataSize, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileInMemory_Detour(LPDIRECT3DDEVICE9 pDevice, LPCVOID pSrcData, UINT SrcDataSize, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromFileInMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromFileInMemory_Super(pDevice, pSrcData, SrcDataSize, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEVICE9 pDevice, LPCVOID pSrcData, UINT SrcDataSize, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DTEXTURE9* ppTexture)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateTextureFromFileInMemoryEx");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppTexture]->m_pOutput = (void*)&ppTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateTextureFromFileInMemoryEx;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateTextureFromFileInMemoryEx_Super(pDevice, pSrcData, SrcDataSize, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateCubeTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEVICE9 pDevice, LPCVOID pSrcData, UINT SrcDataSize, UINT Size, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DCUBETEXTURE9* ppCubeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateCubeTextureFromFileInMemoryEx");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateCubeTextureFromFileInMemoryEx");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Size]->m_pOutput = (void*)&Size;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppCubeTexture]->m_pOutput = (void*)&ppCubeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateCubeTextureFromFileInMemoryEx;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateCubeTextureFromFileInMemoryEx_Super(pDevice, pSrcData, SrcDataSize, Size, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppCubeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx_Detour(LPDIRECT3DDEVICE9 pDevice, LPCVOID pSrcData, UINT SrcDataSize, UINT Width, UINT Height, UINT Depth, UINT MipLevels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, DWORD Filter, DWORD MipFilter, D3DCOLOR ColorKey, D3DXIMAGE_INFO* pSrcInfo, PALETTEENTRY* pPalette, LPDIRECT3DVOLUMETEXTURE9* ppVolumeTexture)
-{
-	OutputDebugString(L"D3D9::D3DXCreateVolumeTextureFromFileInMemoryEx");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXCreateVolumeTextureFromFileInMemoryEx");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcData]->m_pOutput = (void*)&pSrcData;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcDataSize]->m_pOutput = (void*)&SrcDataSize;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Width]->m_pOutput = (void*)&Width;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Height]->m_pOutput = (void*)&Height;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Depth]->m_pOutput = (void*)&Depth;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipLevels]->m_pOutput = (void*)&MipLevels;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Usage]->m_pOutput = (void*)&Usage;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Format]->m_pOutput = (void*)&Format;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Pool]->m_pOutput = (void*)&Pool;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::MipFilter]->m_pOutput = (void*)&MipFilter;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ColorKey]->m_pOutput = (void*)&ColorKey;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcInfo]->m_pOutput = (void*)&pSrcInfo;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppVolumeTexture]->m_pOutput = (void*)&ppVolumeTexture;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pDevice, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXCreateVolumeTextureFromFileInMemoryEx_Super(pDevice, pSrcData, SrcDataSize, Width, Height, Depth, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppVolumeTexture);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveTextureToFileA_Detour(LPCSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DBASETEXTURE9 pSrcTexture, CONST PALETTEENTRY* pSrcPalette)
-{
-	OutputDebugString(L"D3D9::D3DXSaveTextureToFileA");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveTextureToFileA");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcTexture) pSrcTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveTextureToFileA;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveTextureToFileA_Super(pDestFile, DestFormat, pSrcTexture, pSrcPalette);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveTextureToFileW_Detour(LPCWSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DBASETEXTURE9 pSrcTexture, CONST PALETTEENTRY* pSrcPalette)
-{
-	OutputDebugString(L"D3D9::D3DXSaveTextureToFileW");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveTextureToFileW");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcTexture) pSrcTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pDestFile]->m_pOutput = (void*)&pDestFile;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveTextureToFileW;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveTextureToFileW_Super(pDestFile, DestFormat, pSrcTexture, pSrcPalette);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXSaveTextureToFileInMemory_Detour(LPD3DXBUFFER* ppDestBuf, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DBASETEXTURE9 pSrcTexture, CONST PALETTEENTRY* pSrcPalette)
-{
-	OutputDebugString(L"D3D9::D3DXSaveTextureToFileInMemory");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXSaveTextureToFileInMemory");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pSrcTexture) pSrcTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::ppDestBuf]->m_pOutput = (void*)&ppDestBuf;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::DestFormat]->m_pOutput = (void*)&DestFormat;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXSaveTextureToFileInMemory;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXSaveTextureToFileInMemory_Super(ppDestBuf, DestFormat, pSrcTexture, pSrcPalette);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFilterTexture_Detour(LPDIRECT3DBASETEXTURE9 pBaseTexture, CONST PALETTEENTRY* pPalette, UINT SrcLevel, DWORD Filter)
-{
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFilterTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pBaseTexture) pBaseTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pBaseTexture]->m_pOutput = (void*)&pBaseTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pPalette]->m_pOutput = (void*)&pPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::SrcLevel]->m_pOutput = (void*)&SrcLevel;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Filter]->m_pOutput = (void*)&Filter;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFilterTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFilterTexture_Super(pBaseTexture, pPalette, SrcLevel, Filter);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFillTexture_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD3DXFILL2D pFunction, LPVOID pData)
-{
-	OutputDebugString(L"D3D9::D3DXFillTexture");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFillTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pTexture) pTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFillTexture_Super(pTexture, pFunction, pData);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFillCubeTexture_Detour(LPDIRECT3DCUBETEXTURE9 pCubeTexture, LPD3DXFILL3D pFunction, LPVOID pData)
-{
-	OutputDebugString(L"D3D9::D3DXFillCubeTexture");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFillCubeTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pCubeTexture) pCubeTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pCubeTexture]->m_pOutput = (void*)&pCubeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillCubeTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFillCubeTexture_Super(pCubeTexture, pFunction, pData);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFillVolumeTexture_Detour(LPDIRECT3DVOLUMETEXTURE9 pVolumeTexture, LPD3DXFILL3D pFunction, LPVOID pData)
-{
-	OutputDebugString(L"D3D9::D3DXFillVolumeTexture");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFillVolumeTexture");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pVolumeTexture) pVolumeTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pVolumeTexture]->m_pOutput = (void*)&pVolumeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pFunction]->m_pOutput = (void*)&pFunction;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pData]->m_pOutput = (void*)&pData;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillVolumeTexture;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFillVolumeTexture_Super(pVolumeTexture, pFunction, pData);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFillTextureTX_Detour(LPDIRECT3DTEXTURE9 pTexture, LPD3DXTEXTURESHADER pTextureShader)
-{
-	OutputDebugString(L"D3D9::D3DXFillTextureTX");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFillTextureTX");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pTexture) pTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillTextureTX;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFillTextureTX_Super(pTexture, pTextureShader);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFillCubeTextureTX_Detour(LPDIRECT3DCUBETEXTURE9 pCubeTexture, LPD3DXTEXTURESHADER pTextureShader)
-{
-	OutputDebugString(L"D3D9::D3DXFillCubeTextureTX");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFillCubeTextureTX");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pCubeTexture) pCubeTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pCubeTexture]->m_pOutput = (void*)&pCubeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillCubeTextureTX;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFillCubeTextureTX_Super(pCubeTexture, pTextureShader);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXFillVolumeTextureTX_Detour(LPDIRECT3DVOLUMETEXTURE9 pVolumeTexture, LPD3DXTEXTURESHADER pTextureShader)
-{
-	OutputDebugString(L"D3D9::D3DXFillVolumeTextureTX");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXFillVolumeTextureTX");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pVolumeTexture) pVolumeTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pVolumeTexture]->m_pOutput = (void*)&pVolumeTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTextureShader]->m_pOutput = (void*)&pTextureShader;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXFillVolumeTextureTX;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXFillVolumeTextureTX_Super(pVolumeTexture, pTextureShader);
-	return nHr;
-}
-/**
-*
-***/
-HRESULT WINAPI D3D9_D3DXComputeNormalMap_Detour(LPDIRECT3DTEXTURE9 pTexture, LPDIRECT3DTEXTURE9 pSrcTexture, CONST PALETTEENTRY* pSrcPalette, DWORD Flags, DWORD Channel, FLOAT Amplitude)
-{
-	OutputDebugString(L"D3D9::D3DXComputeNormalMap");
-	static HRESULT nHr = S_OK;
-
-	// output method call if no D3DX9 node is present
-	if (!g_pAQU_TransferSite->m_pNOD_D3DX9)
-	{
-		OutputDebugString(L"D3DX9::D3DXComputeNormalMap");
-	}
-	// not force D3D, node present and invokers connected ? set node output data and return node provoke
-	else if ((!g_pAQU_TransferSite->m_bForceD3D) && (g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers.size() > 0))
-	{
-		// get device
-		IDirect3DDevice9* pcThis = nullptr;
-		if (pTexture) pTexture->GetDevice(&pcThis);
-
-		// set data
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pTexture]->m_pOutput = (void*)&pTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcTexture]->m_pOutput = (void*)&pSrcTexture;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::pSrcPalette]->m_pOutput = (void*)&pSrcPalette;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Flags]->m_pOutput = (void*)&Flags;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Channel]->m_pOutput = (void*)&Channel;
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_paCommandersTemporary[NOD_D3DX9_Commanders::Amplitude]->m_pOutput = (void*)&Amplitude;
-
-		// overwrite the method id here
-		g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_eD3DMethod = MT_D3DX9::D3D9_D3DXComputeNormalMap;
-
-		// provoke, set bForceD3D to "true" for any provoking circle
-		g_pAQU_TransferSite->m_bForceD3D = true;
-		void* pvRet = g_pAQU_TransferSite->m_pNOD_D3DX9->Provoke((void*)pcThis, g_pAQU_TransferSite->m_ppaNodes);
-		g_pAQU_TransferSite->m_bForceD3D = false;
-
-		if (pcThis) pcThis->Release();
-
-		// replace method call only if the nodes first connected node wants to replace the call
-		if ((*g_pAQU_TransferSite->m_ppaNodes)[g_pAQU_TransferSite->m_pNOD_D3DX9->m_cProvoker.m_paInvokers[0]->m_lNodeIndex]->m_bReturn)
-		{
-			// get return value.. MUST be STATIC !
-			nHr = (HRESULT) * (HRESULT*)pvRet;
-			return nHr;
-		}
-	}
-
-	nHr = D3D9_D3DXComputeNormalMap_Super(pTexture, pSrcTexture, pSrcPalette, Flags, Channel, Amplitude);
-	return nHr;
-}
-#pragma endregion
 
