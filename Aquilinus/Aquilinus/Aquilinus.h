@@ -2,7 +2,7 @@
 Vireio Perception : Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Aquilinus : Vireio Perception 3D Modification Studio 
+Aquilinus : Vireio Perception 3D Modification Studio
 Copyright © 2014 Denis Reischl
 
 Vireio Perception Version History:
@@ -142,8 +142,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma endregion
 
 #pragma region Aquilinus global fields
-AQU_TransferSite*       g_pAQU_TransferSite;    /**< The transfer site. **/
-AQU_WorkingArea*        g_pAQU_WorkingArea;     /**< The working area. **/
+AQU_TransferSite* g_pAQU_TransferSite;    /**< The transfer site. **/
+AQU_WorkingArea* g_pAQU_WorkingArea;     /**< The working area. **/
 std::vector<NOD_Basic*> g_paNodes;              /**< The nodes vector used for complemented profiles. **/
 int                     g_area_width = 600;     /**< The default width of the working area window. **/
 int                     g_area_height = 200;    /**< The default height of the working area window. **/
@@ -153,34 +153,34 @@ int                     g_profile_height = 200; /**< The default height of the p
 
 #pragma region Aquilinus detour classes
 // DirectX 9.0
-DCL_IDirect3DBaseTexture9*       pDCL_IDirect3DBaseTexture9;
-DCL_IDirect3DCubeTexture9*       pDCL_IDirect3DCubeTexture9;
-DCL_IDirect3DDevice9*            pDCL_IDirect3DDevice9;
-DCL_IDirect3DIndexBuffer9*       pDCL_IDirect3DIndexBuffer9;
-DCL_IDirect3DPixelShader9*       pDCL_IDirect3DPixelShader9;
-DCL_IDirect3DQuery9*             pDCL_IDirect3DQuery9;
-DCL_IDirect3DResource9*          pDCL_IDirect3DResource9;
-DCL_IDirect3DStateBlock9*        pDCL_IDirect3DStateBlock9;
-DCL_IDirect3DSurface9*           pDCL_IDirect3DSurface9;
-DCL_IDirect3DSwapChain9*         pDCL_IDirect3DSwapChain9;
-DCL_IDirect3DTexture9*           pDCL_IDirect3DTexture9;
-DCL_IDirect3DVertexBuffer9*      pDCL_IDirect3DVertexBuffer9;
+DCL_IDirect3DBaseTexture9* pDCL_IDirect3DBaseTexture9;
+DCL_IDirect3DCubeTexture9* pDCL_IDirect3DCubeTexture9;
+DCL_IDirect3DDevice9* pDCL_IDirect3DDevice9;
+DCL_IDirect3DIndexBuffer9* pDCL_IDirect3DIndexBuffer9;
+DCL_IDirect3DPixelShader9* pDCL_IDirect3DPixelShader9;
+DCL_IDirect3DQuery9* pDCL_IDirect3DQuery9;
+DCL_IDirect3DResource9* pDCL_IDirect3DResource9;
+DCL_IDirect3DStateBlock9* pDCL_IDirect3DStateBlock9;
+DCL_IDirect3DSurface9* pDCL_IDirect3DSurface9;
+DCL_IDirect3DSwapChain9* pDCL_IDirect3DSwapChain9;
+DCL_IDirect3DTexture9* pDCL_IDirect3DTexture9;
+DCL_IDirect3DVertexBuffer9* pDCL_IDirect3DVertexBuffer9;
 DCL_IDirect3DVertexDeclaration9* pDCL_IDirect3DVertexDeclaration9;
-DCL_IDirect3DVertexShader9*      pDCL_IDirect3DVertexShader9;
-DCL_IDirect3DVolume9*            pDCL_IDirect3DVolume9;
-DCL_IDirect3DVolumeTexture9*     pDCL_IDirect3DVolumeTexture9;
-DCL_IDirect3DDevice9Ex*          pDCL_IDirect3DDevice9Ex;
+DCL_IDirect3DVertexShader9* pDCL_IDirect3DVertexShader9;
+DCL_IDirect3DVolume9* pDCL_IDirect3DVolume9;
+DCL_IDirect3DVolumeTexture9* pDCL_IDirect3DVolumeTexture9;
+DCL_IDirect3DDevice9Ex* pDCL_IDirect3DDevice9Ex;
 
 // DirectX 10
-DCL_ID3D10Device*        pDCL_ID3D10Device;
-DCL_ID3D10Device1*       pDCL_ID3D10Device1;
-DCL_IDXGISwapChain*      pDCL_IDXGISwapChain;
-DCL_IDXGISwapChain1*     pDCL_IDXGISwapChain1;
+DCL_ID3D10Device* pDCL_ID3D10Device;
+DCL_ID3D10Device1* pDCL_ID3D10Device1;
+DCL_IDXGISwapChain* pDCL_IDXGISwapChain;
+DCL_IDXGISwapChain1* pDCL_IDXGISwapChain1;
 
 // DirectX 11
-DCL_ID3D11Device*         pDCL_ID3D11Device;
-DCL_ID3D11Device1*        pDCL_ID3D11Device1;
-DCL_ID3D11DeviceContext*  pDCL_ID3D11DeviceContext;
+DCL_ID3D11Device* pDCL_ID3D11Device;
+DCL_ID3D11Device1* pDCL_ID3D11Device1;
+DCL_ID3D11DeviceContext* pDCL_ID3D11DeviceContext;
 DCL_ID3D11DeviceContext1* pDCL_ID3D11DeviceContext1;
 #pragma endregion
 
@@ -194,8 +194,8 @@ HRESULT     WINAPI                  D3D9_CheckDeviceFormat_Detour(LPDIRECT3D9 pc
 HRESULT     WINAPI                  D3D9_CheckDeviceMultiSampleType_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels);
 HRESULT     WINAPI                  D3D9_CheckDepthStencilMatch_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat);
 HRESULT     WINAPI                  D3D9_CheckDeviceFormatConversion_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat);
-HRESULT     WINAPI                  D3D9_CreateDevice_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS *pPresentationParameters, IDirect3DDevice9 **ppReturnedDeviceInterface);
-HRESULT                             D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS *pPresentationParameters);
+HRESULT     WINAPI                  D3D9_CreateDevice_Detour(LPDIRECT3D9 pcD3D, UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface);
+HRESULT                             D3D9_CreateAll(LPDIRECT3D9 pParent, LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters);
 DWORD       WINAPI                  D3D9_Detour(LPVOID Param);
 DWORD       WINAPI                  D3D9_VMT_Mask(LPVOID Param);
 DWORD       WINAPI                  D3D9_VMT_Create(LPVOID Param);
@@ -203,11 +203,12 @@ DWORD       WINAPI                  D3D9_VMT_Repatch(LPVOID Param);
 DWORD       WINAPI                  D3D10_VMT_Mask(LPVOID Param);
 DWORD       WINAPI                  D3D10_VMT_Create(LPVOID Param);
 DWORD       WINAPI                  D3D10_VMT_Repatch(LPVOID Param);
+DWORD       WINAPI                  D3D11_Detour(LPVOID Param);
 DWORD       WINAPI                  D3D11_VMT_Mask(LPVOID Param);
 DWORD       WINAPI                  D3D11_VMT_Create(LPVOID Param);
 DWORD       WINAPI                  D3D11_VMT_Repatch(LPVOID Param);
 
-typedef IDirect3D9*(WINAPI* D3D9_Direct3DCreate9)(UINT SDKVersion);
+typedef IDirect3D9* (WINAPI* D3D9_Direct3DCreate9)(UINT SDKVersion);
 D3D9_Direct3DCreate9 D3D9_Direct3DCreate9_Super = NULL;
 typedef HRESULT(WINAPI* D3D9_QueryInterface)(LPDIRECT3D9 pcD3D, REFIID riid, void** ppvObj);
 D3D9_QueryInterface D3D9_QueryInterface_Super = NULL;
@@ -223,8 +224,12 @@ typedef HRESULT(WINAPI* D3D9_CheckDeviceFormatConversion)(LPDIRECT3D9 pcD3D, UIN
 D3D9_CheckDeviceFormatConversion D3D9_CheckDeviceFormatConversion_Super = NULL;
 typedef HRESULT(WINAPI* D3D9_CreateDevice) (LPDIRECT3D9, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, LPDIRECT3DDEVICE9*);
 D3D9_CreateDevice D3D9_CreateDevice_Super = NULL;
-typedef HRESULT(WINAPI* D3D11_CreateDeviceAndSwapChain) (IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL* , ID3D11DeviceContext**);
+typedef HRESULT(WINAPI* D3D11_CreateDevice) (IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+D3D11_CreateDevice D3D11CreateDevice_Super = NULL;
+typedef HRESULT(WINAPI* D3D11_CreateDeviceAndSwapChain) (IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 D3D11_CreateDeviceAndSwapChain D3D11CreateDeviceAndSwapChain_Super = NULL;
+typedef HRESULT(WINAPI* DXGI_CreateSwapChain) (IUnknown*, DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**);
+DXGI_CreateSwapChain CreateSwapChain_Super = NULL;
 #pragma endregion
 
 #pragma region Aquilinus VMTable pointers

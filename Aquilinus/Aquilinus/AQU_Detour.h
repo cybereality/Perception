@@ -113,10 +113,11 @@ void* DetourFuncMinHook(void* pSrc, void* pDst)
 	
 	// enable the hook 
 	if (MH_EnableHook(pSrc) != MH_OK)
-	{
 		OutputDebugString(L"[AQU] Failed to detour method (MinHook) !!");
-	}
-	else OutputDebugStringW(L"[AQU] Enable Hook success !");
+
+	DWORD old_protect;
+	VirtualProtect(pDst, 2, PAGE_EXECUTE_READ, &old_protect);
+	VirtualProtect(pRet, 2, PAGE_EXECUTE_READWRITE, &old_protect);
 
 	return pRet;
 }

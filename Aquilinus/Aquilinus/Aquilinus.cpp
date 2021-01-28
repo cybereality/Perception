@@ -276,7 +276,7 @@ HRESULT WINAPI AquilinusInit(VOID)
 	if (bDX11)
 	{
 		// get device by memory pattern or by ->CreateDevice() detour ?
-		if (true)
+		if (false)
 		{
 			// VMT mask not working anymore ??
 			if ((pRootThread = CreateThread(NULL, 0, D3D11_VMT_Mask, NULL, 0, NULL)) == NULL)
@@ -285,7 +285,7 @@ HRESULT WINAPI AquilinusInit(VOID)
 		else
 		{
 			// use MinHook 
-			if ((pRootThread = CreateThread(NULL, 0, D3D11_VMT_Create, NULL, 0, NULL)) == NULL)
+			if ((pRootThread = CreateThread(NULL, 0, D3D11_Detour, NULL, 0, NULL)) == NULL)
 				return E_FAIL;
 		}
 	}
@@ -1708,63 +1708,195 @@ DWORD WINAPI D3D10_VMT_Repatch(LPVOID Param)
 #pragma endregion
 
 #pragma region /// => DirectX 11.0
-
 /// <summary>
-/// => D3D9 Create Device Detour
+/// => D3D11 Create Device Detour
 /// </summary>
-HRESULT WINAPI D3D11CreateDeviceAndSwapChain_Detour(
-	_In_opt_ IDXGIAdapter* pAdapter,
+HRESULT WINAPI D3D11CreateDevice_Detour(
+	IDXGIAdapter* pAdapter,
 	D3D_DRIVER_TYPE DriverType,
 	HMODULE Software,
 	UINT Flags,
-	_In_reads_opt_(FeatureLevels) CONST D3D_FEATURE_LEVEL* pFeatureLevels,
+	CONST D3D_FEATURE_LEVEL* pFeatureLevels,
 	UINT FeatureLevels,
 	UINT SDKVersion,
-	_In_opt_ CONST DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
-	_COM_Outptr_opt_ IDXGISwapChain** ppSwapChain,
-	_COM_Outptr_opt_ ID3D11Device** ppDevice,
-	_Out_opt_ D3D_FEATURE_LEVEL* pFeatureLevel,
-	_COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext)
+	ID3D11Device** ppDevice,
+	D3D_FEATURE_LEVEL* pFeatureLevel,
+	ID3D11DeviceContext** ppImmediateContext)
 {
-	static bool s_bIsOwnCall = false;
-	OutputDebugString(L"[AQU] D3D11CreateDeviceAndSwapChain_Detour");
+	OutputDebugString(L"[AQU] D3D11CreateDevice_Detour");
 
 	// call super method... normal device created
-	return D3D11CreateDeviceAndSwapChain_Super(pAdapter, DriverType, Software, Flags, pFeatureLevels,
-		FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+	HRESULT nHr = D3D11CreateDevice_Super(pAdapter, DriverType, Software, Flags, pFeatureLevels,
+		FeatureLevels, SDKVersion, ppDevice, pFeatureLevel, ppImmediateContext);
 
-	return S_OK;
+	if (SUCCEEDED(nHr) && (ppDevice) && (ppImmediateContext))
+	{
+		if (*ppDevice)
+		{
+			D3D11_ID3D11Device_VMTable = (UINT_PTR*)*ppDevice;
+			D3D11_ID3D11Device_VMTable = (UINT_PTR*)D3D11_ID3D11Device_VMTable[0];
+			Detour_D3D11_ID3D11Device_VMTable();
+		}
+		if (*ppImmediateContext)
+		{
+			D3D11_ID3D11DeviceContext_VMTable = (UINT_PTR*)*ppImmediateContext;
+			D3D11_ID3D11DeviceContext_VMTable = (UINT_PTR*)D3D11_ID3D11DeviceContext_VMTable[0];
+			Detour_D3D11_ID3D11DeviceContext_VMTable();
+		}
+	}
+	return nHr;
 }
 
 /// <summary>
-/// => D3D11 VMT Mask
-/// Thread to get the d3d11 device by mask.
-/// This method does following :
-/// - it creates a test device + context + swapchain
-/// - it gets the first VM-table address from both device and context
-/// - it releases the test device + context + swapchain
-/// - it locates the VM-table for both the device and context in "d3d11.dll"
-/// - it sets/creates all necessary hooking fields
-/// - it starts the repatching thread
+/// => D3D11 Create Device Detour
 /// </summary>
-DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
+HRESULT WINAPI D3D11CreateDeviceAndSwapChain_Detour(
+	IDXGIAdapter* pAdapter,
+	D3D_DRIVER_TYPE DriverType,
+	HMODULE Software,
+	UINT Flags,
+	CONST D3D_FEATURE_LEVEL* pFeatureLevels,
+	UINT FeatureLevels,
+	UINT SDKVersion,
+	CONST DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
+	IDXGISwapChain** ppSwapChain,
+	ID3D11Device** ppDevice,
+	D3D_FEATURE_LEVEL* pFeatureLevel,
+	ID3D11DeviceContext** ppImmediateContext)
 {
+	OutputDebugString(L"[AQU] D3D11CreateDeviceAndSwapChain_Detour");
+
+	// call super method... normal device created
+	HRESULT nHr = D3D11CreateDeviceAndSwapChain_Super(pAdapter, DriverType, Software, Flags, pFeatureLevels,
+		FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+
+	if (SUCCEEDED(nHr) && (ppDevice) && (ppImmediateContext) && (ppSwapChain))
+	{
+		if (*ppDevice)
+		{
+			D3D11_ID3D11Device_VMTable = (UINT_PTR*)*ppDevice;
+			D3D11_ID3D11Device_VMTable = (UINT_PTR*)D3D11_ID3D11Device_VMTable[0];
+			Detour_D3D11_ID3D11Device_VMTable();
+		}
+		if (*ppImmediateContext)
+		{
+			D3D11_ID3D11DeviceContext_VMTable = (UINT_PTR*)*ppImmediateContext;
+			D3D11_ID3D11DeviceContext_VMTable = (UINT_PTR*)D3D11_ID3D11DeviceContext_VMTable[0];
+			Detour_D3D11_ID3D11DeviceContext_VMTable();
+		}
+		if (*ppSwapChain)
+		{
+			D3D10_IDXGISwapChain_VMTable = (UINT_PTR*)*ppSwapChain;
+			D3D10_IDXGISwapChain_VMTable = (UINT_PTR*)D3D10_IDXGISwapChain_VMTable[0];
+			Detour_D3D10_IDXGISwapChain_VMTable();
+		}
+	}
+
+	return nHr;
+}
+
+/// <summary>
+/// Create Swapchain detour
+/// </summary>
+HRESULT WINAPI CreateSwapChain_Detour(
+	IUnknown* pDevice,
+	DXGI_SWAP_CHAIN_DESC* pDesc,
+	IDXGISwapChain** ppSwapChain)
+{
+	OutputDebugString(L"[AQU] CreateSwapChain_Detour");
+
+	return CreateSwapChain_Super(pDevice, pDesc, ppSwapChain);
+}
+
+/// <summary>
+/// Create Swapchain1 detour
+/// </summary>
+HRESULT STDMETHODCALLTYPE CreateSwapChainForHwnd_Detour(
+	_In_  IUnknown* pDevice,
+	_In_  HWND hWnd,
+	_In_  const DXGI_SWAP_CHAIN_DESC1* pDesc,
+	_In_opt_  const DXGI_SWAP_CHAIN_FULLSCREEN_DESC* pFullscreenDesc,
+	_In_opt_  IDXGIOutput* pRestrictToOutput,
+	_COM_Outptr_  IDXGISwapChain1** ppSwapChain)
+{
+	return E_NOTIMPL;
+};
+
+/// <summary>
+/// Create Swapchain1 detour
+/// </summary>
+HRESULT STDMETHODCALLTYPE CreateSwapChainForCoreWindow_Detour(
+	_In_  IUnknown* pDevice,
+	_In_  IUnknown* pWindow,
+	_In_  const DXGI_SWAP_CHAIN_DESC1* pDesc,
+	_In_opt_  IDXGIOutput* pRestrictToOutput,
+	_COM_Outptr_  IDXGISwapChain1** ppSwapChain)
+{
+	return E_NOTIMPL;
+};
+
+/// <summary>
+/// Create Swapchain1 detour
+/// </summary>
+HRESULT STDMETHODCALLTYPE CreateSwapChainForComposition_Detour(
+	_In_  IUnknown* pDevice,
+	_In_  const DXGI_SWAP_CHAIN_DESC1* pDesc,
+	_In_opt_  IDXGIOutput* pRestrictToOutput,
+	_COM_Outptr_  IDXGISwapChain1** ppSwapChain)
+{
+	return E_NOTIMPL;
+};
+
+
+/// <summary>
+/// Thread to hook D3D11 classes via MinHook.
+/// </summary>
+DWORD WINAPI D3D11_Detour(LPVOID Param)
+{
+	UNREFERENCED_PARAMETER(Param);
+
+	// init MinHook
 	MH_Initialize();
 
+	// TODO !! MAKE THIS OPTIONALLY
+
 	/*/////////////////////////////////////////////////////////////
+
+	// create the aquilinus detour classes
+	pDCL_ID3D11Device = new DCL_ID3D11Device(g_pAQU_TransferSite);
+	pDCL_IDXGISwapChain = new DCL_IDXGISwapChain(g_pAQU_TransferSite);
+	pDCL_ID3D11DeviceContext = new DCL_ID3D11DeviceContext(g_pAQU_TransferSite);
+
+	MH_CreateHook(&D3D11CreateDevice, &D3D11CreateDevice_Detour, reinterpret_cast<LPVOID*>(&D3D11CreateDevice_Super));
+
+	// enable the hook
+	if (MH_EnableHook(&D3D11CreateDevice) != MH_OK)
+	{
+		OutputDebugString(L"[AQU] Failed to detour method (MinHook) D3D11CreateDevice !!");
+	}
+	else OutputDebugStringW(L"[AQU] Enable Hook success D3D11CreateDevice !");
 
 	MH_CreateHook(&D3D11CreateDeviceAndSwapChain, &D3D11CreateDeviceAndSwapChain_Detour, reinterpret_cast<LPVOID*>(&D3D11CreateDeviceAndSwapChain_Super));
 
 	// enable the hook
 	if (MH_EnableHook(&D3D11CreateDeviceAndSwapChain) != MH_OK)
 	{
-		OutputDebugString(L"[AQU] Failed to detour method (MinHook) !!");
+		OutputDebugString(L"[AQU] Failed to detour method (MinHook) D3D11CreateDeviceAndSwapChain !!");
 	}
-	else OutputDebugStringW(L"[AQU] Enable Hook success !");
+	else OutputDebugStringW(L"[AQU] Enable Hook success D3D11CreateDeviceAndSwapChain !");
 
-	return 0;
+	return D3D_OK;*/
 
-	/////////////////////////////////////////////////////////////*/
+	/*MH_CreateHook(&CreateSwapChain, &CreateSwapChain_Detour, reinterpret_cast<LPVOID*>(&CreateSwapChain_Super));
+
+	// enable the hook
+	if (MH_EnableHook(&CreateSwapChain) != MH_OK)
+	{
+		OutputDebugString(L"[AQU] Failed to detour method (MinHook) CreateSwapChain !!");
+	}
+	else OutputDebugStringW(L"[AQU] Enable Hook success CreateSwapChain !");*/
+
+	//////////////////////////////////////////////////////////////
 
 	// time delay ?
 	if (g_pAquilinusConfig->dwDetourTimeDelay > 15)
@@ -1808,18 +1940,150 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 	UINT               numLevelsRequested = ARRAYSIZE(featureLevels);
 	D3D_FEATURE_LEVEL  FeatureLevelsSupported;
 	if (FAILED(D3D11CreateDeviceAndSwapChain(
-		NULL,                    //_In_   IDXGIAdapter *pAdapter,
-		D3D_DRIVER_TYPE_HARDWARE,//_In_   D3D_DRIVER_TYPE DriverType,
-		NULL,                    //_In_   HMODULE Software,
-		0,                       //_In_   UINT Flags,
-		featureLevels,           //_In_   const D3D_FEATURE_LEVEL *pFeatureLevels,
-		numLevelsRequested,      //_In_   UINT FeatureLevels,
-		D3D11_SDK_VERSION,       //_In_   UINT SDKVersion,
-		&swapChainDesc,          //_In_   const DXGI_SWAP_CHAIN_DESC *pSwapChainDesc,
-		&pSwapChain,             //_Out_  IDXGISwapChain **ppSwapChain,
-		&pDevice,                //_Out_  ID3D11Device **ppDevice,
-		&FeatureLevelsSupported, //_Out_  D3D_FEATURE_LEVEL *pFeatureLevel,
-		&pImmediateContext       //_Out_  ID3D11DeviceContext **ppImmediateContext
+		NULL, 
+		D3D_DRIVER_TYPE_HARDWARE,
+		NULL, 
+		0, 
+		featureLevels,
+		numLevelsRequested,
+		D3D11_SDK_VERSION, 
+		&swapChainDesc, 
+		&pSwapChain,
+		&pDevice,
+		&FeatureLevelsSupported,
+		&pImmediateContext 
+	)))
+	{
+		OutputDebug("Failed to create directX device and swapchain!");
+		return E_FAIL;
+	}
+
+	// set vtables
+	D3D11_ID3D11Device_VMTable = (UINT_PTR*)pDevice;
+	D3D11_ID3D11Device_VMTable = (UINT_PTR*)D3D11_ID3D11Device_VMTable[0];
+	D3D11_ID3D11DeviceContext_VMTable = (UINT_PTR*)pImmediateContext;
+	D3D11_ID3D11DeviceContext_VMTable = (UINT_PTR*)D3D11_ID3D11DeviceContext_VMTable[0];
+	D3D10_IDXGISwapChain_VMTable = (UINT_PTR*)pSwapChain;
+	D3D10_IDXGISwapChain_VMTable = (UINT_PTR*)D3D10_IDXGISwapChain_VMTable[0];
+
+	// release all
+	{
+		if (pSwapChain)
+		{
+			(pSwapChain)->Release();
+			(pSwapChain) = NULL;
+		}
+	}
+	{
+		if (pImmediateContext)
+		{
+			(pImmediateContext)->Release();
+			(pImmediateContext) = NULL;
+		}
+	}
+	{
+		if (pDevice)
+		{
+			(pDevice)->Release();
+			(pDevice) = NULL;
+		}
+	}
+
+	// create the aquilinus detour classes
+	pDCL_ID3D11Device = new DCL_ID3D11Device(g_pAQU_TransferSite);
+	pDCL_IDXGISwapChain = new DCL_IDXGISwapChain(g_pAQU_TransferSite);
+	pDCL_ID3D11DeviceContext = new DCL_ID3D11DeviceContext(g_pAQU_TransferSite);
+
+	// detour direct11 device + context methods
+	if (D3D11_ID3D11Device_VMTable)
+		Detour_D3D11_ID3D11Device_VMTable();
+
+	// TODO !! MAKE DETOUR HERE OPTIONALLY
+	/*
+		if (D3D11_ID3D11DeviceContext_VMTable)
+			Detour_D3D11_ID3D11DeviceContext_VMTable();
+		if (D3D10_IDXGISwapChain_VMTable)
+			Detour_D3D10_IDXGISwapChain_VMTable();
+	}*/
+
+	OutputDebugString(L"[AQU] VMTable hook installed.");
+
+	// create the thread to override the virtual methods table
+	if (CreateThread(NULL, 0, D3D11_VMT_Repatch, NULL, 0, NULL) == NULL)
+		return E_FAIL;
+
+	return D3D_OK;
+}
+
+/// <summary>
+/// => D3D11 VMT Mask
+/// Thread to get the d3d11 device by mask.
+/// This method does following :
+/// - it creates a test device + context + swapchain
+/// - it gets the first VM-table address from both device and context
+/// - it releases the test device + context + swapchain
+/// - it locates the VM-table for both the device and context in "d3d11.dll"
+/// - it sets/creates all necessary hooking fields
+/// - it starts the repatching thread
+/// </summary>
+DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
+{
+	MH_Initialize();
+
+	// time delay ?
+	if (g_pAquilinusConfig->dwDetourTimeDelay > 15)
+	{
+		Sleep(g_pAquilinusConfig->dwDetourTimeDelay);
+	}
+
+	ID3D11Device* pDevice;
+	ID3D11DeviceContext* pImmediateContext;
+
+	// find the window we want to inject
+	HWND hWnd = GetForegroundWindow();
+	RECT rc;
+	GetClientRect(hWnd, &rc);
+	UINT width = rc.right - rc.left;
+	UINT height = rc.bottom - rc.top;
+
+	// create a sample device and swapchain
+	IDXGISwapChain* pSwapChain;
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
+
+	swapChainDesc.BufferCount = 1;
+	swapChainDesc.BufferDesc.Width = width;
+	swapChainDesc.BufferDesc.Height = height;
+	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.OutputWindow = hWnd;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
+	swapChainDesc.Windowed = TRUE;
+
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+	};
+	UINT               numLevelsRequested = ARRAYSIZE(featureLevels);
+	D3D_FEATURE_LEVEL  FeatureLevelsSupported;
+	if (FAILED(D3D11CreateDeviceAndSwapChain(
+		NULL,
+		D3D_DRIVER_TYPE_HARDWARE,
+		NULL,
+		0,
+		featureLevels,
+		numLevelsRequested,
+		D3D11_SDK_VERSION,
+		&swapChainDesc,
+		&pSwapChain,
+		&pDevice,
+		&FeatureLevelsSupported,
+		&pImmediateContext
 	)))
 	{
 		OutputDebug("Failed to create directX device and swapchain!");
@@ -1893,6 +2157,7 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 	dwHandle = dwDXContextVMTableRoot + 4;
 	dwDXContextVMTableRoot = (UINT_PTR)FindPattern(dwHandle, 0x128000, pbMask, "xxxx");
 #endif
+
 	if (dwDXVMTableRoot)
 	{
 		// D3D11.0 device
@@ -1924,7 +2189,7 @@ DWORD WINAPI D3D11_VMT_Mask(LPVOID Param)
 		// create the thread to override the virtual methods table
 		if (CreateThread(NULL, 0, D3D11_VMT_Repatch, NULL, 0, NULL) == NULL)
 			return E_FAIL;
-	}
+}
 	else
 		OutputDebugStringA("[AQU] NO D3D11 VMTable found within d3d11.dll !!");
 
@@ -1967,24 +2232,23 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 			Override_D3D11_ID3D11Device_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		if (D3D11_ID3D11Device_VMTable)
-			Detour_D3D11_ID3D11Device_VMTable();
+		// no detour here !!
 		break;
 	}
+
 	// which technique ?
-	/*switch (g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext])
+	switch (g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext])
 	{
 	case AQU_InjectionTechniques::VMTable:
 		if (D3D11_ID3D11DeviceContext_VMTable)
 			Override_D3D11_ID3D11DeviceContext_VMTable();
 		break;
 	case AQU_InjectionTechniques::Detour:
-		if (D3D11_ID3D11DeviceContext_VMTable)
-			Detour_D3D11_ID3D11DeviceContext_VMTable();
+		// no detour here !!
 		break;
-	}*/
+	}
 
-	// get the DXGI SwapChain + Context
+	// get the DXGI SwapChain + Context from the hooked (!) D3D11 device class !!
 	D3D10_IDXGISwapChain_VMTable = NULL;
 	D3D11_ID3D11DeviceContext_VMTable = NULL;
 	while ((D3D10_IDXGISwapChain_VMTable == NULL) || (D3D11_ID3D11DeviceContext_VMTable == NULL))
@@ -2023,6 +2287,8 @@ DWORD WINAPI D3D11_VMT_Repatch(LPVOID Param)
 			}
 		}
 	}
+
+	OutputDebugString(L"[AQU] Context/SwapChain provided by device.");
 
 	// which technique ?
 	switch (g_pAquilinusConfig->eInjectionTechnique[AQU_SUPPORTEDINTERFACES::AQU_SupportedInterfaces::ID3D11DeviceContext])

@@ -2403,7 +2403,11 @@ void StereoSplitter::Present(int& nFlags)
 #pragma endregion
 
 	// set present() bool to true, back buffer not picked for the next frame, HUD render target to be deleted
-	m_bPresent = true;
+	if (!m_bPresent)
+	{
+		OutputDebugString(L"[STS] Via Present initialized !");
+		m_bPresent = true;
+	}
 	m_eBackBufferVerified = BackBufferVerificationState::NotVerified;
 	m_bClearHUDRenderTarget = true;
 }
