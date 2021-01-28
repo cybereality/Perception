@@ -9,8 +9,6 @@ File <VireioCinema.h> and
 Class <VireioCinema> :
 Copyright (C) 2015 Denis Reischl
 
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -36,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include<vector>
-
 
 #include<Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")

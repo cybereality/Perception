@@ -188,10 +188,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imconfig.h" />
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.h" />
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_helpers.h" />
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imconfig.h" />
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.h" />
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_helpers.h" />
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_internal.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_DX11Basics.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_DX11StateBlock.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
@@ -200,16 +200,16 @@
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp" />
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\VireioStereoSplitterDx10.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\VireioStereoSplitter_Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.natvis" />
+    <Natvis Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -232,25 +232,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\ImNodes.cpp" />
     <ClCompile Include="..\..\Aquilinus\AQU_FileManager.cpp" />
     <ClCompile Include="..\..\Aquilinus\NOD_Basic.cpp" />
-    <ClCompile Include="..\..\dependecies\imgui\imgui.cpp" />
-    <ClCompile Include="..\..\dependecies\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\Inicio.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imconfig.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_helpers.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\ImNodes.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_truetype.h" />
     <ClInclude Include="..\..\Aquilinus\AquilinusCfg.h" />
     <ClInclude Include="..\..\Aquilinus\AQU_FileManager.h" />
     <ClInclude Include="..\..\Aquilinus\NOD_Basic.h" />
-    <ClInclude Include="..\..\dependecies\imgui\imconfig.h" />
-    <ClInclude Include="..\..\dependecies\imgui\imgui.h" />
-    <ClInclude Include="..\..\dependecies\imgui\imgui_helpers.h" />
-    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h" />
-    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h" />
-    <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h" />
     <ClInclude Include="..\Inicio.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
@@ -258,11 +263,15 @@
     <ResourceCompile Include="..\Inicio_Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\dependecies\imgui\LICENSE.txt" />
+    <Text Include="..\..\..\Perception\dependecies\imgui\LICENSE.txt" />
     <Text Include="..\Info.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\dependecies\imgui\imgui.natvis" />
+    <Natvis Include="..\..\..\Perception\dependecies\imgui\imgui.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Perception\dependecies\imgui\LICENSE" />
+    <None Include="..\..\..\Perception\dependecies\imgui\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

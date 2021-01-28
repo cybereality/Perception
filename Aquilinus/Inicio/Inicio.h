@@ -55,11 +55,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..//Aquilinus/AquilinusCfg.h"
 #include "..//Aquilinus/AQU_FileManager.h"
 #include "..\\Aquilinus\AQU_2DData.h"
-#include "..\dependecies\imgui\imgui.h"
-#include "..\dependecies\imgui\imgui_impl_glfw.h"
-#include "..\dependecies\imgui\imgui_impl_opengl3.h"
-#include "..\dependecies\imgui\imgui_internal.h"
-#include "..\dependecies\imgui\imgui_helpers.h"
+#include "..\..\Perception\dependecies\imgui\imgui.h"
+#include "..\..\Perception\dependecies\imgui\imgui_impl_glfw.h"
+#include "..\..\Perception\dependecies\imgui\imgui_impl_opengl3.h"
+#include "..\..\Perception\dependecies\imgui\imgui_internal.h"
+#include "..\..\Perception\dependecies\imgui\imgui_helpers.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "advapi32.lib")

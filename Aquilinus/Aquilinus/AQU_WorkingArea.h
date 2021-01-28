@@ -48,11 +48,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "AQU_FileManager.h"
 #include "AQU_Nodes.h"
 #include "AQU_GlobalTypes.h"
-#include "..\dependecies\imgui\imgui.h"
-#include "..\dependecies\imgui\imgui_impl_glfw.h"
-#include "..\dependecies\imgui\imgui_impl_opengl3.h"
-#include "..\dependecies\imgui\imgui_internal.h"
-#include "..\dependecies\imgui\ImNodes.h"
+#include "..\..\Perception\dependecies\imgui\imgui.h"
+#include "..\..\Perception\dependecies\imgui\imgui_impl_glfw.h"
+#include "..\..\Perception\dependecies\imgui\imgui_impl_opengl3.h"
+#include "..\..\Perception\dependecies\imgui\imgui_internal.h"
+#include "..\..\Perception\dependecies\imgui\ImNodes.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "advapi32.lib")

@@ -4,18 +4,6 @@
     <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
     <ClInclude Include="..\VireioMatrixModifierClasses.h" />
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imconfig.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_helpers.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_internal.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
     <ClInclude Include="..\Resources.h">
       <Filter>Resource</Filter>
     </ClInclude>
@@ -26,16 +14,28 @@
       <Filter>Vireio</Filter>
     </ClInclude>
     <ClInclude Include="..\VireioMatrixModifierMods.h" />
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_helpers.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioMatrixModifier.cpp" />
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp">
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_draw.cpp">
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_draw.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_widgets.cpp">
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,13 +51,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.natvis">
-      <Filter>ImGui</Filter>
-    </Natvis>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc">
       <Filter>Resource</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.natvis">
+      <Filter>ImGui</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

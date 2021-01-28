@@ -33,8 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 #include <typeinfo>
-#include "..\dependecies\imgui\imgui.h"
-#include "..\dependecies\imgui\imgui_internal.h"
+#include "..\..\Perception\dependecies\imgui\imgui.h"
+#include "..\..\Perception\dependecies\imgui\imgui_internal.h"
 #include "AQU_GlobalTypes.h"
 
 /// <summary>

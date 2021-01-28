@@ -174,7 +174,7 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint
 
 				// only provide creator string if size min 16
 				if (acCreator.length() >= 16)
-					uCreatorIx = sCTable->uCreator + (uint32_t)acCTAB - (uint32_t)acFunc;
+					uCreatorIx = sCTable->uCreator + (uint32_t)UINT_PTR(acCTAB) - (uint32_t)UINT_PTR(acFunc);
 
 				// get constants
 				asConstants.reserve(sCTable->uConstantsNumber);
@@ -214,7 +214,7 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint
 	}
 
 	// get the size and hash code
-	uSizeOfData = 4 + (uint32_t)acPtr - (uint32_t)acFunc;
+	uSizeOfData = 4 + (uint32_t)((UINT_PTR)acPtr - (UINT_PTR)acFunc);
 	uHash = GetHashCode((BYTE*)acFunc, (int32_t)uSizeOfData, VIREIO_SEED);
 
 	return S_OK;
@@ -277,7 +277,7 @@ inline uint32_t GetCreatorIndex(uint32_t* acFunc)
 
 				// only provide creator string if size min 16
 				if (acCreator.length() >= 16)
-					return sCTable->uCreator + (uint32_t)acCTAB - (uint32_t)acFunc;
+					return sCTable->uCreator + (uint32_t)((UINT_PTR)acCTAB - (UINT_PTR)acFunc);
 			}
 			break;
 			case ShaderChunkType::Unknown:

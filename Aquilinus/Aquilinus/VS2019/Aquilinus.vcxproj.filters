@@ -774,38 +774,38 @@
     <ClInclude Include="..\NOD_D3DX9.h">
       <Filter>AQU_Nodes\DirectX9\NOD_D3DX9</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imconfig.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imgui.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imstb_rectpack.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imstb_textedit.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imstb_truetype.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\imgui_helpers.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\dependecies\imgui\ImNodes.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
     <ClInclude Include="..\AQU_Nodus.h">
       <Filter>AQU_Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_helpers.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_impl_glfw.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_impl_opengl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\ImNodes.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Perception\dependecies\imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -909,22 +909,22 @@
     <ClCompile Include="..\DCL_IDXGISwapChain1.cpp">
       <Filter>AQU_DetourClasses\DirectX10</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\imgui.cpp">
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\imgui_draw.cpp">
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_draw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_glfw.cpp">
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_impl_glfw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp">
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_impl_opengl3.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp">
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dependecies\imgui\ImNodes.cpp">
+    <ClCompile Include="..\..\..\Perception\dependecies\imgui\ImNodes.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -934,12 +934,12 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\dependecies\imgui\imgui.natvis">
+    <Natvis Include="..\..\..\Perception\dependecies\imgui\imgui.natvis">
       <Filter>imgui</Filter>
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\dependecies\imgui\LICENSE.txt">
+    <Text Include="..\..\..\Perception\dependecies\imgui\LICENSE.txt">
       <Filter>imgui</Filter>
     </Text>
   </ItemGroup>

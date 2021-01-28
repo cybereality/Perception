@@ -5,28 +5,28 @@
     <ClInclude Include="..\VireioStereoSplitter.h" />
     <ClInclude Include="..\VireioStereoSplitter_Proxy.h" />
     <ClInclude Include="..\D3D9Ex_D3DX9_Methods.h" />
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imconfig.h">
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imconfig.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.h">
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_helpers.h">
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_helpers.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_internal.h">
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_internal.h">
       <Filter>ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioStereoSplitter.cpp" />
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.cpp">
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_draw.cpp">
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_draw.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui_widgets.cpp">
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -39,7 +39,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\..\..\..\Aquilinus\dependecies\imgui\imgui.natvis">
+    <Natvis Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.natvis">
       <Filter>ImGui</Filter>
     </Natvis>
   </ItemGroup>
