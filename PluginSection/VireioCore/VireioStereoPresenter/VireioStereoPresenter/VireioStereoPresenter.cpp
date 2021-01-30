@@ -9,8 +9,6 @@ File <VireioStereoPresenter.cpp> and
 Class <VireioStereoPresenter> :
 Copyright (C) 2015 Denis Reischl
 
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -282,6 +280,7 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 }
 
 /// <summary>
+/// => Provoke
 /// Handle Stereo Drawing.
 /// </summary>
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
@@ -415,7 +414,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 	}
 
-	// get xbox controller input
+	/// => Handle Controller 
 	XINPUT_STATE sControllerState;
 	bool bControllerAttached = false;
 	ZeroMemory(&sControllerState, sizeof(XINPUT_STATE));

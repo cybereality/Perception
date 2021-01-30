@@ -123,11 +123,11 @@ enum struct STS_Decommanders : int
 /// <summary>
 /// Simple D3D10/11 enumeration
 /// </summary>
-enum D3DVersion
+enum struct D3DVersion : unsigned
 {
-	NotDefined,
-	Direct3D10,
-	Direct3D11,
+	NotDefined = 0,
+	Direct3D10 = 10,
+	Direct3D11 = 11,
 };
 
 /// <summary>
@@ -161,7 +161,6 @@ public:
 
 private:
 	/*** StereoSplitter private D3D10+ methods ***/
-	void                    OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown* const* ppRenderTargetViews, IUnknown* pDepthStencilView);
 	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext* pcContext, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView* const* ppcUnorderedAccessViews, const UINT* pdwUAVInitialCounts);
 	void                    XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceView*>& apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews);
 
@@ -271,24 +270,6 @@ private:
 		ID3D11RenderTargetView* m_pcActiveStereoTwinBackBufferView11;
 	};
 	/// <summary>
-	/// Active output textures (shader bind flag), for both eyes.
-	/// The back buffer surface copies.
-	/// </summary>
-	union
-	{
-		ID3D10Texture2D* m_pcTex10[2];
-		ID3D11Texture2D* m_pcTex11[2];
-	};
-	/// <summary>
-	/// Active back buffer view, for both eyes.
-	/// The back buffer surface copy views.
-	/// </summary>
-	union
-	{
-		ID3D10ShaderResourceView* m_pcTexView10[2];
-		ID3D11ShaderResourceView* m_pcTexView11[2];
-	};
-	/// <summary>
 	/// New depth stencils.
 	/// Processed in next Present() call.
 	/// </summary>
@@ -347,7 +328,7 @@ private:
 	/// Number of render targets.
 	/// Number of render targets not set to NULL.
 	/// </summary>
-	UINT m_dwRenderTargetNumber;
+	UINT m_uRenderTargetNumber;
 	/// <summary>
 	/// Union, pointer is either context or swapchain.
 	/// </summary>
@@ -356,18 +337,6 @@ private:
 		ID3D11DeviceContext* m_pcContextCurrent;
 		IDXGISwapChain* m_pcSwapChainCurrent;
 	};
-	/// <summary>
-	/// The control bitmap.
-	/// </summary>
-	HBITMAP m_hBitmapControl;
-	/// <summary>
-	/// The control update bool.
-	/// </summary>
-	bool m_bControlUpdate;
-	/// <summary>
-	/// The font used.
-	/// </summary>
-	HFONT m_hFont;
 	/// <summary>
 	/// The used Direct3D version.
 	/// </summary>
@@ -413,7 +382,7 @@ private:
 	HRESULT Map(int& nFlags);
 	HRESULT OMGetRenderTargets(int& nFlags);
 	HRESULT OMGetRenderTargetsAndUnorderedAccessViews(int& nFlags);
-	HRESULT OMSetRenderTargets(int& nFlags);
+	void    OMSetRenderTargets(int& nFlags);
 	HRESULT OMSetRenderTargetsAndUnorderedAccessViews(int& nFlags);
 	HRESULT PSGetShaderResources(int& nFlags);
 	HRESULT PSSetShaderResources(int& nFlags);

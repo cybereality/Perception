@@ -583,7 +583,17 @@ struct ModifierData : public VireioPluginData
 /// </summary>
 struct StereoData : public VireioPluginData
 {
-	/// TODO !! STORE DX11 DEVICE HERE !!
+	/// TODO !! STORE DX11 DEVICE HERE FOR HMD !!
+
+	/// <summary>
+	/// Active output textures (shader bind flag), for both eyes.
+	/// The back buffer surface copies.
+	/// </summary>
+	union
+	{
+		ID3D10Texture2D* pcTex10[2];
+		ID3D11Texture2D* pcTex11[2];
+	};
 
 	/// <summary>
 	/// Texture data based on D3D version l/r
@@ -591,6 +601,7 @@ struct StereoData : public VireioPluginData
 	union
 	{
 		IDirect3DTexture9* pcTex9Input[2];
+		ID3D10ShaderResourceView* pcTex10InputSRV[2];
 		ID3D11ShaderResourceView* pcTex11InputSRV[2];
 	};
 

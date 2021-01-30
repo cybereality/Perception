@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
+#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 #define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
 
 #include"VireioStereoSplitterDx10.h"
@@ -59,25 +60,23 @@ m_pcActiveDepthStencilView(nullptr),
 m_pcActiveBackBuffer10(nullptr),
 m_pcActiveStereoTwinBackBuffer10(nullptr),
 m_pcActiveStereoTwinBackBufferView10(nullptr),
-m_hBitmapControl(nullptr),
-m_bControlUpdate(false),
-m_hFont(nullptr),
 m_bPresent(false),
 m_eBackBufferVerified(BackBufferVerificationState::NotVerified),
 m_dwPSShaderResourceViewsNumber(0),
 m_dwCSShaderResourceViewsNumber(0),
-m_dwRenderTargetNumber(0),
+m_uRenderTargetNumber(0),
 m_eD3DVersion(D3DVersion::NotDefined),
 m_eCurrentRenderingSide(RenderPosition::Left),
 m_dwVerifyConstantBuffers(0),
 m_bRenderTargetWasSwitched(false),
 m_pcHUDRenderTargetView(nullptr),
-m_bClearHUDRenderTarget(false)
+m_bClearHUDRenderTarget(false),
+m_sStereoData{}
 {
-	m_pcTexView10[0] = nullptr;
-	m_pcTexView10[1] = nullptr;
-	m_pcTex10[0] = nullptr;
-	m_pcTex10[1] = nullptr;
+	m_sStereoData.pcTex10InputSRV[0] = nullptr;
+	m_sStereoData.pcTex10InputSRV[1] = nullptr;
+	m_sStereoData.pcTex10[0] = nullptr;
+	m_sStereoData.pcTex10[1] = nullptr;
 
 	// fill the "minus one" array for setting the unordered access views
 	memset(m_aunMinusOne, -1, sizeof(m_aunMinusOne));
@@ -106,10 +105,10 @@ m_bClearHUDRenderTarget(false)
 StereoSplitter::~StereoSplitter()
 {
 	SAFE_RELEASE(m_pcHUDRenderTargetView);
-	SAFE_RELEASE(m_pcTexView10[0]);
-	SAFE_RELEASE(m_pcTexView10[1]);
-	SAFE_RELEASE(m_pcTex10[0]);
-	SAFE_RELEASE(m_pcTex10[1]);
+	SAFE_RELEASE(m_sStereoData.pcTex10InputSRV[0]);
+	SAFE_RELEASE(m_sStereoData.pcTex10InputSRV[1]);
+	SAFE_RELEASE(m_sStereoData.pcTex10[0]);
+	SAFE_RELEASE(m_sStereoData.pcTex10[1]);
 }
 
 /// <summary>
@@ -383,6 +382,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 }
 
 /// <summary>
+/// => Provoke
 /// Handle Stereo Render Targets (+Depth Buffers).
 /// </summary>
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
@@ -616,7 +616,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				m_dwPSShaderResourceViewsNumber = 0;
 
 				// clear render targets
-				OMSetRenderTargets((IUnknown*)pThis, 0, NULL, NULL);
+				// OMSetRenderTargets((IUnknown*)pThis, 0, NULL, NULL);
 
 				// set render target side to >left<
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
@@ -625,67 +625,19 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMSETRENDERTARGETS
 		case (int)VMT_ID3D11DEVICECONTEXT::OMSetRenderTargets:
-			/*// ensure D3D11 is set
+			// ensure D3D11 is set
 			m_eD3DVersion = D3DVersion::Direct3D11;
 
 			if (m_bPresent)
 			{
-				// verify node pointers
-				if (!m_pdwNumViews) return nullptr;
-				if (!m_pppcRenderTargetViews_DX11) return nullptr;
-				if (!m_ppcDepthStencilView_DX11) return nullptr;
-
-				// call intern method
-				OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumViews, *m_pppcRenderTargetViews_DX11, *m_ppcDepthStencilView_DX11);
-
-				// copy internal render targets to backup for matrix modifier
-				if (m_appcRenderTargetViews11)
+				int nFlags = 0;
+				OMSetRenderTargets(nFlags);
+				if (nFlags)
 				{
-					ID3D11RenderTargetView** ppcRTV = (*m_appcRenderTargetViews11);
-					if (ppcRTV)
-					{
-						CopyMemory(&ppcRTV[0], &m_apcActiveRenderTargetViews[0], sizeof(IUnknown*) * D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2);
-					}
+					nProvokerIndex |= nFlags;
 				}
-				if (m_appcDepthStencilViews11)
-				{
-					ID3D11DepthStencilView** ppcDSV = (*m_appcDepthStencilViews11);
-					if (ppcDSV)
-					{
-						ppcDSV[0] = (ID3D11DepthStencilView*)m_pcActiveDepthStencilView;
-						ppcDSV[1] = (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView;
-					}
-				}
+			}
 
-				// switch render targets ?
-				if (m_pbSwitchRenderTarget)
-				{
-					if (*m_pbSwitchRenderTarget)
-					{
-						// did we catch the HUD render target view ?
-						if (!m_pcHUDRenderTargetView)
-						{
-							((ID3D11DeviceContext*)pThis)->OMGetRenderTargets(1, &m_pcHUDRenderTargetView, nullptr);
-						}
-
-						m_bRenderTargetWasSwitched = true;
-
-						// method replaced, immediately return
-						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-						return nullptr;
-					}
-				}
-				m_bRenderTargetWasSwitched = false;
-
-				// switch render targets to new side
-				if (m_eCurrentRenderingSide == RenderPosition::Left)
-					((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
-				else
-					((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
-
-				// method replaced, immediately return
-				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-			}*/
 			return nullptr;
 #pragma endregion
 #pragma region OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS
@@ -1003,161 +955,6 @@ void StereoSplitter::UpdateImGuiControl(float fZoom)
 {
 	ImGui::TextUnformatted("Vireio Perception Stereo Splitter Dx10+ Controls\n");
 
-}
-
-/// <summary>
-/// Incoming OMSetRenderTargets() call (D3D10+).
-/// Set render targets internally, handle render target monitoring.
-/// @param pcDeviceOrContext For DX10 this is the device, for DX11 this is the context.
-/// </summary>
-void StereoSplitter::OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown* const* ppRenderTargetViews, IUnknown* pDepthStencilView)
-{
-	// is the back buffer verified for the current frame ?
-	if ((TODO_ADD_BOOL_HERE) && (!(unsigned)m_eBackBufferVerified))
-	{
-		// seems a bit odd here but for some scenarious (DXGI_USAGE_DISCARD_ON_PRESENT)
-		// we need to verify the stereo back buffers
-		switch (m_eD3DVersion)
-		{
-		case NotDefined:
-			break;
-		case Direct3D10:
-			break;
-		case Direct3D11:
-			if (true)
-			{
-				// get the render target
-				ID3D11RenderTargetView* pRenderTargetView = nullptr;
-				ID3D11DepthStencilView* pDepthStencilView = nullptr;
-				((ID3D11DeviceContext*)pcDeviceOrContext)->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
-
-				if (pRenderTargetView)
-				{
-					// get the buffer texture
-					ID3D11Texture2D* pBuffer = nullptr;
-					pRenderTargetView->GetResource((ID3D11Resource**)(&pBuffer));
-					if (pBuffer)
-					{
-						// get the buffer surface
-						IDXGISurface* pSurface = nullptr;
-						if (SUCCEEDED(pBuffer->QueryInterface(__uuidof(IDXGISurface), (void**)(&pSurface))))
-						{
-							// and finally get the swapchain
-							IDXGISwapChain* pSwapChain = nullptr;
-							if (SUCCEEDED(pSurface->GetParent(__uuidof(IDXGISwapChain), (void**)(&pSwapChain))))
-							{
-								// get back buffer
-								ID3D11Texture2D* pcBackBuffer = nullptr;
-								pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
-								if (pcBackBuffer)
-								{
-									// get the stereo twins from the swapchain
-									ID3D11Texture2D* pcBackBufferTwin = nullptr;
-									UINT dwSize = sizeof(pcBackBufferTwin);
-									pSwapChain->GetPrivateData(PDIID_IDXGISwapChain_TextureXD_Stereo_Twin, &dwSize, &pcBackBufferTwin);
-									if (dwSize)
-									{
-										// now, the view
-										ID3D11RenderTargetView* pcBackBufferTwinView;
-										dwSize = sizeof(pcBackBufferTwinView);
-										pSwapChain->GetPrivateData(PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin, &dwSize, &pcBackBufferTwinView);
-										if (dwSize)
-										{
-											// set the active back buffer
-											m_pcActiveBackBuffer11 = pcBackBuffer;
-											m_pcActiveStereoTwinBackBuffer11 = pcBackBufferTwin;
-											m_pcActiveStereoTwinBackBufferView11 = pcBackBufferTwinView;
-
-											m_eBackBufferVerified = BackBufferVerificationState::NewBuffer;
-										}
-										pcBackBufferTwin->Release();
-									}
-									pcBackBuffer->Release();
-								}
-								pSwapChain->Release();
-							}
-							pSurface->Release();
-						}
-						pBuffer->Release();
-					}
-					pRenderTargetView->Release();
-				}
-				if (pDepthStencilView) { pDepthStencilView->Release(); pDepthStencilView = nullptr; }
-			}
-			break;
-		default:
-			break;
-		}
-	}
-
-	// set the number of render targets set
-	// for DX10 and DX11 all render targets above this number are set to NULL
-	m_dwRenderTargetNumber = (DWORD)NumViews;
-	if (m_dwRenderTargetNumber > D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
-		m_dwRenderTargetNumber = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-
-	// set the render target internally
-	if (NumViews <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
-	{
-		// set NULL manually, otherwise just set the render target :
-		if (!ppRenderTargetViews)
-		{
-			// set render targets and the twins			
-			for (std::vector<IUnknown*>::size_type i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-			{
-				m_apcActiveRenderTargetViews[i] = NULL;
-				m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = NULL;
-			}
-		}
-		else
-		{
-			// set render targets and the twins			
-			for (std::vector<IUnknown*>::size_type i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-			{
-				if (i < (size_t)NumViews)
-				{
-					// set zero if zero
-					if (!ppRenderTargetViews[i])
-					{
-						m_apcActiveRenderTargetViews[i] = NULL;
-						m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = NULL;
-					}
-					else
-					{
-						// set the target
-						m_apcActiveRenderTargetViews[i] = ppRenderTargetViews[i];
-
-						// verify the stereo components of this interface
-						m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] =
-							VerifyPrivateDataInterfaces((ID3D11RenderTargetView*)ppRenderTargetViews[i]);
-					}
-				}
-				else
-				{
-					// set all render targets above the provided number to null
-					m_apcActiveRenderTargetViews[i] = NULL;
-					m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = NULL;
-				}
-			}
-		}
-	}
-
-	// now, the back buffer... set NULL manually, otherwise just set 
-	if (!pDepthStencilView)
-	{
-		m_pcActiveDepthStencilView = NULL;
-		m_pcActiveStereoTwinDepthStencilView = NULL;
-	}
-	else
-	{
-		m_pcActiveDepthStencilView = pDepthStencilView;
-
-		// verify the stereo components of this interface
-		m_pcActiveStereoTwinDepthStencilView =
-			VerifyPrivateDataInterfaces((ID3D11DepthStencilView*)pDepthStencilView);
-	}
-
-	m_bControlUpdate = true;
 }
 
 /// <summary>
@@ -1739,8 +1536,6 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContex
 	}
 #pragma endregion
 
-	// update control... maybe we need this later
-	m_bControlUpdate = true;
 }
 
 /// <summary>
@@ -1926,9 +1721,9 @@ bool StereoSplitter::SetDrawingSide(ID3D10Device* pcDevice, RenderPosition eSide
 	bool renderTargetChanged = false;
 	HRESULT hr = S_OK;
 	if (eSide == RenderPosition::Left)
-		pcDevice->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D10DepthStencilView*)m_pcActiveDepthStencilView);
+		pcDevice->OMSetRenderTargets(m_uRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D10DepthStencilView*)m_pcActiveDepthStencilView);
 	else
-		pcDevice->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveRenderTargetViews[D3D10_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D10DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+		pcDevice->OMSetRenderTargets(m_uRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveRenderTargetViews[D3D10_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D10DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
 	// TODO !! port DX11 code back to DX10
 
@@ -2102,7 +1897,233 @@ HRESULT StereoSplitter::DrawInstancedIndirect(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::Map(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::OMGetRenderTargets(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::OMGetRenderTargetsAndUnorderedAccessViews(int& nFlags) { return E_NOTIMPL; }
-HRESULT StereoSplitter::OMSetRenderTargets(int& nFlags) { return E_NOTIMPL; }
+
+/// <summary>
+/// => OMSetRenderTargets
+/// Incoming OMSetRenderTargets() call (D3D10+).
+/// Set render targets internally, handle render target monitoring.
+/// </summary>
+void StereoSplitter::OMSetRenderTargets(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::OMSetRenderTargets]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::OMSetRenderTargets]);
+	UINT* puNumViews;
+	if (ppIn[0]) puNumViews = *(UINT**)ppIn[0]; else return;
+	ID3D11RenderTargetView*** pppcRenderTargetViews;
+	if (ppIn[1]) pppcRenderTargetViews = *(ID3D11RenderTargetView****)ppIn[1]; else return;
+	ID3D11DepthStencilView** ppcDepthStencilView;
+	if (ppIn[2]) ppcDepthStencilView = *(ID3D11DepthStencilView***)ppIn[2]; else return;
+
+#pragma region /// => OMSetRenderTargets - verify current frame back buffer
+
+	// is the back buffer verified for the current frame ?
+	if ((TODO_ADD_BOOL_HERE) && (!(unsigned)m_eBackBufferVerified))
+	{
+		// seems a bit odd here but for some scenarious (DXGI_USAGE_DISCARD_ON_PRESENT)
+		// we need to verify the stereo back buffers
+		switch (m_eD3DVersion)
+		{
+		case D3DVersion::NotDefined:
+			break;
+		case D3DVersion::Direct3D10:
+			break;
+		case D3DVersion::Direct3D11:
+			if (true)
+			{
+				// get the render target
+				ID3D11RenderTargetView* pRenderTargetView = nullptr;
+				ID3D11DepthStencilView* pDepthStencilView = nullptr;
+				m_pcContextCurrent->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
+
+				if (pRenderTargetView)
+				{
+					// get the buffer texture
+					ID3D11Texture2D* pBuffer = nullptr;
+					pRenderTargetView->GetResource((ID3D11Resource**)(&pBuffer));
+					if (pBuffer)
+					{
+						// get the buffer surface
+						IDXGISurface* pSurface = nullptr;
+						if (SUCCEEDED(pBuffer->QueryInterface(__uuidof(IDXGISurface), (void**)(&pSurface))))
+						{
+							// and finally get the swapchain
+							IDXGISwapChain* pSwapChain = nullptr;
+							if (SUCCEEDED(pSurface->GetParent(__uuidof(IDXGISwapChain), (void**)(&pSwapChain))))
+							{
+								// get back buffer
+								ID3D11Texture2D* pcBackBuffer = nullptr;
+								pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+								if (pcBackBuffer)
+								{
+									// get the stereo twins from the swapchain
+									ID3D11Texture2D* pcBackBufferTwin = nullptr;
+									UINT dwSize = sizeof(pcBackBufferTwin);
+									pSwapChain->GetPrivateData(PDIID_IDXGISwapChain_TextureXD_Stereo_Twin, &dwSize, &pcBackBufferTwin);
+									if (dwSize)
+									{
+										// now, the view
+										ID3D11RenderTargetView* pcBackBufferTwinView;
+										dwSize = sizeof(pcBackBufferTwinView);
+										pSwapChain->GetPrivateData(PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin, &dwSize, &pcBackBufferTwinView);
+										if (dwSize)
+										{
+											// set the active back buffer
+											m_pcActiveBackBuffer11 = pcBackBuffer;
+											m_pcActiveStereoTwinBackBuffer11 = pcBackBufferTwin;
+											m_pcActiveStereoTwinBackBufferView11 = pcBackBufferTwinView;
+
+											m_eBackBufferVerified = BackBufferVerificationState::NewBuffer;
+										}
+										pcBackBufferTwin->Release();
+									}
+									pcBackBuffer->Release();
+								}
+								pSwapChain->Release();
+							}
+							pSurface->Release();
+						}
+						pBuffer->Release();
+					}
+					pRenderTargetView->Release();
+				}
+				if (pDepthStencilView) { pDepthStencilView->Release(); pDepthStencilView = nullptr; }
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+#pragma endregion
+
+#pragma region /// => OMSetRenderTargets - set render targets
+
+	// set the number of render targets set
+	// for DX10 and DX11 all render targets above this number are set to NULL
+	m_uRenderTargetNumber = (UINT)*puNumViews;
+	if (m_uRenderTargetNumber > D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
+		m_uRenderTargetNumber = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+
+	// set the render target internally
+	if (*puNumViews <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
+	{
+		// set NULL manually, otherwise just set the render target :
+		if (!(*pppcRenderTargetViews))
+		{
+			// set render targets and the twins			
+			for (std::vector<IUnknown*>::size_type i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+			{
+				m_apcActiveRenderTargetViews[i] = NULL;
+				m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = NULL;
+			}
+		}
+		else
+		{
+			// set render targets and the twins			
+			for (std::vector<IUnknown*>::size_type i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+			{
+				if (i < (size_t)*puNumViews)
+				{
+					// set zero if zero
+					if (!(*pppcRenderTargetViews)[i])
+					{
+						m_apcActiveRenderTargetViews[i] = NULL;
+						m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = NULL;
+					}
+					else
+					{
+						// set the target
+						m_apcActiveRenderTargetViews[i] = (*pppcRenderTargetViews)[i];
+
+						// verify the stereo components of this interface
+						m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] =
+							VerifyPrivateDataInterfaces((ID3D11RenderTargetView*)(*pppcRenderTargetViews)[i]);
+					}
+				}
+				else
+				{
+					// set all render targets above the provided number to null
+					m_apcActiveRenderTargetViews[i] = NULL;
+					m_apcActiveRenderTargetViews[i + D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = NULL;
+				}
+			}
+		}
+	}
+
+#pragma endregion
+
+#pragma region /// => OMSetRenderTargets - set depth stencil
+
+	// now, depth buffer... set NULL manually, otherwise just set 
+	if (!(*ppcDepthStencilView))
+	{
+		m_pcActiveDepthStencilView = NULL;
+		m_pcActiveStereoTwinDepthStencilView = NULL;
+	}
+	else
+	{
+		m_pcActiveDepthStencilView = (*ppcDepthStencilView);
+
+		// verify the stereo components of this interface
+		m_pcActiveStereoTwinDepthStencilView =
+			VerifyPrivateDataInterfaces((ID3D11DepthStencilView*)(*ppcDepthStencilView));
+	}
+
+#pragma endregion
+
+	/*
+		// copy internal render targets to backup for matrix modifier
+		if (m_appcRenderTargetViews11)
+		{
+			ID3D11RenderTargetView** ppcRTV = (*m_appcRenderTargetViews11);
+			if (ppcRTV)
+			{
+				CopyMemory(&ppcRTV[0], &m_apcActiveRenderTargetViews[0], sizeof(IUnknown*) * D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2);
+			}
+		}
+		if (m_appcDepthStencilViews11)
+		{
+			ID3D11DepthStencilView** ppcDSV = (*m_appcDepthStencilViews11);
+			if (ppcDSV)
+			{
+				ppcDSV[0] = (ID3D11DepthStencilView*)m_pcActiveDepthStencilView;
+				ppcDSV[1] = (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView;
+			}
+		}
+
+		// switch render targets ?
+		if (m_pbSwitchRenderTarget)
+		{
+			if (*m_pbSwitchRenderTarget)
+			{
+				// did we catch the HUD render target view ?
+				if (!m_pcHUDRenderTargetView)
+				{
+					((ID3D11DeviceContext*)pThis)->OMGetRenderTargets(1, &m_pcHUDRenderTargetView, nullptr);
+				}
+
+				m_bRenderTargetWasSwitched = true;
+
+				// method replaced, immediately return
+				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+				return nullptr;
+			}
+		}
+		m_bRenderTargetWasSwitched = false;
+
+		// switch render targets to new side
+		if (m_eCurrentRenderingSide == RenderPosition::Left)
+			((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+		else
+			((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+
+		// method replaced, immediately return
+		nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+	*/
+
+	return;
+}
+
 HRESULT StereoSplitter::OMSetRenderTargetsAndUnorderedAccessViews(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::PSGetShaderResources(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::PSSetShaderResources(int& nFlags) { return E_NOTIMPL; }
@@ -2112,7 +2133,32 @@ HRESULT StereoSplitter::PSSetShaderResources(int& nFlags) { return E_NOTIMPL; }
 /// </summary>
 void StereoSplitter::Present(int& nFlags)
 {
-	if (!m_eD3DVersion) return;
+	if (!(unsigned)m_eD3DVersion)
+	{
+		// get device
+		ID3D11Device* pcDevice = nullptr;
+		m_pcSwapChainCurrent->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+		if (!pcDevice)
+		{
+			ID3D10Device* pcDevice10 = nullptr;
+			m_pcSwapChainCurrent->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
+			if (!pcDevice10)
+			{
+				OutputDebugString(L"[STS] No supported device found !");
+				return;
+			}
+			else
+			{
+				m_eD3DVersion = D3DVersion::Direct3D10;
+				pcDevice->Release();
+			}
+		}
+		else
+		{
+			m_eD3DVersion = D3DVersion::Direct3D11;
+			pcDevice->Release();
+		}
+	}
 
 #pragma region /// => Present - verify constant buffer counter
 
@@ -2127,8 +2173,6 @@ void StereoSplitter::Present(int& nFlags)
 			// update constant buffer frame count
 			(*m_pdwVerifyConstantBuffers)--;
 			m_dwVerifyConstantBuffers = *m_pdwVerifyConstantBuffers;
-
-			m_bControlUpdate = true;
 		}
 	}*/
 #pragma endregion
@@ -2222,9 +2266,9 @@ void StereoSplitter::Present(int& nFlags)
 	// finally, provide pointers to the left and right render target
 	switch (m_eD3DVersion)
 	{
-	case Direct3D10:
+	case D3DVersion::Direct3D10:
 		break;
-	case Direct3D11:
+	case D3DVersion::Direct3D11:
 	{
 		// get back buffer
 		ID3D11Texture2D* pcBackBuffer = NULL;
@@ -2233,17 +2277,38 @@ void StereoSplitter::Present(int& nFlags)
 		{
 			if (pcBackBuffer != m_pcActiveBackBuffer11)
 			{
-				SAFE_RELEASE(m_pcTexView11[0]);
-				SAFE_RELEASE(m_pcTexView11[1]);
-				SAFE_RELEASE(m_pcTex11[0]);
-				SAFE_RELEASE(m_pcTex11[1]);
+				SAFE_RELEASE(m_sStereoData.pcTex10InputSRV[0]);
+				SAFE_RELEASE(m_sStereoData.pcTex10InputSRV[1]);
+				SAFE_RELEASE(m_sStereoData.pcTex11[0]);
+				SAFE_RELEASE(m_sStereoData.pcTex11[1]);
 
 				// get the stored private data view
 				ID3D11RenderTargetView* pcView = nullptr;
 				UINT dwSize = sizeof(pcView);
 				pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
 
-				if (dwSize)
+				bool bNewRTV = false;
+				if (!dwSize)
+				{
+					// get device
+					ID3D11Device* pcDevice = nullptr;
+					m_pcSwapChainCurrent->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+					if (pcDevice)
+					{
+						// create render target view for the back buffer
+						ID3D11RenderTargetView* pcRTV = nullptr;
+						pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
+						if (pcRTV)
+						{
+							bNewRTV = true;
+							pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
+							pcRTV->Release();
+						}
+						pcDevice->Release();
+					}
+				}
+
+				if ((dwSize) || (bNewRTV))
 				{
 					// set the active buffer
 					m_pcActiveBackBuffer11 = pcBackBuffer;
@@ -2267,9 +2332,10 @@ void StereoSplitter::Present(int& nFlags)
 							pcViewTwin->Release();
 						}
 						m_pcActiveStereoTwinBackBuffer11->Release();
+						pcView->Release();
 					}
 					else
-						OutputDebugString(L"StereoSplitter: No back buffer stereo texture present !");
+						OutputDebugString(L"[STS] No back buffer stereo texture present !");
 
 					// get device
 					ID3D11Device* pcDevice = nullptr;
@@ -2283,10 +2349,10 @@ void StereoSplitter::Present(int& nFlags)
 						pcBackBuffer->GetDesc(&sDescRT);
 						sDescRT.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-						if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[0])))
-							OutputDebugString(L"[STS] : Failed to create Texture.");
-						if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[1])))
-							OutputDebugString(L"[STS] : Failed to create Texture.");
+						if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_sStereoData.pcTex11[0])))
+							OutputDebugString(L"[STS] Failed to create Texture.");
+						if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_sStereoData.pcTex11[1])))
+							OutputDebugString(L"[STS] Failed to create Texture.");
 
 						// ...and the views
 						sDesc.Format = sDescRT.Format;
@@ -2294,55 +2360,55 @@ void StereoSplitter::Present(int& nFlags)
 						sDesc.Texture2D.MostDetailedMip = 0;
 						sDesc.Texture2D.MipLevels = 1;
 
-						if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[0], &sDesc, &m_pcTexView11[0]))))
+						if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_sStereoData.pcTex11[0], &sDesc, &m_sStereoData.pcTex11InputSRV[0]))))
 						{
-							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[0], nullptr, &m_pcTexView11[0]))))
-								OutputDebugString(L"[STS] : Failed to create texture shader resource view!");
+							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_sStereoData.pcTex11[0], nullptr, &m_sStereoData.pcTex11InputSRV[0]))))
+								OutputDebugString(L"[STS] Failed to create texture shader resource view!");
 						}
-						if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[1], &sDesc, &m_pcTexView11[1]))))
+						else OutputDebugString(L"Succeeded to create SRV");
+						if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_sStereoData.pcTex11[1], &sDesc, &m_sStereoData.pcTex11InputSRV[1]))))
 						{
-							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[1], nullptr, &m_pcTexView11[1]))))
-								OutputDebugString(L"[STS] : Failed to create texture shader resource view!");
+							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_sStereoData.pcTex11[1], nullptr, &m_sStereoData.pcTex11InputSRV[1]))))
+								OutputDebugString(L"[STS] Failed to create texture shader resource view!");
 						}
 
 						ID3D11RenderTargetView* pcRTV[2];
 						pcRTV[0] = nullptr; pcRTV[1] = nullptr;
-						if ((FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)m_pcTex11[0], NULL, &pcRTV[0]))))
+						if ((FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)m_sStereoData.pcTex11[0], NULL, &pcRTV[0]))))
 						{
-							OutputDebugString(L"[STS] : Failed to create texture render target view!");
+							OutputDebugString(L"[STS] Failed to create texture render target view!");
 						}
-						if ((FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)m_pcTex11[1], NULL, &pcRTV[1]))))
+						if ((FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)m_sStereoData.pcTex11[1], NULL, &pcRTV[1]))))
 						{
-							OutputDebugString(L"[STS] : Failed to create texture render target view!");
+							OutputDebugString(L"[STS] Failed to create texture render target view!");
 						}
 
 						// set this as private data interface to the shader resource views instead of texture here !!!!
 						if (pcRTV[0])
 						{
-							m_pcTexView11[0]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV[0]);
+							m_sStereoData.pcTex11InputSRV[0]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV[0]);
 							pcRTV[0]->Release();
 						}
 						if (pcRTV[1])
 						{
-							m_pcTexView11[1]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV[1]);
+							m_sStereoData.pcTex11InputSRV[1]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV[1]);
 							pcRTV[1]->Release();
 						}
 
 						pcDevice->Release();
 					}
-
-					pcView->Release();
 				}
 				else
 				{
-					// no render target view present ? return
-					OutputDebugString(L"[STS] : No back buffer render target view present!");
+					// no render target view present ? break
+					if (!m_bPresent)
+						OutputDebugString(L"[STS] No back buffer render target view present!");
 
 					pcBackBuffer->Release();
 					m_pcActiveBackBuffer11 = nullptr;
 					m_pcActiveStereoTwinBackBuffer11 = nullptr;
 					m_bPresent = true; /**< do not forget to set present bool here !! ***/
-					return;
+					break;
 				}
 			}
 			else
@@ -2356,14 +2422,18 @@ void StereoSplitter::Present(int& nFlags)
 					m_pcActiveStereoTwinBackBuffer11->Release();
 				}
 				else
-					OutputDebugString(L"[STS] : No back buffer stereo texture present !");
+				{
+					// no render target view present ? return
+					if (!m_bPresent)
+						OutputDebugString(L"[STS] Back buffer active, no stereo !");
+				}
 			}
 			pcBackBuffer->Release();
 		}
 		else
 		{
 			// no backbuffer present ? should not be...
-			OutputDebugString(L"[STS] : No back buffer present !");
+			OutputDebugString(L"[STS] No back buffer present !");
 			m_pcActiveBackBuffer11 = NULL;
 			m_pcActiveStereoTwinBackBuffer11 = NULL;
 		}
@@ -2375,6 +2445,7 @@ void StereoSplitter::Present(int& nFlags)
 #pragma endregion
 
 #pragma region /// => Present - update stereo textures
+	if (m_eD3DVersion == D3DVersion::Direct3D11)
 	{
 		// get device and context
 		ID3D11Device* pcDevice = nullptr;
@@ -2388,12 +2459,19 @@ void StereoSplitter::Present(int& nFlags)
 		}
 
 		// update the output textures - get stored private data
-		if ((m_pcTex11[0]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
-		UINT dwSize = sizeof(m_pcActiveBackBuffer11);
-		m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
-		if ((dwSize) && (m_pcActiveStereoTwinBackBuffer11))
+		UINT uSize = 0;
+		m_pcActiveStereoTwinBackBuffer11 = nullptr;
+		if ((m_sStereoData.pcTex11[0]) && (m_pcActiveBackBuffer11))
 		{
-			if (m_pcTex11[1]) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
+			OutputDebugString(L"Copy Left");
+			pcContext->CopyResource((ID3D11Resource*)m_sStereoData.pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
+			uSize = sizeof(m_pcActiveBackBuffer11);
+			m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &uSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
+		}
+		if ((uSize) && (m_pcActiveStereoTwinBackBuffer11))
+		{
+			OutputDebugString(L"Copy Right");
+			if (m_sStereoData.pcTex11[1]) pcContext->CopyResource((ID3D11Resource*)m_sStereoData.pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
 			m_pcActiveStereoTwinBackBuffer11->Release();
 		}
 
@@ -2402,12 +2480,148 @@ void StereoSplitter::Present(int& nFlags)
 	}
 #pragma endregion
 
-	// set present() bool to true, back buffer not picked for the next frame, HUD render target to be deleted
-	if (!m_bPresent)
+#pragma region /// => Present - render stereo
+	if (m_eD3DVersion == D3DVersion::Direct3D11)
 	{
-		OutputDebugString(L"[STS] Via Present initialized !");
-		m_bPresent = true;
+		static ID3D11Texture2D* s_pcDSGeometry11 = nullptr;
+		static ID3D11DepthStencilView* s_pcDSVGeometry11 = nullptr;
+
+		// get device and context
+		ID3D11Device* pcDevice = nullptr;
+		ID3D11DeviceContext* pcContext = nullptr;
+		if (FAILED(GetDeviceAndContext(m_pcSwapChainCurrent, &pcDevice, &pcContext)))
+		{
+			// release frame texture+view
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			return;
+		}
+
+		// get the viewport
+		UINT dwNumViewports = 1;
+		D3D11_VIEWPORT psViewport[16];
+		pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+		// backup all states
+		D3DX11_STATE_BLOCK sStateBlock;
+		CreateStateblock(pcContext, &sStateBlock);
+
+		// clear all states, set targets
+		ClearContextState(pcContext);
+
+		// set first active render target - the stored back buffer - get the stored private data view
+		ID3D11Texture2D* pcBackBuffer = nullptr;
+		m_pcSwapChainCurrent->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+		ID3D11RenderTargetView* pcView = nullptr;
+		UINT dwSize = sizeof(pcView);
+		pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
+		if (dwSize)
+		{
+			pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, s_pcDSVGeometry11);
+			pcView->Release();
+		}
+		else
+		{
+			// create render target view for the back buffer
+			ID3D11RenderTargetView* pcRTV = nullptr;
+			pcDevice->CreateRenderTargetView(pcBackBuffer, NULL, &pcRTV);
+			if (pcRTV)
+			{
+				pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV);
+				pcRTV->Release();
+			}
+		}
+		pcContext->RSSetViewports(dwNumViewports, psViewport);
+		pcBackBuffer->Release();
+
+		// clear the depth stencil
+		pcContext->ClearDepthStencilView(s_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		// create all bool
+		bool bAllCreated = true;
+
+		// create vertex shader
+		static ID3D11VertexShader* s_pcVertexShader11 = nullptr;
+		static ID3D11InputLayout* s_pcVertexLayout11 = nullptr;
+		if (!s_pcVertexShader11)
+		{
+			if (FAILED(CreateVertexShaderTechnique(pcDevice, &s_pcVertexShader11, &s_pcVertexLayout11, VertexShaderTechnique::PosUV2D)))
+				bAllCreated = false;
+		}
+		// create pixel shader... 
+		static ID3D11PixelShader* s_pcPixelShader11 = nullptr;
+		if (!s_pcPixelShader11)
+		{
+			if (FAILED(CreatePixelShaderEffect(pcDevice, &s_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+				bAllCreated = false;
+		}
+		// Create vertex buffer
+		static ID3D11Buffer* s_pcVertexBuffer11 = nullptr;
+		if (!s_pcVertexBuffer11)
+		{
+			if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &s_pcVertexBuffer11)))
+				bAllCreated = false;
+		}
+		// create constant buffer
+		static ID3D11Buffer* s_pcConstantBufferDirect11 = nullptr;
+		if (!s_pcConstantBufferDirect11)
+		{
+			if (FAILED(CreateGeometryConstantBuffer(pcDevice, &s_pcConstantBufferDirect11, (UINT)sizeof(D3DXMATRIX))))
+				bAllCreated = false;
+		}
+
+		if (bAllCreated)
+		{
+			// left/right eye
+			for (const int nEye : {STEREO_L, STEREO_R})
+			{
+				// Set the input layout
+				pcContext->IASetInputLayout(s_pcVertexLayout11);
+
+				// Set vertex buffer
+				UINT stride = sizeof(TexturedVertex);
+				UINT offset = 0;
+				pcContext->IASetVertexBuffers(0, 1, &s_pcVertexBuffer11, &stride, &offset);
+
+				// Set constant buffer, first update it... scale and translate the left and right image
+				D3DXMATRIX sScale;
+				D3DXMatrixScaling(&sScale, 0.5f, 1.0f, 1.0f);
+				D3DXMATRIX sTrans;
+				if (nEye == 0)
+					D3DXMatrixTranslation(&sTrans, -0.5f, 0.0f, 0.0f);
+				else
+					D3DXMatrixTranslation(&sTrans, 0.5f, 0.0f, 0.0f);
+				D3DXMatrixTranspose(&sTrans, &sTrans);
+				D3DXMATRIX sProj;
+				D3DXMatrixMultiply(&sProj, &sTrans, &sScale);
+				pcContext->UpdateSubresource((ID3D11Resource*)s_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+				pcContext->VSSetConstantBuffers(0, 1, &s_pcConstantBufferDirect11);
+
+				// Set primitive topology
+				pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+				// set texture
+				pcContext->PSSetShaderResources(0, 1, &m_sStereoData.pcTex11InputSRV[nEye]);
+
+				// set shaders
+				pcContext->VSSetShader(s_pcVertexShader11, 0, 0);
+				pcContext->PSSetShader(s_pcPixelShader11, 0, 0);
+
+				// Render a triangle
+				pcContext->Draw(6, 0);
+			}
+		}
+
+		// set back device
+		ApplyStateblock(pcContext, &sStateBlock);
+
+		if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+		if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 	}
+#pragma endregion
+
+	// set present() bool to true, back buffer not picked for the next frame, HUD render target to be deleted
+	m_bPresent = true;
 	m_eBackBufferVerified = BackBufferVerificationState::NotVerified;
 	m_bClearHUDRenderTarget = true;
 }

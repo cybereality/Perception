@@ -5,8 +5,6 @@ Copyright (C) 2012 Andres Hernandez
 File <Vireio_DX11Basics.h> :
 Copyright (C) 2015 Denis Reischl
 
-
-
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
 v1.0.X 2013 by John Hicks, Neil Schneider
@@ -63,19 +61,19 @@ using namespace DirectX;
 #define PI_F 3.14159265358979f
 
 #pragma region shader data structures
-/**
-* Texture vertex structure.
-***/
+/// <summary>
+/// Texture vertex structure.
+/// </summary>
 struct TexturedVertex
 {
 	D3DXVECTOR4 sPos;
 	D3DXVECTOR2 sTex;
 };
 
-/**
-* Textured vertex structure with normal.
-* Matches OpenVR render model vertex.
-**/
+/// <summary>
+/// Textured vertex structure with normal.
+/// Matches OpenVR render model vertex.
+/// </summary>
 struct TexturedNormalVertex
 {
 	D3DXVECTOR3 sPosition;
@@ -83,9 +81,9 @@ struct TexturedNormalVertex
 	D3DXVECTOR2 sTextureCoord;
 };
 
-/**
-* DX11 simple model structure.
-***/
+/// <summary>
+/// DX11 simple model structure.
+/// </summary>
 struct RenderModel_D3D11
 {
 	ID3D11Buffer* pcVertexBuffer;               /**< Vertex buffer for the mesh **/
@@ -102,9 +100,9 @@ struct RenderModel_D3D11
 	} sResolution;                              /**< Resolution of the effect render target. **/
 };
 
-/**
-* Geometry constant buffer structure.
-***/
+/// <summary>
+/// Geometry constant buffer structure.
+/// </summary>
 struct GeometryConstantBuffer
 {
 	D3DXCOLOR   sMaterialAmbientColor; /**< ambient material color **/
@@ -128,9 +126,9 @@ struct GeometryConstantBuffer
 #pragma endregion
 
 #pragma region /// => vertex shader
-/**
-* 2D Vertex Shader DX10+.
-***/
+/// <summary>
+/// 2D Vertex Shader DX10+.
+/// </summary>
 static const char* VS2D =
 "float4x4 ProjView;\n"
 "struct VS_IN\n"
@@ -154,9 +152,9 @@ static const char* VS2D =
 "    return Out;\n"
 "}\n";
 
-/**
-* 3D Vertex Shader.
-***/
+/// <summary>
+/// 3D Vertex Shader.
+/// </summary>
 static const char* VS3D =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -196,9 +194,9 @@ static const char* VS3D =
 "	return Output;\n"
 "}\n";
 
-/**
-* 3D Vertex Shader.
-***/
+/// <summary>
+/// 3D Vertex Shader.
+/// </summary>
 static const char* VS3D_TEXT =
 "cbuffer Constants0 : register(b0)\n"
 "{\n"
@@ -266,9 +264,9 @@ static const char* VS3D_TEXT =
 "}\n";
 #pragma endregion
 #pragma region /// => pixel shader basic
-/**
-* 2D Pixel Shader DX10+.
-***/
+/// <summary>
+/// 2D Pixel Shader DX10+.
+/// </summary>
 static const char* PS2D =
 "Texture2D fontTexture : register(t0);\n"
 "SamplerState fontSampler : register(s0);\n"
@@ -284,9 +282,9 @@ static const char* PS2D =
 "    return float4(fontTexture.Sample( fontSampler, vtx.TexCoord ).xyz, 1.0);\n"
 "}\n";
 
-/**
-* 2D Pixel Shader DX10+, gamma correction.
-***/
+/// <summary>
+/// 2D Pixel Shader DX10+, gamma correction.
+/// </summary>
 static const char* PS2D_GAMMA_CORRECTION =
 "Texture2D fontTexture : register(t0);\n"
 "SamplerState fontSampler : register(s0);\n"
@@ -303,10 +301,10 @@ static const char* PS2D_GAMMA_CORRECTION =
 "    return fColor;"
 "}\n";
 
-/**
-* Simple Warp Shader.
-* Warp method taken from old DIY-Rift shader code.
-***/
+/// <summary>
+/// Simple Warp Shader.
+/// Warp method taken from old DIY-Rift shader code.
+/// </summary>
 static const char* PS_WARP_SIMPLE =
 "Texture2D fontTexture : register(t0);\n"
 "SamplerState fontSampler : register(s0);\n"
@@ -335,10 +333,10 @@ static const char* PS_WARP_SIMPLE =
 "   return float4(fontTexture.Sample( fontSampler, Warp(vtx.TexCoord) ).xyz, 1.0);\n"
 "}\n";
 
-/**
-* Simple Distortion Shader.
-* Improved distortion method taken from OSVR core repository.
-***/
+/// <summary>
+/// Simple Distortion Shader.
+/// Improved distortion method taken from OSVR core repository.
+/// </summary>
 static const char* PS_DIST_SIMPLE =
 "Texture2D fontTexture : register(t0);\n"
 "SamplerState fontSampler : register(s0);\n"
@@ -371,9 +369,9 @@ static const char* PS_DIST_SIMPLE =
 #pragma endregion
 #pragma region /// => pixel shader enhanced
 #pragma region PS3D
-/**
-* 3D Pixel Shader simple lighting.
-***/
+/// <summary>
+/// 3D Pixel Shader simple lighting.
+/// </summary>
 static const char* PS3D =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -418,12 +416,12 @@ static const char* PS3D =
 "}\n";
 #pragma endregion
 #pragma region PS3D_MOUSE
-/**
-* 3D Pixel Shader with mouse cursor drawn.
-* Mouse cursor technique from shadertoy.com pixel shader "CursorTest" by jherico.
-* "CursorTest" is licenced under :
-* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
-***/
+/// <summary>
+/// 3D Pixel Shader with mouse cursor drawn.
+/// Mouse cursor technique from shadertoy.com pixel shader "CursorTest" by jherico.
+/// "CursorTest" is licenced under :
+/// https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+/// </summary>
 static const char* PS3D_MOUSE =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -490,9 +488,9 @@ static const char* PS3D_MOUSE =
 "}\n";
 #pragma endregion
 #pragma region PS3D_FABRIC
-/**
-* 3D Pixel Shader Fabric.
-***/
+/// <summary>
+/// 3D Pixel Shader Fabric.
+/// </summary>
 static const char* PS3D_FABRIC =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -546,9 +544,9 @@ static const char* PS3D_FABRIC =
 "}\n";
 #pragma endregion
 #pragma region PS3D_BUMP
-/**
-* 3D Pixel Shader bump mapping, compute normal map.
-***/
+/// <summary>
+/// 3D Pixel Shader bump mapping, compute normal map.
+/// </summary>
 static const char* PS3D_BUMP =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -619,13 +617,13 @@ static const char* PS3D_BUMP =
 "}\n";
 #pragma endregion
 #pragma region PS_STRING_THEORY
-/**
-* Pixel Shader from shadertoy.com
-* "String Theory" by nimitz (twitter: @stormoid)
-* https://www.shadertoy.com/view/XdSSz1
-* This work is licenced under :
-* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// "String Theory" by nimitz (twitter: @stormoid)
+/// https://www.shadertoy.com/view/XdSSz1
+/// This work is licenced under :
+/// https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+/// </summary>
 static const char* PS_STRING_THEORY =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -714,13 +712,13 @@ static const char* PS_STRING_THEORY =
 "}\n";
 #pragma endregion
 #pragma region PS_BUBBLES
-/**
-* Pixel Shader from shadertoy.com
-* "Bubbles!" by weyland
-* Created by inigo quilez - iq/2013 : https://www.shadertoy.com/view/4dl3zn
-* License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-* Messed up by Weyland
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// "Bubbles!" by weyland
+/// Created by inigo quilez - iq/2013 : https://www.shadertoy.com/view/4dl3zn
+/// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+/// Messed up by Weyland
+/// </summary>
 static const char* PS_BUBBLES =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -799,15 +797,15 @@ static const char* PS_BUBBLES =
 "}\n";
 #pragma endregion
 #pragma region PS_C64_PLASMA
-/**
-* Pixel Shader from shadertoy.com
-* 2D plasma in C64 graphics style
-*
-* Version 1.0 (2013-03-31)
-* Simon Stelling-de San Antonio
-* This work is licenced under :
-* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// 2D plasma in C64 graphics style
+///
+/// Version 1.0 (2013-03-31)
+/// Simon Stelling-de San Antonio
+/// This work is licenced under :
+/// https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+/// </summary>
 static const char* PS_C64_PLASMA =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1002,16 +1000,16 @@ static const char* PS_C64_PLASMA =
 "}\n";
 #pragma endregion
 #pragma region PS_TOON_CLOUD
-/**
-* Pixel Shader from shadertoy.com
-* ----------------------------------------------------------------------------------------
-*	"Toon Cloud" by Antoine Clappier - March 2015
-*
-*	Licensed under:
-*  A Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
-*	http://creativecommons.org/licenses/by-nc-sa/4.0/
-* ----------------------------------------------------------------------------------------
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// ----------------------------------------------------------------------------------------
+///	"Toon Cloud" by Antoine Clappier - March 2015
+///
+///	Licensed under:
+///  A Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+///	http://creativecommons.org/licenses/by-nc-sa/4.0/
+/// ----------------------------------------------------------------------------------------
+/// </summary>
 static const char* PS_TOON_CLOUD =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1128,12 +1126,12 @@ static const char* PS_TOON_CLOUD =
 "}\n";
 #pragma endregion
 #pragma region PS_WORLEY_01
-/**
-* Pixel Shader from shadertoy.com
-* "Worley Algorithm (Cell Noise )" by  Yeis
-* This work is licenced under :
-* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// "Worley Algorithm (Cell Noise )" by  Yeis
+/// This work is licenced under :
+/// https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+/// </summary>
 static const char* PS_WORLEY_01 =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1224,8 +1222,8 @@ static const char* PS_WORLEY_01 =
 "}\n";
 #pragma endregion
 #pragma region PS_WATER_CAUSTIC
-/**
-* Pixel Shader from shadertoy.com
+/// <summary>
+/// Pixel Shader from shadertoy.com
 // Tileable Water Caustic
 // Found this on GLSL sandbox. I really liked it, changed a few things and made it tileable.
 // :)
@@ -1233,7 +1231,7 @@ static const char* PS_WORLEY_01 =
 
 
 // Water turbulence effect by joltz0r 2013-07-04, improved 2013-07-07
-***/
+/// </summary>
 static const char* PS_WATER_CAUSTIC =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1308,10 +1306,10 @@ static const char* PS_WATER_CAUSTIC =
 "}\n";
 #pragma endregion
 #pragma region PS_HYPNOTIC_DISCO
-/**
-* Pixel Shader from shadertoy.com
-* "Hypnotic disco" by
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// "Hypnotic disco" by
+/// </summary>
 static const char* PS_HYPNOTIC_DISCO =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1452,10 +1450,10 @@ static const char* PS_HYPNOTIC_DISCO =
 "}\n";
 #pragma endregion
 #pragma region PS_PLANETS
-/**
-* Pixel Shader from shadertoy.com
+/// <summary>
+/// Pixel Shader from shadertoy.com
 
-***/
+/// </summary>
 static const char* PS_PLANETS =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1677,17 +1675,17 @@ static const char* PS_PLANETS =
 "}\n";
 #pragma endregion
 #pragma region PS_VORONOI_SMOOTH
-/**
-* Pixel Shader from shadertoy.com
-* Created by inigo quilez - iq/2014
-* License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-
-* Smooth Voronoi - avoiding aliasing, by replacing the usual min() function, which is
-* discontinuous, with a smooth version. That can help preventing some aliasing, and also
-* provides with more artistic control of the final procedural textures/models.
-
-* The parameter w controls the smoothness
-***/
+/// <summary>
+/// Pixel Shader from shadertoy.com
+/// Created by inigo quilez - iq/2014
+/// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+///
+/// Smooth Voronoi - avoiding aliasing, by replacing the usual min() function, which is
+/// discontinuous, with a smooth version. That can help preventing some aliasing, and also
+/// provides with more artistic control of the final procedural textures/models.
+///
+/// The parameter w controls the smoothness
+/// </summary>
 static const char* PS_VORONOI_SMOOTH =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1783,10 +1781,10 @@ static const char* PS_VORONOI_SMOOTH =
 "}\n";
 #pragma endregion
 #pragma region PS_TEXT_FX_001
-/**
-* Text FX 001
-* FX shader for font output.
-***/
+/// <summary>
+/// Text FX 001
+/// FX shader for font output.
+/// </summary>
 static const char* PS_TEXT_FX_001 =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1856,9 +1854,9 @@ static const char* PS_TEXT_FX_001 =
 "}\n";
 #pragma endregion
 #pragma region PS_MENU_SCREEN
-/**
-* 3D Pixel Shader menu screen.
-***/
+/// <summary>
+/// 3D Pixel Shader menu screen.
+/// </summary>
 static const char* PS_MENU_SCREEN =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1903,10 +1901,10 @@ static const char* PS_MENU_SCREEN =
 "}\n";
 #pragma endregion
 #pragma region PS_TEXT_FX_002
-/**
-* Text FX 002
-* FX shader for font output.
-***/
+/// <summary>
+/// Text FX 002
+/// FX shader for font output.
+/// </summary>
 static const char* PS_TEXT_FX_002 =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -1974,9 +1972,9 @@ static const char* PS_TEXT_FX_002 =
 "}\n";
 #pragma endregion
 #pragma region PS_SCREEN_FILTER
-/**
-* Filter by kbjwes77.
-***/
+/// <summary>
+/// Filter by kbjwes77.
+/// </summary>
 static const char* PS_SCREEN_FILTER =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -2076,9 +2074,9 @@ static const char* PS_SCREEN_FILTER =
 "}\n";
 #pragma endregion
 #pragma region PS_SCREEN_SHARPEN
-/**
-* Sharpen by KimWest.
-***/
+/// <summary>
+/// Sharpen by KimWest.
+/// </summary>
 static const char* PS_SCREEN_SHARPEN =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -2179,9 +2177,9 @@ static const char* PS_SCREEN_SHARPEN =
 "}\n";
 #pragma endregion
 #pragma region PS_SCREEN_LEVEL_FILTER
-/**
-* Level filter by sepehr.
-***/
+/// <summary>
+/// Level filter by sepehr.
+/// </summary>
 static const char* PS_SCREEN_LEVEL_FILTER =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
@@ -2299,9 +2297,9 @@ static const char* PS_SCREEN_LEVEL_FILTER =
 #pragma endregion
 #pragma endregion
 #pragma region /// => shader enumeration
-/**
-* Simple enumeration of available vertex shaders.
-***/
+/// <summary>
+/// Simple enumeration of available vertex shaders.
+/// </summary>
 enum VertexShaderTechnique
 {
 	PosUV2D,        /**< Position, UV, for 2D projection **/
@@ -2309,9 +2307,9 @@ enum VertexShaderTechnique
 	PosNormUV_Text, /**< Position, Normal, UV -> Converts UV to text glyph UV. ***/
 };
 
-/**
-* Simple enumeration of available pixel shaders.
-***/
+/// <summary>
+/// Simple enumeration of available pixel shaders.
+/// </summary>
 enum PixelShaderTechnique
 {
 	FullscreenSimple,              /**< TexturedVertex **/
@@ -2341,9 +2339,9 @@ enum PixelShaderTechnique
 #pragma endregion
 
 #pragma region /// => Vireio font
-/**
-* Glyph constant buffer structure.
-***/
+/// <summary>
+/// Glyph constant buffer structure.
+/// </summary>
 struct Glyph_Constants
 {
 	uint32_t unCharacter;
@@ -2356,9 +2354,9 @@ struct Glyph_Constants
 	float fXAdvance;
 };
 
-/**
-* Main vertex structure.
-***/
+/// <summary>
+/// Main vertex structure.
+/// </summary>
 struct VertexPosUV
 {
 	float3 afPos3;
@@ -2370,20 +2368,20 @@ struct VertexPosUV
 HRESULT CreateVertexShaderTechnique(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout, VertexShaderTechnique eTechnique);
 HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcPixelShader, PixelShaderTechnique eTechnique);
 
-/**
-* Vireio font class.
-* Does load .spritefont files and renders the chosen font glyphes.
-***/
+/// <summary>
+/// Vireio font class.
+/// Does load .spritefont files and renders the chosen font glyphes.
+/// </summary>
 class VireioFont
 {
 public:
-	/**
-	* Constructor.
-	* Loads the specified .spritefont file.
-	* @param pcDevice The D3D 11 device.
-	* @param pcDeviceContext The D3D 11 device context.
-	* @param szPath File path to the .spritefont file.
-	***/
+	/// <summary>
+	/// Constructor.
+	/// Loads the specified .spritefont file.
+	/// @param pcDevice The D3D 11 device.
+	/// @param pcDeviceContext The D3D 11 device context.
+	/// @param szPath File path to the .spritefont file.
+	/// </summary>
 	VireioFont(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szPath, float fFontSize, float fAspect, HRESULT& nHr, UINT unTechnique)
 		: m_pcTexFont2D(nullptr)
 		, m_pcTexFontSRV(nullptr)
@@ -2394,9 +2392,9 @@ public:
 		, m_fCenterTremble(0.0f)
 	{
 		static const char s_szSpriteFontMagic[] = "DXTKfont";
-		/**
-		* Microsoft description for a single character glyph.
-		***/
+		/// <summary>
+		/// Microsoft description for a single character glyph.
+		/// </summary>
 		struct Glyph_MS
 		{
 			uint32_t Character;
@@ -2454,7 +2452,7 @@ public:
 			uint32_t unTextureRows = 0;
 			cInFileStream.read((char*)&unTextureRows, sizeof(uint32_t));
 			uint8_t* pchTextureData = new uint8_t[unTextureStride * unTextureRows];
-			cInFileStream.read((char*)pchTextureData, sizeof(uint8_t)* unTextureStride * unTextureRows);
+			cInFileStream.read((char*)pchTextureData, sizeof(uint8_t) * unTextureStride * unTextureRows);
 
 			// Create the D3D texture.
 			CD3D11_TEXTURE2D_DESC sDescTex(eTextureFormat, unTextureWidth, unTextureHeight, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_IMMUTABLE);
@@ -2546,7 +2544,7 @@ public:
 			D3D11_BUFFER_DESC sDescVtx;
 			ZeroMemory(&sDescVtx, sizeof(D3D11_BUFFER_DESC));
 			sDescVtx.Usage = D3D11_USAGE_IMMUTABLE;
-			sDescVtx.ByteWidth = sizeof(VertexPosUV)* 256 * 4;
+			sDescVtx.ByteWidth = sizeof(VertexPosUV) * 256 * 4;
 			sDescVtx.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			sDescVtx.CPUAccessFlags = 0;
 			sDescVtx.MiscFlags = 0;
@@ -2567,11 +2565,11 @@ public:
 
 		// we use a simple left handed projection matrix for text...
 		const float fPi = 3.1415926535f;
-		D3DXMatrixPerspectiveFovLH(&m_sProj, 0.25f*fPi, fAspect, 1.0f, 1000.0f);
+		D3DXMatrixPerspectiveFovLH(&m_sProj, 0.25f * fPi, fAspect, 1.0f, 1000.0f);
 
 		// Set constants
 		ZeroMemory(&m_sConstantBuffer0, sizeof(GeometryConstantBuffer));
-		m_sConstantBuffer0.sWorldViewProjection = m_sWorld*m_sView*m_sProj;
+		m_sConstantBuffer0.sWorldViewProjection = m_sWorld * m_sView * m_sProj;
 
 		// create the constant buffer
 		D3D11_BUFFER_DESC sDescConst;
@@ -2628,15 +2626,15 @@ public:
 		PixelShaderTechnique eTechnique = PixelShaderTechnique::TextFX_001;
 		switch (unTechnique)
 		{
-			case 0:
-				eTechnique = PixelShaderTechnique::TextFX_001;
-				break;
-			case 1:
-				eTechnique = PixelShaderTechnique::TextFX_002;
-				break;
-			default:
-				eTechnique = PixelShaderTechnique::TextFX_002;
-				break;
+		case 0:
+			eTechnique = PixelShaderTechnique::TextFX_001;
+			break;
+		case 1:
+			eTechnique = PixelShaderTechnique::TextFX_002;
+			break;
+		default:
+			eTechnique = PixelShaderTechnique::TextFX_002;
+			break;
 		}
 
 		// create pixel shader... 
@@ -2660,9 +2658,9 @@ public:
 			OutputDebugString(L"[VRO] Failed to create sampler.");
 	}
 
-	/**
-	* Destructor.
-	***/
+	/// <summary>
+	/// Destructor.
+	/// </summary>
 	~VireioFont()
 	{
 		SAFE_RELEASE(m_pcSampler);
@@ -2677,9 +2675,9 @@ public:
 		SAFE_RELEASE(m_pcBlendState);
 	}
 
-	/**
-	* Set attributes for the text.
-	***/
+	/// <summary>
+	/// Set attributes for the text.
+	/// </summary>
 	void SetTextAttributes(float fX, float fY, float fZ)
 	{
 		// Build the view matrix.
@@ -2690,9 +2688,9 @@ public:
 		D3DXMatrixLookAtLH(&m_sView, &sPos, &sTarget, &sUp);
 	}
 
-	/**
-	* Sets all fields before the render calls.
-	***/
+	/// <summary>
+	/// Sets all fields before the render calls.
+	/// </summary>
 	void ToRender(ID3D11DeviceContext* pcContext, float fTime, float fScrollY, float fDistance, float fCenterTremble)
 	{
 		UINT stride = sizeof(VertexPosUV);
@@ -2724,10 +2722,10 @@ public:
 		m_fCenterTremble = fCenterTremble;
 	}
 
-	/**
-	* Measures the text width.
-	* @returns The measured text width in world space dimension.
-	***/
+	/// <summary>
+	/// Measures the text width.
+	/// @returns The measured text width in world space dimension.
+	/// </summary>
 	float MeasureText(LPCSTR szText)
 	{
 		UINT unIx = 0;
@@ -2741,14 +2739,14 @@ public:
 		return fReturn;
 	}
 
-	/**
-	* Empty line.
-	***/
+	/// <summary>
+	/// Empty line.
+	/// </summary>
 	void Enter() { m_unLineIx++; }
 
-	/**
-	* Renders a new text line based on the vertical scroll origin.
-	***/
+	/// <summary>
+	/// Renders a new text line based on the vertical scroll origin.
+	/// </summary>
 	void RenderTextLine(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szText)
 	{
 		// get vertical origin, measure text
@@ -2757,7 +2755,7 @@ public:
 		float fWidth = MeasureText(szText);
 
 		// set tremble for vertically centered line
-		if ((fLineOrigin > -0.5) && (fLineOrigin < 0.5f)) fTremble = (sin(m_sConstantBuffer0.fGlobalTime*20.0f))*0.5f + m_fCenterTremble;
+		if ((fLineOrigin > -0.5) && (fLineOrigin < 0.5f)) fTremble = (sin(m_sConstantBuffer0.fGlobalTime * 20.0f)) * 0.5f + m_fCenterTremble;
 
 		// render text centered
 		RenderText(pcDevice, pcContext, szText, fWidth * -0.5f, m_fDistance + fTremble, fLineOrigin);
@@ -2766,9 +2764,9 @@ public:
 		m_unLineIx++;
 	}
 
-	/**
-	* Draw text on active render target.
-	***/
+	/// <summary>
+	/// Draw text on active render target.
+	/// </summary>
 	void RenderText(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, LPCSTR szText, float fX, float fY, float fZ)
 	{
 		// get old blend state
@@ -2790,7 +2788,7 @@ public:
 			D3DXMatrixTranslation(&world, fXTranslate, fY, fZ);
 			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorld, &world);
 			D3DXMATRIX wvp;
-			wvp = world*m_sView*m_sProj;
+			wvp = world * m_sView * m_sProj;
 			D3DXMatrixTranspose(&m_sConstantBuffer0.sWorldViewProjection, &wvp);
 
 			// update constant buffers
@@ -2808,84 +2806,84 @@ public:
 	}
 
 private:
-	/**
-	* Font texture.
-	***/
+	/// <summary>
+	/// Font texture.
+	/// </summary>
 	ID3D11Texture2D* m_pcTexFont2D;
-	/**
-	* Font texture shader resource view.
-	***/
+	/// <summary>
+	 /// Font texture shader resource view.
+	/// </summary>
 	ID3D11ShaderResourceView* m_pcTexFontSRV;
-	/**
-	* Glyph constants array.
-	* Array size 256 for every ascii code.
-	***/
+	/// <summary>
+	 /// Glyph constants array.
+	/// Array size 256 for every ascii code.
+	/// </summary>
 	std::vector<Glyph_Constants> m_asGlyphConstants;
-	/**
-	* Glyph constant buffer.
-	***/
+	/// <summary>
+	 /// Glyph constant buffer.
+	/// </summary>
 	ID3D11Buffer* m_pcConstantsGlyph;
-	/**
-	* Vertex buffer containing all glyph vertices.
-	***/
+	/// <summary>
+	/// Vertex buffer containing all glyph vertices.
+	/// </summary>
 	ID3D11Buffer* m_pcVBGlyphes;
-	/**
-	* Main constant structure.
-	***/
+	/// <summary>
+	 /// Main constant structure.
+	/// </summary>
 	GeometryConstantBuffer m_sConstantBuffer0;
-	/**
-	* Main constant buffer.
-	***/
+	/// <summary>
+	  /// Main constant buffer.
+	/// </summary>
 	ID3D11Buffer* m_pcConstantBuffer0;
-	/**
-	* Basic world, view and projection matrices.
-	***/
+	/// <summary>
+	 /// Basic world, view and projection matrices.
+	/// </summary>
 	D3DXMATRIX m_sWorld, m_sView, m_sProj;
-	/**
-	* Alpha blending state.
-	***/
+	/// <summary>
+	/// Alpha blending state.
+	/// </summary>
 	ID3D11BlendState* m_pcBlendState;
-	/**
-	* Font vertex shader.
-	***/
+	/// <summary>
+	 /// Font vertex shader.
+	/// </summary>
 	ID3D11VertexShader* m_pcVertexShader;
-	/**
-	* Font vertex layout.
-	***/
+	/// <summary>
+	 /// Font vertex layout.
+	/// </summary>
 	ID3D11InputLayout* m_pcInputLayout;
-	/**
-	* Font pixel shader.
-	***/
+	/// <summary>
+	 /// Font pixel shader.
+	/// </summary>
 	ID3D11PixelShader* m_pcPixelShader;
-	/**
-	* The d3d11 sampler.
-	***/
+	/// <summary>
+	 /// The d3d11 sampler.
+	/// </summary>
 	ID3D11SamplerState* m_pcSampler;
-	/**
-	* Vertical scroll origin.
-	**/
+	/// <summary>
+	 /// Vertical scroll origin.
+	/// </summary>
 	float m_fScrollY;
-	/**
-	* Text distance.
-	***/
+	/// <summary>
+	/// Text distance.
+	/// </summary>
 	float m_fDistance;
-	/**
-	* Internal text line counter.
-	**/
+	/// <summary>
+	/// Internal text line counter.
+	/// </summary>
 	UINT m_unLineIx;
-	/**
-	* Additional tremble for the center line.
-	***/
+	/// <summary>
+	/// Additional tremble for the center line.
+	/// </summary>
 	float m_fCenterTremble;
 };
 #pragma endregion
 
 #pragma region /// => Helpers
 
-/**
-* Sets the first render target by swap chain.
-* @pararm ppcBackBufferView [in, out] Returns the back buffer view taken from the provided swapchain.
-***/
+/// <summary>
+/// => Sets the first render target by swap chain.
+/// @pararm ppcBackBufferView [in, out] Returns the back buffer view taken from the provided swapchain.
+/// </summary>
 void SetFirstRenderTargetBySwapChain(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapChain, ID3D11RenderTargetView** ppcBackBufferView, ID3D11DepthStencilView* pcDepthStencilView)
 {
 	if (!ppcBackBufferView) return;
@@ -2903,9 +2901,9 @@ void SetFirstRenderTargetBySwapChain(ID3D11Device* pcDevice, ID3D11DeviceContext
 	}
 }
 
-/**
-* Creates a simple 3D vertex shader with an input layout.
-***/
+/// <summary>
+/// => Creates a simple 3D vertex shader with an input layout.
+/// </summary>
 HRESULT CreateVertexShaderTechnique(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout, VertexShaderTechnique eTechnique)
 {
 	if ((!ppcVertexShader) || (!ppcInputLayout) || (!pcDevice)) return E_INVALIDARG;
@@ -2916,31 +2914,29 @@ HRESULT CreateVertexShaderTechnique(ID3D11Device* pcDevice, ID3D11VertexShader**
 	// compile shader
 	switch (eTechnique)
 	{
-		case PosUV2D:
-			hr = D3DX10CompileFromMemory(VS2D, strlen(VS2D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case PosNormUV:
-			hr = D3DX10CompileFromMemory(VS3D, strlen(VS3D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case PosNormUV_Text:
-			hr = D3DX10CompileFromMemory(VS3D_TEXT, strlen(VS3D_TEXT), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		default:
-			break;
+	case PosUV2D:
+		hr = D3DX10CompileFromMemory(VS2D, strlen(VS2D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case PosNormUV:
+		hr = D3DX10CompileFromMemory(VS3D, strlen(VS3D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case PosNormUV_Text:
+		hr = D3DX10CompileFromMemory(VS3D_TEXT, strlen(VS3D_TEXT), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	default:
+		break;
 	}
 
 
 	// create shader
 	if (SUCCEEDED(hr))
 	{
-		//#ifdef _DEBUG
-		OutputDebugString(L"[VRO] : Vertex Shader compiled !");
-		//#endif
+		OutputDebugString(L"[VRO] Vertex Shader compiled !");
 		hr = pcDevice->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcVertexShader);
 
 		if (FAILED(hr))
 		{
-			OutputDebugString(L"[VRO] : Failed to create Vertex Shader !");
+			OutputDebugString(L"[VRO] Failed to create Vertex Shader !");
 			return hr;
 		}
 		else
@@ -2986,9 +2982,9 @@ HRESULT CreateVertexShaderTechnique(ID3D11Device* pcDevice, ID3D11VertexShader**
 	return S_OK;
 }
 
-/**
-* Creates a pixel shader effect.
-***/
+/// <summary>
+/// => Creates a pixel shader effect.
+/// </summary>
 HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcPixelShader, PixelShaderTechnique eTechnique)
 {
 	if ((!pcDevice) || (!ppcPixelShader)) return E_INVALIDARG;
@@ -2999,84 +2995,84 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 	// compile selecting technique
 	switch (eTechnique)
 	{
-		case FullscreenSimple:
-			hr = D3DX10CompileFromMemory(PS2D, strlen(PS2D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case WarpSimple:
-			hr = D3DX10CompileFromMemory(PS_WARP_SIMPLE, strlen(PS_WARP_SIMPLE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case DistortSimple:
-			hr = D3DX10CompileFromMemory(PS_DIST_SIMPLE, strlen(PS_DIST_SIMPLE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case FullscreenGammaCorrection:
-			hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case GeometryDiffuseTextured:
-			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case GeometryDiffuseTexturedMouse:
-			hr = D3DX10CompileFromMemory(PS3D_MOUSE, strlen(PS3D_MOUSE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case Fabric:
-			hr = D3DX10CompileFromMemory(PS3D_FABRIC, strlen(PS3D_FABRIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case BumpComputeNormal:
-			hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case StringTheory:
-			hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case Bubbles:
-			hr = D3DX10CompileFromMemory(PS_BUBBLES, strlen(PS_BUBBLES), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case C64Plasma:
-			hr = D3DX10CompileFromMemory(PS_C64_PLASMA, strlen(PS_C64_PLASMA), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case ToonCloud:
-			hr = D3DX10CompileFromMemory(PS_TOON_CLOUD, strlen(PS_TOON_CLOUD), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case Worley01:
-			hr = D3DX10CompileFromMemory(PS_WORLEY_01, strlen(PS_WORLEY_01), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case WaterCaustic:
-			hr = D3DX10CompileFromMemory(PS_WATER_CAUSTIC, strlen(PS_WATER_CAUSTIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case HypnoticDisco:
-			hr = D3DX10CompileFromMemory(PS_HYPNOTIC_DISCO, strlen(PS_HYPNOTIC_DISCO), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case Planets:
-			hr = D3DX10CompileFromMemory(PS_PLANETS, strlen(PS_PLANETS), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case VoronoiSmooth:
-			hr = D3DX10CompileFromMemory(PS_VORONOI_SMOOTH, strlen(PS_VORONOI_SMOOTH), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case TextFX_001:
-			hr = D3DX10CompileFromMemory(PS_TEXT_FX_001, strlen(PS_TEXT_FX_001), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case MenuScreen:
-			hr = D3DX10CompileFromMemory(PS_MENU_SCREEN, strlen(PS_MENU_SCREEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case TextFX_002:
-			hr = D3DX10CompileFromMemory(PS_TEXT_FX_002, strlen(PS_TEXT_FX_002), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case ScreenFilter:
-			hr = D3DX10CompileFromMemory(PS_SCREEN_FILTER, strlen(PS_SCREEN_FILTER), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case ScreenSharpen:
-			hr = D3DX10CompileFromMemory(PS_SCREEN_SHARPEN, strlen(PS_SCREEN_SHARPEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		case ScreenLevelFilter:
-			hr = D3DX10CompileFromMemory(PS_SCREEN_LEVEL_FILTER, strlen(PS_SCREEN_LEVEL_FILTER), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			break;
-		default:
-			return E_INVALIDARG;
-			break;
+	case FullscreenSimple:
+		hr = D3DX10CompileFromMemory(PS2D, strlen(PS2D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case WarpSimple:
+		hr = D3DX10CompileFromMemory(PS_WARP_SIMPLE, strlen(PS_WARP_SIMPLE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case DistortSimple:
+		hr = D3DX10CompileFromMemory(PS_DIST_SIMPLE, strlen(PS_DIST_SIMPLE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case FullscreenGammaCorrection:
+		hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case GeometryDiffuseTextured:
+		hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case GeometryDiffuseTexturedMouse:
+		hr = D3DX10CompileFromMemory(PS3D_MOUSE, strlen(PS3D_MOUSE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case Fabric:
+		hr = D3DX10CompileFromMemory(PS3D_FABRIC, strlen(PS3D_FABRIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case BumpComputeNormal:
+		hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case StringTheory:
+		hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case Bubbles:
+		hr = D3DX10CompileFromMemory(PS_BUBBLES, strlen(PS_BUBBLES), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case C64Plasma:
+		hr = D3DX10CompileFromMemory(PS_C64_PLASMA, strlen(PS_C64_PLASMA), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case ToonCloud:
+		hr = D3DX10CompileFromMemory(PS_TOON_CLOUD, strlen(PS_TOON_CLOUD), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case Worley01:
+		hr = D3DX10CompileFromMemory(PS_WORLEY_01, strlen(PS_WORLEY_01), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case WaterCaustic:
+		hr = D3DX10CompileFromMemory(PS_WATER_CAUSTIC, strlen(PS_WATER_CAUSTIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case HypnoticDisco:
+		hr = D3DX10CompileFromMemory(PS_HYPNOTIC_DISCO, strlen(PS_HYPNOTIC_DISCO), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case Planets:
+		hr = D3DX10CompileFromMemory(PS_PLANETS, strlen(PS_PLANETS), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case VoronoiSmooth:
+		hr = D3DX10CompileFromMemory(PS_VORONOI_SMOOTH, strlen(PS_VORONOI_SMOOTH), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case TextFX_001:
+		hr = D3DX10CompileFromMemory(PS_TEXT_FX_001, strlen(PS_TEXT_FX_001), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case MenuScreen:
+		hr = D3DX10CompileFromMemory(PS_MENU_SCREEN, strlen(PS_MENU_SCREEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case TextFX_002:
+		hr = D3DX10CompileFromMemory(PS_TEXT_FX_002, strlen(PS_TEXT_FX_002), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case ScreenFilter:
+		hr = D3DX10CompileFromMemory(PS_SCREEN_FILTER, strlen(PS_SCREEN_FILTER), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case ScreenSharpen:
+		hr = D3DX10CompileFromMemory(PS_SCREEN_SHARPEN, strlen(PS_SCREEN_SHARPEN), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	case ScreenLevelFilter:
+		hr = D3DX10CompileFromMemory(PS_SCREEN_LEVEL_FILTER, strlen(PS_SCREEN_LEVEL_FILTER), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		break;
+	default:
+		return E_INVALIDARG;
+		break;
 	}
 
 	// succeded ?
 	if (SUCCEEDED(hr))
 	{
-		OutputDebugString(L"Vireio Perception : Pixel shader compiled !");
+		OutputDebugString(L"[VRO] Pixel shader compiled !");
 		pcDevice->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcPixelShader);
 		pcShader->Release();
 
@@ -3084,14 +3080,14 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 	}
 	else
 	{
-		OutputDebugString(L"Vireio Perception : Failed to create pixel shader !");
+		OutputDebugString(L"[VRO] Failed to create pixel shader !");
 		return hr;
 	}
 }
 
-/**
-* Creates a full screen vertex buffer.
-***/
+/// <summary>
+/// => Creates a full screen vertex buffer.
+/// </summary>
 HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuffer)
 {
 	// Create vertex buffer
@@ -3107,7 +3103,7 @@ HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	};
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(TexturedVertex)* 6;
+	bd.ByteWidth = sizeof(TexturedVertex) * 6;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
@@ -3118,9 +3114,9 @@ HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	return pcDevice->CreateBuffer(&bd, &InitData, ppcBuffer);
 }
 
-/**
-* Creates a simple matrix constant buffer.
-***/
+/// <summary>
+/// => Creates a simple matrix constant buffer.
+/// </summary>
 HRESULT CreateMatrixConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuffer)
 {
 	// init data
@@ -3147,9 +3143,9 @@ HRESULT CreateMatrixConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuf
 	return pcDevice->CreateBuffer(&cbDesc, &InitData, ppcBuffer);
 }
 
-/**
-* Creates a simple matrix constant buffer.
-***/
+/// <summary>
+/// => Creates a simple matrix constant buffer.
+/// </summary>
 HRESULT CreateGeometryConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuffer, UINT unSize)
 {
 #ifdef _DEBUG
@@ -3175,9 +3171,55 @@ HRESULT CreateGeometryConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	return pcDevice->CreateBuffer(&cbDesc, nullptr, ppcBuffer);
 }
 
-/**
-* Get device and context from the swapchain.
-***/
+/// <summary>
+/// => Create depth stencil surface (texture) and view
+/// </summary>
+HRESULT CreateDepthStencil(ID3D11Device* pcDevice, IDXGISwapChain* pcSwapchain, ID3D11Texture2D** ppcTexture, ID3D11DepthStencilView** ppcDSView)
+{
+	if ((!ppcTexture) || (!ppcDSView) || (!pcDevice) || (!pcSwapchain)) return E_INVALIDARG;
+
+	ID3D11Texture2D* pcBackBuffer = nullptr;
+	pcSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+
+	if (pcBackBuffer)
+	{
+		D3D11_TEXTURE2D_DESC sDesc = {};
+		pcBackBuffer->GetDesc(&sDesc);
+		pcBackBuffer->Release();
+
+		// Create depth stencil texture
+		D3D11_TEXTURE2D_DESC sDescDS = {};
+		sDescDS.Width = sDesc.Width;
+		sDescDS.Height = sDesc.Height;
+		sDescDS.MipLevels = 1;
+		sDescDS.ArraySize = 1;
+		sDescDS.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		sDescDS.SampleDesc.Count = 1;
+		sDescDS.SampleDesc.Quality = 0;
+		sDescDS.Usage = D3D11_USAGE_DEFAULT;
+		sDescDS.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		sDescDS.CPUAccessFlags = 0;
+		sDescDS.MiscFlags = 0;
+		if (FAILED(pcDevice->CreateTexture2D(&sDescDS, NULL, ppcTexture)))
+			OutputDebugString(L"[STP] Failed to create depth stencil.");
+
+		// Create the depth stencil view
+		D3D11_DEPTH_STENCIL_VIEW_DESC sDescDSV = {};
+		sDescDSV.Format = sDescDS.Format;
+		sDescDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		sDescDSV.Texture2D.MipSlice = 0;
+		if (FAILED(pcDevice->CreateDepthStencilView(*ppcTexture, &sDescDSV, ppcDSView)))
+		{
+			OutputDebugString(L"[STP] Failed to create depth stencil view.");
+			return E_INVALIDARG;
+		}
+	}
+	return S_OK;
+}
+
+/// <summary>
+/// => Get device and context from the swapchain.
+/// </summary>
 HRESULT GetDeviceAndContext(IDXGISwapChain* pcSwapChain, ID3D11Device** ppcDevice, ID3D11DeviceContext** ppcContext)
 {
 	if ((!pcSwapChain) || (!ppcDevice) || (!ppcContext)) return E_INVALIDARG;
@@ -3202,9 +3244,9 @@ HRESULT GetDeviceAndContext(IDXGISwapChain* pcSwapChain, ID3D11Device** ppcDevic
 	return hr;
 }
 
-/**
-* Get the current render target, depth stencil and the first viewport.
-***/
+/// <summary>
+/// => Get the current render target, depth stencil and the first viewport.
+/// </summary>
 void GetRenderTarget(ID3D11DeviceContext* pcContext, ID3D11RenderTargetView** ppcRenderTargetView, ID3D11DepthStencilView** ppcDepthStencilView, UINT* pdwNumViewports, D3D11_VIEWPORT* psViewport)
 {
 	pcContext->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, ppcRenderTargetView, ppcDepthStencilView);
@@ -3212,7 +3254,7 @@ void GetRenderTarget(ID3D11DeviceContext* pcContext, ID3D11RenderTargetView** pp
 }
 
 /// <summary>
-/// Small helper to convert D3D9 format to DXGi
+/// => Small helper to convert D3D9 format to DXGi
 /// </summary>
 /// <param name="eInputFormat">D3D9 format</param>
 /// <returns>DXGI format</returns>
