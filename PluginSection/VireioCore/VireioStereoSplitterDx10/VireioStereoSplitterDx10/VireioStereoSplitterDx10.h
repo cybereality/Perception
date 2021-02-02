@@ -71,11 +71,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierClasses.h"
 
-#define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                         28
+#define NUMBER_OF_COMMANDERS    1
+#define NUMBER_OF_DECOMMANDERS 28
 
 #define STEREO_L 0
 #define STEREO_R 1
+#define MONO     1
+#define STEREO   2
+#define TARGET_REGISTER_L_11 0
+#define TARGET_REGISTER_R_11 D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT
+#define RESOURCE_REGISTER_L_11 0
+#define RESOURCE_REGISTER_R_11 D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT
 
 /// <summary>
 /// Node Commander Enumeration.
@@ -161,8 +167,7 @@ public:
 
 private:
 	/*** StereoSplitter private D3D10+ methods ***/
-	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext* pcContext, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView* const* ppcUnorderedAccessViews, const UINT* pdwUAVInitialCounts);
-	void                    XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceView*>& apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews);
+	void                    XSSetShaderResourceViews(std::array<ID3D11ShaderResourceView*, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT* STEREO>& apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews);
 
 	/*** StereoSplitter private methods ***/
 	void                    CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11View* pcView);
@@ -194,21 +199,22 @@ private:
 	/// <summary>
 	/// Active stored render target views.
 	/// The render targets that are currently in use.
-	/// (IUnknown*) for compatibility to DX10+DX11.
-	/// DX11 :
-	/// 0---------------------------------------------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
-	/// D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
+	/// 0---------------------------------------------> D3D1X_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
+	/// D3D1X_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D1X_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
 	/// </summary>
-	std::vector<IUnknown*> m_apcActiveRenderTargetViews;
+	union
+	{
+		std::array<ID3D10RenderTargetView*, D3D10_SIMULTANEOUS_RENDER_TARGET_COUNT* STEREO> m_apcActiveRenderTargetViews10;
+		std::array<ID3D11RenderTargetView*, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT* STEREO> m_apcActiveRenderTargetViews11;
+	};
 	/// <summary>
 	/// Active stored texture views.
 	/// The textures that are currently in use.
-	/// (IUnknown*) for compatibility to DX10+DX11.
 	/// DX11 :
 	/// 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
 	/// D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
 	/// </summary>
-	std::vector<ID3D11ShaderResourceView*> m_apcActivePSShaderResourceViews;
+	std::array<ID3D11ShaderResourceView*, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT* STEREO> m_apcActivePSShaderResourceViews;
 	/// <summary>
 	/// Active stored compute shader resource views.
 	/// The textures (INPUT!!) and buffers that are currently in use.
@@ -216,7 +222,7 @@ private:
 	/// 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
 	/// D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
 	/// </summary>
-	std::vector<ID3D11ShaderResourceView*> m_apcActiveCSShaderResourceViews;
+	std::array<ID3D11ShaderResourceView*, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT* STEREO> m_apcActiveCSShaderResourceViews;
 	/// <summary>
 	/// The d3d11 active constant buffer vector, for left and right side.
 	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
@@ -232,16 +238,14 @@ private:
 	/// </summary>
 	std::vector<ID3D11UnorderedAccessView*> m_apcActiveUnorderedAccessViews;
 	/// <summary>
-	/// Active stored depth stencil view.
+	/// Active stored depth stencil view (Stereo).
 	/// The depth stencil surface that is currently in use.
-	/// (IUnknown*) for compatibility to DX10+DX11.
 	/// </summary>
-	IUnknown* m_pcActiveDepthStencilView;
-	/// <summary>
-	/// Stereo twin for active depth stencil.
-	/// (IUnknown*) for compatibility to DX10+DX11.
-	/// </summary>
-	IUnknown* m_pcActiveStereoTwinDepthStencilView;
+	union
+	{
+		ID3D10DepthStencilView* m_apcActiveDepthStencilView10[STEREO];
+		ID3D11DepthStencilView* m_apcActiveDepthStencilView11[STEREO];
+	};
 	/// <summary>
 	/// Active back buffer.
 	/// The back buffer surface that is currently in use.
@@ -289,14 +293,6 @@ private:
 	/// Processed in next Present() call.
 	/// </summary>
 	std::vector<ID3D11UnorderedAccessView*> m_apcNewUnorderedAccessViews11;
-	/// <summary>
-	/// Captured HUD render target view.
-	/// </summary>
-	ID3D11RenderTargetView* m_pcHUDRenderTargetView;
-	/// <summary>
-	/// True if HUD render target is to be cleared.
-	/// </summary>
-	bool m_bClearHUDRenderTarget;
 	/// <summary>
 	/// True if Present() was called at least once.
 	/// Game can crash if Present() is not connected,
@@ -366,9 +362,10 @@ private:
 	HRESULT CSSetSamplers(int& nFlags);
 	HRESULT CSSetShader(int& nFlags);
 	HRESULT CSSetShaderResources(int& nFlags);
+	void    CSSetUnorderedAccessViews(UINT uStartSlot, UINT uNumUAVs, ID3D11UnorderedAccessView** ppcUnorderedAccessViews, UINT* puUAVInitialCounts);
 	HRESULT CSSetUnorderedAccessViews(int& nFlags);
-	HRESULT ClearDepthStencilView(int& nFlags);
-	HRESULT ClearRenderTargetView(int& nFlags);
+	void    ClearDepthStencilView(int& nFlags);
+	void    ClearRenderTargetView(int& nFlags);
 	HRESULT ClearState(int& nFlags);
 	HRESULT Dispatch(int& nFlags);
 	HRESULT DispatchIndirect(int& nFlags);
@@ -382,12 +379,13 @@ private:
 	HRESULT Map(int& nFlags);
 	HRESULT OMGetRenderTargets(int& nFlags);
 	HRESULT OMGetRenderTargetsAndUnorderedAccessViews(int& nFlags);
+	void    OMSetRenderTargets(UINT uNumViews, ID3D11RenderTargetView** ppcRenderTargetViews, ID3D11DepthStencilView* pcDepthStencilView);
 	void    OMSetRenderTargets(int& nFlags);
-	HRESULT OMSetRenderTargetsAndUnorderedAccessViews(int& nFlags);
+	void    OMSetRenderTargetsAndUnorderedAccessViews(int& nFlags);
 	HRESULT PSGetShaderResources(int& nFlags);
-	HRESULT PSSetShaderResources(int& nFlags);
+	void    PSSetShaderResources(int& nFlags);
 	void    Present(int& nFlags);
-	HRESULT Unmap(int& nFlags);
+	void    Unmap(int& nFlags);
 	HRESULT VSSetShader(int& nFlags);
 };
 
