@@ -358,17 +358,17 @@ private:
 	/// </summary>
 	INT m_nIniFrameCount;
 
-	HRESULT CSSetConstantBuffers(int& nFlags);
+	void    CSSetConstantBuffers(int& nFlags);
 	HRESULT CSSetSamplers(int& nFlags);
 	HRESULT CSSetShader(int& nFlags);
-	HRESULT CSSetShaderResources(int& nFlags);
+	void    CSSetShaderResources(int& nFlags);
 	void    CSSetUnorderedAccessViews(UINT uStartSlot, UINT uNumUAVs, ID3D11UnorderedAccessView** ppcUnorderedAccessViews, UINT* puUAVInitialCounts);
-	HRESULT CSSetUnorderedAccessViews(int& nFlags);
+	void    CSSetUnorderedAccessViews(int& nFlags);
 	void    ClearDepthStencilView(int& nFlags);
 	void    ClearRenderTargetView(int& nFlags);
 	HRESULT ClearState(int& nFlags);
-	HRESULT Dispatch(int& nFlags);
-	HRESULT DispatchIndirect(int& nFlags);
+	void    Dispatch(int& nFlags);
+	void    DispatchIndirect(int& nFlags);
 	HRESULT Draw(int& nFlags);
 	HRESULT DrawAuto(int& nFlags);
 	HRESULT DrawIndexed(int& nFlags);

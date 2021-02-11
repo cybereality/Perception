@@ -663,164 +663,71 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		case (int)VMT_ID3D11DEVICECONTEXT::Unmap:
 			SHOW_CALL_SPLITTER(Unmap);
 
-		{
-			int nFlags = 0;
-			Unmap(nFlags);
-			nProvokerIndex |= nFlags;
-		}
-		return nullptr;
+			{
+				int nFlags = 0;
+				Unmap(nFlags);
+				nProvokerIndex |= nFlags;
+			}
+			return nullptr;
 #pragma endregion
 #pragma region DISPATCH
 		case (int)VMT_ID3D11DEVICECONTEXT::Dispatch:
 			SHOW_CALL_SPLITTER(Dispatch);
 
-			/*if ((m_pdwThreadGroupCountX) && (m_pdwThreadGroupCountY) && (m_pdwThreadGroupCountZ))
+			if (m_bPresent)
 			{
-				// set the right side
-				((ID3D11DeviceContext*)pThis)->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_R_11]);
-				((ID3D11DeviceContext*)pThis)->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-				((ID3D11DeviceContext*)pThis)->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT], m_aunMinusOne);
-
-				// dispatch for the right side
-				((ID3D11DeviceContext*)pThis)->Dispatch(*m_pdwThreadGroupCountX, *m_pdwThreadGroupCountY, *m_pdwThreadGroupCountZ);
-
-				// set back to the left side
-				((ID3D11DeviceContext*)pThis)->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_L_11]);
-				((ID3D11DeviceContext*)pThis)->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[0]);
-				((ID3D11DeviceContext*)pThis)->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[0], m_aunMinusOne);
-
-			}*/
+				int nFlags = 0;
+				Dispatch(nFlags);
+				nProvokerIndex |= nFlags;
+			}
 			return nullptr;
 #pragma endregion
 #pragma region DISPATCHINDIRECT
 		case (int)VMT_ID3D11DEVICECONTEXT::DispatchIndirect:
 			SHOW_CALL_SPLITTER(DispatchIndirect);
 
-			/*if ((m_ppcBufferForArgs) && (m_pdwpAlignedByteOffsetForArgs))
+			if (m_bPresent)
 			{
-				// set the right side
-				((ID3D11DeviceContext*)pThis)->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_R_11]);
-				((ID3D11DeviceContext*)pThis)->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-				((ID3D11DeviceContext*)pThis)->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT], m_aunMinusOne);
-
-				// dispatch for the right side
-				((ID3D11DeviceContext*)pThis)->DispatchIndirect(*m_ppcBufferForArgs, *m_pdwpAlignedByteOffsetForArgs);
-
-				// set back to the left side
-				((ID3D11DeviceContext*)pThis)->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_L_11]);
-				((ID3D11DeviceContext*)pThis)->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[0]);
-				((ID3D11DeviceContext*)pThis)->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[0], m_aunMinusOne);
-			}*/
+				int nFlags = 0;
+				DispatchIndirect(nFlags);
+				nProvokerIndex |= nFlags;
+			}
 			return nullptr;
 #pragma endregion
 #pragma region CSSETSHADERRESOURCES
 		case (int)VMT_ID3D11DEVICECONTEXT::CSSetShaderResources:
 			SHOW_CALL_SPLITTER(CSSetShaderResources);
 
-			/*if ((m_pdwStartSlot_CS) && (m_pdwNumViews_CS) && (m_pppcShaderResourceViews) && (m_bPresent))
+			if (m_bPresent)
 			{
-				if (m_bPresent)
-				{
-					// ensure D3D11 is set
-					m_eD3DVersion = D3DVersion::Direct3D11;
-
-					// verify node pointers
-					if (!m_pdwStartSlot_CS) return nullptr;
-					if (!m_pdwNumViews_CS) return nullptr;
-					if (!m_pppcShaderResourceViews) return nullptr;
-
-					// invalid call ? validate !
-					if (*m_pdwStartSlot_CS + *m_pdwNumViews_CS > D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) return nullptr;
-
-					XSSetShaderResourceViews(m_apcActiveCSShaderResourceViews, m_dwCSShaderResourceViewsNumber, *m_pdwStartSlot_CS, *m_pdwNumViews_CS, *m_pppcShaderResourceViews);
-				}
-			}*/
+				int nFlags = 0;
+				CSSetShaderResources(nFlags);
+				nProvokerIndex |= nFlags;
+			}
 			return nullptr;
 #pragma endregion
 #pragma region CSSETUNORDEREDACCESSVIEWS
 		case (int)VMT_ID3D11DEVICECONTEXT::CSSetUnorderedAccessViews:
 			SHOW_CALL_SPLITTER(CSSetUnorderedAccessViews);
 
-			/*if (!m_pdwStartSlot_CSUAV) return nullptr;
-			if (!m_pdwNumUAVs_CS) return nullptr;
-			if (!m_pppcUnorderedAccessViews_CS) return nullptr;
-			if (!m_ppdwUAVInitialCounts_CS) return nullptr;
-
-			// call internal method
-			CSSetUnorderedAccessViews((ID3D11DeviceContext*)pThis, *m_pdwStartSlot_CSUAV, *m_pdwNumUAVs_CS, *m_pppcUnorderedAccessViews_CS, *m_ppdwUAVInitialCounts_CS);*/
+			if (m_bPresent)
+			{
+				int nFlags = 0;
+				CSSetUnorderedAccessViews(nFlags);
+				nProvokerIndex |= nFlags;
+			}
 			return nullptr;
 #pragma endregion
 #pragma region CSSETCONSTANTBUFFERS
 		case (int)VMT_ID3D11DEVICECONTEXT::CSSetConstantBuffers:
 			SHOW_CALL_SPLITTER(CSSetConstantBuffers);
 
-			/*if ((m_pdwStartSlot_CSCB) && (m_pdwNumBuffers) && (m_pppcConstantBuffers))
+			if (m_bPresent)
 			{
-				if (!*m_pppcConstantBuffers) return nullptr;
-				if (!**m_pppcConstantBuffers) return nullptr;
-
-				// loop through the new buffers
-				for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers; dwIndex++)
-				{
-					// get internal index
-					UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_CSCB;
-
-					// in range ?
-					if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
-					{
-						// set buffer internally
-						m_apcActiveCSConstantBuffers[dwInternalIndex] = ((*m_pppcConstantBuffers)[dwIndex]);
-
-						if (m_apcActiveCSConstantBuffers[dwInternalIndex])
-						{
-							// get private rule index from buffer
-							Vireio_Buffer_Rules_Index sRulesIndex;
-							sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-							sRulesIndex.m_dwUpdateCounter = 0;
-							UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-							m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-
-							// set twin for right side, first get the private data interface
-							ID3D11Buffer* pcBuffer = nullptr;
-							UINT dwSize = sizeof(pcBuffer);
-							m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
-
-							// stereo buffer and rules index present ?
-							if ((pcBuffer) && (dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
-							{
-								// set right buffer as active buffer
-								m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
-							}
-							else
-							{
-								// no buffer or no shader rules assigned ? left = right side -> right = left side
-								m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveCSConstantBuffers[dwInternalIndex];
-
-								// verify buffer... TODO !! STILL POSSIBLE THAT A CONSTANT BUFFER NEVER ADDRESSED TO THE VERTEX SHADER BUT TO THE COMPUTE SHADER !!!
-							}
-
-							// no stereo buffer present ?
-							if (!pcBuffer)
-							{
-								// create stereo constant buffer, first get device
-								ID3D11Device* pcDevice = nullptr;
-								m_apcActiveCSConstantBuffers[dwInternalIndex]->GetDevice(&pcDevice);
-								if (pcDevice)
-								{
-									D3D11_BUFFER_DESC sDesc;
-									m_apcActiveCSConstantBuffers[dwInternalIndex]->GetDesc(&sDesc);
-									CreateStereoBuffer(pcDevice, (ID3D11DeviceContext*)pThis, (ID3D11Buffer*)m_apcActiveCSConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
-									pcDevice->Release();
-								}
-							}
-							else
-								pcBuffer->Release();
-						}
-						else
-							m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
-					}
-				}
-			}*/
+				int nFlags = 0;
+				CSSetConstantBuffers(nFlags);
+				nProvokerIndex |= nFlags;
+			}
 			return nullptr;
 #pragma endregion
 		}
@@ -831,7 +738,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		if (eD3DMethod == (int)VMT_IDXGISWAPCHAIN::Present)
 			SHOW_CALL_SPLITTER(Present);
 
-			Present(nFlags);
+		Present(nFlags);
 		return nullptr;
 #pragma endregion
 	}
@@ -861,7 +768,7 @@ void StereoSplitter::XSSetShaderResourceViews(std::array<ID3D11ShaderResourceVie
 		bSetNull = true;
 	else if (!*ppcShaderResourceViews)
 		bSetNull = true;
-	
+
 	if (bSetNull)
 	{
 		// loop through new resource views
@@ -880,7 +787,7 @@ void StereoSplitter::XSSetShaderResourceViews(std::array<ID3D11ShaderResourceVie
 		// return to replace the call
 		return;
 	}
-	
+
 	// set total view number
 	if (unStartSlot + unNumViews > unNumViewsTotal)
 		unNumViewsTotal = (DWORD)(unStartSlot + unNumViews);
@@ -1639,16 +1546,122 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	return true;
 }
 
-HRESULT StereoSplitter::CSSetConstantBuffers(int& nFlags) { return E_NOTIMPL; }
+/// <summary>
+/// CSSetConstantBuffers
+/// </summary>
+void StereoSplitter::CSSetConstantBuffers(int& nFlags) 
+{
+	if (!m_ppInput[(int)STS_Decommanders::CSSetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CSSetConstantBuffers]);
+	UINT* puStartSlot;
+	if (ppIn[0]) puStartSlot = *(UINT**)ppIn[0]; else return;
+	UINT* puNumBuffers;
+	if (ppIn[1]) puNumBuffers = *(UINT**)ppIn[1]; else return;
+	ID3D11Buffer*** pppcConstantBuffers;
+	if (ppIn[2]) pppcConstantBuffers = *(ID3D11Buffer****)ppIn[2]; else return;
+
+	if ((puStartSlot) && (puNumBuffers) && (pppcConstantBuffers))
+	{
+		if (!*pppcConstantBuffers) return;
+		if (!**pppcConstantBuffers) return;
+
+		// loop through the new buffers
+		for (UINT uIx = 0; uIx < *puNumBuffers; uIx++)
+		{
+			// get internal index
+			UINT uIxInt = uIx + *puStartSlot;
+
+			// in range ?
+			if (uIxInt < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+			{
+				// set buffer internally
+				m_apcActiveCSConstantBuffers[uIxInt] = ((*pppcConstantBuffers)[uIx]);
+
+				if (m_apcActiveCSConstantBuffers[uIxInt])
+				{
+					// get private rule index from buffer
+					Vireio_Buffer_Rules_Index sRulesIndex;
+					sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+					sRulesIndex.m_dwUpdateCounter = 0;
+					UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+					m_apcActiveCSConstantBuffers[uIxInt]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+
+					// set twin for right side, first get the private data interface
+					ID3D11Buffer* pcBuffer = nullptr;
+					UINT dwSize = sizeof(pcBuffer);
+					m_apcActiveCSConstantBuffers[uIxInt]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+					// stereo buffer and rules index present ?
+					if ((pcBuffer) && (dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
+					{
+						// set right buffer as active buffer
+						m_apcActiveCSConstantBuffers[uIxInt + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
+					}
+					else
+					{
+						// no buffer or no shader rules assigned ? left = right side -> right = left side
+						m_apcActiveCSConstantBuffers[uIxInt + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveCSConstantBuffers[uIxInt];
+
+						// verify buffer... TODO !! STILL POSSIBLE THAT A CONSTANT BUFFER NEVER ADDRESSED TO THE VERTEX SHADER BUT TO THE COMPUTE SHADER !!!
+					}
+
+					// no stereo buffer present ?
+					if (!pcBuffer)
+					{
+						// create stereo constant buffer, first get device
+						ID3D11Device* pcDevice = nullptr;
+						m_apcActiveCSConstantBuffers[uIxInt]->GetDevice(&pcDevice);
+						if (pcDevice)
+						{
+							D3D11_BUFFER_DESC sDesc;
+							m_apcActiveCSConstantBuffers[uIxInt]->GetDesc(&sDesc);
+							CreateStereoBuffer(pcDevice, m_pcContextCurrent, (ID3D11Buffer*)m_apcActiveCSConstantBuffers[uIxInt], &sDesc, NULL, true);
+							pcDevice->Release();
+						}
+					}
+					else
+						pcBuffer->Release();
+				}
+				else
+					m_apcActiveCSConstantBuffers[uIxInt + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
+			}
+		}
+	}
+	return; 
+}
+
 HRESULT StereoSplitter::CSSetSamplers(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::CSSetShader(int& nFlags) { return E_NOTIMPL; }
-HRESULT StereoSplitter::CSSetShaderResources(int& nFlags) { return E_NOTIMPL; }
+
+/// <summary>
+/// => CSSetShaderResources
+/// </summary>
+void StereoSplitter::CSSetShaderResources(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CSSetShaderResources]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CSSetShaderResources]);
+	UINT* puStartSlot;
+	if (ppIn[0]) puStartSlot = *(UINT**)ppIn[0]; else return;
+	UINT* puNumViewsSRVs;
+	if (ppIn[1]) puNumViewsSRVs = *(UINT**)ppIn[1]; else return;
+	ID3D11ShaderResourceView*** ppcShaderResourceViews;
+	if (ppIn[2]) ppcShaderResourceViews = *(ID3D11ShaderResourceView****)ppIn[2]; else return;
+
+	if ((puStartSlot) && (puNumViewsSRVs) && (ppcShaderResourceViews) && (m_bPresent))
+	{
+		// invalid call ? validate ! ...else call internal method
+		if (*puStartSlot + *puNumViewsSRVs > D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) return;
+		XSSetShaderResourceViews(m_apcActiveCSShaderResourceViews, m_dwCSShaderResourceViewsNumber, *puStartSlot, *puNumViewsSRVs, *ppcShaderResourceViews);
+	}
+	return;
+}
 
 /// <summary>
 /// Incoming CSSetUnorderedAccessViews() call (D3D11).
 /// Handle UAVs and set them internally.
 /// D3D11_PS_CS_UAV_REGISTER_COUNT -> DX 11.0
 /// D3D11_1_UAV_SLOT_COUNT ---------> DX 11.1
+/// Called by both CSSetUnorderedAccessViews and OMSetRenderTargetsAndUnorderedAccessViews
 /// </summary>
 void StereoSplitter::CSSetUnorderedAccessViews(UINT uStartSlot, UINT uNumUAVs, ID3D11UnorderedAccessView** ppcUnorderedAccessViews, UINT* puUAVInitialCounts)
 {
@@ -1765,7 +1778,28 @@ void StereoSplitter::CSSetUnorderedAccessViews(UINT uStartSlot, UINT uNumUAVs, I
 	}
 }
 
-HRESULT StereoSplitter::CSSetUnorderedAccessViews(int& nFlags) { return E_NOTIMPL; }
+/// <summary>
+/// => CSSetUnorderedAccessViews
+/// </summary>
+void StereoSplitter::CSSetUnorderedAccessViews(int& nFlags) 
+{
+	if (!m_ppInput[(int)STS_Decommanders::CSSetUnorderedAccessViews]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CSSetUnorderedAccessViews]);
+	UINT* puStartSlot;
+	if (ppIn[0]) puStartSlot = *(UINT**)ppIn[0]; else return;
+	UINT* puNumUAVs;
+	if (ppIn[1]) puNumUAVs = *(UINT**)ppIn[1]; else return;
+	ID3D11UnorderedAccessView*** pppcUnorderedAccessViews;
+	if (ppIn[2]) pppcUnorderedAccessViews = *(ID3D11UnorderedAccessView****)ppIn[2]; else return;
+	UINT** ppuUAVInitialCounts;
+	if (ppIn[3]) ppuUAVInitialCounts = *(UINT***)ppIn[3]; else return;
+	if ((!puStartSlot) || (!puNumUAVs) || (!pppcUnorderedAccessViews)) return;
+
+	// call internal method (which is also called by OMSetRenderTargetsAndUnorderedAccessViews
+	CSSetUnorderedAccessViews(*puStartSlot, *puNumUAVs, *pppcUnorderedAccessViews, *ppuUAVInitialCounts);
+
+	return; 
+}
 
 /// <summary>
 /// => ClearDepthStencilView
@@ -1846,8 +1880,70 @@ void StereoSplitter::ClearRenderTargetView(int& nFlags)
 }
 
 HRESULT StereoSplitter::ClearState(int& nFlags) { return E_NOTIMPL; }
-HRESULT StereoSplitter::Dispatch(int& nFlags) { return E_NOTIMPL; }
-HRESULT StereoSplitter::DispatchIndirect(int& nFlags) { return E_NOTIMPL; }
+
+/// <summary>
+/// => Dispatch
+/// </summary>
+void StereoSplitter::Dispatch(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::Dispatch]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::Dispatch]);
+	UINT* puThreadGroupCountX;
+	if (ppIn[0]) puThreadGroupCountX = *(UINT**)ppIn[0]; else return;
+	UINT* puThreadGroupCountY;
+	if (ppIn[1]) puThreadGroupCountY = *(UINT**)ppIn[1]; else return;
+	UINT* puThreadGroupCountZ;
+	if (ppIn[2]) puThreadGroupCountZ = *(UINT**)ppIn[2]; else return;
+
+	if ((puThreadGroupCountX) && (puThreadGroupCountY) && (puThreadGroupCountZ))
+	{
+		// set the right side
+		m_pcContextCurrent->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_R_11]);
+		m_pcContextCurrent->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+		m_pcContextCurrent->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT], m_aunMinusOne);
+
+		// dispatch for the right side
+		m_pcContextCurrent->Dispatch(*puThreadGroupCountX, *puThreadGroupCountY, *puThreadGroupCountZ);
+
+		// set back to the left side
+		m_pcContextCurrent->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_L_11]);
+		m_pcContextCurrent->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[0]);
+		m_pcContextCurrent->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[0], m_aunMinusOne);
+	}
+	return;
+}
+
+/// <summary>
+/// => DispatchIndirect
+/// </summary>
+void StereoSplitter::DispatchIndirect(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::DispatchIndirect]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::DispatchIndirect]);
+	ID3D11Buffer** ppcBufferForArgs;
+	if (ppIn[0]) ppcBufferForArgs = *(ID3D11Buffer***)ppIn[0]; else return;
+	UINT* puAlignedByteOffsetForArgs;
+	if (ppIn[1]) puAlignedByteOffsetForArgs = *(UINT**)ppIn[1]; else return;
+
+	if ((ppcBufferForArgs) && (puAlignedByteOffsetForArgs))
+	{
+		// set the right side
+		m_pcContextCurrent->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_R_11]);
+		m_pcContextCurrent->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+		m_pcContextCurrent->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT], m_aunMinusOne);
+
+		// dispatch for the right side
+		m_pcContextCurrent->DispatchIndirect(*ppcBufferForArgs, *puAlignedByteOffsetForArgs);
+
+		// set back to the left side
+		m_pcContextCurrent->CSSetShaderResources(0, m_dwCSShaderResourceViewsNumber, &m_apcActiveCSShaderResourceViews[RESOURCE_REGISTER_L_11]);
+		m_pcContextCurrent->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &m_apcActiveCSConstantBuffers[0]);
+		m_pcContextCurrent->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, &m_apcActiveUnorderedAccessViews[0], m_aunMinusOne);
+	}
+
+	return;
+}
+
 HRESULT StereoSplitter::Draw(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::DrawAuto(int& nFlags) { return E_NOTIMPL; }
 HRESULT StereoSplitter::DrawIndexed(int& nFlags) { return E_NOTIMPL; }
@@ -2151,10 +2247,10 @@ void StereoSplitter::PSSetShaderResources(int& nFlags)
 	if (!puStartSlot) return;
 	if (!puNumViewsSRVs) return;
 	if (!ppcShaderResourceViews11) return;
-	
+
 	// invalid call ? validate !
 	if (*puStartSlot + *puNumViewsSRVs > D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) return;
-	
+
 	XSSetShaderResourceViews(m_apcActivePSShaderResourceViews, m_dwPSShaderResourceViewsNumber, *puStartSlot, *puNumViewsSRVs, *ppcShaderResourceViews11);
 
 	// replace the call
