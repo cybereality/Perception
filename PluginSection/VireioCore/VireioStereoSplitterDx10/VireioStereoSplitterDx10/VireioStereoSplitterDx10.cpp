@@ -41,6 +41,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
 #endif
 #define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
+#define SHOW_CALL_SPLITTER(b) {}// { wchar_t buf[128]; wsprintf(buf, L"%s", L#b); OutputDebugString(buf); }
+
 
 #include"VireioStereoSplitterDx10.h"
 
@@ -426,6 +428,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 #pragma region PSSETSHADERRESOURCES
 		case (int)VMT_ID3D11DEVICECONTEXT::PSSetShaderResources:
+			SHOW_CALL_SPLITTER(PSSetShaderResources);
+
 			// ensure D3D11 is set
 			m_eD3DVersion = D3DVersion::Direct3D11;
 
@@ -439,6 +443,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region VSSETSHADER
 		case (int)VMT_ID3D11DEVICECONTEXT::VSSetShader:
+			SHOW_CALL_SPLITTER(VSSetShader);
+
 			/*if ((m_bRenderTargetWasSwitched) && (m_pbSwitchRenderTarget))
 			{
 				if (!(*m_pbSwitchRenderTarget))
@@ -454,6 +460,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAWINDEXED
 		case (int)VMT_ID3D11DEVICECONTEXT::DrawIndexed:
+			SHOW_CALL_SPLITTER(DrawIndexed);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -463,6 +471,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAW
 		case (int)VMT_ID3D11DEVICECONTEXT::Draw:
+			SHOW_CALL_SPLITTER(Draw);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -472,6 +482,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAWINDEXEDINSTANCED
 		case (int)VMT_ID3D11DEVICECONTEXT::DrawIndexedInstanced:
+			SHOW_CALL_SPLITTER(DrawIndexedInstanced);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -481,6 +493,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAWINSTANCED
 		case (int)VMT_ID3D11DEVICECONTEXT::DrawInstanced:
+			SHOW_CALL_SPLITTER(DrawInstanced);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -490,6 +504,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAWAUTO
 		case (int)VMT_ID3D11DEVICECONTEXT::DrawAuto:
+			SHOW_CALL_SPLITTER(DrawAuto);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -499,6 +515,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAWINDEXEDINSTANCEDINDIRECT
 		case (int)VMT_ID3D11DEVICECONTEXT::DrawIndexedInstancedIndirect:
+			SHOW_CALL_SPLITTER(DrawIndexedInstancedIndirect);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -508,6 +526,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DRAWINSTANCEDINDIRECT
 		case (int)VMT_ID3D11DEVICECONTEXT::DrawInstancedIndirect:
+			SHOW_CALL_SPLITTER(DrawInstancedIndirect);
+
 			// switch the drawing side before the second draw call is done
 			if (m_eCurrentRenderingSide == RenderPosition::Left)
 				SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -517,6 +537,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CLEARRENDERTARGETVIEW
 		case (int)VMT_ID3D11DEVICECONTEXT::ClearRenderTargetView:
+			SHOW_CALL_SPLITTER(ClearRenderTargetView);
+
 			// ensure D3D11 is set
 			m_eD3DVersion = D3DVersion::Direct3D11;
 
@@ -530,6 +552,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CLEARDEPTHSTENCILVIEW
 		case (int)VMT_ID3D11DEVICECONTEXT::ClearDepthStencilView:
+			SHOW_CALL_SPLITTER(ClearDepthStencilView);
+
 			// ensure D3D11 is set
 			m_eD3DVersion = D3DVersion::Direct3D11;
 
@@ -543,6 +567,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CLEARSTATE
 		case (int)VMT_ID3D11DEVICECONTEXT::ClearState:
+			SHOW_CALL_SPLITTER(ClearState);
+
 			if (m_bPresent)
 			{
 				// clear texture vectors and number
@@ -559,6 +585,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMSETRENDERTARGETS
 		case (int)VMT_ID3D11DEVICECONTEXT::OMSetRenderTargets:
+			SHOW_CALL_SPLITTER(OMSetRenderTargets);
+
 			// ensure D3D11 is set
 			m_eD3DVersion = D3DVersion::Direct3D11;
 
@@ -572,6 +600,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS
 		case (int)VMT_ID3D11DEVICECONTEXT::OMSetRenderTargetsAndUnorderedAccessViews:
+			SHOW_CALL_SPLITTER(OMSetRenderTargetsAndUnorderedAccessViews);
+
 			// ensure D3D11 is set
 			m_eD3DVersion = D3DVersion::Direct3D11;
 
@@ -585,12 +615,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region PSGETSHADERRESOURCES
 		case (int)VMT_ID3D11DEVICECONTEXT::PSGetShaderResources:
+			SHOW_CALL_SPLITTER(PSGetShaderResources);
+
 			// if the app tries to get the shader resources ensure the left render side is set
 			SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 			return nullptr;
 #pragma endregion
 #pragma region OMGETRENDERTARGETS
 		case (int)VMT_ID3D11DEVICECONTEXT::OMGetRenderTargets:
+			SHOW_CALL_SPLITTER(OMGetRenderTargets);
+
 			/*
 			if ((m_bRenderTargetWasSwitched) && (m_pbSwitchRenderTarget))
 			{
@@ -605,6 +639,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS
 		case (int)VMT_ID3D11DEVICECONTEXT::OMGetRenderTargetsAndUnorderedAccessViews:
+			SHOW_CALL_SPLITTER(OMGetRenderTargetsAndUnorderedAccessViews);
+
 			/*
 			if ((m_bRenderTargetWasSwitched) && (m_pbSwitchRenderTarget))
 			{
@@ -619,10 +655,14 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region MAP
 		case (int)VMT_ID3D11DEVICECONTEXT::Map:
+			SHOW_CALL_SPLITTER(Map);
+
 			return nullptr;
 #pragma endregion
 #pragma region UNMAP
 		case (int)VMT_ID3D11DEVICECONTEXT::Unmap:
+			SHOW_CALL_SPLITTER(Unmap);
+
 		{
 			int nFlags = 0;
 			Unmap(nFlags);
@@ -632,6 +672,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DISPATCH
 		case (int)VMT_ID3D11DEVICECONTEXT::Dispatch:
+			SHOW_CALL_SPLITTER(Dispatch);
+
 			/*if ((m_pdwThreadGroupCountX) && (m_pdwThreadGroupCountY) && (m_pdwThreadGroupCountZ))
 			{
 				// set the right side
@@ -652,6 +694,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region DISPATCHINDIRECT
 		case (int)VMT_ID3D11DEVICECONTEXT::DispatchIndirect:
+			SHOW_CALL_SPLITTER(DispatchIndirect);
+
 			/*if ((m_ppcBufferForArgs) && (m_pdwpAlignedByteOffsetForArgs))
 			{
 				// set the right side
@@ -671,6 +715,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CSSETSHADERRESOURCES
 		case (int)VMT_ID3D11DEVICECONTEXT::CSSetShaderResources:
+			SHOW_CALL_SPLITTER(CSSetShaderResources);
+
 			/*if ((m_pdwStartSlot_CS) && (m_pdwNumViews_CS) && (m_pppcShaderResourceViews) && (m_bPresent))
 			{
 				if (m_bPresent)
@@ -693,6 +739,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CSSETUNORDEREDACCESSVIEWS
 		case (int)VMT_ID3D11DEVICECONTEXT::CSSetUnorderedAccessViews:
+			SHOW_CALL_SPLITTER(CSSetUnorderedAccessViews);
+
 			/*if (!m_pdwStartSlot_CSUAV) return nullptr;
 			if (!m_pdwNumUAVs_CS) return nullptr;
 			if (!m_pppcUnorderedAccessViews_CS) return nullptr;
@@ -704,6 +752,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CSSETCONSTANTBUFFERS
 		case (int)VMT_ID3D11DEVICECONTEXT::CSSetConstantBuffers:
+			SHOW_CALL_SPLITTER(CSSetConstantBuffers);
+
 			/*if ((m_pdwStartSlot_CSCB) && (m_pdwNumBuffers) && (m_pppcConstantBuffers))
 			{
 				if (!*m_pppcConstantBuffers) return nullptr;
@@ -779,6 +829,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region IDXGISWAPCHAIN
 	case (int)ITA_DXGIINTERFACES::ITA_DXGIInterfaces::IDXGISwapChain:
 		if (eD3DMethod == (int)VMT_IDXGISWAPCHAIN::Present)
+			SHOW_CALL_SPLITTER(Present);
+
 			Present(nFlags);
 		return nullptr;
 #pragma endregion
@@ -809,6 +861,7 @@ void StereoSplitter::XSSetShaderResourceViews(std::array<ID3D11ShaderResourceVie
 		bSetNull = true;
 	else if (!*ppcShaderResourceViews)
 		bSetNull = true;
+	
 	if (bSetNull)
 	{
 		// loop through new resource views
@@ -827,7 +880,7 @@ void StereoSplitter::XSSetShaderResourceViews(std::array<ID3D11ShaderResourceVie
 		// return to replace the call
 		return;
 	}
-
+	
 	// set total view number
 	if (unStartSlot + unNumViews > unNumViewsTotal)
 		unNumViewsTotal = (DWORD)(unStartSlot + unNumViews);
@@ -2084,8 +2137,8 @@ HRESULT StereoSplitter::PSGetShaderResources(int& nFlags) { return E_NOTIMPL; }
 /// </summary>
 void StereoSplitter::PSSetShaderResources(int& nFlags)
 {
-	if (!m_ppInput[(int)STS_Decommanders::OMSetRenderTargetsAndUnorderedAccessViews]) return;
-	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::OMSetRenderTargetsAndUnorderedAccessViews]);
+	if (!m_ppInput[(int)STS_Decommanders::PSSetShaderResources]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::PSSetShaderResources]);
 	UINT* puStartSlot;
 	if (ppIn[0]) puStartSlot = *(UINT**)ppIn[0]; else return;
 	UINT* puNumViewsSRVs;
@@ -2098,10 +2151,10 @@ void StereoSplitter::PSSetShaderResources(int& nFlags)
 	if (!puStartSlot) return;
 	if (!puNumViewsSRVs) return;
 	if (!ppcShaderResourceViews11) return;
-
+	
 	// invalid call ? validate !
 	if (*puStartSlot + *puNumViewsSRVs > D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) return;
-
+	
 	XSSetShaderResourceViews(m_apcActivePSShaderResourceViews, m_dwPSShaderResourceViewsNumber, *puStartSlot, *puNumViewsSRVs, *ppcShaderResourceViews11);
 
 	// replace the call

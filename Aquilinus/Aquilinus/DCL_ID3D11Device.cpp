@@ -1071,10 +1071,8 @@ void DCL_ID3D11Device::CatchContextAndSwapChain(ID3D11Device* pcThis)
 
 	if ((!m_pcSwapChain) && (!m_pcTransferSite->m_bForceD3D))
 	{
-		TRACE_LINE;
 		if (m_pcContext)
 		{
-			TRACE_LINE;
 			m_pcTransferSite->m_bForceD3D = true;
 			// get the render target
 			ID3D11RenderTargetView* pRenderTargetView = nullptr;
