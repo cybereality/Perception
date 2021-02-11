@@ -27,7 +27,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#ifndef _TRACE
+#define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
+#define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
+#define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#endif
 
 #ifdef _DEBUG
 #include <windows.h>
@@ -1067,8 +1071,10 @@ void DCL_ID3D11Device::CatchContextAndSwapChain(ID3D11Device* pcThis)
 
 	if ((!m_pcSwapChain) && (!m_pcTransferSite->m_bForceD3D))
 	{
+		TRACE_LINE;
 		if (m_pcContext)
 		{
+			TRACE_LINE;
 			m_pcTransferSite->m_bForceD3D = true;
 			// get the render target
 			ID3D11RenderTargetView* pRenderTargetView = nullptr;

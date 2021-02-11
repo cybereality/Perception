@@ -30,8 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NOD_FIXEDVALUES
 #define NOD_FIXEDVALUES
 
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#ifndef _TRACE
+#define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
+#define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
+#define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#endif
 
 /**
 * True boolean.
@@ -307,7 +310,7 @@ public:
 						m_sFixedPointerAddress.eType = NOD_FixedPointer::FixedPointerAddress::ArrayOfBytes;
 				}
 				OutputDebugString(L"Type:");
-				DEBUG_UINT(m_sFixedPointerAddress.eType);
+				TRACE_UINT(m_sFixedPointerAddress.eType);
 			}
 
 			// <Address>"ABC.exe" + 03972828< / Address>
@@ -315,8 +318,7 @@ public:
 			{
 				DWORD dwAddress;
 				swscanf_s(szToken.substr(szToken.find_last_of(L"+") + 1).c_str(), L"%x", &dwAddress);
-				OutputDebugString(L"Address:");
-				DEBUG_HEX(dwAddress);
+				TRACE_HEX(dwAddress);
 				OutputDebugString(szToken.substr(szToken.find_last_of(L"+") + 1).c_str());
 				m_sFixedPointerAddress.nPointerAddress = (size_t)dwAddress;
 
@@ -345,7 +347,7 @@ public:
 			{
 				DWORD dwOffset;
 				swscanf_s(szToken.substr(8).c_str(), L"%x", &dwOffset);
-				DEBUG_HEX(dwOffset);
+				TRACE_HEX(dwOffset);
 				aOffsets.push_back((size_t)dwOffset);
 			}
 		}
@@ -357,8 +359,8 @@ public:
 			for (size_t nI = aOffsets.size(); nI > 0; nI--)
 			{
 				m_sFixedPointerAddress.nOffsets[aOffsets.size() - nI] = aOffsets[nI - 1];
-				DEBUG_UINT(aOffsets.size() - nI);
-				DEBUG_HEX(aOffsets[nI - 1]);
+				TRACE_UINT(aOffsets.size() - nI);
+				TRACE_HEX(aOffsets[nI - 1]);
 			}
 		}
 		else

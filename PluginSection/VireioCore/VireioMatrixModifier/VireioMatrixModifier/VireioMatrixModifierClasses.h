@@ -133,7 +133,6 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint
 		(*acPtr != OPCODE_HEADER_UTF32[3]) &&
 		(*acPtr != OPCODE_HEADER_UTF32[4]))
 	{
-		DEBUG_HEX(*acPtr);
 		return E_ABORT;
 	}
 	else
@@ -236,7 +235,6 @@ inline uint32_t GetCreatorIndex(uint32_t* acFunc)
 		(*acPtr != OPCODE_HEADER_UTF32[3]) &&
 		(*acPtr != OPCODE_HEADER_UTF32[4]))
 	{
-		DEBUG_HEX(*acPtr);
 		return E_ABORT;
 	}
 	else
@@ -318,12 +316,12 @@ inline void CreateStereoBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		&pcBufferRight)))
 	{
 		OutputDebugString(L"BindFlags;ByteWidth;CPUAccessFlags;MiscFlags;StructureByteStride;Usage");
-		DEBUG_UINT(pDesc->BindFlags);
-		DEBUG_UINT(pDesc->ByteWidth);
-		DEBUG_UINT(pDesc->CPUAccessFlags);
-		DEBUG_UINT(pDesc->MiscFlags);
-		DEBUG_UINT(pDesc->StructureByteStride);
-		DEBUG_UINT(pDesc->Usage);
+		TRACE_UINT(pDesc->BindFlags);
+		TRACE_UINT(pDesc->ByteWidth);
+		TRACE_UINT(pDesc->CPUAccessFlags);
+		TRACE_UINT(pDesc->MiscFlags);
+		TRACE_UINT(pDesc->StructureByteStride);
+		TRACE_UINT(pDesc->Usage);
 		OutputDebugString(L"MatrixModifier: Failed to create right buffer!");
 		return;
 	}

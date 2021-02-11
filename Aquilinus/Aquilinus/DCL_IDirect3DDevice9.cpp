@@ -2149,316 +2149,316 @@ HRESULT WINAPI DCL_IDirect3DDevice9::SetRenderState(IDirect3DDevice9* pcThis, D3
 		switch (State)
 		{
 		case D3DRS_ZENABLE:
-			OutputDebugString(L"D3DRS_ZENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ZENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FILLMODE:
-			OutputDebugString(L"D3DRS_FILLMODE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FILLMODE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SHADEMODE:
-			OutputDebugString(L"D3DRS_SHADEMODE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SHADEMODE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ZWRITEENABLE:
-			OutputDebugString(L"D3DRS_ZWRITEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ZWRITEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ALPHATESTENABLE:
-			OutputDebugString(L"D3DRS_ALPHATESTENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ALPHATESTENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_LASTPIXEL:
-			OutputDebugString(L"D3DRS_LASTPIXEL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_LASTPIXEL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SRCBLEND:
-			OutputDebugString(L"D3DRS_SRCBLEND"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SRCBLEND"); TRACE_UINT(Value);
 			break;
 		case D3DRS_DESTBLEND:
-			OutputDebugString(L"D3DRS_DESTBLEND"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_DESTBLEND"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CULLMODE:
-			OutputDebugString(L"D3DRS_CULLMODE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CULLMODE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ZFUNC:
-			OutputDebugString(L"D3DRS_ZFUNC"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ZFUNC"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ALPHAREF:
-			OutputDebugString(L"D3DRS_ALPHAREF"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ALPHAREF"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ALPHAFUNC:
-			OutputDebugString(L"D3DRS_ALPHAFUNC"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ALPHAFUNC"); TRACE_UINT(Value);
 			break;
 		case D3DRS_DITHERENABLE:
-			OutputDebugString(L"D3DRS_DITHERENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_DITHERENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ALPHABLENDENABLE:
-			OutputDebugString(L"D3DRS_ALPHABLENDENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ALPHABLENDENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGENABLE:
-			OutputDebugString(L"D3DRS_FOGENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SPECULARENABLE:
-			OutputDebugString(L"D3DRS_SPECULARENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SPECULARENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGCOLOR:
-			OutputDebugString(L"D3DRS_FOGCOLOR"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGCOLOR"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGTABLEMODE:
-			OutputDebugString(L"D3DRS_FOGTABLEMODE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGTABLEMODE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGSTART:
-			OutputDebugString(L"D3DRS_FOGSTART"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGSTART"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGEND:
-			OutputDebugString(L"D3DRS_FOGEND"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGEND"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGDENSITY:
-			OutputDebugString(L"D3DRS_FOGDENSITY"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGDENSITY"); TRACE_UINT(Value);
 			break;
 		case D3DRS_RANGEFOGENABLE:
-			OutputDebugString(L"D3DRS_RANGEFOGENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_RANGEFOGENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILENABLE:
-			OutputDebugString(L"D3DRS_STENCILENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILFAIL:
-			OutputDebugString(L"D3DRS_STENCILFAIL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILFAIL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILZFAIL:
-			OutputDebugString(L"D3DRS_STENCILZFAIL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILZFAIL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILPASS:
-			OutputDebugString(L"D3DRS_STENCILPASS"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILPASS"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILFUNC:
-			OutputDebugString(L"D3DRS_STENCILFUNC"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILFUNC"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILREF:
-			OutputDebugString(L"D3DRS_STENCILREF"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILREF"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILMASK:
-			OutputDebugString(L"D3DRS_STENCILMASK"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILMASK"); TRACE_UINT(Value);
 			break;
 		case D3DRS_STENCILWRITEMASK:
-			OutputDebugString(L"D3DRS_STENCILWRITEMASK"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_STENCILWRITEMASK"); TRACE_UINT(Value);
 			break;
 		case D3DRS_TEXTUREFACTOR:
-			OutputDebugString(L"D3DRS_TEXTUREFACTOR"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_TEXTUREFACTOR"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP0:
-			OutputDebugString(L"D3DRS_WRAP0"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP0"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP1:
-			OutputDebugString(L"D3DRS_WRAP1"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP1"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP2:
-			OutputDebugString(L"D3DRS_WRAP2"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP2"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP3:
-			OutputDebugString(L"D3DRS_WRAP3"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP3"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP4:
-			OutputDebugString(L"D3DRS_WRAP4"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP4"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP5:
-			OutputDebugString(L"D3DRS_WRAP5"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP5"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP6:
-			OutputDebugString(L"D3DRS_WRAP6"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP6"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP7:
-			OutputDebugString(L"D3DRS_WRAP7"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP7"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CLIPPING:
-			OutputDebugString(L"D3DRS_CLIPPING"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CLIPPING"); TRACE_UINT(Value);
 			break;
 		case D3DRS_LIGHTING:
-			OutputDebugString(L"D3DRS_LIGHTING"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_LIGHTING"); TRACE_UINT(Value);
 			break;
 		case D3DRS_AMBIENT:
-			OutputDebugString(L"D3DRS_AMBIENT"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_AMBIENT"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FOGVERTEXMODE:
-			OutputDebugString(L"D3DRS_FOGVERTEXMODE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FOGVERTEXMODE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_COLORVERTEX:
-			OutputDebugString(L"D3DRS_COLORVERTEX"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_COLORVERTEX"); TRACE_UINT(Value);
 			break;
 		case D3DRS_LOCALVIEWER:
-			OutputDebugString(L"D3DRS_LOCALVIEWER"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_LOCALVIEWER"); TRACE_UINT(Value);
 			break;
 		case D3DRS_NORMALIZENORMALS:
-			OutputDebugString(L"D3DRS_NORMALIZENORMALS"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_NORMALIZENORMALS"); TRACE_UINT(Value);
 			break;
 		case D3DRS_DIFFUSEMATERIALSOURCE:
-			OutputDebugString(L"D3DRS_DIFFUSEMATERIALSOURCE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_DIFFUSEMATERIALSOURCE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SPECULARMATERIALSOURCE:
-			OutputDebugString(L"D3DRS_SPECULARMATERIALSOURCE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SPECULARMATERIALSOURCE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_AMBIENTMATERIALSOURCE:
-			OutputDebugString(L"D3DRS_AMBIENTMATERIALSOURCE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_AMBIENTMATERIALSOURCE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_EMISSIVEMATERIALSOURCE:
-			OutputDebugString(L"D3DRS_EMISSIVEMATERIALSOURCE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_EMISSIVEMATERIALSOURCE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_VERTEXBLEND:
-			OutputDebugString(L"D3DRS_VERTEXBLEND"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_VERTEXBLEND"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CLIPPLANEENABLE:
-			OutputDebugString(L"D3DRS_CLIPPLANEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CLIPPLANEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSIZE:
-			OutputDebugString(L"D3DRS_POINTSIZE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSIZE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSIZE_MIN:
-			OutputDebugString(L"D3DRS_POINTSIZE_MIN"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSIZE_MIN"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSPRITEENABLE:
-			OutputDebugString(L"D3DRS_POINTSPRITEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSPRITEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSCALEENABLE:
-			OutputDebugString(L"D3DRS_POINTSCALEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSCALEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSCALE_A:
-			OutputDebugString(L"D3DRS_POINTSCALE_A"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSCALE_A"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSCALE_B:
-			OutputDebugString(L"D3DRS_POINTSCALE_B"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSCALE_B"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSCALE_C:
-			OutputDebugString(L"D3DRS_POINTSCALE_C"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSCALE_C"); TRACE_UINT(Value);
 			break;
 		case D3DRS_MULTISAMPLEANTIALIAS:
-			OutputDebugString(L"D3DRS_MULTISAMPLEANTIALIAS"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_MULTISAMPLEANTIALIAS"); TRACE_UINT(Value);
 			break;
 		case D3DRS_MULTISAMPLEMASK:
-			OutputDebugString(L"D3DRS_MULTISAMPLEMASK"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_MULTISAMPLEMASK"); TRACE_UINT(Value);
 			break;
 		case D3DRS_PATCHEDGESTYLE:
-			OutputDebugString(L"D3DRS_PATCHEDGESTYLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_PATCHEDGESTYLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_DEBUGMONITORTOKEN:
-			OutputDebugString(L"D3DRS_DEBUGMONITORTOKEN"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_DEBUGMONITORTOKEN"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POINTSIZE_MAX:
-			OutputDebugString(L"D3DRS_POINTSIZE_MAX"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POINTSIZE_MAX"); TRACE_UINT(Value);
 			break;
 		case D3DRS_INDEXEDVERTEXBLENDENABLE:
-			OutputDebugString(L"D3DRS_INDEXEDVERTEXBLENDENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_INDEXEDVERTEXBLENDENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_COLORWRITEENABLE:
-			OutputDebugString(L"D3DRS_COLORWRITEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_TWEENFACTOR:
-			OutputDebugString(L"D3DRS_TWEENFACTOR"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_TWEENFACTOR"); TRACE_UINT(Value);
 			break;
 		case D3DRS_BLENDOP:
-			OutputDebugString(L"D3DRS_BLENDOP"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_BLENDOP"); TRACE_UINT(Value);
 			break;
 		case D3DRS_POSITIONDEGREE:
-			OutputDebugString(L"D3DRS_POSITIONDEGREE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_POSITIONDEGREE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_NORMALDEGREE:
-			OutputDebugString(L"D3DRS_NORMALDEGREE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_NORMALDEGREE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SCISSORTESTENABLE:
-			OutputDebugString(L"D3DRS_SCISSORTESTENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SCISSORTESTENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SLOPESCALEDEPTHBIAS:
-			OutputDebugString(L"D3DRS_SLOPESCALEDEPTHBIAS"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SLOPESCALEDEPTHBIAS"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ANTIALIASEDLINEENABLE:
-			OutputDebugString(L"D3DRS_ANTIALIASEDLINEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ANTIALIASEDLINEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_MINTESSELLATIONLEVEL:
-			OutputDebugString(L"D3DRS_MINTESSELLATIONLEVEL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_MINTESSELLATIONLEVEL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_MAXTESSELLATIONLEVEL:
-			OutputDebugString(L"D3DRS_MAXTESSELLATIONLEVEL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_MAXTESSELLATIONLEVEL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ADAPTIVETESS_X:
-			OutputDebugString(L"D3DRS_ADAPTIVETESS_X"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_X"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ADAPTIVETESS_Y:
-			OutputDebugString(L"D3DRS_ADAPTIVETESS_Y"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_Y"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ADAPTIVETESS_Z:
-			OutputDebugString(L"D3DRS_ADAPTIVETESS_Z"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_Z"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ADAPTIVETESS_W:
-			OutputDebugString(L"D3DRS_ADAPTIVETESS_W"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ADAPTIVETESS_W"); TRACE_UINT(Value);
 			break;
 		case D3DRS_ENABLEADAPTIVETESSELLATION:
-			OutputDebugString(L"D3DRS_ENABLEADAPTIVETESSELLATION"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_ENABLEADAPTIVETESSELLATION"); TRACE_UINT(Value);
 			break;
 		case D3DRS_TWOSIDEDSTENCILMODE:
-			OutputDebugString(L"D3DRS_TWOSIDEDSTENCILMODE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_TWOSIDEDSTENCILMODE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CCW_STENCILFAIL:
-			OutputDebugString(L"D3DRS_CCW_STENCILFAIL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CCW_STENCILFAIL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CCW_STENCILZFAIL:
-			OutputDebugString(L"D3DRS_CCW_STENCILZFAIL"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CCW_STENCILZFAIL"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CCW_STENCILPASS:
-			OutputDebugString(L"D3DRS_CCW_STENCILPASS"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CCW_STENCILPASS"); TRACE_UINT(Value);
 			break;
 		case D3DRS_CCW_STENCILFUNC:
-			OutputDebugString(L"D3DRS_CCW_STENCILFUNC"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_CCW_STENCILFUNC"); TRACE_UINT(Value);
 			break;
 		case D3DRS_COLORWRITEENABLE1:
-			OutputDebugString(L"D3DRS_COLORWRITEENABLE1"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE1"); TRACE_UINT(Value);
 			break;
 		case D3DRS_COLORWRITEENABLE2:
-			OutputDebugString(L"D3DRS_COLORWRITEENABLE2"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE2"); TRACE_UINT(Value);
 			break;
 		case D3DRS_COLORWRITEENABLE3:
-			OutputDebugString(L"D3DRS_COLORWRITEENABLE3"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_COLORWRITEENABLE3"); TRACE_UINT(Value);
 			break;
 		case D3DRS_BLENDFACTOR:
-			OutputDebugString(L"D3DRS_BLENDFACTOR"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_BLENDFACTOR"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SRGBWRITEENABLE:
-			OutputDebugString(L"D3DRS_SRGBWRITEENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SRGBWRITEENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_DEPTHBIAS:
-			OutputDebugString(L"D3DRS_DEPTHBIAS"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_DEPTHBIAS"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP8:
-			OutputDebugString(L"D3DRS_WRAP8"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP8"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP9:
-			OutputDebugString(L"D3DRS_WRAP9"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP9"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP10:
-			OutputDebugString(L"D3DRS_WRAP10"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP10"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP11:
-			OutputDebugString(L"D3DRS_WRAP11"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP11"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP12:
-			OutputDebugString(L"D3DRS_WRAP12"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP12"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP13:
-			OutputDebugString(L"D3DRS_WRAP13"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP13"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP14:
-			OutputDebugString(L"D3DRS_WRAP14"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP14"); TRACE_UINT(Value);
 			break;
 		case D3DRS_WRAP15:
-			OutputDebugString(L"D3DRS_WRAP15"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_WRAP15"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SEPARATEALPHABLENDENABLE:
-			OutputDebugString(L"D3DRS_SEPARATEALPHABLENDENABLE"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SEPARATEALPHABLENDENABLE"); TRACE_UINT(Value);
 			break;
 		case D3DRS_SRCBLENDALPHA:
-			OutputDebugString(L"D3DRS_SRCBLENDALPHA"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_SRCBLENDALPHA"); TRACE_UINT(Value);
 			break;
 		case D3DRS_DESTBLENDALPHA:
-			OutputDebugString(L"D3DRS_DESTBLENDALPHA"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_DESTBLENDALPHA"); TRACE_UINT(Value);
 			break;
 		case D3DRS_BLENDOPALPHA:
-			OutputDebugString(L"D3DRS_BLENDOPALPHA"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_BLENDOPALPHA"); TRACE_UINT(Value);
 			break;
 		case D3DRS_FORCE_DWORD:
-			OutputDebugString(L"D3DRS_FORCE_DWORD"); DEBUG_UINT(Value);
+			OutputDebugString(L"D3DRS_FORCE_DWORD"); TRACE_UINT(Value);
 			break;
 		default:
 			break;

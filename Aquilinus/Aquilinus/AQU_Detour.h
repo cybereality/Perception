@@ -116,7 +116,7 @@ void* DetourFuncMinHook(void* pSrc, void* pDst)
 		OutputDebugString(L"[AQU] Failed to detour method (MinHook) !!");
 
 	DWORD old_protect;
-	VirtualProtect(pDst, 2, PAGE_EXECUTE_READ, &old_protect);
+	VirtualProtect(pDst, 2, PAGE_EXECUTE_READWRITE, &old_protect);
 	VirtualProtect(pRet, 2, PAGE_EXECUTE_READWRITE, &old_protect);
 
 	return pRet;

@@ -35,11 +35,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
-#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
-#define DEBUG_UINT_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %u", t, a); OutputDebugString(buf); }
-#define DEBUG_HEX_EX(t, a) { wchar_t buf[128]; wsprintf(buf, L"%s : %x", t, a); OutputDebugString(buf); }
+#ifndef _TRACE
+#define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
+#define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
+#define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#endif
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
 //#define TRACE_SPLITTER
 #ifdef TRACE_SPLITTER
@@ -1454,8 +1454,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if ((!pSourceSurfaceLeft) || (!pDestSurfaceLeft))
 						{
 							OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
-							DEBUG_HEX(*m_ppcSrcSurface);
-							DEBUG_HEX(*m_ppcDestSurface);
+							TRACE_HEX(*m_ppcSrcSurface);
+							TRACE_HEX(*m_ppcDestSurface);
 							exit(99);
 						}
 
@@ -1515,7 +1515,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!pDestSurfaceLeft)
 						{
 							OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
-							DEBUG_HEX(*m_ppcDestSurface);
+							TRACE_HEX(*m_ppcDestSurface);
 							exit(99);
 						}
 
@@ -1579,8 +1579,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 	#ifdef TRACE_SPLITTER
 					OutputDebugString(L"[STS] Create texture format :");
-					DEBUG_UINT(eFormat);
-					DEBUG_HEX(eFormat);
+					TRACE_UINT(eFormat);
+					TRACE_HEX(eFormat);
 	#endif
 
 					// try and create left
@@ -1637,8 +1637,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 	#ifdef TRACE_SPLITTER
 					OutputDebugString(L"[STS] Create texture format :");
-					DEBUG_UINT(eFormat);
-					DEBUG_HEX(eFormat);
+					TRACE_UINT(eFormat);
+					TRACE_HEX(eFormat);
 	#endif
 
 					// try and create left
@@ -1729,8 +1729,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 	#ifdef TRACE_SPLITTER
 					OutputDebugString(L"[STS] Create texture format :");
-					DEBUG_UINT(eFormat);
-					DEBUG_HEX(eFormat);
+					TRACE_UINT(eFormat);
+					TRACE_HEX(eFormat);
 	#endif
 
 					// try and create left
@@ -1785,7 +1785,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!pcActualLeft)
 						{
 							OutputDebugString(L"[STS] : Fatal Error - No Proxy Texture provided.");
-							DEBUG_HEX(*m_ppcTexture_D3DX);
+							TRACE_HEX(*m_ppcTexture_D3DX);
 							exit(99);
 						}
 
@@ -1823,7 +1823,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!pcVolumeActual)
 						{
 							OutputDebugString(L"[STS] : Fatal Error - No Proxy Volume Texture provided.");
-							DEBUG_HEX(*m_ppcVolumeTexture);
+							TRACE_HEX(*m_ppcVolumeTexture);
 							exit(99);
 						}
 
@@ -3026,8 +3026,8 @@ void StereoSplitter::Init_v3()
 
 #ifdef TRACE_SPLITTER
 				OutputDebugString(L"[STS] Default back buffer format :");
-				DEBUG_UINT(sDesc.Format);
-				DEBUG_HEX(sDesc.Format);
+				TRACE_UINT(sDesc.Format);
+				TRACE_HEX(sDesc.Format);
 #endif
 			}
 
@@ -3415,8 +3415,8 @@ HRESULT StereoSplitter::CreateTexture_v3(int& nFlags)
 
 #ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create texture format :");
-													   DEBUG_UINT(eFormat);
-													   DEBUG_HEX(eFormat);
+													   TRACE_UINT(eFormat);
+													   TRACE_HEX(eFormat);
 #endif
 
 													   // try and create left
@@ -3477,8 +3477,8 @@ HRESULT StereoSplitter::CreateVolumeTexture_v3(int& nFlags)
 				}
 #ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create volume texture format :");
-													   DEBUG_UINT(eFormat);
-													   DEBUG_HEX(eFormat);
+													   TRACE_UINT(eFormat);
+													   TRACE_HEX(eFormat);
 #endif
 
 													   static IDirect3DVolumeTexture9* s_pcActualTexture = NULL;
@@ -3532,8 +3532,8 @@ HRESULT StereoSplitter::CreateCubeTexture_v3(int& nFlags)
 
 #ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create cube texture format :");
-													   DEBUG_UINT(eFormat);
-													   DEBUG_HEX(eFormat);
+													   TRACE_UINT(eFormat);
+													   TRACE_HEX(eFormat);
 #endif
 
 													   // try and create left
@@ -3666,8 +3666,8 @@ HRESULT StereoSplitter::CreateRenderTarget_v3(int& nFlags)
 
 #ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create render target format :");
-													   DEBUG_UINT(eFormat);
-													   DEBUG_HEX(eFormat);
+													   TRACE_UINT(eFormat);
+													   TRACE_HEX(eFormat);
 #endif
 
 													   if (SUCCEEDED(nHr = ((IDirect3DDevice9*)pThis)->CreateRenderTarget(*m_punWidth, *m_punHeight, eFormat, eMultiSample, eMultiSampleQuality, *m_pnLockable, &s_pcLeftRenderTarget, *m_ppvSharedHandle)))
@@ -3758,8 +3758,8 @@ HRESULT StereoSplitter::CreateDepthStencilSurface_v3(int& nFlags)
 
 #ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create depth stencil format :");
-													   DEBUG_UINT(eFormat);
-													   DEBUG_HEX(eFormat);
+													   TRACE_UINT(eFormat);
+													   TRACE_HEX(eFormat);
 #endif
 
 													   // create left/mono
@@ -3895,7 +3895,7 @@ HRESULT StereoSplitter::GetRenderTargetData_v3(int& nFlags)
 			if ((!pSourceSurfaceLeft) || (!pDestSurfaceLeft))
 			{
 				OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
-				DEBUG_HEX(*m_ppcDestSurface);
+				TRACE_HEX(*m_ppcDestSurface);
 				exit(99);
 			}
 
@@ -3947,7 +3947,7 @@ HRESULT StereoSplitter::GetFrontBufferData_v3(int& nFlags)
 					if (!pDestSurfaceLeft)
 					{
 						OutputDebugString(L"[STS] : Fatal Error - No Proxy Surface provided.");
-						DEBUG_HEX(*m_ppcDestSurface);
+						TRACE_HEX(*m_ppcDestSurface);
 						exit(99);
 					}
 
@@ -4066,8 +4066,8 @@ HRESULT StereoSplitter::CreateOffscreenPlainSurface_v3(int& nFlags)
 
 #ifdef TRACE_SPLITTER
 													   OutputDebugString(L"[STS] Create offscreen plain format :");
-													   DEBUG_UINT(eFormat);
-													   DEBUG_HEX(eFormat);
+													   TRACE_UINT(eFormat);
+													   TRACE_HEX(eFormat);
 #endif
 
 													   static IDirect3DSurface9* s_pcActualSurface = NULL;
@@ -4250,8 +4250,8 @@ HRESULT StereoSplitter::SetDepthStencilSurface_v3(int& nFlags)
 #ifdef TRACE_SPLITTER
 		D3DSURFACE_DESC sDesc = {};
 		if (pActualStencilForCurrentSide) pActualStencilForCurrentSide->GetDesc(&sDesc);
-		DEBUG_UINT(sDesc.Format);
-		DEBUG_HEX(sDesc.Format);
+		TRACE_UINT(sDesc.Format);
+		TRACE_HEX(sDesc.Format);
 #endif
 
 		// Update actual depth stencil
@@ -4609,8 +4609,8 @@ HRESULT StereoSplitter::SC_GetBackBuffer_v3(int& nFlags)
 				if (!m_pppcBackBuffer) return nullptr;
 
 				OutputDebugString(L"[STS] FATAL : IDirect3DSwapChain->GetBackBuffer() should be handled by proxy class !!");
-				if (m_apcActiveSwapChains.size()) DEBUG_HEX(((IDirect3DStereoSwapChain9*)m_apcActiveSwapChains[0])->GetActual());
-				DEBUG_HEX(pThis);
+				if (m_apcActiveSwapChains.size()) TRACE_HEX(((IDirect3DStereoSwapChain9*)m_apcActiveSwapChains[0])->GetActual());
+				TRACE_HEX(pThis);
 				exit(99);
 			}*/
 	return ERROR_CALL_NOT_IMPLEMENTED;
@@ -4664,14 +4664,14 @@ void StereoSplitter::Init_v4()
 			if (m_pcActiveDepthStencilSurface[uI])
 			{
 				m_pcActiveDepthStencilSurface[uI]->GetDesc(&sDesc);
-				DEBUG_UINT_EX(L"Format", sDesc.Format);
-				DEBUG_UINT_EX(L"Height", sDesc.Height);
-				DEBUG_UINT_EX(L"MultiSampleQuality", sDesc.MultiSampleQuality);
-				DEBUG_UINT_EX(L"MultiSampleType", sDesc.MultiSampleType);
-				DEBUG_UINT_EX(L"Pool", sDesc.Pool);
-				DEBUG_UINT_EX(L"Type", sDesc.Type);
-				DEBUG_UINT_EX(L"Usage", sDesc.Usage);
-				DEBUG_UINT_EX(L"Width", sDesc.Width);
+				TRACE_UINT_EX(L"Format", sDesc.Format);
+				TRACE_UINT_EX(L"Height", sDesc.Height);
+				TRACE_UINT_EX(L"MultiSampleQuality", sDesc.MultiSampleQuality);
+				TRACE_UINT_EX(L"MultiSampleType", sDesc.MultiSampleType);
+				TRACE_UINT_EX(L"Pool", sDesc.Pool);
+				TRACE_UINT_EX(L"Type", sDesc.Type);
+				TRACE_UINT_EX(L"Usage", sDesc.Usage);
+				TRACE_UINT_EX(L"Width", sDesc.Width);
 }
 			else OutputDebugString(L"[STS] No Stereo Depth Buffer !!");
 		}

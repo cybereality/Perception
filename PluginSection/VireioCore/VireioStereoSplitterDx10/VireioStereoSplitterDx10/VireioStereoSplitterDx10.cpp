@@ -35,9 +35,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
-#define DEBUG_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#ifndef _TRACE
+#define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
+#define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
+#define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#endif
 #define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
 
 #include"VireioStereoSplitterDx10.h"
@@ -2447,14 +2449,12 @@ void StereoSplitter::Present(int& nFlags)
 		m_pcActiveStereoTwinBackBuffer11 = nullptr;
 		if ((m_sStereoData.pcTex11[0]) && (m_pcActiveBackBuffer11))
 		{
-			OutputDebugString(L"Copy Left");
 			pcContext->CopyResource((ID3D11Resource*)m_sStereoData.pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
 			uSize = sizeof(m_pcActiveBackBuffer11);
 			m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &uSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
 		}
 		if ((uSize) && (m_pcActiveStereoTwinBackBuffer11))
 		{
-			OutputDebugString(L"Copy Right");
 			if (m_sStereoData.pcTex11[1]) pcContext->CopyResource((ID3D11Resource*)m_sStereoData.pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
 			m_pcActiveStereoTwinBackBuffer11->Release();
 		}

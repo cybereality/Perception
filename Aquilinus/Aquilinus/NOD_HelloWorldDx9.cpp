@@ -34,8 +34,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"VMT_IDirect3DSwapchain9.h"
 #include"Resources.h"
 
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#ifndef _TRACE
+#define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
+#define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
+#define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#endif
 
 #pragma region font glyph data
 
@@ -235,11 +238,11 @@ void* NOD_HelloWorldDx9::Provoke(void* pcThis, int eD3D, int eD3DInterface, int 
 		static bool s_bDebug = false;
 		if (!s_bDebug)
 		{
-			DEBUG_HEX(m_paDecommanders[0]->m_pInput);
-			DEBUG_HEX(m_apInputRaw[0]);
-			DEBUG_HEX(m_apInputRaw[1]);
-			DEBUG_HEX(m_apInputRaw[2]);
-			DEBUG_HEX(m_apInputRaw[3]);
+			TRACE_HEX(m_paDecommanders[0]->m_pInput);
+			TRACE_HEX(m_apInputRaw[0]);
+			TRACE_HEX(m_apInputRaw[1]);
+			TRACE_HEX(m_apInputRaw[2]);
+			TRACE_HEX(m_apInputRaw[3]);
 			s_bDebug = true;
 		}
 	}

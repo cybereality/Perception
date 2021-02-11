@@ -39,9 +39,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"Resources.h"
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
-#define DEBUG_HR(msg, hr) { wchar_t buf[128]; wsprintf(buf, L"%s : %x", msg, hr); OutputDebugString(buf); }
+#ifndef _TRACE
+#define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
+#define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
+#define TRACE_LINE { wchar_t buf[128]; wsprintf(buf, L"LINE : %d", __LINE__); OutputDebugString(buf); }
+#endif
 
 #define INTERFACE_IDIRECT3DDEVICE9 8
 #define INTERFACE_IDIRECT3DSWAPCHAIN9 15
@@ -981,7 +983,8 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 			HRESULT nHr = pcDevice->CreateTexture(sDescSurfaceD3D9.Width, sDescSurfaceD3D9.Height, 1, 0, sDescSurfaceD3D9.Format, D3DPOOL_SYSTEMMEM, &m_pcTex9Copy[0], NULL);
 			if (!m_pcTex9Copy[0])
 			{
-				DEBUG_HR(L"[CIN] Failed to create D3D9 copy texture : ", nHr);
+				OutputDebugStringW(L"[CIN] Failed to create D3D9 copy texture : ");
+				TRACE_HEX(nHr);
 				return;
 			}
 		}
@@ -1069,7 +1072,8 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 				HRESULT nHr = pcDevice->CreateTexture(sDescSurfaceD3D9.Width, sDescSurfaceD3D9.Height, 1, 0, sDescSurfaceD3D9.Format, D3DPOOL_SYSTEMMEM, &m_pcTex9Copy[unEye], NULL);
 				if (!m_pcTex9Copy[unEye])
 				{
-					DEBUG_HR(L"[STS] Failed to create D3D9 copy texture : ", nHr);
+					OutputDebugStringW(L"[STS] Failed to create D3D9 copy texture : ");
+					TRACE_HEX(nHr);
 					return;
 				}
 			}
@@ -1665,8 +1669,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		}
 		else
 		{
-			DEBUG_HEX(m_pcTexCopy11SRV[0]);
-			DEBUG_HEX(m_pcTexCopy11SRV[1]);
+			TRACE_HEX(m_pcTexCopy11SRV[0]);
+			TRACE_HEX(m_pcTexCopy11SRV[1]);
 			return;
 		}
 	case VireioCinema::D3D_10:
