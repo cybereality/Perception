@@ -84,8 +84,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
+#define STEREO_L 0
+#define STEREO_R 1
+#define MONO     1
+#define STEREO   2
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          22
+#define NUMBER_OF_COMMANDERS                           1
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5250               
@@ -108,32 +113,31 @@ void debugf(const char* fmt, ...) { va_list args; va_start(args, fmt); char buf[
 /// </summary>
 enum STS_Commanders
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	eDrawingSide,                                                           /**< Left/Right drawing side enumeration. Switches once per draw call ***/
-	ppActiveConstantBuffers_DX10_VertexShader,                              /**< Active D3D10 vertex shader constant buffers ***/
-	ppActiveConstantBuffers_DX10_GeometryShader,                            /**< Active D3D10 geometry shader constant buffers ***/
-	ppActiveConstantBuffers_DX10_PixelShader,                               /**< Active D3D10 pixel shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_VertexShader,                              /**< Active D3D11 vertex shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_HullShader,                                /**< Active D3D11 hull shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_DomainShader,                              /**< Active D3D11 domain shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_GeometryShader,                            /**< Active D3D11 geometry shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
-	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
-	asVShaderData,                                                          /**< The shader data vector. ***/
-	asPShaderData,                                                          /**< The shader data vector. ***/
-	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
-	SwitchRenderTarget,                                                     /**< Option to switch the render target to exclude shaders beeing drawn. ***/
-	RESERVED00,                                                             /**< RESERVED ***/
-	SecondaryRenderTarget_DX10,                                             /**< Secondary (HUD) render target mono DX10. ***/
-	SecondaryRenderTarget_DX11,                                             /**< Secondary (HUD) render target mono DX11. ***/
-	ppActiveRenderTargets_DX10,                                             /**< Active render targets DX10. Backup for render target operations. ***/
-	ppActiveRenderTargets_DX11,                                             /**< Active render targets DX11. Backup for render target operations. ***/
-	ppActiveDepthStencil_DX10,                                              /**< Active depth stencil DX10. Backup for render target operations. ***/
-	ppActiveDepthStencil_DX11,                                              /**< Active depth stencil DX11. Backup for render target operations. ***/
-	VireioMenu,                                                             /**<  The Vireio Menu node connector. ***/
-#elif defined(VIREIO_D3D9)
+	//    #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	//	eDrawingSide,                                                           /**< Left/Right drawing side enumeration. Switches once per draw call ***/
+	//	ppActiveConstantBuffers_DX10_VertexShader,                              /**< Active D3D10 vertex shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX10_GeometryShader,                            /**< Active D3D10 geometry shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX10_PixelShader,                               /**< Active D3D10 pixel shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX11_VertexShader,                              /**< Active D3D11 vertex shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX11_HullShader,                                /**< Active D3D11 hull shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX11_DomainShader,                              /**< Active D3D11 domain shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX11_GeometryShader,                            /**< Active D3D11 geometry shader constant buffers ***/
+	//	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
+	//	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
+	//	asVShaderData,                                                          /**< The shader data vector. ***/
+	//	asPShaderData,                                                          /**< The shader data vector. ***/
+	//	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
+	//	SwitchRenderTarget,                                                     /**< Option to switch the render target to exclude shaders beeing drawn. ***/
+	//	RESERVED00,                                                             /**< RESERVED ***/
+	//	SecondaryRenderTarget_DX10,                                             /**< Secondary (HUD) render target mono DX10. ***/
+	//	SecondaryRenderTarget_DX11,                                             /**< Secondary (HUD) render target mono DX11. ***/
+	//	ppActiveRenderTargets_DX10,                                             /**< Active render targets DX10. Backup for render target operations. ***/
+	//	ppActiveRenderTargets_DX11,                                             /**< Active render targets DX11. Backup for render target operations. ***/
+	//	ppActiveDepthStencil_DX10,                                              /**< Active depth stencil DX10. Backup for render target operations. ***/
+	//	ppActiveDepthStencil_DX11,                                              /**< Active depth stencil DX11. Backup for render target operations. ***/
+	//	VireioMenu,                                                             /**<  The Vireio Menu node connector. ***/
+	//#elif defined(VIREIO_D3D9)
 	Modifier
-#endif
 };
 
 /// <summary>
@@ -224,65 +228,6 @@ enum struct STS_Decommanders
 #endif
 	// Tracker,                        /*<- Tracker input, not used now */
 };
-
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-/// <summary>
-*Vireio Map DX10 / 11 data structure.
-* Contains all data for a mapped constant buffer.
-/// </summary>
-struct Vireio_Map_Data
-{
-	/// <summary>
-	/// Stored mapped resource pointer. (DX11 only)
-	/// </summary>
-	ID3D11Resource* m_pcMappedResource;
-	/// <summary>
-	/// Stored mapped resource description.
-	/// </summary>
-	D3D11_MAPPED_SUBRESOURCE* m_psMappedResource;
-	/// <summary>
-	/// Stored mapped resource data pointer.
-	/// </summary>
-	void* m_pMappedResourceData;
-	/// <summary>
-	/// Stored mapped resource data size (in bytes).
-	/// </summary>
-	UINT m_dwMappedResourceDataSize;
-	/// <summary>
-	/// Stored map type.
-	/// </summary>
-	D3D11_MAP m_eMapType;
-	/// <summary>
-	/// Stored map flags.
-	/// </summary>
-	UINT m_dwMapFlags;
-	/// <summary>
-	/// The private data shader rules index for a mapped constant buffer.
-	/// </summary>
-	INT m_nMapRulesIndex;
-	/// <summary>
-	/// Constant Buffer private data buffer.
-	/// Buffer data needed for Map(). (+0xff to provide homogenous address)
-	/// </summary>
-	union
-	{
-		BYTE m_pchBuffer10[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3) + 0xff];
-		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3) + 0xff];
-	};
-};
-
-/// <summary>
-*Simple enumeration of supported Shaders.
-/// </summary>
-enum Vireio_Supported_Shaders
-{
-	VertexShader,
-	PixelShader,
-	GeometryShader,
-	HullShader,
-	DomainShader
-};
-#endif
 
 /// <summary>
 /// => Vireio Matrix Modifier (DX9/10/11).
@@ -487,6 +432,10 @@ private:
 		ID3D10RenderTargetView* m_pcSecondaryRenderTargetView10;
 		ID3D11RenderTargetView* m_pcSecondaryRenderTargetView11;
 	};
+	/// <summary>
+	/// The currently provided D3D11 device context. 
+	/// </summary>
+	ID3D11DeviceContext* m_pcContextCurrent;
 
 #elif defined(VIREIO_D3D9)
 	/// <summary>
@@ -661,8 +610,8 @@ private:
 		/**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/
 		/**< [Switch] : Activate to output all possible buffer sizes to the debug trace for the index in m_dwBufferIndex.***/
 
-		/**< [Switch] Buffer index **/
-		/**< [Switch] Buffer size **/
+		UINT m_dwBufferIndex; /**< [Switch] Buffer index **/
+		UINT m_dwBufferSize; /**< [Switch] Buffer size **/
 #endif
 		// string entries for the switches above
 		std::string m_szConstantName;
@@ -696,7 +645,7 @@ private:
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 
 #endif
-} m_sTechnicalOptions;
+	} m_sTechnicalOptions;
 	/// <summary>
 	/// List of all available vertex shader hash codes (std::wstring).
 	/// To be used on the shader page, the debug page
@@ -818,7 +767,7 @@ private:
 	/// List of all fetched shader hash codes. (std::wstring).
 	/// To be used on the shader rules page.
 	/// </summary>
-	std::vector<std::wstring> m_aszFetchedHashCodes;
+	std::vector<std::string> m_aszFetchedHashCodes;
 	/// <summary>
 	/// List of all fetched shader hash codes. (UINT).
 	/// To be used on the shader rules page.
@@ -867,7 +816,7 @@ private:
 #pragma endregion
 #endif
 
-};
+	};
 
 /// <summary>
 /// Exported Constructor Method.

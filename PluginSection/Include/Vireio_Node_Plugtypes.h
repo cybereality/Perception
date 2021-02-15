@@ -525,16 +525,29 @@ struct HMDTrackerData : public VireioPluginData
 /// </summary>
 struct ModifierData : public VireioPluginData
 {
+#ifdef VIREIO_D3D11
 	/// <summary>
-	/// The d3d9 vertex shader description vector. /// TODO !! union with d3d11 shaders
+	/// The d3d11 vertex shader description vector.
+	/// Contains all enumerated shader data structures.
+	/// </summary>
+	std::vector<Vireio_D3D11_Shader> asVShaders;
+	/// <summary>
+	/// The d3d11 pixel shader description vector.
+	/// Contains all enumerated shader data structures.
+	/// </summary>
+	std::vector<Vireio_D3D11_Shader> asPShaders;
+#elif defined VIREIO_D3D9
+	/// <summary>
+	/// The d3d9 vertex shader description vector.
 	/// Contains all enumerated shader data structures.
 	/// </summary>
 	std::vector<Vireio_D3D9_Shader> asVShaders;
 	/// <summary>
-	/// The d3d9 pixel shader description vector. /// TODO !! union with d3d11 shaders
+	/// The d3d9 pixel shader description vector.
 	/// Contains all enumerated shader data structures.
 	/// </summary>
 	std::vector<Vireio_D3D9_Shader> asPShaders;
+#endif
 	/// <summary>
 	/// The active vertex shader index.
 	/// Only used if codemod method is active.

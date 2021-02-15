@@ -93,7 +93,10 @@ m_eDebugOption(Debug_Grab_Options::Debug_ConstantFloat4),
 m_bGrabDebug(false),
 m_adwPageIDs(0, 0),
 m_aunGlobalConstantRuleIndices(),
-#if defined(VIREIO_D3D9)
+#if defined(VIREIO_D3D11)
+m_pcContextCurrent(nullptr),
+#elif defined(VIREIO_D3D9)
+m_pcDeviceCurrent(nullptr),
 m_asShaderSpecificRuleIndices(),
 m_aszShaderRuleShaderIndices(),
 m_pcActiveVertexShader(nullptr),
@@ -168,13 +171,13 @@ m_bTrace(false)
 	m_apcActiveDepthStencilView11[1] = nullptr;
 
 	// create output pointers
-	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcVSActiveConstantBuffers11[0];
+	/*m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcVSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader] = (void*)&m_apcHSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader] = (void*)&m_apcDSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader] = (void*)&m_apcGSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader] = (void*)&m_apcPSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11] = (void*)&m_apcActiveRenderTargetViews11[0];
-	m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11] = (void*)&m_apcActiveDepthStencilView11[0];
+	m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11] = (void*)&m_apcActiveDepthStencilView11[0];*/
 
 	// set constant buffer verification at startup (first 30 frames)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
@@ -194,69 +197,6 @@ m_bTrace(false)
 	// constant rule buffer counter starts with 1 to init a first update
 	m_dwConstantRulesUpdateCounter = 1;
 
-	// nullptr for all dx10/11 input fields
-	m_ppvShaderBytecode_VertexShader = nullptr;
-	m_pnBytecodeLength_VertexShader = nullptr;
-	m_ppcClassLinkage_VertexShader = nullptr;
-	m_pppcVertexShader_DX10 = nullptr;
-	m_ppvShaderBytecode_PixelShader = nullptr;
-	m_pnBytecodeLength_PixelShader = nullptr;
-	m_ppcClassLinkage_PixelShader = nullptr;
-	m_pppcPixelShader_DX10 = nullptr;
-	m_ppcVertexShader_10 = nullptr;
-	m_ppcVertexShader_11 = nullptr;
-	m_ppcPixelShader_10 = nullptr;
-	m_ppcPixelShader_11 = nullptr;
-	m_ppsDesc_DX10 = nullptr;
-	m_ppsInitialData_DX10 = nullptr;
-	m_pppcBuffer_DX10 = nullptr;
-	m_pdwStartSlot = nullptr;
-	m_pdwNumBuffers = nullptr;
-	m_pppcConstantBuffers_DX10 = nullptr;
-	m_pppcConstantBuffers_DX11 = nullptr;
-	m_pdwStartSlot_PixelShader = nullptr;
-	m_pdwNumBuffers_PixelShader = nullptr;
-	m_pppcConstantBuffers_DX10_PixelShader = nullptr;
-	m_pppcConstantBuffers_DX11_PixelShader = nullptr;
-	m_ppcDstResource_DX10 = nullptr;
-	m_ppcDstResource_DX11 = nullptr;
-	m_pdwDstSubresource = nullptr;
-	m_ppsDstBox_DX10 = nullptr;
-	m_ppsDstBox_DX11 = nullptr;
-	m_ppvSrcData = nullptr;
-	m_pdwSrcRowPitch = nullptr;
-	m_pdwSrcDepthPitch = nullptr;
-	m_ppcDstResource_DX10_Copy = nullptr;
-	m_ppcSrcResource_DX10_Copy = nullptr;
-	m_ppcDstResource_DX11_Copy = nullptr;
-	m_ppcSrcResource_DX11_Copy = nullptr;
-	m_ppcDstResource_DX10_CopySub = nullptr;
-	m_ppcDstResource_DX11_CopySub = nullptr;
-	m_pdwDstSubresource_CopySub = nullptr;
-	m_pdwDstX = nullptr;
-	m_pdwDstY = nullptr;
-	m_pdwDstZ = nullptr;
-	m_ppcSrcResource_DX10_CopySub = nullptr;
-	m_ppcSrcResource_DX11_CopySub = nullptr;
-	m_pdwSrcSubresource = nullptr;
-	m_ppsSrcBox_DX10 = nullptr;
-	m_ppsSrcBox_DX11 = nullptr;
-	m_pdwStartSlot = nullptr;
-	m_pdwNumBuffers = nullptr;
-	m_pppcConstantBuffers_VertexShader = nullptr;
-	m_pdwStartSlot_PixelShader = nullptr;
-	m_pdwNumBuffers_PixelShader = nullptr;
-	m_pppcConstantBuffers_PixelShader = nullptr;
-	m_ppcResource_Map = nullptr;
-	m_pdwSubresource_Map = nullptr;
-	m_psMapType = nullptr;
-	m_pdwMapFlags = nullptr;
-	m_ppsMappedResource = nullptr;
-	m_ppcResource_Unmap = nullptr;
-	m_pdwSubresource_Unmap = nullptr;
-	m_pcSecondaryRenderTarget10 = nullptr;
-	m_pcSecondaryRenderTargetView10 = nullptr;
-	m_pcSecondaryRenderTargetSRView10 = nullptr;
 #elif defined(VIREIO_D3D9)
 	// init shader vector
 	m_sModifierData.asVShaders = std::vector<Vireio_D3D9_Shader>();
@@ -694,57 +634,6 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 /// </summary>
 LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	switch ((STS_Commanders)dwCommanderIndex)
-	{
-	case eDrawingSide:
-		return L"Stereo Drawing Side";
-	case ppActiveConstantBuffers_DX10_VertexShader:
-		return L"ppConstantBuffers_DX10_VS";
-	case ppActiveConstantBuffers_DX11_VertexShader:
-		return L"ppConstantBuffers_DX11_VS";
-	case ppActiveConstantBuffers_DX10_PixelShader:
-		return L"ppConstantBuffers_DX10_PS";
-	case ppActiveConstantBuffers_DX11_PixelShader:
-		return L"ppConstantBuffers_DX11_PS";
-	case ppActiveConstantBuffers_DX10_GeometryShader:
-		return L"ppConstantBuffers_DX10_GS";
-	case ppActiveConstantBuffers_DX11_GeometryShader:
-		return L"ppConstantBuffers_DX11_GS";
-	case ppActiveConstantBuffers_DX11_HullShader:
-		return L"ppConstantBuffers_DX11_HS";
-	case ppActiveConstantBuffers_DX11_DomainShader:
-		return L"ppConstantBuffers_DX11_DS";
-	case dwVerifyConstantBuffers:
-		return L"Verify Constant Buffers";
-	case asVShaderData:
-		return L"Vertex Shader Data Array";
-	case asPShaderData:
-		return L"Pixel Shader Data Array";
-	case ViewAdjustments:
-		return L"View Adjustments";
-	case SwitchRenderTarget:
-		return L"Switch Render Target";
-	case RESERVED00:
-		return L"RESERVED00";
-	case SecondaryRenderTarget_DX10:
-		return L"SecondaryRenderTarget_DX10";
-	case SecondaryRenderTarget_DX11:
-		return L"SecondaryRenderTarget_DX11";
-	case ppActiveRenderTargets_DX10:
-		return L"ppActiveRenderTargets_DX10";
-	case ppActiveRenderTargets_DX11:
-		return L"ppActiveRenderTargets_DX11";
-	case ppActiveDepthStencil_DX10:
-		return L"ppActiveDepthStencil_DX10";
-	case ppActiveDepthStencil_DX11:
-		return L"ppActiveDepthStencil_DX11";
-	case VireioMenu:
-		return L"Vireio Menu";
-	default:
-		break;
-	}
-#elif defined(VIREIO_D3D9)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
 	case Modifier:
@@ -752,7 +641,6 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 	default:
 		break;
 	}
-#endif
 
 	return L"UNTITLED";
 }
@@ -765,112 +653,7 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case pShaderBytecode_VertexShader:
-		return L"pShaderBytecode_VS";
-	case BytecodeLength_VertexShader:
-		return L"BytecodeLength_VS";
-	case pClassLinkage_VertexShader:
-		return L"pClassLinkage_VertexShader";
-	case ppVertexShader_DX10:
-		return L"ppVertexShader_DX10";
-	case pShaderBytecode_PixelShader:
-		return L"pShaderBytecode_PS";
-	case BytecodeLength_PixelShader:
-		return L"BytecodeLength_PS";
-	case pClassLinkage_PixelShader:
-		return L"pClassLinkage_PixelShader";
-	case ppPixelShader_DX10:
-		return L"ppPixelShader_DX10";
-	case pVertexShader_10:
-		return L"pVertexShader_10";
-	case pVertexShader_11:
-		return L"pVertexShader_11";
-	case pPixelShader_10:
-		return L"pPixelShader_10";
-	case pPixelShader_11:
-		return L"pPixelShader_11";
-	case pDesc_DX10:
-		return L"pDesc_DX10";
-	case pInitialData_DX10:
-		return L"pInitialData_DX10";
-	case ppBuffer_DX10:
-		return L"ppBuffer_DX10";
-	case StartSlot_VertexShader:
-		return L"StartSlot_VS";
-	case NumBuffers_VertexShader:
-		return L"NumBuffers_VS";
-	case ppConstantBuffers_DX10_VertexShader:
-		return L"ppConstantBuffers_DX10_VS";
-	case ppConstantBuffers_DX11_VertexShader:
-		return L"ppConstantBuffers_DX11_VS";
-	case pDstResource_DX10:
-		return L"pDstResource_DX10";
-	case pDstResource_DX11:
-		return L"pDstResource_DX11";
-	case DstSubresource:
-		return L"DstSubresource";
-	case pDstBox_DX10:
-		return L"pDstBox_DX10";
-	case pDstBox_DX11:
-		return L"pDstBox_DX11";
-	case pSrcData:
-		return L"pSrcData";
-	case SrcRowPitch:
-		return L"SrcRowPitch";
-	case SrcDepthPitch:
-		return L"SrcDepthPitch";
-	case pDstResource_DX10_Copy:
-		return L"pDstResource_DX10_Copy";
-	case pSrcResource_DX10_Copy:
-		return L"pSrcResource_DX10_Copy";
-	case pDstResource_DX11_Copy:
-		return L"pDstResource_DX11_Copy";
-	case pSrcResource_DX11_Copy:
-		return L"pSrcResource_DX11_Copy";
-	case pDstResource_DX10_CopySub:
-		return L"pDstResource_DX10_CopySub";
-	case pDstResource_DX11_CopySub:
-		return L"pDstResource_DX11_CopySub";
-	case DstSubresource_CopySub:
-		return L"DstSubresource_CopySub";
-	case DstX:
-		return L"DstX";
-	case DstY:
-		return L"DstY";
-	case DstZ:
-		return L"DstZ";
-	case pSrcResource_DX10_CopySub:
-		return L"pSrcResource_DX10_CopySub";
-	case pSrcResource_DX11_CopySub:
-		return L"pSrcResource_DX11_CopySub";
-	case SrcSubresource:
-		return L"SrcSubresource";
-	case pSrcBox_DX10:
-		return L"pSrcBox_DX10";
-	case pSrcBox_DX11:
-		return L"pSrcBox_DX11";
-	case StartSlot_Get_VertexShader:
-		return L"StartSlot_Get_VertexShader";
-	case NumBuffers_Get_VertexShader:
-		return L"NumBuffers_Get_VertexShader";
-	case ppConstantBuffers_DX10_Get_VertexShader:
-		return L"ppConstantBuffers_DX10_Get_VS";
-	case ppConstantBuffers_DX11_Get_VertexShader:
-		return L"ppConstantBuffers_DX11_Get_VS";
-	case pResource:
-		return L"pResource";
-	case Subresource:
-		return L"Subresource";
-	case MapType:
-		return L"MapType";
-	case MapFlags:
-		return L"MapFlags";
-	case pMappedResource:
-		return L"pMappedResource";
-	case pResource_Unmap:
-		return L"pResource_Unmap";
-	case Subresource_Unmap:
-		return L"Subresource_Unmap";
+
 	default:
 		return L"UNTITLED";
 	}
@@ -915,42 +698,7 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
-	case eDrawingSide:
-		return NOD_Plugtype::AQU_INT;
-	case ppActiveConstantBuffers_DX10_VertexShader:
-	case ppActiveConstantBuffers_DX10_GeometryShader:
-	case ppActiveConstantBuffers_DX10_PixelShader:
-		return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-	case ppActiveConstantBuffers_DX11_VertexShader:
-	case ppActiveConstantBuffers_DX11_HullShader:
-	case ppActiveConstantBuffers_DX11_DomainShader:
-	case ppActiveConstantBuffers_DX11_GeometryShader:
-	case ppActiveConstantBuffers_DX11_PixelShader:
-		return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-	case dwVerifyConstantBuffers:
-		return NOD_Plugtype::AQU_UINT;
-	case asVShaderData:
-		return NOD_Plugtype::AQU_VOID;
-	case asPShaderData:
-		return NOD_Plugtype::AQU_VOID;
-	case ViewAdjustments:
-		return NOD_Plugtype::AQU_INT;
-	case SwitchRenderTarget:
-		return NOD_Plugtype::AQU_INT;
-	case RESERVED00:
-		return NOD_Plugtype::AQU_SIZE_T;
-	case SecondaryRenderTarget_DX10:
-		return NOD_Plugtype::AQU_PNT_ID3D10SHADERRESOURCEVIEW;
-	case SecondaryRenderTarget_DX11:
-		return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-	case ppActiveRenderTargets_DX10:
-		return NOD_Plugtype::AQU_PPNT_ID3D10RENDERTARGETVIEW;
-	case ppActiveRenderTargets_DX11:
-		return NOD_Plugtype::AQU_PPNT_ID3D11RENDERTARGETVIEW;
-	case ppActiveDepthStencil_DX10:
-		return NOD_Plugtype::AQU_PPNT_ID3D10DEPTHSTENCILVIEW;
-	case ppActiveDepthStencil_DX11:
-		return NOD_Plugtype::AQU_PPNT_ID3D11DEPTHSTENCILVIEW;
+
 	default:
 		break;
 	}
@@ -975,112 +723,7 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case pShaderBytecode_VertexShader:
-		return NOD_Plugtype::AQU_PNT_VOID;
-	case BytecodeLength_VertexShader:
-		return NOD_Plugtype::AQU_SIZE_T;
-	case pClassLinkage_VertexShader:
-		return NOD_Plugtype::AQU_PNT_ID3D11CLASSLINKAGE;
-	case ppVertexShader_DX10:
-		return NOD_Plugtype::AQU_PPNT_ID3D10VERTEXSHADER;
-	case pShaderBytecode_PixelShader:
-		return NOD_Plugtype::AQU_PNT_VOID;
-	case BytecodeLength_PixelShader:
-		return NOD_Plugtype::AQU_SIZE_T;
-	case pClassLinkage_PixelShader:
-		return NOD_Plugtype::AQU_PNT_ID3D11CLASSLINKAGE;
-	case ppPixelShader_DX10:
-		return NOD_Plugtype::AQU_PPNT_ID3D10PIXELSHADER;
-	case pVertexShader_10:
-		return NOD_Plugtype::AQU_PNT_ID3D10VERTEXSHADER;
-	case pVertexShader_11:
-		return NOD_Plugtype::AQU_PNT_ID3D11VERTEXSHADER;
-	case pPixelShader_10:
-		return NOD_Plugtype::AQU_PNT_ID3D10PIXELSHADER;
-	case pPixelShader_11:
-		return NOD_Plugtype::AQU_PNT_ID3D11PIXELSHADER;
-	case pDesc_DX10:
-		return NOD_Plugtype::AQU_PNT_D3D10_BUFFER_DESC;
-	case pInitialData_DX10:
-		return NOD_Plugtype::AQU_PNT_D3D10_SUBRESOURCE_DATA;
-	case ppBuffer_DX10:
-		return NOD_Plugtype::AQU_PNT_ID3D10BUFFER;
-	case StartSlot_VertexShader:
-		return NOD_Plugtype::AQU_UINT;
-	case NumBuffers_VertexShader:
-		return NOD_Plugtype::AQU_UINT;
-	case ppConstantBuffers_DX10_VertexShader:
-		return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-	case ppConstantBuffers_DX11_VertexShader:
-		return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-	case pDstResource_DX10:
-		return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
-	case pDstResource_DX11:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case DstSubresource:
-		return NOD_Plugtype::AQU_UINT;
-	case pDstBox_DX10:
-		return NOD_Plugtype::AQU_PNT_D3D10_BOX;
-	case pDstBox_DX11:
-		return NOD_Plugtype::AQU_PNT_D3D11_BOX;
-	case pSrcData:
-		return NOD_Plugtype::AQU_PNT_VOID;
-	case SrcRowPitch:
-		return NOD_Plugtype::AQU_UINT;
-	case SrcDepthPitch:
-		return NOD_Plugtype::AQU_UINT;
-	case pDstResource_DX10_Copy:
-		return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
-	case pSrcResource_DX10_Copy:
-		return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
-	case pDstResource_DX11_Copy:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case pSrcResource_DX11_Copy:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case pDstResource_DX10_CopySub:
-		return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
-	case pDstResource_DX11_CopySub:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case DstSubresource_CopySub:
-		return NOD_Plugtype::AQU_UINT;
-	case DstX:
-		return NOD_Plugtype::AQU_UINT;
-	case DstY:
-		return NOD_Plugtype::AQU_UINT;
-	case DstZ:
-		return NOD_Plugtype::AQU_UINT;
-	case pSrcResource_DX10_CopySub:
-		return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
-	case pSrcResource_DX11_CopySub:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case SrcSubresource:
-		return NOD_Plugtype::AQU_UINT;
-	case pSrcBox_DX10:
-		return NOD_Plugtype::AQU_PNT_D3D10_BOX;
-	case pSrcBox_DX11:
-		return NOD_Plugtype::AQU_PNT_D3D11_BOX;
-	case StartSlot_Get_VertexShader:
-		return NOD_Plugtype::AQU_UINT;
-	case NumBuffers_Get_VertexShader:
-		return NOD_Plugtype::AQU_UINT;
-	case ppConstantBuffers_DX10_Get_VertexShader:
-		return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-	case ppConstantBuffers_DX11_Get_VertexShader:
-		return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-	case pResource:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case Subresource:
-		return NOD_Plugtype::AQU_UINT;
-	case MapType:
-		return NOD_Plugtype::AQU_D3D11_MAP;
-	case MapFlags:
-		return NOD_Plugtype::AQU_UINT;
-	case pMappedResource:
-		return NOD_Plugtype::AQU_PNT_D3D11_MAPPED_SUBRESOURCE;
-	case pResource_Unmap:
-		return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
-	case Subresource_Unmap:
-		return NOD_Plugtype::AQU_UINT;
+
 	default:
 		break;
 	}
@@ -1145,60 +788,60 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 /// </summary>
 void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	switch ((STS_Commanders)dwCommanderIndex)
-	{
-	case eDrawingSide:
-		return (void*)&m_sModifierData.eCurrentRenderingSide;
-	case ppActiveConstantBuffers_DX10_VertexShader:
-		//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader];
-		break;
-	case ppActiveConstantBuffers_DX10_GeometryShader:
-		//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_GeometryShader];
-		break;
-	case ppActiveConstantBuffers_DX10_PixelShader:
-		//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_PixelShader];
-		break;
-	case ppActiveConstantBuffers_DX11_VertexShader:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader];
-	case ppActiveConstantBuffers_DX11_HullShader:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader];
-	case ppActiveConstantBuffers_DX11_DomainShader:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader];
-	case ppActiveConstantBuffers_DX11_GeometryShader:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader];
-	case ppActiveConstantBuffers_DX11_PixelShader:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader];
-	case dwVerifyConstantBuffers:
-		return (void*)&m_dwVerifyConstantBuffers;
-	case asVShaderData:
-		return (void*)&m_asVShaders;
-	case asPShaderData:
-		return (void*)&m_asPShaders;
-	case ViewAdjustments:
-		return (void*)&m_pcShaderViewAdjustment;
-	case SwitchRenderTarget:
-		return (void*)&m_bSwitchRenderTarget;
-	case RESERVED00:
-		return nullptr; // TODO !! RESERVED
-	case SecondaryRenderTarget_DX10:
-		return (void*)&m_pcSecondaryRenderTargetSRView10;
-	case SecondaryRenderTarget_DX11:
-		return (void*)&m_pcSecondaryRenderTargetSRView11;
-	case ppActiveRenderTargets_DX10:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX10];
-	case ppActiveRenderTargets_DX11:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11];
-	case ppActiveDepthStencil_DX10:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX10];
-	case ppActiveDepthStencil_DX11:
-		return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11];
-	case VireioMenu:
-		return (void*)&m_sMenu;
-	default:
-		break;
-	}
-#elif defined(VIREIO_D3D9)
+	/*#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		switch ((STS_Commanders)dwCommanderIndex)
+		{
+		case eDrawingSide:
+			return (void*)&m_sModifierData.eCurrentRenderingSide;
+		case ppActiveConstantBuffers_DX10_VertexShader:
+			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader];
+			break;
+		case ppActiveConstantBuffers_DX10_GeometryShader:
+			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_GeometryShader];
+			break;
+		case ppActiveConstantBuffers_DX10_PixelShader:
+			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_PixelShader];
+			break;
+		case ppActiveConstantBuffers_DX11_VertexShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader];
+		case ppActiveConstantBuffers_DX11_HullShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader];
+		case ppActiveConstantBuffers_DX11_DomainShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader];
+		case ppActiveConstantBuffers_DX11_GeometryShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader];
+		case ppActiveConstantBuffers_DX11_PixelShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader];
+		case dwVerifyConstantBuffers:
+			return (void*)&m_dwVerifyConstantBuffers;
+		case asVShaderData:
+			return (void*)&m_asVShaders;
+		case asPShaderData:
+			return (void*)&m_asPShaders;
+		case ViewAdjustments:
+			return (void*)&m_pcShaderViewAdjustment;
+		case SwitchRenderTarget:
+			return (void*)&m_bSwitchRenderTarget;
+		case RESERVED00:
+			return nullptr; // TODO !! RESERVED
+		case SecondaryRenderTarget_DX10:
+			return (void*)&m_pcSecondaryRenderTargetSRView10;
+		case SecondaryRenderTarget_DX11:
+			return (void*)&m_pcSecondaryRenderTargetSRView11;
+		case ppActiveRenderTargets_DX10:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX10];
+		case ppActiveRenderTargets_DX11:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11];
+		case ppActiveDepthStencil_DX10:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX10];
+		case ppActiveDepthStencil_DX11:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11];
+		case VireioMenu:
+			return (void*)&m_sMenu;
+		default:
+			break;
+		}
+	#elif defined(VIREIO_D3D9)*/
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
 	case Modifier:
@@ -1206,7 +849,6 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 	default:
 		break;
 	}
-#endif
 
 	return nullptr;
 }
@@ -1365,9 +1007,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		// m_pcShaderModificationCalculation->ComputeViewTransforms();
 	}*/
 
-	// set current device... (union field with IDirect3DStateBlock9 for state block methods)
-	m_pcDeviceCurrent = (IDirect3DDevice9*)pThis;
-
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch (eD3DInterface)
 	{
@@ -1377,7 +1016,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ID3D11DeviceContext::UpdateSubresource
 		case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
 			// verify pointers
-			if (!m_ppcDstResource_DX11) return nullptr;
+			/*if (!m_ppcDstResource_DX11) return nullptr;
 			if (!m_pdwDstSubresource) return nullptr;
 			if (!m_ppsDstBox_DX11) return nullptr;
 			if (!m_ppvSrcData) return nullptr;
@@ -1458,12 +1097,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					pcResourceTwin->Release();
 				}
 
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::CopySubresourceRegion
 		case METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION:
-			if (!m_ppcDstResource_DX11_CopySub) return nullptr;
+			/*if (!m_ppcDstResource_DX11_CopySub) return nullptr;
 			if (!m_pdwDstSubresource_CopySub) return nullptr;
 			if (!m_pdwDstX) return nullptr;
 			if (!m_pdwDstY) return nullptr;
@@ -1602,12 +1241,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::CopyResource
 		case METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE:
-			if (!m_ppcDstResource_DX11_Copy) return nullptr;
+			/*if (!m_ppcDstResource_DX11_Copy) return nullptr;
 			if (!m_ppcSrcResource_DX11_Copy) return nullptr;
 			if (!*m_ppcDstResource_DX11_Copy) return nullptr;
 			if (!*m_ppcSrcResource_DX11_Copy) return nullptr;
@@ -1706,12 +1345,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetShader
 		case METHOD_ID3D11DEVICECONTEXT_VSSETSHADER:
-			if (!m_ppcVertexShader_11)
+			/*if (!m_ppcVertexShader_11)
 			{
 				m_pcActiveVertexShader11 = nullptr;
 				return nullptr;
@@ -1740,17 +1379,17 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				if (m_pcActiveVertexShader11)
 					m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
-				// render target switched ? set back for new shader
-				/*if (m_bSwitchRenderTarget)
-				{
-					// restore render targets by backup
-					if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-					else
-						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
+				//// render target switched ? set back for new shader
+				//if (m_bSwitchRenderTarget)
+				//{
+				//	// restore render targets by backup
+				//	if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+				//		((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+				//	else
+				//		((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
 
-					m_bSwitchRenderTarget = false;
-				}*/
+				//	m_bSwitchRenderTarget = false;
+				//}
 
 				// currently chosen ?
 				if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
@@ -1953,12 +1592,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSSetShader
 		case METHOD_ID3D11DEVICECONTEXT_PSSETSHADER:
-			if (!m_ppcPixelShader_11)
+			/*if (!m_ppcPixelShader_11)
 			{
 				//m_pcActivePixelShader11 = nullptr;
 				return nullptr;
@@ -1971,12 +1610,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			else
 			{
 				// loop through active constant buffers, get private data and update them accordingly to the new shader... TODO !! VERIFY ALL SHADERS
-				/*for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-				if (m_apcPSActiveConstantBuffers11[dwIndex])
-				{
-				// verify buffer
-				VerifyConstantBuffer(m_apcPSActiveConstantBuffers11[dwIndex], dwIndex);
-				}*/
+				//for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+				//if (m_apcPSActiveConstantBuffers11[dwIndex])
+				//{
+				//// verify buffer
+				//VerifyConstantBuffer(m_apcPSActiveConstantBuffers11[dwIndex], dwIndex);
+				//}
 
 				// currently chosen ?
 				if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader))
@@ -2024,12 +1663,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 				}
-			}
+			}*/
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetConstantBuffers
 		case METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS:
-			if (!m_pdwStartSlot) return nullptr;
+			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
 			if (!*m_pppcConstantBuffers_DX11) return nullptr;
@@ -2108,7 +1747,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									strStream << L"Buffer Index: " << dwBufferIndex << " Size:" << sDesc.ByteWidth;
 									m_aszDebugTrace.push_back(strStream.str().c_str());
 
-									// add to vector 
+									// add to vector
 									m_aunBufferIndexSizesDebug.push_back(sDesc.ByteWidth);
 								}
 							}
@@ -2139,12 +1778,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::HSSetConstantBuffers
 		case METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS:
-			if (!m_pdwStartSlot) return nullptr;
+			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
 			if (!*m_pppcConstantBuffers_DX11) return nullptr;
@@ -2172,12 +1811,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::DSSetConstantBuffers
 		case METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS:
-			if (!m_pdwStartSlot) return nullptr;
+			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
 			if (!*m_pppcConstantBuffers_DX11) return nullptr;
@@ -2205,12 +1844,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::GSSetConstantBuffers
 		case METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS:
-			if (!m_pdwStartSlot) return nullptr;
+			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
 			if (!*m_pppcConstantBuffers_DX11) return nullptr;
@@ -2238,12 +1877,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSSetConstantBuffers
 		case METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS:
-			if (!m_pdwStartSlot) return nullptr;
+			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
 			if (!*m_pppcConstantBuffers_DX11) return nullptr;
@@ -2271,7 +1910,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 				}
-			}
+			}*/
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
@@ -2298,7 +1937,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region ID3D11DeviceContext::Map
 		case METHOD_ID3D11DEVICECONTEXT_MAP:
-			if (!m_ppcResource_Map) return nullptr;
+			/*if (!m_ppcResource_Map) return nullptr;
 			if (!m_pdwSubresource_Map) return nullptr;
 			if (!m_psMapType) return nullptr;
 			if (!m_pdwMapFlags) return nullptr;
@@ -2319,7 +1958,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// if constant buffer, continue
 					if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 					{
-						// get an index which is zero 
+						// get an index which is zero
 						UINT dwIndex = m_dwMappedBuffers;
 						bool bFound = false;
 						for (UINT dwI = 0; dwI < (UINT)m_asMappedBuffers.size(); dwI++)
@@ -2375,12 +2014,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						return m_pvReturn;
 					}
 				}
-			}
+			}*/
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::Unmap
 		case METHOD_ID3D11DEVICECONTEXT_UNMAP:
-			if (!m_ppcResource_Unmap) return nullptr;
+			/*if (!m_ppcResource_Unmap) return nullptr;
 			if (!m_pdwSubresource_Unmap) return nullptr;
 			if (!*m_ppcResource_Unmap) return nullptr;
 			{
@@ -2405,7 +2044,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								DoBufferModification(m_asMappedBuffers[dwI].m_nMapRulesIndex, dwAddress, (UINT_PTR)m_pchBuffer11Right, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
 							}
 
-							// copy the stored data... 
+							// copy the stored data...
 							memcpy(m_asMappedBuffers[dwI].m_pMappedResourceData, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
 
 							// do the unmap call..
@@ -2448,7 +2087,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 				}
-			}
+			}*/
 			break;
 #pragma endregion
 		}
@@ -2461,6 +2100,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 	}
 #elif defined(VIREIO_D3D9)
+	// set current device... (union field with IDirect3DStateBlock9 for state block methods)
+	m_pcDeviceCurrent = (IDirect3DDevice9*)pThis;
+
 	switch (eD3DInterface)
 	{
 	case (int)ITA_D3D9INTERFACES::ITA_D3D9Interfaces::IDirect3DDevice9:
@@ -3031,8 +2673,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			}
 		}
 
-		//#elif defined(VIREIO_D3D9)
-
+#if defined(VIREIO_D3D9)
 		// add all constant names to the current shader constant list
 		for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwIndex].asConstantDescriptions.size(); dwK++)
 		{
@@ -3041,8 +2682,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			m_aszShaderConstantsCurrent.push_back(szNameA);
 			m_auShaderConstantsCurrentStartReg.push_back((*pasShaders)[dwIndex].asConstantDescriptions[dwK].uRegisterIndex);
 		}
-
-		//#endif
+#endif
 	}
 	// update all shaders info
 	if (ImGui::Button(szUpdate.c_str()))
@@ -3071,6 +2711,8 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 				// loop through new shaders
 				for (UINT dwI = (UINT)(*pasShaderHashCodes).size(); dwI < (UINT)(*pasShaders).size(); dwI++)
 				{
+
+#ifdef VIREIO_D3D9
 					// loop through constant descriptions for that shader
 					for (UINT dwK = 0; dwK < (UINT)(*pasShaders)[dwI].asConstantDescriptions.size(); dwK++)
 					{
@@ -3085,6 +2727,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 							m_aszShaderConstantsA.push_back(szNameA);
 						}
 					}
+#endif
 
 					// add shader hex hash to lists
 					char acHash[9] = {};
@@ -3187,16 +2830,14 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 		// buffer size
 		if (m_sPageGameShaderRules.m_bBufferSize)
 		{
-			std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferSize);
-			sz >> sRule.m_dwBufferSize;
+			sRule.m_dwBufferSize = m_sPageGameShaderRules.m_bBufferSize;
 			sRule.m_bUseBufferSize = true;
 		}
 
 		// buffer index
 		if (m_sPageGameShaderRules.m_bBufferIndex)
 		{
-			std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferIndex);
-			sz >> sRule.m_dwBufferIndex;
+			sRule.m_dwBufferIndex = m_sPageGameShaderRules.m_dwBufferIndex;
 			sRule.m_bUseBufferIndex = true;
 		}
 #endif
@@ -3232,12 +2873,14 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			// erase index
 			m_aunGlobalConstantRuleIndices.erase(m_aunGlobalConstantRuleIndices.begin() + nItem_ShaderRuleGeneralIndices);
 
+#ifdef VIREIO_D3D9
 			// init all shaders new
 			for (Vireio_D3D9_Shader& sShader : m_sModifierData.asVShaders)
 				InitShaderRules(&sShader);
 			for (Vireio_D3D9_Shader& sShader : m_sModifierData.asPShaders)
 				InitShaderRules(&sShader);
-		
+#endif
+
 			// update list
 			FillShaderRuleGeneralIndices();
 		}
@@ -3249,11 +2892,13 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			// erase index
 			m_asConstantRules.erase(m_asConstantRules.begin() + nItem_ShaderRuleIndices);
 
+#ifdef VIREIO_D3D9
 			// init all shaders new
 			for (Vireio_D3D9_Shader& sShader : m_sModifierData.asVShaders)
 				InitShaderRules(&sShader);
 			for (Vireio_D3D9_Shader& sShader : m_sModifierData.asPShaders)
 				InitShaderRules(&sShader);
+#endif
 
 			// update lists
 			FillShaderRuleIndices();
@@ -3275,11 +2920,13 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 		if ((nItem_ShaderRuleIndices >= 0) && (nItem_ShaderRuleIndices < (INT)m_aszShaderRuleIndices.size()))
 			m_aunGlobalConstantRuleIndices.push_back((UINT)nItem_ShaderRuleIndices);
 
+#ifdef VIREIO_D3D9
 		// init all shaders new
 		for (Vireio_D3D9_Shader& sShader : m_sModifierData.asVShaders)
 			InitShaderRules(&sShader);
 		for (Vireio_D3D9_Shader& sShader : m_sModifierData.asPShaders)
 			InitShaderRules(&sShader);
+#endif
 
 		// update the list
 		FillShaderRuleGeneralIndices();
@@ -3341,7 +2988,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 #pragma endregion
 
 	return;
-}
+	}
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 /// <summary> 
@@ -3689,10 +3336,11 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 						D3DXMatrixTranspose(&sMatrix, &sMatrix);
 					}
 
-					D3DXMATRIX sMatrixLeft, sMatrixRight;
-
 					// do modification
-					((ShaderMatrixModification*)m_asConstantRules[dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+					std::array<float, 16> afMatrixLeft, afMatrixRight;
+					((ShaderMatrixModification*)m_asConstantRules[dwIndex].m_pcModification.get())->ApplyModification(sMatrix, &afMatrixLeft, &afMatrixRight);
+					D3DXMATRIX sMatrixLeft(afMatrixLeft.data());
+					D3DXMATRIX sMatrixRight(afMatrixRight.data());
 
 					// transpose back
 					if (m_asConstantRules[dwIndex].m_bTranspose)
@@ -3717,7 +3365,7 @@ void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// which shader is chosen ?
-	std::vector<Vireio_D3D11_Shader>* pasShaders;
+	/*std::vector<Vireio_D3D11_Shader>* pasShaders;
 	std::vector<std::wstring>* pasShaderHashCodes;
 	std::vector<UINT>* padwShaderHashCodes;
 	if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
@@ -3818,7 +3466,7 @@ void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT
 					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
 					strStream << L"41:" << sMatrix._41 << L"::42:" << sMatrix._42 << L"::43:" << sMatrix._43 << L"::44:" << sMatrix._44;
 					m_aszDebugTrace.push_back(strStream.str().c_str());
-}
+				}
 
 				m_bGrabDebug = false;
 				return;
@@ -3831,7 +3479,7 @@ void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT
 		default:
 			break;
 		}
-	}
+	}*/
 #endif
 }
 
@@ -3893,7 +3541,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 	// buffer index ?
 	if (m_asConstantRules[dwRuleIndex].m_bUseBufferIndex)
 	{
-		std::wstringstream szBufferIndex;
+		std::stringstream szBufferIndex;
 		szBufferIndex << L"Buffer Index : " << m_asConstantRules[dwRuleIndex].m_dwBufferIndex;
 		m_aszShaderRuleData.push_back(szBufferIndex.str());
 	}
@@ -3901,7 +3549,7 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 	// buffer size ?
 	if (m_asConstantRules[dwRuleIndex].m_bUseBufferSize)
 	{
-		std::wstringstream szBufferSize;
+		std::stringstream szBufferSize;
 		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
 		m_aszShaderRuleData.push_back(szBufferSize.str());
 	}
@@ -3962,14 +3610,11 @@ void MatrixModifier::FillShaderRuleGeneralIndices()
 /// </summary>
 void MatrixModifier::FillFetchedHashCodeList()
 {
-	// first, unselect and clear
-	if (m_pcVireioGUI)
-		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwFetchedShaderHashcodes);
-	m_aszFetchedHashCodes = std::vector<std::wstring>();
+	m_aszFetchedHashCodes = std::vector<std::string>();
 	for (UINT dwI = 0; dwI < (UINT)m_aunFetchedHashCodes.size(); dwI++)
 	{
 		// add text
-		std::wstringstream szIndex; szIndex << L"Hash : " << m_aunFetchedHashCodes[dwI];
+		std::stringstream szIndex; szIndex << L"Hash : " << m_aunFetchedHashCodes[dwI];
 		m_aszFetchedHashCodes.push_back(szIndex.str());
 	}
 }
@@ -4242,14 +3887,14 @@ HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* p
 						else
 							OutputDebugString(L"[MAM] Unlikely case: partially changed matrices");
 					}
-					}
 				}
-			it++;
 			}
+			it++;
 		}
+	}
 
 	return D3D_OK;
-	}
+}
 #endif
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -4924,7 +4569,7 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	nHr = m_pcDeviceCurrent->CreateVertexShader((const DWORD*)acFunction.data(), *pppcShader);
 	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
 	return nHr;
-		}
+}
 
 /// <summary>
 /// => Create Pixel Shader
@@ -5054,7 +4699,7 @@ HRESULT MatrixModifier::CreatePixelShader(int& nFlags)
 	nHr = m_pcDeviceCurrent->CreatePixelShader((const DWORD*)acFunction.data(), *pppcShader);
 	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
 	return nHr;
-	}
+}
 
 /// <summary>D3D9 method call</summary><param name="nFlags">[in,out]Method call flags</param><returns>D3D result</returns>
 HRESULT MatrixModifier::VB_Apply(int& nFlags)

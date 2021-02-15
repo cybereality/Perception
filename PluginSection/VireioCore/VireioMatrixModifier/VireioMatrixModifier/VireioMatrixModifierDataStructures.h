@@ -127,6 +127,64 @@ struct Vireio_Hash_Rule_Index
 	unsigned __int32 unRuleIndex;
 };
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+/// <summary>
+/// Vireio Map DX10 / 11 data structure.
+/// Contains all data for a mapped constant buffer.
+/// </summary>
+struct Vireio_Map_Data
+{
+	/// <summary>
+	/// Stored mapped resource pointer. (DX11 only)
+	/// </summary>
+	ID3D11Resource* m_pcMappedResource;
+	/// <summary>
+	/// Stored mapped resource description.
+	/// </summary>
+	D3D11_MAPPED_SUBRESOURCE* m_psMappedResource;
+	/// <summary>
+	/// Stored mapped resource data pointer.
+	/// </summary>
+	void* m_pMappedResourceData;
+	/// <summary>
+	/// Stored mapped resource data size (in bytes).
+	/// </summary>
+	UINT m_dwMappedResourceDataSize;
+	/// <summary>
+	/// Stored map type.
+	/// </summary>
+	D3D11_MAP m_eMapType;
+	/// <summary>
+	/// Stored map flags.
+	/// </summary>
+	UINT m_dwMapFlags;
+	/// <summary>
+	/// The private data shader rules index for a mapped constant buffer.
+	/// </summary>
+	INT m_nMapRulesIndex;
+	/// <summary>
+	/// Constant Buffer private data buffer.
+	/// Buffer data needed for Map(). (+0xff to provide homogenous address)
+	/// </summary>
+	union
+	{
+		BYTE m_pchBuffer10[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3) + 0xff];
+		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3) + 0xff];
+	};
+};
+
+/// <summary>
+/// Simple enumeration of supported Shaders.
+/// </summary>
+enum Vireio_Supported_Shaders
+{
+	VertexShader,
+	PixelShader,
+	GeometryShader,
+	HullShader,
+	DomainShader
+};
+#elif defined(VIREIO_D3D9)
 /// <summary>
 /// Simple enumeration of supported Shaders.
 /// </summary>
@@ -135,6 +193,7 @@ enum class Vireio_Supported_Shaders : int
 	VertexShader,
 	PixelShader,
 };
+#endif
 
 /// <summary>
 /// Simple copy of the D3D9 constant description
