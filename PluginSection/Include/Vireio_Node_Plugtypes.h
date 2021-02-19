@@ -536,6 +536,24 @@ struct ModifierData : public VireioPluginData
 	/// Contains all enumerated shader data structures.
 	/// </summary>
 	std::vector<Vireio_D3D11_Shader> asPShaders;
+
+	// create output pointers
+	/*m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcVSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader] = (void*)&m_apcHSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader] = (void*)&m_apcDSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader] = (void*)&m_apcGSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader] = (void*)&m_apcPSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11] = (void*)&m_apcActiveRenderTargetViews11[0];
+	m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11] = (void*)&m_apcActiveDepthStencilView11[0];
+	
+	m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11];
+	m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11];
+	
+	*/
+	/*
+	* m_asVShaders
+	* m_asPShaders
+	*/
 #elif defined VIREIO_D3D9
 	/// <summary>
 	/// The d3d9 vertex shader description vector.

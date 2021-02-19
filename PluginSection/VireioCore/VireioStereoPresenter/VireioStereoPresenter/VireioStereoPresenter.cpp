@@ -200,15 +200,6 @@ HBITMAP StereoPresenter::GetLogo()
 }
 
 /// <summary>
-/// Returns the updated control for the Stereo Presenter node.
-/// Allways return >nullptr< if there is no update for the control !!
-/// </summary>
-HBITMAP StereoPresenter::GetControl()
-{
-	return nullptr;
-}
-
-/// <summary>
 /// Provides the name of the requested commander.
 /// </summary>
 LPWSTR StereoPresenter::GetCommanderName(DWORD dwCommanderIndex)

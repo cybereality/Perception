@@ -225,15 +225,6 @@ HBITMAP StereoSplitter::GetLogo()
 }
 
 /**
-* Returns the updated control for the Stereo Splitter node.
-* Allways return >nullptr< if there is no update for the control !!
-***/
-HBITMAP StereoSplitter::GetControl()
-{
-	return nullptr;
-}
-
-/**
 * Node data size.
 * 1) sizeof(GameSettings)
 ***/

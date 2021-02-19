@@ -35,6 +35,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#define VIREIO_D3D9
 #pragma region include
 #include<stdio.h>
 #include<vector>
@@ -365,7 +366,6 @@ public:
 	virtual        UINT GetNodeTypeId();
 	virtual      LPWSTR GetCategory();
 	virtual     HBITMAP GetLogo();
-	virtual     HBITMAP GetControl();
 	virtual      ImVec2 GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
 	virtual       DWORD GetSaveDataSize();
 	virtual       char* GetSaveData(UINT* pdwSizeOfData);

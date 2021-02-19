@@ -74,9 +74,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..//..//..//..//Aquilinus//Aquilinus//AQU_Nodus.h"
 #include"Resources.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D9Interfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D10Interfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_D3D11Interfaces.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/ITA_DXGIInterfaces.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DDevice9.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DSwapchain9.h"
 #include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDirect3DStateBlock9.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_ID3D10Device.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_ID3D11Device.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_ID3D11DeviceContext.h"
+#include"..//..//..//..//Aquilinus/Aquilinus/VMT_IDXGISwapChain.h"
 #include"..\..\..\Include\Vireio_GameConfig.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"VireioMatrixModifierMods.h"
@@ -91,7 +98,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        53
+#define NUMBER_OF_DECOMMANDERS                        14
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5250               
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
@@ -113,30 +120,6 @@ void debugf(const char* fmt, ...) { va_list args; va_start(args, fmt); char buf[
 /// </summary>
 enum STS_Commanders
 {
-	//    #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	//	eDrawingSide,                                                           /**< Left/Right drawing side enumeration. Switches once per draw call ***/
-	//	ppActiveConstantBuffers_DX10_VertexShader,                              /**< Active D3D10 vertex shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX10_GeometryShader,                            /**< Active D3D10 geometry shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX10_PixelShader,                               /**< Active D3D10 pixel shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX11_VertexShader,                              /**< Active D3D11 vertex shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX11_HullShader,                                /**< Active D3D11 hull shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX11_DomainShader,                              /**< Active D3D11 domain shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX11_GeometryShader,                            /**< Active D3D11 geometry shader constant buffers ***/
-	//	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
-	//	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
-	//	asVShaderData,                                                          /**< The shader data vector. ***/
-	//	asPShaderData,                                                          /**< The shader data vector. ***/
-	//	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
-	//	SwitchRenderTarget,                                                     /**< Option to switch the render target to exclude shaders beeing drawn. ***/
-	//	RESERVED00,                                                             /**< RESERVED ***/
-	//	SecondaryRenderTarget_DX10,                                             /**< Secondary (HUD) render target mono DX10. ***/
-	//	SecondaryRenderTarget_DX11,                                             /**< Secondary (HUD) render target mono DX11. ***/
-	//	ppActiveRenderTargets_DX10,                                             /**< Active render targets DX10. Backup for render target operations. ***/
-	//	ppActiveRenderTargets_DX11,                                             /**< Active render targets DX11. Backup for render target operations. ***/
-	//	ppActiveDepthStencil_DX10,                                              /**< Active depth stencil DX10. Backup for render target operations. ***/
-	//	ppActiveDepthStencil_DX11,                                              /**< Active depth stencil DX11. Backup for render target operations. ***/
-	//	VireioMenu,                                                             /**<  The Vireio Menu node connector. ***/
-	//#elif defined(VIREIO_D3D9)
 	Modifier
 };
 
@@ -146,60 +129,21 @@ enum STS_Commanders
 enum struct STS_Decommanders
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	/*** D3D10 + D3D11 methods ***/
-	pShaderBytecode_VertexShader,            /**< ID3D10Device::CreateVertexShader ***/
-	BytecodeLength_VertexShader,             /**< ID3D10Device::CreateVertexShader ***/
-	pClassLinkage_VertexShader,              /**< ID3D10Device::CreateVertexShader ***/
-	ppVertexShader_DX10,                     /**< ID3D10Device::CreateVertexShader ***/
-	pShaderBytecode_PixelShader,             /**< ID3D10Device::CreatePixelShader ***/
-	BytecodeLength_PixelShader,              /**< ID3D10Device::CreatePixelShader ***/
-	pClassLinkage_PixelShader,               /**< ID3D10Device::CreatePixelShader **/
-	ppPixelShader_DX10,                      /**< ID3D10Device::CreatePixelShader ***/
-	pVertexShader_10,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
-	pVertexShader_11,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
-	pPixelShader_10,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
-	pPixelShader_11,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
-	pDesc_DX10,                              /**< ID3D10Device::CreateBuffer ***/
-	pInitialData_DX10,                       /**< ID3D10Device::CreateBuffer ***/
-	ppBuffer_DX10,                           /**< ID3D10Device::CreateBuffer ***/
-	StartSlot_VertexShader,                  /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
-	NumBuffers_VertexShader,                 /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
-	ppConstantBuffers_DX10_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
-	ppConstantBuffers_DX11_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
-	pDstResource_DX10,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	pDstResource_DX11,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	DstSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	pDstBox_DX10,                            /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	pDstBox_DX11,                            /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	pSrcData,                                /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	SrcRowPitch,                             /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	SrcDepthPitch,                           /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	pDstResource_DX10_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
-	pSrcResource_DX10_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
-	pDstResource_DX11_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
-	pSrcResource_DX11_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
-	pDstResource_DX10_CopySub,               /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	pDstResource_DX11_CopySub,               /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	DstSubresource_CopySub,                  /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	DstX,                                    /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	DstY,                                    /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	DstZ,                                    /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	pSrcResource_DX10_CopySub,               /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	pSrcResource_DX11_CopySub,               /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	SrcSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	pSrcBox_DX10,                            /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	pSrcBox_DX11,                            /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	StartSlot_Get_VertexShader,              /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
-	NumBuffers_Get_VertexShader,             /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
-	ppConstantBuffers_DX10_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
-	ppConstantBuffers_DX11_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
-	pResource,                               /**< ID3D11DeviceContext::Map ***/
-	Subresource,                             /**< ID3D11DeviceContext::Map ***/
-	MapType,                                 /**< ID3D11DeviceContext::Map ***/
-	MapFlags,                                /**< ID3D11DeviceContext::Map ***/
-	pMappedResource,                         /**< ID3D11DeviceContext::Map ***/
-	pResource_Unmap,                         /**< ID3D11DeviceContext::Unmap ***/
-	Subresource_Unmap,                       /**< ID3D11DeviceContext::Unmap ***/
+	///*** D3D10 + D3D11 methods ***/
+	CopyResource,
+	CopySubresourceRegion,
+	DSSetConstantBuffers,
+	GSSetConstantBuffers,
+	HSSetConstantBuffers,
+	Map,
+	PSGetConstantBuffers,
+	PSSetConstantBuffers,
+	PSSetShader,
+	Unmap,
+	UpdateSubresource,
+	VSGetConstantBuffers,
+	VSSetConstantBuffers,
+	VSSetShader,
 #elif defined(VIREIO_D3D9)
 	/*** D3D9 methods ***/
 	SetVertexShader,
@@ -244,7 +188,6 @@ public:
 	virtual             UINT GetNodeTypeId();
 	virtual           LPWSTR GetCategory();
 	virtual          HBITMAP GetLogo();
-	virtual          HBITMAP GetControl();
 	virtual           ImVec2 GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)GUI_HEIGHT); }
 	virtual              int GetProvokingType() { return PROVOKING_TYPE; }
 	virtual             bool GetMethodReplacement() { return METHOD_REPLACEMENT; }

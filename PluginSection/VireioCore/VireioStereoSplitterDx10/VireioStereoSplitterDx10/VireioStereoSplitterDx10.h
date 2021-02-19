@@ -151,7 +151,6 @@ public:
 	virtual        UINT GetNodeTypeId();
 	virtual      LPWSTR GetCategory();
 	virtual     HBITMAP GetLogo();
-	virtual     HBITMAP GetControl();
 	virtual      ImVec2 GetNodeSize() { return ImVec2((float)g_uGlobalNodeWidth, (float)128); }
 	virtual       DWORD GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual       DWORD GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }

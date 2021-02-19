@@ -116,7 +116,11 @@ StereoSplitter::~StereoSplitter()
 /// </summary>
 const char* StereoSplitter::GetNodeType()
 {
-	return "Stereo Splitter Dx10+";
+#ifdef VIREIO_D3D11
+	return "Stereo Splitter Dx11";
+#elif defined VIREIO_D3D10
+	return "Stereo Splitter Dx10";
+#endif
 }
 
 /// <summary>
@@ -125,7 +129,11 @@ const char* StereoSplitter::GetNodeType()
 UINT StereoSplitter::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
+#ifdef VIREIO_D3D11
+#define MY_PLUGIN_IDENTIFIER 66
+#elif defined VIREIO_D3D10
 #define MY_PLUGIN_IDENTIFIER 65
+#endif
 	return ((DEVELOPER_IDENTIFIER << 16) + MY_PLUGIN_IDENTIFIER);
 }
 
@@ -142,18 +150,13 @@ LPWSTR StereoSplitter::GetCategory()
 /// </summary>
 HBITMAP StereoSplitter::GetLogo()
 {
+#ifdef VIREIO_D3D11
+	HMODULE hModule = GetModuleHandle(L"VireioStereoSplitterDx11.dll");
+#elif defined VIREIO_D3D10
 	HMODULE hModule = GetModuleHandle(L"VireioStereoSplitterDx10.dll");
+#endif
 	HBITMAP hBitmap = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_LOGO01));
 	return hBitmap;
-}
-
-/// <summary>
-/// Returns the updated control for the Stereo Splitter node.
-/// Allways return >nullptr< if there is no update for the control !!
-/// </summary>
-HBITMAP StereoSplitter::GetControl()
-{
-	return nullptr;
 }
 
 /// <summary>

@@ -42,42 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
-//#define TRACE_MODIFIER
-#ifdef TRACE_MODIFIER
-#define SHOW_CALL_MODIFIER(b, name) { if (b) OutputDebugStringA(name); }
-#else
-#define SHOW_CALL_MODIFIER(b, name)
-#endif
+#define SHOW_CALL_MODIFIER(b, name) // { if (b) OutputDebugStringA(name); }
 
 #include"VireioMatrixModifier.h"
-
-#define INTERFACE_ID3D11DEVICE                                               6
-#define INTERFACE_ID3D10DEVICE                                               7
-#define INTERFACE_ID3D11DEVICECONTEXT                                        11
-#define INTERFACE_IDXGISWAPCHAIN                                             29
-
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
-#define METHOD_ID3D11DEVICE_CREATEBUFFER                                     3
-#define METHOD_ID3D11DEVICE_CREATEVERTEXSHADER                               12
-#define METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS                      7
-#define METHOD_ID3D11DEVICECONTEXT_PSSETSHADER                               9
-#define METHOD_ID3D11DEVICECONTEXT_VSSETSHADER                               11
-#define METHOD_ID3D11DEVICECONTEXT_MAP                                       14
-#define METHOD_ID3D11DEVICECONTEXT_UNMAP                                     15
-#define METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS                      16
-#define METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS                      22
-#define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION                     46
-#define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                              47
-#define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
-#define METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS                      62
-#define METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS                      66
-#define METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS                      72
-#define METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS                      77
-#define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
-#define METHOD_ID3D10DEVICE_COPYRESOURCE                                     33
-#define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
-#endif
 
 /// <summary> 
 /// Constructor.
@@ -170,15 +137,6 @@ m_bTrace(false)
 	m_apcActiveDepthStencilView11[0] = nullptr;
 	m_apcActiveDepthStencilView11[1] = nullptr;
 
-	// create output pointers
-	/*m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcVSActiveConstantBuffers11[0];
-	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader] = (void*)&m_apcHSActiveConstantBuffers11[0];
-	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader] = (void*)&m_apcDSActiveConstantBuffers11[0];
-	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader] = (void*)&m_apcGSActiveConstantBuffers11[0];
-	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader] = (void*)&m_apcPSActiveConstantBuffers11[0];
-	m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11] = (void*)&m_apcActiveRenderTargetViews11[0];
-	m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11] = (void*)&m_apcActiveDepthStencilView11[0];*/
-
 	// set constant buffer verification at startup (first 30 frames)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
 	m_bConstantBuffersInitialized = false;
@@ -224,7 +182,9 @@ MatrixModifier::~MatrixModifier()
 /// </summary>
 const char* MatrixModifier::GetNodeType()
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D11)
+	return "Matrix ModifierDx11";
+#elif defined(VIREIO_D3D10)
 	return "Matrix ModifierDx10";
 #elif defined(VIREIO_D3D9)
 	return "Matrix Modifier";
@@ -237,7 +197,9 @@ const char* MatrixModifier::GetNodeType()
 UINT MatrixModifier::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D11)
+#define MY_PLUGIN_IDENTIFIER 77
+#elif defined(VIREIO_D3D10)
 #define MY_PLUGIN_IDENTIFIER 76
 #elif defined(VIREIO_D3D9)
 #define MY_PLUGIN_IDENTIFIER 75
@@ -265,15 +227,6 @@ HBITMAP MatrixModifier::GetLogo()
 #endif
 	HBITMAP hBitmap = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_LOGO01));
 	return hBitmap;
-}
-
-/// <summary> 
-/// Returns the updated control for the Matrix Modifier node.
-/// Allways return >nullptr< if there is no update for the control !!
-/// </summary>
-HBITMAP MatrixModifier::GetControl()
-{
-	return nullptr;
 }
 
 /// <summary> 
@@ -653,9 +606,22 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CopyResource);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CopySubresourceRegion);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, DSSetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, GSSetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, HSSetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, Map);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, PSGetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, PSSetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, PSSetShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, Unmap);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, UpdateSubresource);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, VSGetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, VSSetConstantBuffers);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, VSSetShader);
 	default:
-		return L"UNTITLED";
+		break;
 	}
 #elif defined(VIREIO_D3D9)
 	switch ((STS_Decommanders)dwDecommanderIndex)
@@ -698,7 +664,7 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
-
+		return VLink::Link(VLink::_L::ModifierData);
 	default:
 		break;
 	}
@@ -723,7 +689,34 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-
+	case STS_Decommanders::CopyResource:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::CopyResource);
+	case STS_Decommanders::CopySubresourceRegion:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::CopySubresourceRegion);
+	case STS_Decommanders::DSSetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::DSSetConstantBuffers);
+	case STS_Decommanders::GSSetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::GSSetConstantBuffers);
+	case STS_Decommanders::HSSetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::HSSetConstantBuffers);
+	case STS_Decommanders::Map:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::Map);
+	case STS_Decommanders::PSGetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::PSGetConstantBuffers);
+	case STS_Decommanders::PSSetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::PSSetConstantBuffers);
+	case STS_Decommanders::PSSetShader:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::PSSetShader);
+	case STS_Decommanders::Unmap:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::Unmap);
+	case STS_Decommanders::UpdateSubresource:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::UpdateSubresource);
+	case STS_Decommanders::VSGetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::VSGetConstantBuffers);
+	case STS_Decommanders::VSSetConstantBuffers:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::VSSetConstantBuffers);
+	case STS_Decommanders::VSSetShader:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::VSSetShader);
 	default:
 		break;
 	}
@@ -788,60 +781,6 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 /// </summary>
 void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 {
-	/*#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		switch ((STS_Commanders)dwCommanderIndex)
-		{
-		case eDrawingSide:
-			return (void*)&m_sModifierData.eCurrentRenderingSide;
-		case ppActiveConstantBuffers_DX10_VertexShader:
-			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader];
-			break;
-		case ppActiveConstantBuffers_DX10_GeometryShader:
-			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_GeometryShader];
-			break;
-		case ppActiveConstantBuffers_DX10_PixelShader:
-			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_PixelShader];
-			break;
-		case ppActiveConstantBuffers_DX11_VertexShader:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader];
-		case ppActiveConstantBuffers_DX11_HullShader:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader];
-		case ppActiveConstantBuffers_DX11_DomainShader:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader];
-		case ppActiveConstantBuffers_DX11_GeometryShader:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader];
-		case ppActiveConstantBuffers_DX11_PixelShader:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader];
-		case dwVerifyConstantBuffers:
-			return (void*)&m_dwVerifyConstantBuffers;
-		case asVShaderData:
-			return (void*)&m_asVShaders;
-		case asPShaderData:
-			return (void*)&m_asPShaders;
-		case ViewAdjustments:
-			return (void*)&m_pcShaderViewAdjustment;
-		case SwitchRenderTarget:
-			return (void*)&m_bSwitchRenderTarget;
-		case RESERVED00:
-			return nullptr; // TODO !! RESERVED
-		case SecondaryRenderTarget_DX10:
-			return (void*)&m_pcSecondaryRenderTargetSRView10;
-		case SecondaryRenderTarget_DX11:
-			return (void*)&m_pcSecondaryRenderTargetSRView11;
-		case ppActiveRenderTargets_DX10:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX10];
-		case ppActiveRenderTargets_DX11:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11];
-		case ppActiveDepthStencil_DX10:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX10];
-		case ppActiveDepthStencil_DX11:
-			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11];
-		case VireioMenu:
-			return (void*)&m_sMenu;
-		default:
-			break;
-		}
-	#elif defined(VIREIO_D3D9)*/
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
 	case Modifier:
@@ -867,41 +806,42 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 /// </summary>
 bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D10)
 	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_10) &&
 		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_10_1))
 	{
-		if (nD3DInterface == INTERFACE_ID3D10DEVICE)
+		if (nD3DInterface == ITA_D3D10INTERFACES::ID3D10Device)
 		{
 
 		}
-		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
+		else if (nD3DInterface == ITA_DXGIINTERFACES::IDXGISwapChain)
 		{
 
 		}
 	}
-	else if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_11) &&
+#elif defined VIREIO_D3D11
+	if ((nD3DVersion >= (int)AQU_Direct3DVersion::DirectX_11) &&
 		(nD3DVersion <= (int)AQU_Direct3DVersion::DirectX_11_2))
 	{
-		if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
+		if (nD3DInterface == ITA_D3D11INTERFACES::ID3D11Device)
 		{
-			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSSETSHADER) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_MAP) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UNMAP) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS))
+			if ((nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetShader) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetShader) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetConstantBuffers) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::Map) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::Unmap) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::CopySubresourceRegion) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::CopyResource) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::UpdateSubresource) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSGetConstantBuffers) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSGetConstantBuffers) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::HSSetConstantBuffers) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::DSSetConstantBuffers) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::GSSetConstantBuffers) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetConstantBuffers))
 				return true;
 		}
-		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
+		else if (nD3DInterface == ITA_DXGIINTERFACES::IDXGISwapChain)
 		{
 
 		}
@@ -1010,11 +950,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch (eD3DInterface)
 	{
-	case INTERFACE_ID3D11DEVICECONTEXT:
+	case ITA_D3D11INTERFACES::ID3D11DeviceContext:
 		switch (eD3DMethod)
 		{
 #pragma region ID3D11DeviceContext::UpdateSubresource
-		case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::UpdateSubresource:
 			// verify pointers
 			/*if (!m_ppcDstResource_DX11) return nullptr;
 			if (!m_pdwDstSubresource) return nullptr;
@@ -1101,7 +1041,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::CopySubresourceRegion
-		case METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::CopySubresourceRegion:
 			/*if (!m_ppcDstResource_DX11_CopySub) return nullptr;
 			if (!m_pdwDstSubresource_CopySub) return nullptr;
 			if (!m_pdwDstX) return nullptr;
@@ -1245,7 +1185,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::CopyResource
-		case METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::CopyResource:
 			/*if (!m_ppcDstResource_DX11_Copy) return nullptr;
 			if (!m_ppcSrcResource_DX11_Copy) return nullptr;
 			if (!*m_ppcDstResource_DX11_Copy) return nullptr;
@@ -1349,7 +1289,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetShader
-		case METHOD_ID3D11DEVICECONTEXT_VSSETSHADER:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetShader:
 			/*if (!m_ppcVertexShader_11)
 			{
 				m_pcActiveVertexShader11 = nullptr;
@@ -1596,7 +1536,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSSetShader
-		case METHOD_ID3D11DEVICECONTEXT_PSSETSHADER:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetShader:
 			/*if (!m_ppcPixelShader_11)
 			{
 				//m_pcActivePixelShader11 = nullptr;
@@ -1667,7 +1607,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetConstantBuffers:
 			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
@@ -1782,7 +1722,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::HSSetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::HSSetConstantBuffers:
 			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
@@ -1815,7 +1755,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::DSSetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::DSSetConstantBuffers:
 			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
@@ -1848,7 +1788,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::GSSetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::GSSetConstantBuffers:
 			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
@@ -1881,7 +1821,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSSetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetConstantBuffers:
 			/*if (!m_pdwStartSlot) return nullptr;
 			if (!m_pdwNumBuffers) return nullptr;
 			if (!m_pppcConstantBuffers_DX11) return nullptr;
@@ -1914,7 +1854,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSGetConstantBuffers:
 			// currently, we set the main buffers to avoid that the game gets the 
 			// stereo buffers assioziated with the main buffers as private data interfaces.
 			// if there is a game that flickers (should not be) we need to replace the whole
@@ -1925,7 +1865,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSGetConstantBuffers
-		case METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSGetConstantBuffers:
 			// currently, we set the main buffers to avoid that the game gets the 
 			// stereo buffers assioziated with the main buffers as private data interfaces.
 			// if there is a game that flickers (should not be) we need to replace the whole
@@ -1936,7 +1876,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::Map
-		case METHOD_ID3D11DEVICECONTEXT_MAP:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::Map:
 			/*if (!m_ppcResource_Map) return nullptr;
 			if (!m_pdwSubresource_Map) return nullptr;
 			if (!m_psMapType) return nullptr;
@@ -2018,7 +1958,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::Unmap
-		case METHOD_ID3D11DEVICECONTEXT_UNMAP:
+		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::Unmap:
 			/*if (!m_ppcResource_Unmap) return nullptr;
 			if (!m_pdwSubresource_Unmap) return nullptr;
 			if (!*m_ppcResource_Unmap) return nullptr;
@@ -2735,10 +2675,10 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 					std::string szHash = std::string(acHash);
 					(*pasShaderHashCodes).push_back(szHash);
 					(*padwShaderHashCodes).push_back((*pasShaders)[dwI].uHash);
+					}
 				}
 			}
 		}
-	}
 	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Update all info\nfor all Shaders."); ImGui::SameLine();
 	// Sort shader lists
 	ImGui::ToggleButton(szSort.c_str(), &m_bSortShaderList);
@@ -2988,7 +2928,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 #pragma endregion
 
 	return;
-	}
+}
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 /// <summary> 

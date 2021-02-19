@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifier.h" />
+    <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierDataStructures.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h">
+      <Filter>Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h">
+      <Filter>Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\VireioMatrixModifier\Resources.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierClasses.h" />
+    <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierMods.h" />
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_helpers.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier.cpp" />
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Perception\dependecies\imgui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Vireio">
+      <UniqueIdentifier>{67ea41f0-5489-4046-ad18-6463aa32deca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{7ca2ead9-6570-45fb-90f2-bc488a2bfc75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{a94b97e1-ce39-4bcc-affc-b46b66a55f3f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier_Resources.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\..\..\..\Perception\dependecies\imgui\imgui.natvis">
+      <Filter>ImGui</Filter>
+    </Natvis>
+  </ItemGroup>
+</Project>

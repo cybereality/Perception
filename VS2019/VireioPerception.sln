@@ -17,9 +17,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitter", "..\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioCinema", "..\PluginSection\VirtualReality\VireioCinema\VireioCinema\VS2019\VireioCinema.vcxproj", "{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitterDx10", "..\PluginSection\VireioCore\VireioStereoSplitterDx10\VireioStereoSplitterDx10\VS2019\VireioStereoSplitterDx10.vcxproj", "{1927D2CC-B50D-4706-8AA7-17BD229F5987}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioMatrixModifierDx11", "..\PluginSection\VireioCore\VireioMatrixModifier\VireioMatrixModifierDx10\VS2019\VireioMatrixModifierDx11.vcxproj", "{5DC25A42-2D36-4D00-B65A-831B92579301}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioMatrixModifierDx10", "..\PluginSection\VireioCore\VireioMatrixModifier\VireioMatrixModifierDx10\VS2019\VireioMatrixModifierDx10.vcxproj", "{5DC25A42-2D36-4D00-B65A-831B92579301}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitterDx11", "..\PluginSection\VireioCore\VireioStereoSplitterDx10\VireioStereoSplitterDx10\VS2019\VireioStereoSplitterDx11.vcxproj", "{1927D2CC-B50D-4706-8AA7-17BD229F5987}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,18 +115,6 @@ Global
 		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|x64.Build.0 = Release|x64
 		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|x86.ActiveCfg = Release|Win32
 		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|x86.Build.0 = Release|Win32
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x64.ActiveCfg = Debug|x64
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x64.Build.0 = Debug|x64
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x86.ActiveCfg = Debug|Win32
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x86.Build.0 = Debug|Win32
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x64.ActiveCfg = Debug|x64
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x64.Build.0 = Debug|x64
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x86.ActiveCfg = Debug|Win32
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x86.Build.0 = Debug|Win32
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x64.ActiveCfg = Release|x64
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x64.Build.0 = Release|x64
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x86.ActiveCfg = Release|Win32
-		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x86.Build.0 = Release|Win32
 		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|x64.ActiveCfg = Debug|x64
 		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|x64.Build.0 = Debug|x64
 		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|x86.ActiveCfg = Debug|Win32
@@ -139,6 +127,18 @@ Global
 		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|x64.Build.0 = Release|x64
 		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|x86.ActiveCfg = Release|Win32
 		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|x86.Build.0 = Release|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x64.ActiveCfg = Debug|x64
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x64.Build.0 = Debug|x64
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x86.ActiveCfg = Debug|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|x86.Build.0 = Debug|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x64.ActiveCfg = Debug|x64
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x64.Build.0 = Debug|x64
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x86.ActiveCfg = Debug|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Developer|x86.Build.0 = Debug|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x64.ActiveCfg = Release|x64
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x64.Build.0 = Release|x64
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x86.ActiveCfg = Release|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
