@@ -98,10 +98,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        14
+#define NUMBER_OF_DECOMMANDERS                        17
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5250               
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
+#define BUFFER_REGISTER_L                              0
+#define BUFFER_REGISTER_R                              D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           1
 #define NUMBER_OF_DECOMMANDERS                        23
@@ -128,10 +130,13 @@ enum STS_Commanders
 /// </summary>
 enum struct STS_Decommanders
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	///*** D3D10 + D3D11 methods ***/
+#if defined(VIREIO_D3D11) 
+	/*** D3D11 methods ***/
 	CopyResource,
 	CopySubresourceRegion,
+	CreateBuffer,
+	CreatePixelShader,
+	CreateVertexShader,
 	DSSetConstantBuffers,
 	GSSetConstantBuffers,
 	HSSetConstantBuffers,
@@ -144,6 +149,8 @@ enum struct STS_Decommanders
 	VSGetConstantBuffers,
 	VSSetConstantBuffers,
 	VSSetShader,
+#elif defined(VIREIO_D3D10)
+	/*** D3D10 methods ***/
 #elif defined(VIREIO_D3D9)
 	/*** D3D9 methods ***/
 	SetVertexShader,
@@ -222,19 +229,21 @@ public:
 
 private:
 
-#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 	/*** MatrixModifier private methods ***/
-	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*>& apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer* const* ppcConstantBuffers, Vireio_Supported_Shaders eShaderType);
-	void VerifyConstantBuffer(ID3D11Buffer* pcBuffer, UINT dwBufferIndex, Vireio_Supported_Shaders eShaderType);
-	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
-#endif
 	void DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
 	void FillShaderRuleIndices();
 	void FillShaderRuleData(UINT dwRuleIndex);
 	void FillShaderRuleGeneralIndices();
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	void FillFetchedHashCodeList();
-#else
+#endif
+#if defined(VIREIO_D3D11)
+	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1>& apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer* const* ppcConstantBuffers, Vireio_Supported_Shaders eShaderType);
+	void VerifyConstantBuffer(ID3D11Buffer* pcBuffer, UINT dwBufferIndex, Vireio_Supported_Shaders eShaderType);
+	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
+	void CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void* pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage* pcClassLinkage, ID3D11DeviceChild** ppcShader, bool bOutputCode, char cPrefix);
+#endif
+#if defined(VIREIO_D3D9)
 	void FillShaderRuleShaderIndices();
 	void InitShaderRules(Vireio_D3D9_Shader* psShader);
 	HRESULT VerifyConstantDescriptionForRule(Vireio_Constant_Modification_Rule* psRule, SAFE_D3DXCONSTANT_DESC* psDescription, UINT unRuleIndex, Vireio_D3D9_Shader* psShader);
@@ -276,31 +285,31 @@ private:
 	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
 	/// D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	/// </summary>
-	std::vector<ID3D11Buffer*> m_apcVSActiveConstantBuffers11;
+	std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1> m_apcVSActiveConstantBuffers11;
 	/// <summary>
 	/// The d3d11 active Hull Shader constant buffer vector, for left and right side.
 	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
 	/// D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	/// </summary>
-	std::vector<ID3D11Buffer*> m_apcHSActiveConstantBuffers11;
+	std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1> m_apcHSActiveConstantBuffers11;
 	/// <summary>
 	/// The d3d11 active Domain Shader constant buffer vector, for left and right side.
 	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
 	/// D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	/// </summary>
-	std::vector<ID3D11Buffer*> m_apcDSActiveConstantBuffers11;
+	std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1> m_apcDSActiveConstantBuffers11;
 	/// <summary>
 	/// The d3d11 active Geometry Shader constant buffer vector, for left and right side.
 	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
 	/// D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	/// </summary>
-	std::vector<ID3D11Buffer*> m_apcGSActiveConstantBuffers11;
+	std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1> m_apcGSActiveConstantBuffers11;
 	/// <summary>
 	/// The d3d11 active Pixel Shader constant buffer vector, for left and right side.
 	/// 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
 	/// D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	/// </summary>
-	std::vector<ID3D11Buffer*> m_apcPSActiveConstantBuffers11;
+	std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1> m_apcPSActiveConstantBuffers11;
 	/// <summary>
 	/// True if constant buffers are initialized.
 	/// </summary>
@@ -353,6 +362,7 @@ private:
 	};
 	/// <summary>
 	/// Secondary render target.
+	/// "Garbage bin" to skip draw calls.
 	/// </summary>
 	union
 	{
@@ -376,10 +386,13 @@ private:
 		ID3D11RenderTargetView* m_pcSecondaryRenderTargetView11;
 	};
 	/// <summary>
-	/// The currently provided D3D11 device context. 
+	/// The currently provided D3D11 device or context. 
 	/// </summary>
-	ID3D11DeviceContext* m_pcContextCurrent;
-
+	union
+	{
+		ID3D11Device* m_pcDeviceCurrent;
+		ID3D11DeviceContext* m_pcContextCurrent;
+	};
 #elif defined(VIREIO_D3D9)
 	/// <summary>
 	/// The active vertex shader.
@@ -726,13 +739,35 @@ private:
 
 #pragma endregion
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D11) 
+#pragma region /// => D3D11 methods
+	/*** MatrixModifier private D3D methods ***/
+	void CopyResource(int& nFlags);
+	void CopySubresourceRegion(int& nFlags);
+	HRESULT CreateBuffer(int& nFlags);
+	HRESULT CreatePixelShader(int& nFlags);
+	HRESULT CreateVertexShader(int& nFlags);
+	void DSSetConstantBuffers(int& nFlags);
+	void GSSetConstantBuffers(int& nFlags);
+	void HSSetConstantBuffers(int& nFlags);
+	HRESULT Map(int& nFlags);
+	void PSGetConstantBuffers(int& nFlags);
+	void PSSetConstantBuffers(int& nFlags);
+	void PSSetShader(int& nFlags);
+	void Unmap(int& nFlags);
+	void UpdateSubresource(int& nFlags);
+	void VSGetConstantBuffers(int& nFlags);
+	void VSSetConstantBuffers(int& nFlags);
+	void VSSetShader(int& nFlags);
+#pragma endregion
+#elif defined(VIREIO_D3D10)
 #pragma region /// => D3D10 methods
 	/*** MatrixModifier private D3D methods ***/
 
 #pragma endregion
 #else
 #pragma region /// => D3D9 methods
+	/*** MatrixModifier private D3D methods ***/
 	HRESULT SetVertexShader(int& nFlags);
 	HRESULT SetPixelShader(int& nFlags);
 	HRESULT GetVertexShader(int& nFlags);
@@ -759,7 +794,7 @@ private:
 #pragma endregion
 #endif
 
-	};
+};
 
 /// <summary>
 /// Exported Constructor Method.

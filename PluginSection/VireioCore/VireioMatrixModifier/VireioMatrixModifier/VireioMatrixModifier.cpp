@@ -42,7 +42,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define CASE_ENUM_2_WSTRING(ec, en) case ec::en: return L#en;
-#define SHOW_CALL_MODIFIER(b, name) // { if (b) OutputDebugStringA(name); }
+#ifdef TRACE_MODIFIER
+#define SHOW_CALL_MODIFIER(b, name) { if (b) OutputDebugStringA(name); }
+#else
+#define SHOW_CALL_MODIFIER(b, name)
+#endif
 
 #include"VireioMatrixModifier.h"
 
@@ -127,12 +131,7 @@ m_bTrace(false)
 	m_sPageGameShaderRules.m_dwOperationToApply = 1;
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	// create buffer vectors ( * 2 for left/right side )
-	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
-	m_apcHSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
-	m_apcDSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
-	m_apcGSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
-	m_apcPSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+	// create buffer vectors ( * 2 for left/right side 
 	m_apcActiveRenderTargetViews11 = std::vector<ID3D11RenderTargetView*>(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2, nullptr);
 	m_apcActiveDepthStencilView11[0] = nullptr;
 	m_apcActiveDepthStencilView11[1] = nullptr;
@@ -183,9 +182,9 @@ MatrixModifier::~MatrixModifier()
 const char* MatrixModifier::GetNodeType()
 {
 #if defined(VIREIO_D3D11)
-	return "Matrix ModifierDx11";
+	return "Matrix Modifier Dx11";
 #elif defined(VIREIO_D3D10)
-	return "Matrix ModifierDx10";
+	return "Matrix Modifier Dx10";
 #elif defined(VIREIO_D3D9)
 	return "Matrix Modifier";
 #endif
@@ -220,7 +219,9 @@ LPWSTR MatrixModifier::GetCategory()
 /// </summary>
 HBITMAP MatrixModifier::GetLogo()
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D11)
+	HMODULE hModule = GetModuleHandle(L"VireioMatrixModifierDx11.dll");
+#elif  defined(VIREIO_D3D10)
 	HMODULE hModule = GetModuleHandle(L"VireioMatrixModifierDx10.dll");
 #elif defined(VIREIO_D3D9)
 	HMODULE hModule = GetModuleHandle(L"VireioMatrixModifier.dll");
@@ -608,6 +609,9 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 	{
 		CASE_ENUM_2_WSTRING(STS_Decommanders, CopyResource);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, CopySubresourceRegion);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CreateBuffer);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CreatePixelShader);
+		CASE_ENUM_2_WSTRING(STS_Decommanders, CreateVertexShader);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, DSSetConstantBuffers);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, GSSetConstantBuffers);
 		CASE_ENUM_2_WSTRING(STS_Decommanders, HSSetConstantBuffers);
@@ -664,6 +668,7 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
+	case Modifier:
 		return VLink::Link(VLink::_L::ModifierData);
 	default:
 		break;
@@ -693,6 +698,12 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::CopyResource);
 	case STS_Decommanders::CopySubresourceRegion:
 		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::CopySubresourceRegion);
+	case STS_Decommanders::CreateBuffer:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11Device, (int)VMT_ID3D11DEVICE::CreateBuffer);
+	case STS_Decommanders::CreatePixelShader:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11Device, (int)VMT_ID3D11DEVICE::CreatePixelShader);
+	case STS_Decommanders::CreateVertexShader:
+		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11Device, (int)VMT_ID3D11DEVICE::CreateVertexShader);
 	case STS_Decommanders::DSSetConstantBuffers:
 		return NOD_Plugtype::WireCable((int)ITA_D3D11INTERFACES::ITA_D3D11Interfaces::ID3D11DeviceContext, (int)VMT_ID3D11DEVICECONTEXT::DSSetConstantBuffers);
 	case STS_Decommanders::GSSetConstantBuffers:
@@ -825,6 +836,13 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 	{
 		if (nD3DInterface == ITA_D3D11INTERFACES::ID3D11Device)
 		{
+			if ((nD3DMethod == (int)VMT_ID3D11DEVICE::VMT_ID3D11Device::CreateBuffer) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICE::VMT_ID3D11Device::CreatePixelShader) ||
+				(nD3DMethod == (int)VMT_ID3D11DEVICE::VMT_ID3D11Device::CreateVertexShader))
+				return true;
+		}
+		else if (nD3DInterface == ITA_D3D11INTERFACES::ID3D11DeviceContext)
+		{
 			if ((nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetShader) ||
 				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetShader) ||
 				(nD3DMethod == (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetConstantBuffers) ||
@@ -886,7 +904,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 	return false;
 }
 
-/// <summary> 
+/// <summary>
+/// => Provoke
 /// Handle Stereo Render Targets (+Depth Buffers).
 /// Main entry point.
 /// </summary>
@@ -947,7 +966,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		// m_pcShaderModificationCalculation->ComputeViewTransforms();
 	}*/
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D11)
+	
+	// set current device context
+	m_pcContextCurrent = (ID3D11DeviceContext*)pThis;
+	int nFlags = 0;
+
 	switch (eD3DInterface)
 	{
 	case ITA_D3D11INTERFACES::ID3D11DeviceContext:
@@ -955,903 +979,113 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 #pragma region ID3D11DeviceContext::UpdateSubresource
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::UpdateSubresource:
-			// verify pointers
-			/*if (!m_ppcDstResource_DX11) return nullptr;
-			if (!m_pdwDstSubresource) return nullptr;
-			if (!m_ppsDstBox_DX11) return nullptr;
-			if (!m_ppvSrcData) return nullptr;
-			if (!m_pdwSrcRowPitch) return nullptr;
-			if (!m_pdwSrcDepthPitch) return nullptr;
-			if (!*m_ppcDstResource_DX11) return nullptr;
-			if (!*m_ppvSrcData) return nullptr;
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "UpdateSubresource");
 
-			// is this a buffer ?
-			D3D11_RESOURCE_DIMENSION eDimension;
-			(*m_ppcDstResource_DX11)->GetType(&eDimension);
-			if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
-			{
-				// is this a constant buffer ?
-				D3D11_BUFFER_DESC sDesc;
-				((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetDesc(&sDesc);
-				if ((sDesc.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
-				{
-					// get shader rules index
-					Vireio_Buffer_Rules_Index sRulesIndex;
-					sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-					sRulesIndex.m_dwUpdateCounter = 0;
-					UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-					((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-
-					// do modification and update right buffer only if shader rule assigned !!
-					if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
-					{
-						// get the private data interface
-						ID3D11Buffer* pcBuffer = nullptr;
-						UINT dwSize = sizeof(pcBuffer);
-						((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
-
-						if (pcBuffer)
-						{
-							// do the modification, first copy to buffers
-							memcpy(m_pchBuffer11Left, *m_ppvSrcData, sDesc.ByteWidth);
-							memcpy(m_pchBuffer11Right, *m_ppvSrcData, sDesc.ByteWidth);
-							DoBufferModification(sRulesIndex.m_nRulesIndex, (UINT_PTR)m_pchBuffer11Left, (UINT_PTR)m_pchBuffer11Right, sDesc.ByteWidth);
-
-							// update left + right buffer
-							((ID3D11DeviceContext*)pThis)->UpdateSubresource(*m_ppcDstResource_DX11, *m_pdwDstSubresource, *m_ppsDstBox_DX11, m_pchBuffer11Left, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
-							((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBuffer, *m_pdwDstSubresource, *m_ppsDstBox_DX11, m_pchBuffer11Right, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
-
-							pcBuffer->Release();
-
-							// method replaced, immediately return
-							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-						}
-					}
-				}
-				else
-				{
-					// get the private data interface
-					ID3D11Buffer* pcBuffer = nullptr;
-					UINT dwSize = sizeof(pcBuffer);
-					((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
-
-					if (pcBuffer)
-					{
-						// update right buffer
-						((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBuffer, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
-						pcBuffer->Release();
-					}
-
-				}
-			}
-			else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
-			{
-				// get the stereo twin of the resource (texture)
-				ID3D11Resource* pcResourceTwin = nullptr;
-				UINT dwSize = sizeof(pcResourceTwin);
-				((ID3D11Resource*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
-				if (pcResourceTwin)
-				{
-					// update stereo twin
-					((ID3D11DeviceContext*)pThis)->UpdateSubresource(pcResourceTwin, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
-					pcResourceTwin->Release();
-				}
-
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			UpdateSubresource(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::CopySubresourceRegion
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::CopySubresourceRegion:
-			/*if (!m_ppcDstResource_DX11_CopySub) return nullptr;
-			if (!m_pdwDstSubresource_CopySub) return nullptr;
-			if (!m_pdwDstX) return nullptr;
-			if (!m_pdwDstY) return nullptr;
-			if (!m_pdwDstZ) return nullptr;
-			if (!m_ppcSrcResource_DX11_CopySub) return nullptr;
-			if (!m_pdwSrcSubresource) return nullptr;
-			if (!m_ppsSrcBox_DX11) return nullptr;
-			if (!*m_ppcDstResource_DX11_CopySub) return nullptr;
-			if (!*m_ppcSrcResource_DX11_CopySub) return nullptr;
-			{
-				// get destination resource type
-				D3D11_RESOURCE_DIMENSION eDimension;
-				(*m_ppcDstResource_DX11_CopySub)->GetType(&eDimension);
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "CopySubresourceRegion");
 
-				// if buffer, get desc
-				if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
-				{
-					if (!*m_ppsSrcBox_DX11) return nullptr;
-
-					D3D11_BUFFER_DESC sDescDst;
-					((ID3D11Buffer*)*m_ppcDstResource_DX11_CopySub)->GetDesc(&sDescDst);
-
-					// set the same shader rules index (if present) for the destination as for the source
-					Vireio_Buffer_Rules_Index sRulesIndex;
-					sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-					sRulesIndex.m_dwUpdateCounter = 0;
-					UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-					((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-					if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
-					{
-						((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
-					}
-
-					// copy to both sides, if source is a mono buffer set source to stereo buffer
-					ID3D11Resource* pcResourceTwinSrc = nullptr;
-					UINT dwSize = sizeof(pcResourceTwinSrc);
-					((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
-					if (pcResourceTwinSrc)
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
-								*m_pdwDstSubresource_CopySub,
-								*m_pdwDstX,
-								*m_pdwDstY,
-								*m_pdwDstZ,
-								pcResourceTwinSrc,
-								*m_pdwSrcSubresource,
-								*m_ppsSrcBox_DX11);
-
-							pcResourceTwinDst->Release();
-						}
-						pcResourceTwinSrc->Release();
-					}
-					else
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
-								*m_pdwDstSubresource_CopySub,
-								*m_pdwDstX,
-								*m_pdwDstY,
-								*m_pdwDstZ,
-								*m_ppcSrcResource_DX11_CopySub,
-								*m_pdwSrcSubresource,
-								*m_ppsSrcBox_DX11);
-
-							pcResourceTwinDst->Release();
-						}
-					}
-				}
-				// is this a texture ?
-				else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
-				{
-					// get the stereo twin of the resource (texture)
-					ID3D11Resource* pcResourceTwinSrc = nullptr;
-					UINT dwSize = sizeof(pcResourceTwinSrc);
-					((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinSrc);
-					if (pcResourceTwinSrc)
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
-								*m_pdwDstSubresource_CopySub,
-								*m_pdwDstX,
-								*m_pdwDstY,
-								*m_pdwDstZ,
-								pcResourceTwinSrc,
-								*m_pdwSrcSubresource,
-								*m_ppsSrcBox_DX11);
-
-							pcResourceTwinDst->Release();
-						}
-						else
-						{
-							// set private data "create new" BOOL
-							BOOL bTrue = TRUE;
-							((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bTrue);
-						}
-						pcResourceTwinSrc->Release();
-					}
-					else
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
-								*m_pdwDstSubresource_CopySub,
-								*m_pdwDstX,
-								*m_pdwDstY,
-								*m_pdwDstZ,
-								*m_ppcSrcResource_DX11_CopySub,
-								*m_pdwSrcSubresource,
-								*m_ppsSrcBox_DX11);
-
-							pcResourceTwinDst->Release();
-						}
-					}
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			CopySubresourceRegion(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::CopyResource
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::CopyResource:
-			/*if (!m_ppcDstResource_DX11_Copy) return nullptr;
-			if (!m_ppcSrcResource_DX11_Copy) return nullptr;
-			if (!*m_ppcDstResource_DX11_Copy) return nullptr;
-			if (!*m_ppcSrcResource_DX11_Copy) return nullptr;
-			{
-				// get destination resource type
-				D3D11_RESOURCE_DIMENSION eDimension;
-				(*m_ppcDstResource_DX11_Copy)->GetType(&eDimension);
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "CopyResource");
 
-				// if buffer, get desc
-				if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
-				{
-					D3D11_BUFFER_DESC sDescDst;
-					((ID3D11Buffer*)*m_ppcDstResource_DX11_Copy)->GetDesc(&sDescDst);
-
-					// set the same shader rules index (if present) for the destination as for the source
-					Vireio_Buffer_Rules_Index sRulesIndex;
-					sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-					sRulesIndex.m_dwUpdateCounter = 0;
-					UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-					((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-					if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
-					{
-						((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
-					}
-
-					// copy to both sides, if source is a mono buffer set source to stereo buffer
-					ID3D11Resource* pcResourceTwinSrc = nullptr;
-					UINT dwSize = sizeof(pcResourceTwinSrc);
-					((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
-					if (pcResourceTwinSrc)
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
-							pcResourceTwinDst->Release();
-						}
-						pcResourceTwinSrc->Release();
-					}
-					else
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, *m_ppcSrcResource_DX11_Copy);
-							pcResourceTwinDst->Release();
-						}
-					}
-				}
-				// is this a texture ?
-				else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
-				{
-					// get the stereo twin of the resource (texture)
-					ID3D11Resource* pcResourceTwinSrc = nullptr;
-					UINT dwSize = sizeof(pcResourceTwinSrc);
-					((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinSrc);
-					if (pcResourceTwinSrc)
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
-							pcResourceTwinDst->Release();
-						}
-						else
-						{
-							// set private data "create new" BOOL
-							BOOL bTrue = TRUE;
-							((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bTrue);
-						}
-						pcResourceTwinSrc->Release();
-					}
-					else
-					{
-						// get the stereo twin of the destination
-						ID3D11Resource* pcResourceTwinDst = nullptr;
-						dwSize = sizeof(pcResourceTwinDst);
-						((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
-						if (pcResourceTwinDst)
-						{
-							// do the copy call on the stereo twins of these textures
-							((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, *m_ppcSrcResource_DX11_Copy);
-							pcResourceTwinDst->Release();
-						}
-					}
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			CopyResource(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetShader
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetShader:
-			/*if (!m_ppcVertexShader_11)
-			{
-				m_pcActiveVertexShader11 = nullptr;
-				return nullptr;
-			}
-			if (!*m_ppcVertexShader_11)
-			{
-				m_pcActiveVertexShader11 = nullptr;
-				return nullptr;
-			}
-			else
-			{
-				// set the active vertex shader
-				m_pcActiveVertexShader11 = *m_ppcVertexShader_11;
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "VSSetShader");
 
-				// loop through active constant buffers, get private data and update them accordingly to the new shader
-				for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-					if (m_apcVSActiveConstantBuffers11[dwIndex])
-					{
-						// verify buffer
-						VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex, Vireio_Supported_Shaders::VertexShader);
-					}
-
-				// get the current shader hash
-				Vireio_Shader_Private_Data sPrivateData;
-				UINT dwDataSize = sizeof(sPrivateData);
-				if (m_pcActiveVertexShader11)
-					m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-				//// render target switched ? set back for new shader
-				//if (m_bSwitchRenderTarget)
-				//{
-				//	// restore render targets by backup
-				//	if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-				//		((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-				//	else
-				//		((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
-
-				//	m_bSwitchRenderTarget = false;
-				//}
-
-				// currently chosen ?
-				if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
-				{
-					// set null shader if hash matches
-					if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
-					{
-						// output shader debug data
-						static UINT dwChosenOld = 0;
-						if (dwChosenOld != m_dwCurrentChosenShaderHashCode)
-						{
-							std::wstringstream strStream;
-							strStream << L"Hash:" << sPrivateData.dwHash;
-							m_aszDebugTrace.push_back(strStream.str().c_str());
-							for (UINT dwI = 0; dwI < (UINT)m_asVShaders[sPrivateData.dwIndex].asBuffers.size(); dwI++)
-							{
-								strStream = std::wstringstream();
-								strStream << L"Name:" << m_asVShaders[sPrivateData.dwIndex].asBuffers[dwI].szName << L"::Size:" << m_asVShaders[sPrivateData.dwIndex].asBuffers[dwI].dwSize;
-								m_aszDebugTrace.push_back(strStream.str().c_str());
-							}
-							for (UINT dwI = 0; dwI < (UINT)m_asVShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size(); dwI++)
-							{
-								strStream = std::wstringstream();
-								strStream << L"Reg:" << m_asVShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwRegister << L"::Size:" << m_asVShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwSize;
-								m_aszDebugTrace.push_back(strStream.str().c_str());
-							}
-
-							dwChosenOld = m_dwCurrentChosenShaderHashCode;
-
-							for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
-								if (m_apcVSActiveConstantBuffers11[dwI])
-								{
-									// get shader rules index
-									Vireio_Buffer_Rules_Index sRulesIndex;
-									sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-									sRulesIndex.m_dwUpdateCounter = 0;
-									UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-									m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-
-									D3D11_BUFFER_DESC sDesc;
-									m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
-									strStream = std::wstringstream();
-									strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << sRulesIndex.m_nRulesIndex;
-									m_aszDebugTrace.push_back(strStream.str().c_str());
-								}
-						}
-
-						// secondary render target present ?
-						if (!m_pcSecondaryRenderTarget11)
-						{
-							// get device
-							ID3D11Device* pcDevice = nullptr;
-							ID3D11DeviceContext* pcContext = (ID3D11DeviceContext*)pThis;
-							pcContext->GetDevice(&pcDevice);
-							if (pcDevice)
-							{
-								// get the viewport
-								UINT unNumViewports = 1;
-								D3D11_VIEWPORT sViewport;
-								pcContext->RSGetViewports(&unNumViewports, &sViewport);
-
-								if (unNumViewports)
-								{
-									// fill the description
-									D3D11_TEXTURE2D_DESC sDescTex;
-									sDescTex.Width = (UINT)sViewport.Width;
-									sDescTex.Height = (UINT)sViewport.Height;
-									sDescTex.MipLevels = 1;
-									sDescTex.ArraySize = 1;
-									sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-									sDescTex.SampleDesc.Count = 1;
-									sDescTex.SampleDesc.Quality = 0;
-									sDescTex.Usage = D3D11_USAGE_DEFAULT;
-									sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-									sDescTex.CPUAccessFlags = 0;
-									sDescTex.MiscFlags = 0;
-
-									// create secondary render target
-									pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
-									if (m_pcSecondaryRenderTarget11)
-									{
-										// create render target view
-										if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
-											OutputDebugString(L"MAM: Failed to create secondary render target view.");
-
-										// create shader resource view
-										if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
-											OutputDebugString(L"MAM: Failed to create secondary render target shader resource view.");
-									}
-									else OutputDebugString(L"MAM: Failed to create secondary render target !");
-								}
-								else OutputDebugString(L"MAM: No Viewport present !");
-
-								pcDevice->Release();
-							}
-						}
-
-						// switch render targets to temporary
-						// m_bSwitchRenderTarget = true;
-
-						// set secondary render target
-						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
-					}
-				}
-
-
-
-				// loop through fetched hash codes
-				for (UINT unI = 0; unI < (UINT)m_aunFetchedHashCodes.size(); unI++)
-				{
-					// switch render targets
-					if ((sPrivateData.dwHash == m_aunFetchedHashCodes[unI]))
-					{
-						// secondary render target present ?
-						if (!m_pcSecondaryRenderTarget11)
-						{
-							// get device
-							ID3D11Device* pcDevice = nullptr;
-							ID3D11DeviceContext* pcContext = (ID3D11DeviceContext*)pThis;
-							pcContext->GetDevice(&pcDevice);
-							if (pcDevice)
-							{
-								// get the viewport
-								UINT unNumViewports = 1;
-								D3D11_VIEWPORT sViewport;
-								pcContext->RSGetViewports(&unNumViewports, &sViewport);
-
-								if (unNumViewports)
-								{
-									// fill the description
-									D3D11_TEXTURE2D_DESC sDescTex;
-									sDescTex.Width = (UINT)sViewport.Width;
-									sDescTex.Height = (UINT)sViewport.Height;
-									sDescTex.MipLevels = 1;
-									sDescTex.ArraySize = 1;
-									sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-									sDescTex.SampleDesc.Count = 1;
-									sDescTex.SampleDesc.Quality = 0;
-									sDescTex.Usage = D3D11_USAGE_DEFAULT;
-									sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-									sDescTex.CPUAccessFlags = 0;
-									sDescTex.MiscFlags = 0;
-
-									// create secondary render target
-									pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
-									if (m_pcSecondaryRenderTarget11)
-									{
-										// create render target view
-										if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
-											OutputDebugString(L"MAM: Failed to create secondary render target view.");
-
-										// create shader resource view
-										if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
-											OutputDebugString(L"MAM: Failed to create secondary render target shader resource view.");
-									}
-									else OutputDebugString(L"MAM: Failed to create secondary render target !");
-								}
-								else OutputDebugString(L"MAM: No Viewport present !");
-
-								pcDevice->Release();
-							}
-						}
-
-						// switch render targets to temporary
-						// m_bSwitchRenderTarget = true;
-
-						// set secondary render target
-						if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-						else
-							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
-					}
-				}
-
-				// sort shader list ?
-				if (m_bSortShaderList)
-				{
-					// get the current shader hash
-					Vireio_Shader_Private_Data sPrivateData;
-					UINT dwDataSize = sizeof(sPrivateData);
-					if (m_pcActiveVertexShader11)
-						m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-					// get shader index
-					for (UINT dwI = 1; dwI < (UINT)m_adwVShaderHashCodes.size(); dwI++)
-					{
-						if (sPrivateData.dwHash == m_adwVShaderHashCodes[dwI])
-						{
-							// move one forward
-							std::wstring szBuf = m_aszVShaderHashCodes[dwI - 1];
-							m_aszVShaderHashCodes[dwI - 1] = m_aszVShaderHashCodes[dwI];
-							m_aszVShaderHashCodes[dwI] = szBuf;
-
-							UINT dwBuf = m_adwVShaderHashCodes[dwI - 1];
-							m_adwVShaderHashCodes[dwI - 1] = m_adwVShaderHashCodes[dwI];
-							m_adwVShaderHashCodes[dwI] = dwBuf;
-
-							// end search;
-							dwI = (UINT)m_adwVShaderHashCodes.size();
-						}
-					}
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			VSSetShader(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSSetShader
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetShader:
-			/*if (!m_ppcPixelShader_11)
-			{
-				//m_pcActivePixelShader11 = nullptr;
-				return nullptr;
-			}
-			if (!*m_ppcPixelShader_11)
-			{
-				//m_pcActivePixelShader11 = nullptr;
-				return nullptr;
-			}
-			else
-			{
-				// loop through active constant buffers, get private data and update them accordingly to the new shader... TODO !! VERIFY ALL SHADERS
-				//for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-				//if (m_apcPSActiveConstantBuffers11[dwIndex])
-				//{
-				//// verify buffer
-				//VerifyConstantBuffer(m_apcPSActiveConstantBuffers11[dwIndex], dwIndex);
-				//}
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "PSSetShader");
 
-				// currently chosen ?
-				if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader))
-				{
-					// get the current shader hash
-					Vireio_Shader_Private_Data sPrivateData;
-					UINT dwDataSize = sizeof(sPrivateData);
-					(*m_ppcPixelShader_11)->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-					// set null shader if hash matches
-					if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
-					{
-						// call super method
-						((ID3D11DeviceContext*)pThis)->PSSetShader(nullptr, nullptr, NULL);
-
-						// method replaced, immediately return
-						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					}
-				}
-
-				// sort shader list ?
-				if (m_bSortShaderList)
-				{
-					// get the current shader hash
-					Vireio_Shader_Private_Data sPrivateData;
-					UINT dwDataSize = sizeof(sPrivateData);
-					(*m_ppcPixelShader_11)->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-					// get shader index
-					for (UINT dwI = 1; dwI < (UINT)m_adwPShaderHashCodes.size(); dwI++)
-					{
-						if (sPrivateData.dwHash == m_adwPShaderHashCodes[dwI])
-						{
-							// move one forward
-							std::wstring szBuf = m_aszPShaderHashCodes[dwI - 1];
-							m_aszPShaderHashCodes[dwI - 1] = m_aszPShaderHashCodes[dwI];
-							m_aszPShaderHashCodes[dwI] = szBuf;
-
-							UINT dwBuf = m_adwPShaderHashCodes[dwI - 1];
-							m_adwPShaderHashCodes[dwI - 1] = m_adwPShaderHashCodes[dwI];
-							m_adwPShaderHashCodes[dwI] = dwBuf;
-
-							// end search;
-							dwI = (UINT)m_adwPShaderHashCodes.size();
-						}
-					}
-				}
-			}*/
-			break;
+			int nFlags = 0;
+			PSSetShader(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetConstantBuffers
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSSetConstantBuffers:
-			/*if (!m_pdwStartSlot) return nullptr;
-			if (!m_pdwNumBuffers) return nullptr;
-			if (!m_pppcConstantBuffers_DX11) return nullptr;
-			if (!*m_pppcConstantBuffers_DX11) return nullptr;
-			if (!**m_pppcConstantBuffers_DX11) return nullptr;
-			{
-				// get current shader hash code if there is a shader chosen
-				static Vireio_Shader_Private_Data sPrivateData = { 0 };
-				static UINT dwChosenOld = 0;
-				if ((m_dwCurrentChosenShaderHashCode) || (m_bBufferIndexDebug))
-				{
-					if (m_dwCurrentChosenShaderHashCode)
-					{
-						// get the current shader hash
-						UINT dwDataSize = sizeof(sPrivateData);
-						if (m_pcActiveVertexShader11)
-							m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-						else ZeroMemory(&sPrivateData, sizeof(Vireio_Shader_Private_Data));
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "VSSetConstantBuffers");
 
-						// output shader debug data as long as the chosen shader is set
-						if (dwChosenOld == 0) dwChosenOld = m_dwCurrentChosenShaderHashCode;
-						if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
-						{
-							std::wstringstream strStream = std::wstringstream();
-							strStream << L"VSSetConstantBuffers : " << sPrivateData.dwHash;
-							m_aszDebugTrace.push_back(strStream.str().c_str());
-						}
-
-						// move up/down on list if "W" or "S" key is pressed and released
-						static bool s_bW = false, s_bS = false;
-						if (GetAsyncKeyState(0x57))
-							s_bW = true;
-						else
-						{
-							if (s_bW)
-							{
-								// send a virtual windows event to the control in the gui
-								WindowsEvent(VIRTUAL_EVENT_CONTROL_UP, (WPARAM)m_sPageShader.m_dwHashCodes, 0);
-							}
-							s_bW = false;
-						}
-						if (GetAsyncKeyState(0x53))
-							s_bS = true;
-						else
-						{
-							if (s_bS)
-							{
-								// send a virtual windows event to the control in the gui
-								WindowsEvent(VIRTUAL_EVENT_CONTROL_DOWN, (WPARAM)m_sPageShader.m_dwHashCodes, 0);
-							}
-							s_bS = false;
-						}
-					}
-					if (m_bBufferIndexDebug)
-					{
-						// get buffer index
-						UINT dwBufferIndex = 0;
-						std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferIndex);
-						sz >> dwBufferIndex;
-
-						// is this index set ?
-						if ((dwBufferIndex >= *m_pdwStartSlot) && (dwBufferIndex < (*m_pdwStartSlot + *m_pdwNumBuffers)))
-						{
-							UINT dwIndex = dwBufferIndex - *m_pdwStartSlot;
-							if ((*m_pppcConstantBuffers_DX11)[dwIndex])
-							{
-								// get the buffer description
-								D3D11_BUFFER_DESC sDesc;
-								((*m_pppcConstantBuffers_DX11)[dwIndex])->GetDesc(&sDesc);
-
-								// already enlisted ? else enlist and output on debug trace
-								auto it = std::find(m_aunBufferIndexSizesDebug.begin(), m_aunBufferIndexSizesDebug.end(), sDesc.ByteWidth);
-								if (it == m_aunBufferIndexSizesDebug.end())
-								{
-									// output to debug trace
-									std::wstringstream strStream = std::wstringstream();
-									strStream << L"Buffer Index: " << dwBufferIndex << " Size:" << sDesc.ByteWidth;
-									m_aszDebugTrace.push_back(strStream.str().c_str());
-
-									// add to vector
-									m_aunBufferIndexSizesDebug.push_back(sDesc.ByteWidth);
-								}
-							}
-						}
-					}
-				}
-				else dwChosenOld = 0;
-
-				// call base method
-				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcVSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::VertexShader);
-
-				// call super method
-				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-				{
-					((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[*m_pdwStartSlot]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-				else
-				{
-					((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			VSSetConstantBuffers(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::HSSetConstantBuffers
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::HSSetConstantBuffers:
-			/*if (!m_pdwStartSlot) return nullptr;
-			if (!m_pdwNumBuffers) return nullptr;
-			if (!m_pppcConstantBuffers_DX11) return nullptr;
-			if (!*m_pppcConstantBuffers_DX11) return nullptr;
-			if (!**m_pppcConstantBuffers_DX11) return nullptr;
-			{
-				// call base method
-				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcHSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::HullShader);
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "HSSetConstantBuffers");
 
-				// call super method
-				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-				{
-					((ID3D11DeviceContext*)pThis)->HSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcHSActiveConstantBuffers11[*m_pdwStartSlot]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-				else
-				{
-					((ID3D11DeviceContext*)pThis)->HSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcHSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			HSSetConstantBuffers(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::DSSetConstantBuffers
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::DSSetConstantBuffers:
-			/*if (!m_pdwStartSlot) return nullptr;
-			if (!m_pdwNumBuffers) return nullptr;
-			if (!m_pppcConstantBuffers_DX11) return nullptr;
-			if (!*m_pppcConstantBuffers_DX11) return nullptr;
-			if (!**m_pppcConstantBuffers_DX11) return nullptr;
-			{
-				// call base method
-				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcDSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::DomainShader);
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "DSSetConstantBuffers");
 
-				// call super method
-				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-				{
-					((ID3D11DeviceContext*)pThis)->DSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcDSActiveConstantBuffers11[*m_pdwStartSlot]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-				else
-				{
-					((ID3D11DeviceContext*)pThis)->DSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcDSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			DSSetConstantBuffers(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::GSSetConstantBuffers
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::GSSetConstantBuffers:
-			/*if (!m_pdwStartSlot) return nullptr;
-			if (!m_pdwNumBuffers) return nullptr;
-			if (!m_pppcConstantBuffers_DX11) return nullptr;
-			if (!*m_pppcConstantBuffers_DX11) return nullptr;
-			if (!**m_pppcConstantBuffers_DX11) return nullptr;
-			{
-				// call base method
-				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcGSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::GeometryShader);
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "GSSetConstantBuffers");
 
-				// call super method
-				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-				{
-					((ID3D11DeviceContext*)pThis)->GSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcGSActiveConstantBuffers11[*m_pdwStartSlot]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-				else
-				{
-					((ID3D11DeviceContext*)pThis)->GSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcGSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			GSSetConstantBuffers(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSSetConstantBuffers
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::PSSetConstantBuffers:
-			/*if (!m_pdwStartSlot) return nullptr;
-			if (!m_pdwNumBuffers) return nullptr;
-			if (!m_pppcConstantBuffers_DX11) return nullptr;
-			if (!*m_pppcConstantBuffers_DX11) return nullptr;
-			if (!**m_pppcConstantBuffers_DX11) return nullptr;
-			{
-				// call base method
-				XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcPSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11, Vireio_Supported_Shaders::PixelShader);
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "PSSetConstantBuffers");
 
-				// call super method
-				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
-				{
-					((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[*m_pdwStartSlot]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-				else
-				{
-					((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(*m_pdwStartSlot,
-						*m_pdwNumBuffers,
-						(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-
-					// method replaced, immediately return
-					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-				}
-			}*/
-			return nullptr;
+			int nFlags = 0;
+			PSSetConstantBuffers(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::VSGetConstantBuffers:
@@ -1859,7 +1093,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			// stereo buffers assioziated with the main buffers as private data interfaces.
 			// if there is a game that flickers (should not be) we need to replace the whole
 			// method (using AQU_PluginFlags::ImmediateReturnFlag)
-			((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(0,
+			m_pcContextCurrent->VSSetConstantBuffers(0,
 				D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
 				(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[0]);
 			break;
@@ -1870,166 +1104,81 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			// stereo buffers assioziated with the main buffers as private data interfaces.
 			// if there is a game that flickers (should not be) we need to replace the whole
 			// method (using AQU_PluginFlags::ImmediateReturnFlag)
-			((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(0,
+			m_pcContextCurrent->PSSetConstantBuffers(0,
 				D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
 				(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[0]);
 			break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::Map
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::Map:
-			/*if (!m_ppcResource_Map) return nullptr;
-			if (!m_pdwSubresource_Map) return nullptr;
-			if (!m_psMapType) return nullptr;
-			if (!m_pdwMapFlags) return nullptr;
-			if (!m_ppsMappedResource) return nullptr;
-			if (!*m_ppcResource_Map) return nullptr;
-			if (!*m_ppsMappedResource) return nullptr;
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "Map");
+
+			int nFlags = 0;
+			nHr = Map(nFlags);
+			if (nFlags)
 			{
-				// get destination resource type
-				D3D11_RESOURCE_DIMENSION eDimension;
-				(*m_ppcResource_Map)->GetType(&eDimension);
-
-				// if buffer, get desc
-				if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
-				{
-					D3D11_BUFFER_DESC sDescDst;
-					((ID3D11Buffer*)*m_ppcResource_Map)->GetDesc(&sDescDst);
-
-					// if constant buffer, continue
-					if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
-					{
-						// get an index which is zero
-						UINT dwIndex = m_dwMappedBuffers;
-						bool bFound = false;
-						for (UINT dwI = 0; dwI < (UINT)m_asMappedBuffers.size(); dwI++)
-						{
-							// empty resource index ?
-							if ((!m_asMappedBuffers[dwI].m_pcMappedResource) && (!bFound))
-							{
-								dwIndex = dwI;
-								bFound = true;
-							}
-						}
-
-						// get private data rule index from buffer
-						Vireio_Buffer_Rules_Index sRulesIndex;
-						sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-						sRulesIndex.m_dwUpdateCounter = 0;
-						UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-						((ID3D11Buffer*)*m_ppcResource_Map)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-
-						// no private data ? rules not addressed
-						if (!dwDataSizeRulesIndex) sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-
-						// do the map call..
-						*(HRESULT*)m_pvReturn = ((ID3D11DeviceContext*)pThis)->Map(*m_ppcResource_Map, *m_pdwSubresource_Map, *m_psMapType, *m_pdwMapFlags, *m_ppsMappedResource);
-
-						// succeeded ?
-						if (*(HRESULT*)m_pvReturn == S_OK)
-						{
-							// resize the vector if necessary
-							if (m_dwMappedBuffers >= (UINT)m_asMappedBuffers.size())
-								m_asMappedBuffers.resize(m_dwMappedBuffers + 1);
-
-							// set the mapped fields
-							m_asMappedBuffers[dwIndex].m_pcMappedResource = *m_ppcResource_Map;
-							m_asMappedBuffers[dwIndex].m_psMappedResource = *m_ppsMappedResource;
-							m_asMappedBuffers[dwIndex].m_pMappedResourceData = (**m_ppsMappedResource).pData;
-							m_asMappedBuffers[dwIndex].m_dwMappedResourceDataSize = sDescDst.ByteWidth;
-							m_asMappedBuffers[dwIndex].m_eMapType = *m_psMapType;
-							m_asMappedBuffers[dwIndex].m_dwMapFlags = *m_pdwMapFlags;
-							m_asMappedBuffers[dwIndex].m_nMapRulesIndex = sRulesIndex.m_nRulesIndex;
-
-							// make buffer address homogenous
-							UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwIndex].m_pchBuffer11;
-							dwAddress |= 0xff; dwAddress++;
-							(**m_ppsMappedResource).pData = (LPVOID)dwAddress;
-
-							// update number of mapped Buffers
-							m_dwMappedBuffers++;
-						}
-
-						// method replaced, immediately return
-						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-						return m_pvReturn;
-					}
-				}
-			}*/
-			break;
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::Unmap
 		case (int)VMT_ID3D11DEVICECONTEXT::VMT_ID3D11DeviceContext::Unmap:
-			/*if (!m_ppcResource_Unmap) return nullptr;
-			if (!m_pdwSubresource_Unmap) return nullptr;
-			if (!*m_ppcResource_Unmap) return nullptr;
-			{
-				// buffers mapped actually ?
-				if (m_dwMappedBuffers)
-				{
-					// loop through all possibly mapped constant buffers
-					for (UINT dwI = 0; dwI < (UINT)m_asMappedBuffers.size(); dwI++)
-					{
-						// continue only if mapped resource data present and the resource pointer matches the stored pointer
-						if ((m_asMappedBuffers[dwI].m_pcMappedResource) && (*m_ppcResource_Unmap == m_asMappedBuffers[dwI].m_pcMappedResource))
-						{
-							// get homogenous address
-							UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwI].m_pchBuffer11;
-							dwAddress |= 0xff; dwAddress++;
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "Unmap");
 
-							// do modification only if shader rule assigned !!
-							if ((m_asMappedBuffers[dwI].m_nMapRulesIndex >= 0))
-							{
-								// do modification, first copy to right buffer
-								memcpy(m_pchBuffer11Right, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
-								DoBufferModification(m_asMappedBuffers[dwI].m_nMapRulesIndex, dwAddress, (UINT_PTR)m_pchBuffer11Right, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
-							}
-
-							// copy the stored data...
-							memcpy(m_asMappedBuffers[dwI].m_pMappedResourceData, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
-
-							// do the unmap call..
-							((ID3D11DeviceContext*)pThis)->Unmap(*m_ppcResource_Unmap, *m_pdwSubresource_Unmap);
-
-							// update right buffer only if shader rule assigned !!
-							if ((m_asMappedBuffers[dwI].m_nMapRulesIndex >= 0))
-							{
-								// get the private data interface
-								ID3D11Buffer* pcBuffer = nullptr;
-								UINT dwSize = sizeof(pcBuffer);
-								(*m_ppcResource_Unmap)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
-
-								if (pcBuffer)
-								{
-									// update right buffer
-									D3D11_MAPPED_SUBRESOURCE sMapped;
-									if (SUCCEEDED(((ID3D11DeviceContext*)pThis)->Map((ID3D11Resource*)pcBuffer, *m_pdwSubresource_Unmap, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, NULL, &sMapped)))
-									{
-										memcpy(sMapped.pData, (LPVOID)m_pchBuffer11Right, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
-										((ID3D11DeviceContext*)pThis)->Unmap((ID3D11Resource*)pcBuffer, *m_pdwSubresource_Unmap);
-									}
-
-									pcBuffer->Release();
-								}
-							}
-
-							// set mapped resource data to zero
-							m_asMappedBuffers[dwI].m_pcMappedResource = nullptr;
-							m_asMappedBuffers[dwI].m_pMappedResourceData = nullptr;
-							m_asMappedBuffers[dwI].m_dwMappedResourceDataSize = 0;
-							m_asMappedBuffers[dwI].m_psMappedResource = nullptr;
-
-							// update number of mapped Buffers
-							m_dwMappedBuffers--;
-
-							// method replaced, immediately return
-							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-							return nullptr;
-						}
-					}
-				}
-			}*/
-			break;
+			int nFlags = 0;
+			Unmap(nFlags);
+			nProvokerIndex |= nFlags;
+		}
+		return nullptr;
 #pragma endregion
+		}
+		return nullptr;
+	case ITA_D3D11INTERFACES::ID3D11Device:
+		switch (eD3DMethod)
+		{
+		case (int)VMT_ID3D11DEVICE::VMT_ID3D11Device::CreateBuffer:
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "CreateBuffer");
+
+			int nFlags = 0;
+			nHr = CreateBuffer(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
+		case (int)VMT_ID3D11DEVICE::VMT_ID3D11Device::CreatePixelShader:
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "CreatePixelShader");
+
+			int nFlags = 0;
+			nHr = CreatePixelShader(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
+		case (int)VMT_ID3D11DEVICE::VMT_ID3D11Device::CreateVertexShader:
+		{
+			SHOW_CALL_MODIFIER(m_bTrace, "CreateVertexShader");
+
+			int nFlags = 0;
+			nHr = CreateVertexShader(nFlags);
+			if (nFlags)
+			{
+				nProvokerIndex |= nFlags;
+				return (void*)&nHr;
+			}
+		}
+		return nullptr;
 		}
 		return nullptr;
 #pragma region ID3D10Device::VSGetConstantBuffers
@@ -2380,8 +1529,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region Apply
 #pragma endregion
-		}
 	}
+}
 #endif
 
 	return nullptr;
@@ -2577,8 +1726,8 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			{
 				OutputDebugString(L"[MAM] Serious node logic error !! Wrong index !!");
 				m_dwCurrentChosenShaderHashCode = 0;
-			}
 		}
+	}
 		else if (nItem_PShader >= 0)
 		{
 			// set pixel shader lists
@@ -2623,7 +1772,7 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 			m_auShaderConstantsCurrentStartReg.push_back((*pasShaders)[dwIndex].asConstantDescriptions[dwK].uRegisterIndex);
 		}
 #endif
-	}
+}
 	// update all shaders info
 	if (ImGui::Button(szUpdate.c_str()))
 	{
@@ -2675,10 +1824,10 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 					std::string szHash = std::string(acHash);
 					(*pasShaderHashCodes).push_back(szHash);
 					(*padwShaderHashCodes).push_back((*pasShaders)[dwI].uHash);
-					}
 				}
 			}
 		}
+	}
 	ImGui::SameLine(); ImGui::HelpMarker("|?|", "Update all info\nfor all Shaders."); ImGui::SameLine();
 	// Sort shader lists
 	ImGui::ToggleButton(szSort.c_str(), &m_bSortShaderList);
@@ -2930,12 +2079,273 @@ void MatrixModifier::UpdateImGuiControl(float fZoom)
 	return;
 }
 
-#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
+/// <summary> 
+/// Handles the debug trace.
+/// </summary>
+void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize)
+{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// which shader is chosen ?
+	/*std::vector<Vireio_D3D11_Shader>* pasShaders;
+	std::vector<std::wstring>* pasShaderHashCodes;
+	std::vector<UINT>* padwShaderHashCodes;
+	if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
+	{
+		pasShaders = &m_asVShaders;
+		pasShaderHashCodes = &m_aszVShaderHashCodes;
+		padwShaderHashCodes = &m_adwVShaderHashCodes;
+	}
+	else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
+	{
+		pasShaders = &m_asPShaders;
+		pasShaderHashCodes = &m_aszPShaderHashCodes;
+		padwShaderHashCodes = &m_adwPShaderHashCodes;
+	}
+
+	// get current selection of the shader constant list
+	INT nSelection = 0;
+	nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageDebug.m_dwShaderConstants);
+	if ((nSelection < 0) || (nSelection >= (INT)m_aszShaderConstantsA.size()))
+	{
+		m_bGrabDebug = false;
+		return;
+	}
+
+	// loop through the shader constants
+	for (size_t nConstant = 0; nConstant < (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
+	{
+		// add the debug data by type
+		switch (m_eDebugOption)
+		{
+		case Debug_ConstantFloat4:
+			// test the name of the constant
+			if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+			{
+				UINT dwSize = sizeof(float) * 4;
+
+				// is this  in range ?
+				if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
+				{
+					// get pointers to the data
+					UINT_PTR pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+					D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
+
+					std::wstringstream strStream;
+					strStream << L"X:" << sVector4.x << L"::Y:" << sVector4.y << L"::Z:" << sVector4.z << L"::W:" << sVector4.w;
+					m_aszDebugTrace.push_back(strStream.str().c_str());
+				}
+
+				m_bGrabDebug = false;
+				return;
+			}
+			break;
+		case Debug_ConstantFloat8:
+			// test the name of the constant
+			if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+			{
+				UINT dwSize = sizeof(float) * 4 * 2;
+
+				// is this  in range ?
+				if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
+				{
+					// get pointers to the data
+					UINT_PTR pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+					D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
+					pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + sizeof(D3DVECTOR);
+					D3DXVECTOR4 sVector4_1 = D3DXVECTOR4((CONST FLOAT*)pv);
+
+					std::wstringstream strStream;
+					strStream << L"11:" << sVector4.x << L"::12:" << sVector4.y << L"::13:" << sVector4.z << L"::14:" << sVector4.w;
+					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+					strStream << L"21:" << sVector4_1.x << L"::22:" << sVector4_1.y << L"::23:" << sVector4_1.z << L"::24:" << sVector4_1.w;
+					m_aszDebugTrace.push_back(strStream.str().c_str());
+				}
+
+				m_bGrabDebug = false;
+				return;
+			}
+			break;
+		case Debug_ConstantFloat16:
+			// test the name of the constant
+			if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+			{
+				UINT dwSize = sizeof(float) * 4 * 4;
+
+				// is this  in range ?
+				if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
+				{
+					// get pointers to the data
+					UINT_PTR pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+					D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
+
+					std::wstringstream strStream;
+					strStream << L"11:" << sMatrix._11 << L"::12:" << sMatrix._12 << L"::13:" << sMatrix._13 << L"::14:" << sMatrix._14;
+					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+					strStream << L"21:" << sMatrix._21 << L"::22:" << sMatrix._22 << L"::23:" << sMatrix._23 << L"::24:" << sMatrix._24;
+					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+					strStream << L"31:" << sMatrix._31 << L"::32:" << sMatrix._32 << L"::33:" << sMatrix._33 << L"::34:" << sMatrix._34;
+					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+					strStream << L"41:" << sMatrix._41 << L"::42:" << sMatrix._42 << L"::43:" << sMatrix._43 << L"::44:" << sMatrix._44;
+					m_aszDebugTrace.push_back(strStream.str().c_str());
+				}
+
+				m_bGrabDebug = false;
+				return;
+			}
+			break;
+		case Debug_ConstantFloat32:
+			break;
+		case Debug_ConstantFloat64:
+			break;
+		default:
+			break;
+		}
+	}*/
+#endif
+}
+
+/// <summary>
+/// Fills list box for (global) shader rule indices
+/// </summary>
+void MatrixModifier::FillShaderRuleIndices()
+{
+	m_aszShaderRuleIndices = std::vector<std::string>();
+	for (UINT dwI = 0; dwI < (UINT)m_asConstantRules.size(); dwI++)
+	{
+		// we use just the index as identifier
+		std::stringstream szIndex; szIndex << "Rule : " << dwI;
+		m_aszShaderRuleIndices.push_back(szIndex.str());
+	}
+}
+
+/// <summary>
+/// Fills the info list for a specified shader rule
+/// </summary>
+void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
+{
+	if (dwRuleIndex >= (UINT)m_asConstantRules.size())
+		return;
+
+	m_aszShaderRuleData = std::vector<std::string>();
+	m_szShaderRuleDesc = std::string();
+
+	// add the data strings
+	std::stringstream szIndex;
+	szIndex << "Rule : " << dwRuleIndex;
+	m_aszShaderRuleData.push_back(szIndex.str());
+
+	// name ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseName)
+	{
+		std::stringstream szName;
+		szName << "Constant Name : " << m_asConstantRules[dwRuleIndex].m_szConstantName.c_str();
+		m_aszShaderRuleData.push_back(szName.str());
+	}
+
+	// partial name ?
+	if (m_asConstantRules[dwRuleIndex].m_bUsePartialNameMatch)
+	{
+		std::stringstream szName;
+		szName << "Partial Name : " << m_asConstantRules[dwRuleIndex].m_szConstantName.c_str();
+		m_aszShaderRuleData.push_back(szName.str());
+	}
+
+	// start reg index ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseStartRegIndex)
+	{
+		std::stringstream szRegIndex;
+		szRegIndex << "Register : " << m_asConstantRules[dwRuleIndex].m_dwStartRegIndex;
+		m_aszShaderRuleData.push_back(szRegIndex.str());
+	}
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// buffer index ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseBufferIndex)
+	{
+		std::stringstream szBufferIndex;
+		szBufferIndex << L"Buffer Index : " << m_asConstantRules[dwRuleIndex].m_dwBufferIndex;
+		m_aszShaderRuleData.push_back(szBufferIndex.str());
+	}
+
+	// buffer size ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseBufferSize)
+	{
+		std::stringstream szBufferSize;
+		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
+		m_aszShaderRuleData.push_back(szBufferSize.str());
+	}
+#endif
+
+	// reg count ?
+	{
+		std::stringstream szRegCount;
+		szRegCount << "Reg Count : " << m_asConstantRules[dwRuleIndex].m_dwRegisterCount;
+
+		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
+			szRegCount << " (Vector4f)";
+		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
+			szRegCount << " (Matrix4x4f)";
+
+		m_aszShaderRuleData.push_back(szRegCount.str());
+	}
+
+	// transpose ?
+	{
+		std::stringstream szTranspose;
+		if (m_asConstantRules[dwRuleIndex].m_bTranspose)
+			szTranspose << "Transpose : TRUE";
+		else
+			szTranspose << "Transpose : FALSE";
+		m_aszShaderRuleData.push_back(szTranspose.str());
+	}
+
+	// operation
+	{
+		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
+			m_aszShaderRuleData.push_back("X");// ShaderConstantModificationFactory::GetVector4ModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply)); /// TODO !!
+		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
+		{
+			m_aszShaderRuleData.push_back(GetMatrixModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
+			m_szShaderRuleDesc = GetMatrixModificationDesc(m_asConstantRules[dwRuleIndex].m_dwOperationToApply);
+		}
+	}
+}
+
+/// <summary>
+/// Fills the general shader rule indices info list
+/// </summary>
+void MatrixModifier::FillShaderRuleGeneralIndices()
+{
+	m_aszShaderRuleGeneralIndices = std::vector<std::string>();
+	for (UINT dwI = 0; dwI < (UINT)m_aunGlobalConstantRuleIndices.size(); dwI++)
+	{
+		// add text
+		std::stringstream szIndex; szIndex << "Rule : " << m_aunGlobalConstantRuleIndices[dwI];
+		m_aszShaderRuleGeneralIndices.push_back(szIndex.str());
+	}
+}
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+/// <summary>
+///
+/// </summary>
+void MatrixModifier::FillFetchedHashCodeList()
+{
+	m_aszFetchedHashCodes = std::vector<std::string>();
+	for (UINT dwI = 0; dwI < (UINT)m_aunFetchedHashCodes.size(); dwI++)
+	{
+		// add text
+		std::stringstream szIndex; szIndex << L"Hash : " << m_aunFetchedHashCodes[dwI];
+		m_aszFetchedHashCodes.push_back(szIndex.str());
+	}
+}
+#endif
+#if defined(VIREIO_D3D11)
 /// <summary> 
 /// Handles all constant buffer setting methods for all DX11 shaders.
 /// Called by VSSetConstantBuffers, GSSetConstantBuffers, HSSetConstantBuffers, DSSetConstantBuffers and PSSetConstantBuffers.
 /// </summary>
-void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*>& apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer* const* ppcConstantBuffers, Vireio_Supported_Shaders eShaderType)
+void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::array<ID3D11Buffer*, BUFFER_REGISTER_R << 1>& apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer* const* ppcConstantBuffers, Vireio_Supported_Shaders eShaderType)
 {
 	// loop through the new buffers
 	for (UINT dwIndex = 0; dwIndex < dwNumBuffers; dwIndex++)
@@ -2967,12 +2377,12 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 				if ((pcBuffer) && (dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 				{
 					// set right buffer as active buffer
-					apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
+					apcActiveConstantBuffers[dwInternalIndex + BUFFER_REGISTER_R] = pcBuffer;
 				}
 				else
 				{
 					// no buffer or no shader rules assigned ? left = right side -> right = left side
-					apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = apcActiveConstantBuffers[dwInternalIndex];
+					apcActiveConstantBuffers[dwInternalIndex + BUFFER_REGISTER_R] = apcActiveConstantBuffers[dwInternalIndex];
 
 					// verify buffer
 					if ((pcBuffer) && (sRulesIndex.m_nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
@@ -3002,7 +2412,7 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 					pcBuffer->Release();
 			}
 			else
-				apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
+				apcActiveConstantBuffers[dwInternalIndex + BUFFER_REGISTER_R] = nullptr;
 		}
 	}
 }
@@ -3296,270 +2706,208 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 		}
 	}
 }
-#endif
 
 /// <summary> 
-/// Handles the debug trace.
+/// Handles CreateVertexShader() and CreatePixelShader() calls.
 /// </summary>
-void MatrixModifier::DebugOutput(const void* pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize)
+void MatrixModifier::CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void* pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage* pcClassLinkage, ID3D11DeviceChild** ppcShader, bool bOutputCode, char cPrefix)
 {
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	// which shader is chosen ?
-	/*std::vector<Vireio_D3D11_Shader>* pasShaders;
-	std::vector<std::wstring>* pasShaderHashCodes;
-	std::vector<UINT>* padwShaderHashCodes;
-	if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
+	// get the shader pointer
+	ID3D11DeviceChild* pcShader = nullptr;
+	if (ppcShader)
+		if (*ppcShader)
+			pcShader = *ppcShader;
+	if (pcShader)
 	{
-		pasShaders = &m_asVShaders;
-		pasShaderHashCodes = &m_aszVShaderHashCodes;
-		padwShaderHashCodes = &m_adwVShaderHashCodes;
-	}
-	else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
-	{
-		pasShaders = &m_asPShaders;
-		pasShaderHashCodes = &m_aszPShaderHashCodes;
-		padwShaderHashCodes = &m_adwPShaderHashCodes;
-	}
+		// get the hash code
+		DWORD dwHashCode = GetHashCode((BYTE*)pcShaderBytecode, (DWORD)unBytecodeLength, VIREIO_SEED);
 
-	// get current selection of the shader constant list
-	INT nSelection = 0;
-	nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageDebug.m_dwShaderConstants);
-	if ((nSelection < 0) || (nSelection >= (INT)m_aszShaderConstantsA.size()))
-	{
-		m_bGrabDebug = false;
-		return;
-	}
-
-	// loop through the shader constants
-	for (size_t nConstant = 0; nConstant < (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
-	{
-		// add the debug data by type
-		switch (m_eDebugOption)
+		// is this shader already enumerated ?
+		for (size_t nShaderDescIndex = 0; nShaderDescIndex < (*pasShaders).size(); nShaderDescIndex++)
 		{
-		case Debug_ConstantFloat4:
-			// test the name of the constant
-			if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+			if (dwHashCode == (*pasShaders)[nShaderDescIndex].uHash)
 			{
-				UINT dwSize = sizeof(float) * 4;
+				// create and set private shader data
+				Vireio_Shader_Private_Data sPrivateData;
+				sPrivateData.dwHash = dwHashCode;
+				sPrivateData.dwIndex = (UINT)nShaderDescIndex;
 
-				// is this  in range ?
-				if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
-				{
-					// get pointers to the data
-					UINT_PTR pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-					D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
-
-					std::wstringstream strStream;
-					strStream << L"X:" << sVector4.x << L"::Y:" << sVector4.y << L"::Z:" << sVector4.z << L"::W:" << sVector4.w;
-					m_aszDebugTrace.push_back(strStream.str().c_str());
-				}
-
-				m_bGrabDebug = false;
+				pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 				return;
 			}
-			break;
-		case Debug_ConstantFloat8:
-			// test the name of the constant
-			if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
-			{
-				UINT dwSize = sizeof(float) * 4 * 2;
-
-				// is this  in range ?
-				if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
-				{
-					// get pointers to the data
-					UINT_PTR pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-					D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
-					pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + sizeof(D3DVECTOR);
-					D3DXVECTOR4 sVector4_1 = D3DXVECTOR4((CONST FLOAT*)pv);
-
-					std::wstringstream strStream;
-					strStream << L"11:" << sVector4.x << L"::12:" << sVector4.y << L"::13:" << sVector4.z << L"::14:" << sVector4.w;
-					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
-					strStream << L"21:" << sVector4_1.x << L"::22:" << sVector4_1.y << L"::23:" << sVector4_1.z << L"::24:" << sVector4_1.w;
-					m_aszDebugTrace.push_back(strStream.str().c_str());
-				}
-
-				m_bGrabDebug = false;
-				return;
-			}
-			break;
-		case Debug_ConstantFloat16:
-			// test the name of the constant
-			if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
-			{
-				UINT dwSize = sizeof(float) * 4 * 4;
-
-				// is this  in range ?
-				if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
-				{
-					// get pointers to the data
-					UINT_PTR pv = (UINT_PTR)pvSrcData + (*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-					D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
-
-					std::wstringstream strStream;
-					strStream << L"11:" << sMatrix._11 << L"::12:" << sMatrix._12 << L"::13:" << sMatrix._13 << L"::14:" << sMatrix._14;
-					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
-					strStream << L"21:" << sMatrix._21 << L"::22:" << sMatrix._22 << L"::23:" << sMatrix._23 << L"::24:" << sMatrix._24;
-					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
-					strStream << L"31:" << sMatrix._31 << L"::32:" << sMatrix._32 << L"::33:" << sMatrix._33 << L"::34:" << sMatrix._34;
-					m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
-					strStream << L"41:" << sMatrix._41 << L"::42:" << sMatrix._42 << L"::43:" << sMatrix._43 << L"::44:" << sMatrix._44;
-					m_aszDebugTrace.push_back(strStream.str().c_str());
-				}
-
-				m_bGrabDebug = false;
-				return;
-			}
-			break;
-		case Debug_ConstantFloat32:
-			break;
-		case Debug_ConstantFloat64:
-			break;
-		default:
-			break;
 		}
-	}*/
-#endif
-}
 
-/// <summary>
-/// Fills list box for (global) shader rule indices
-/// </summary>
-void MatrixModifier::FillShaderRuleIndices()
-{
-	m_aszShaderRuleIndices = std::vector<std::string>();
-	for (UINT dwI = 0; dwI < (UINT)m_asConstantRules.size(); dwI++)
-	{
-		// we use just the index as identifier
-		std::stringstream szIndex; szIndex << "Rule : " << dwI;
-		m_aszShaderRuleIndices.push_back(szIndex.str());
-	}
-}
+		// shader data for each shader
+		Vireio_D3D11_Shader sShaderData = {};
 
-/// <summary>
-/// Fills the info list for a specified shader rule
-/// </summary>
-void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
-{
-	if (dwRuleIndex >= (UINT)m_asConstantRules.size())
-		return;
+		// first, disassemble shader
+		ID3DBlob* pcIDisassembly = nullptr;
+		HRESULT hr = D3DDisassemble(pcShaderBytecode, (DWORD)unBytecodeLength, D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, 0, &pcIDisassembly);
 
-	m_aszShaderRuleData = std::vector<std::string>();
-	m_szShaderRuleDesc = std::string();
+		// get the shader code to a stringstream
+		std::stringstream szStream = std::stringstream();
+		szStream << static_cast<char*>(pcIDisassembly->GetBufferPointer());
+		std::string szLine;
 
-	// add the data strings
-	std::stringstream szIndex;
-	szIndex << "Rule : " << dwRuleIndex;
-	m_aszShaderRuleData.push_back(szIndex.str());
-
-	// name ?
-	if (m_asConstantRules[dwRuleIndex].m_bUseName)
-	{
-		std::stringstream szName;
-		szName << "Constant Name : " << m_asConstantRules[dwRuleIndex].m_szConstantName.c_str();
-		m_aszShaderRuleData.push_back(szName.str());
-	}
-
-	// partial name ?
-	if (m_asConstantRules[dwRuleIndex].m_bUsePartialNameMatch)
-	{
-		std::stringstream szName;
-		szName << "Partial Name : " << m_asConstantRules[dwRuleIndex].m_szConstantName.c_str();
-		m_aszShaderRuleData.push_back(szName.str());
-	}
-
-	// start reg index ?
-	if (m_asConstantRules[dwRuleIndex].m_bUseStartRegIndex)
-	{
-		std::stringstream szRegIndex;
-		szRegIndex << "Register : " << m_asConstantRules[dwRuleIndex].m_dwStartRegIndex;
-		m_aszShaderRuleData.push_back(szRegIndex.str());
-	}
-
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	// buffer index ?
-	if (m_asConstantRules[dwRuleIndex].m_bUseBufferIndex)
-	{
-		std::stringstream szBufferIndex;
-		szBufferIndex << L"Buffer Index : " << m_asConstantRules[dwRuleIndex].m_dwBufferIndex;
-		m_aszShaderRuleData.push_back(szBufferIndex.str());
-	}
-
-	// buffer size ?
-	if (m_asConstantRules[dwRuleIndex].m_bUseBufferSize)
-	{
-		std::stringstream szBufferSize;
-		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
-		m_aszShaderRuleData.push_back(szBufferSize.str());
-	}
-#endif
-
-	// reg count ?
-	{
-		std::stringstream szRegCount;
-		szRegCount << "Reg Count : " << m_asConstantRules[dwRuleIndex].m_dwRegisterCount;
-
-		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
-			szRegCount << " (Vector4f)";
-		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
-			szRegCount << " (Matrix4x4f)";
-
-		m_aszShaderRuleData.push_back(szRegCount.str());
-	}
-
-	// transpose ?
-	{
-		std::stringstream szTranspose;
-		if (m_asConstantRules[dwRuleIndex].m_bTranspose)
-			szTranspose << "Transpose : TRUE";
-		else
-			szTranspose << "Transpose : FALSE";
-		m_aszShaderRuleData.push_back(szTranspose.str());
-	}
-
-	// operation
-	{
-		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
-			m_aszShaderRuleData.push_back("X");// ShaderConstantModificationFactory::GetVector4ModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply)); /// TODO !!
-		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
+		// get all constant buffers from the stream
+		while (std::getline(szStream, szLine))
 		{
-			m_aszShaderRuleData.push_back(GetMatrixModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
-			m_szShaderRuleDesc = GetMatrixModificationDesc(m_asConstantRules[dwRuleIndex].m_dwOperationToApply);
+			if (szLine.find("dcl_constantbuffer") != std::string::npos)
+			{
+				Vireio_D3D11_Constant_Buffer_Unaccounted sBufferUnaccounted;
+
+				// dcl_constantbuffer cb12[37], immediateIndexed
+				std::stringstream szLineStream(szLine);
+				std::string szTemp;
+				std::getline(szLineStream, szTemp, ' ');
+				std::getline(szLineStream, szTemp, '[');
+				std::stringstream szIndex(szTemp);
+				szIndex.ignore(2);
+				szIndex >> sBufferUnaccounted.dwRegister;
+
+				// get size between '[' and ']'
+				std::getline(szLineStream, szTemp, ']');
+				std::stringstream szSize(szTemp);
+				szSize >> sBufferUnaccounted.dwSize;
+
+				// no constant rules addressed at shader creation
+				sBufferUnaccounted.nConstantRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+
+				// store the unaccounted buffer
+				sShaderData.asBuffersUnaccounted.push_back(sBufferUnaccounted);
+			}
+		}
+
+		// create reflection class
+		ID3D11ShaderReflection* pcReflector = NULL;
+		if (SUCCEEDED(D3DReflect(pcShaderBytecode,
+			unBytecodeLength,
+			IID_ID3D11ShaderReflection,
+			(void**)&pcReflector)))
+		{
+			// get desc
+			D3D11_SHADER_DESC sDesc;
+			pcReflector->GetDesc(&sDesc);
+
+			// fill shader data
+			sShaderData.uConstantBuffers = sDesc.ConstantBuffers;
+			sShaderData.uVersion = sDesc.Version;
+			sShaderData.uBoundResources = sDesc.BoundResources;
+			sShaderData.uInputParameters = sDesc.InputParameters;
+			sShaderData.uOutputParameters = sDesc.OutputParameters;
+			sShaderData.uHash = dwHashCode;
+
+			// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
+			UINT dwLen = (UINT)strnlen_s(sDesc.Creator, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
+			sShaderData.atCreator = std::string(dwLen + 1, 0);
+			CopyMemory((char*)sShaderData.atCreator.data(), sDesc.Creator, sizeof(CHAR) * dwLen);
+
+			for (UINT dwIndex = 0; dwIndex < sDesc.ConstantBuffers; dwIndex++)
+			{
+				// get next constant buffer
+				ID3D11ShaderReflectionConstantBuffer* pcConstantBuffer = pcReflector->GetConstantBufferByIndex(dwIndex);
+				if (pcConstantBuffer)
+				{
+					// get desc
+					D3D11_SHADER_BUFFER_DESC sDescBuffer;
+					pcConstantBuffer->GetDesc(&sDescBuffer);
+
+					// fill buffer data
+					Vireio_D3D11_Constant_Buffer sBufferData;
+					sBufferData.eType = sDescBuffer.Type;
+					sBufferData.dwVariables = sDescBuffer.Variables;
+					sBufferData.dwSize = sDescBuffer.Size;
+					sBufferData.dwFlags = sDescBuffer.uFlags;
+
+					// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
+					dwLen = (UINT)strnlen_s(sDescBuffer.Name, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
+					CopyMemory(sBufferData.szName, sDescBuffer.Name, sizeof(CHAR) * dwLen);
+					sBufferData.szName[dwLen] = 0;
+
+					// enumerate variables
+					for (UINT dwIndexVariable = 0; dwIndexVariable < sDescBuffer.Variables; dwIndexVariable++)
+					{
+						ID3D11ShaderReflectionVariable* pcVariable = pcConstantBuffer->GetVariableByIndex(dwIndexVariable);
+						if (pcVariable)
+						{
+							// get desc
+							D3D11_SHADER_VARIABLE_DESC sDescVariable;
+							pcVariable->GetDesc(&sDescVariable);
+
+							// fill variable data
+							Vireio_D3D11_Shader_Variable sVariableData;
+							sVariableData.dwSize = sDescVariable.Size;
+							sVariableData.dwStartOffset = sDescVariable.StartOffset;
+
+							// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
+							dwLen = (UINT)strnlen_s(sDescVariable.Name, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
+							CopyMemory(sVariableData.szName, sDescVariable.Name, sizeof(CHAR) * dwLen);
+							sVariableData.szName[dwLen] = 0;
+
+							// TODO !! FILL DEFAULT VALUE sVariableData.pcDefaultValue (maybe we need this later)
+
+#ifdef _GET_PROJECTION_MATRICES
+							// quickly search for projection matrices here
+							if (std::strstr(sDescVariable.Name, "roj"))
+								OutputDebugStringA(sDescVariable.Name);
+#endif
+							// and add to buffer desc
+							sBufferData.asVariables.push_back(sVariableData);
+						}
+					}
+
+					// no constant rules addressed at shader creation
+					sBufferData.nConstantRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+
+					// and add to shader desc
+					sShaderData.asBuffers.push_back(sBufferData);
+				}
+			}
+
+			pcReflector->Release();
+		}
+
+		// and add to shader vector
+		(*pasShaders).push_back(sShaderData);
+
+		// create and set private shader data
+		Vireio_Shader_Private_Data sPrivateData;
+		sPrivateData.dwHash = dwHashCode;
+		sPrivateData.dwIndex = (UINT)(*pasShaders).size() - 1;
+
+		pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+
+		// output shader code ?
+		if (bOutputCode)
+		{
+			// optionally, output shader code to "VS(hash).txt"
+			char buf[32]; ZeroMemory(&buf[0], 32);
+			sprintf_s(buf, "VS%u.txt", dwHashCode);
+			buf[0] = cPrefix;
+			std::ofstream oLogFile(buf, std::ios::ate);
+
+			if (oLogFile.is_open())
+			{
+				if (SUCCEEDED(hr))
+				{
+					oLogFile << static_cast<char*>(pcIDisassembly->GetBufferPointer()) << std::endl;
+					oLogFile << std::endl << std::endl;
+					oLogFile << "// Shader Hash   : " << dwHashCode << std::endl;
+				}
+				oLogFile << std::endl;
+				for (int i = 0; i < (int)sShaderData.asBuffers.size(); i++)
+				{
+					for (int j = 0; j < (int)sShaderData.asBuffers[i].asVariables.size(); j++)
+						oLogFile << "// Shader Constant : Buffer - " << i << " - Variable - " << j << " - " << sShaderData.asBuffers[i].asVariables[j].szName << " " << sShaderData.asBuffers[i].asVariables[j].dwStartOffset << " " << sShaderData.asBuffers[i].asVariables[j].dwSize << std::endl;
+				}
+				oLogFile.close();
+			}
 		}
 	}
+	else OutputDebugString(L"MatrixModifier: Failed to reflect vertex shader !");
 }
-
-/// <summary>
-/// Fills the general shader rule indices info list
-/// </summary>
-void MatrixModifier::FillShaderRuleGeneralIndices()
-{
-	m_aszShaderRuleGeneralIndices = std::vector<std::string>();
-	for (UINT dwI = 0; dwI < (UINT)m_aunGlobalConstantRuleIndices.size(); dwI++)
-	{
-		// add text
-		std::stringstream szIndex; szIndex << "Rule : " << m_aunGlobalConstantRuleIndices[dwI];
-		m_aszShaderRuleGeneralIndices.push_back(szIndex.str());
-	}
-}
-
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-/// <summary>
-///
-/// </summary>
-void MatrixModifier::FillFetchedHashCodeList()
-{
-	m_aszFetchedHashCodes = std::vector<std::string>();
-	for (UINT dwI = 0; dwI < (UINT)m_aunFetchedHashCodes.size(); dwI++)
-	{
-		// add text
-		std::stringstream szIndex; szIndex << L"Hash : " << m_aunFetchedHashCodes[dwI];
-		m_aszFetchedHashCodes.push_back(szIndex.str());
-	}
-}
-
-#elif defined(VIREIO_D3D9)
+#endif
+#if defined(VIREIO_D3D9)
 /// <summary>
 /// Fills the list of shader specific rule indices.
 /// </summary>
@@ -3828,16 +3176,1180 @@ HRESULT MatrixModifier::SetXShaderConstantF(UINT unStartRegister, const float* p
 							OutputDebugString(L"[MAM] Unlikely case: partially changed matrices");
 					}
 				}
-			}
-			it++;
 		}
+			it++;
 	}
+}
 
 	return D3D_OK;
 }
 #endif
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if defined(VIREIO_D3D11)
+#pragma region /// => D3D11 methods
+
+/*** MatrixModifier private D3D methods ***/
+#define D3D11_MTH_PARAM(a, b, ix, pn) a pn b; if (ppIn[ix]) b = *(a*pn)ppIn[ix]; else return;
+#define D3D11_MTH_PARAM_HR(a, b, ix, pn) a pn b; if (ppIn[ix]) b = *(a*pn)ppIn[ix]; else return E_FAIL;
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::CopyResource(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CopyResource]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CopyResource]);
+	D3D11_MTH_PARAM(ID3D11Resource, ppcDstResource, 0, **);
+	D3D11_MTH_PARAM(ID3D11Resource, ppcSrcResource, 1, **);
+
+	if (!*ppcDstResource) return;
+	if (!*ppcSrcResource) return;
+	{
+		// get destination resource type
+		D3D11_RESOURCE_DIMENSION eDimension;
+		(*ppcDstResource)->GetType(&eDimension);
+
+		// if buffer, get desc
+		if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+		{
+			D3D11_BUFFER_DESC sDescDst;
+			((ID3D11Buffer*)*ppcDstResource)->GetDesc(&sDescDst);
+
+			// set the same shader rules index (if present) for the destination as for the source
+			Vireio_Buffer_Rules_Index sRulesIndex;
+			sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+			sRulesIndex.m_dwUpdateCounter = 0;
+			UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+			((ID3D11Resource*)*ppcSrcResource)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+			if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
+			{
+				((ID3D11Resource*)*ppcDstResource)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
+			}
+
+			// copy to both sides, if source is a mono buffer set source to stereo buffer
+			ID3D11Resource* pcResourceTwinSrc = nullptr;
+			UINT dwSize = sizeof(pcResourceTwinSrc);
+			((ID3D11Resource*)*ppcSrcResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
+			if (pcResourceTwinSrc)
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
+					pcResourceTwinDst->Release();
+				}
+				pcResourceTwinSrc->Release();
+			}
+			else
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopyResource(pcResourceTwinDst, *ppcSrcResource);
+					pcResourceTwinDst->Release();
+				}
+			}
+		}
+		// is this a texture ?
+		else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
+		{
+			// get the stereo twin of the resource (texture)
+			ID3D11Resource* pcResourceTwinSrc = nullptr;
+			UINT dwSize = sizeof(pcResourceTwinSrc);
+			((ID3D11Resource*)*ppcSrcResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinSrc);
+			if (pcResourceTwinSrc)
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
+					pcResourceTwinDst->Release();
+				}
+				else
+				{
+					// set private data "create new" BOOL
+					BOOL bTrue = TRUE;
+					((ID3D11Resource*)*ppcDstResource)->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bTrue);
+				}
+				pcResourceTwinSrc->Release();
+			}
+			else
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopyResource(pcResourceTwinDst, *ppcSrcResource);
+					pcResourceTwinDst->Release();
+				}
+			}
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::CopySubresourceRegion(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CopySubresourceRegion]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CopySubresourceRegion]);
+	D3D11_MTH_PARAM(ID3D11Resource, ppcDstResource, 0, **);
+	D3D11_MTH_PARAM(UINT, puDstSubresource, 1, *);
+	D3D11_MTH_PARAM(UINT, puDstX, 2, *);
+	D3D11_MTH_PARAM(UINT, puDstY, 3, *);
+	D3D11_MTH_PARAM(UINT, puDstZ, 4, *);
+	D3D11_MTH_PARAM(ID3D11Resource, ppcSrcResource, 5, **);
+	D3D11_MTH_PARAM(UINT, puSrcSubresource, 6, *);
+	D3D11_MTH_PARAM(D3D11_BOX, ppsSrcBox, 7, **);
+	if (!*ppcDstResource) return;
+	if (!*ppcSrcResource) return;
+	{
+		// get destination resource type
+		D3D11_RESOURCE_DIMENSION eDimension;
+		(*ppcDstResource)->GetType(&eDimension);
+
+		// if buffer, get desc
+		if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+		{
+			if (!*ppsSrcBox) return;
+
+			D3D11_BUFFER_DESC sDescDst;
+			((ID3D11Buffer*)*ppcDstResource)->GetDesc(&sDescDst);
+
+			// set the same shader rules index (if present) for the destination as for the source
+			Vireio_Buffer_Rules_Index sRulesIndex;
+			sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+			sRulesIndex.m_dwUpdateCounter = 0;
+			UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+			((ID3D11Resource*)*ppcSrcResource)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+			if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
+			{
+				((ID3D11Resource*)*ppcDstResource)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
+			}
+
+			// copy to both sides, if source is a mono buffer set source to stereo buffer
+			ID3D11Resource* pcResourceTwinSrc = nullptr;
+			UINT dwSize = sizeof(pcResourceTwinSrc);
+			((ID3D11Resource*)*ppcSrcResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
+			if (pcResourceTwinSrc)
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopySubresourceRegion(pcResourceTwinDst,
+						*puDstSubresource,
+						*puDstX,
+						*puDstY,
+						*puDstZ,
+						pcResourceTwinSrc,
+						*puSrcSubresource,
+						*ppsSrcBox);
+
+					pcResourceTwinDst->Release();
+				}
+				pcResourceTwinSrc->Release();
+			}
+			else
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopySubresourceRegion(pcResourceTwinDst,
+						*puDstSubresource,
+						*puDstX,
+						*puDstY,
+						*puDstZ,
+						*ppcSrcResource,
+						*puSrcSubresource,
+						*ppsSrcBox);
+
+					pcResourceTwinDst->Release();
+				}
+			}
+		}
+		// is this a texture ?
+		else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
+		{
+			// get the stereo twin of the resource (texture)
+			ID3D11Resource* pcResourceTwinSrc = nullptr;
+			UINT dwSize = sizeof(pcResourceTwinSrc);
+			((ID3D11Resource*)*ppcSrcResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinSrc);
+			if (pcResourceTwinSrc)
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopySubresourceRegion(pcResourceTwinDst,
+						*puDstSubresource,
+						*puDstX,
+						*puDstY,
+						*puDstZ,
+						pcResourceTwinSrc,
+						*puSrcSubresource,
+						*ppsSrcBox);
+
+					pcResourceTwinDst->Release();
+				}
+				else
+				{
+					// set private data "create new" BOOL
+					BOOL bTrue = TRUE;
+					((ID3D11Resource*)*ppcDstResource)->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bTrue);
+				}
+				pcResourceTwinSrc->Release();
+			}
+			else
+			{
+				// get the stereo twin of the destination
+				ID3D11Resource* pcResourceTwinDst = nullptr;
+				dwSize = sizeof(pcResourceTwinDst);
+				((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
+				if (pcResourceTwinDst)
+				{
+					// do the copy call on the stereo twins of these textures
+					m_pcContextCurrent->CopySubresourceRegion(pcResourceTwinDst,
+						*puDstSubresource,
+						*puDstX,
+						*puDstY,
+						*puDstZ,
+						*ppcSrcResource,
+						*puSrcSubresource,
+						*ppsSrcBox);
+
+					pcResourceTwinDst->Release();
+				}
+			}
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+HRESULT MatrixModifier::CreateBuffer(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CreateBuffer]) return E_FAIL;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CreateBuffer]);
+	D3D11_MTH_PARAM_HR(D3D11_BUFFER_DESC, ppsDesc, 0, **);
+	D3D11_MTH_PARAM_HR(D3D11_SUBRESOURCE_DATA, ppsInitialData, 1, **);
+	D3D11_MTH_PARAM_HR(ID3D11Buffer, pppcBuffer, 2, ***);
+
+	// is this a constant buffer ?
+	if (!*ppsDesc) return E_FAIL;
+	if (((*ppsDesc)->BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+	{
+		// create the buffer and create stereo buffers
+		HRESULT nHr = m_pcDeviceCurrent->CreateBuffer(*ppsDesc, *ppsInitialData, *pppcBuffer);
+		if (SUCCEEDED(nHr))
+			CreateStereoBuffer(m_pcDeviceCurrent, nullptr, (**pppcBuffer), *ppsDesc, *ppsInitialData, false);
+
+		// method replaced, immediately return
+		nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		return nHr;
+	}
+	return S_OK;
+}
+
+/// <summary>D3D11 method call</summary>
+HRESULT MatrixModifier::CreatePixelShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CreatePixelShader]) return E_FAIL;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CreatePixelShader]);
+	D3D11_MTH_PARAM_HR(void, ppvShaderBytecode, 0, **);
+	D3D11_MTH_PARAM_HR(SIZE_T, pvBytecodeLength, 1, *);
+	D3D11_MTH_PARAM_HR(ID3D11ClassLinkage, ppcClassLinkage, 2, **);
+	D3D11_MTH_PARAM_HR(ID3D11PixelShader, pppcPixelShader, 3, ***);
+
+	// create the shader
+	HRESULT nHr = m_pcDeviceCurrent->CreatePixelShader(*ppvShaderBytecode, *pvBytecodeLength, *ppcClassLinkage, *pppcPixelShader);
+
+	// call the handling method
+	CreateShader(&m_asPShaders, *ppvShaderBytecode, *pvBytecodeLength, *ppcClassLinkage,
+		(ID3D11DeviceChild**)*pppcPixelShader, false, 'P');
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return nHr;
+}
+
+/// <summary>D3D11 method call</summary>
+HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::CreateVertexShader]) return E_FAIL;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::CreateVertexShader]);
+	D3D11_MTH_PARAM_HR(void, ppvShaderBytecode, 0, **);
+	D3D11_MTH_PARAM_HR(SIZE_T, pvBytecodeLength, 1, *);
+	D3D11_MTH_PARAM_HR(ID3D11ClassLinkage, ppcClassLinkage, 2, **);
+	D3D11_MTH_PARAM_HR(ID3D11VertexShader, pppcVertexShader, 3, ***);
+
+	// create the shader
+	HRESULT nHr = m_pcDeviceCurrent->CreateVertexShader(*ppvShaderBytecode, *pvBytecodeLength, *ppcClassLinkage, *pppcVertexShader);
+
+	// call the handling method
+	CreateShader(&m_asVShaders, *ppvShaderBytecode, *pvBytecodeLength, *ppcClassLinkage,
+		(ID3D11DeviceChild**)*pppcVertexShader, false, 'V');
+
+	// method replaced, immediately return
+	nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+	return nHr;
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::DSSetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::DSSetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::DSSetConstantBuffers]);
+	D3D11_MTH_PARAM(UINT, puStartSlot, 0, *);
+	D3D11_MTH_PARAM(UINT, puNumBuffers, 1, *);
+	D3D11_MTH_PARAM(ID3D11Buffer, pppcConstantBuffers, 2, ***);
+
+	if (!puStartSlot) return;
+	if (!puNumBuffers) return;
+	if (!pppcConstantBuffers) return;
+	if (!*pppcConstantBuffers) return;
+	if (!**pppcConstantBuffers) return;
+	{
+		// call base method
+		XSSetConstantBuffers(m_pcContextCurrent, m_apcDSActiveConstantBuffers11, *puStartSlot, *puNumBuffers, *pppcConstantBuffers, Vireio_Supported_Shaders::DomainShader);
+
+		// call super method
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			m_pcContextCurrent->DSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcDSActiveConstantBuffers11[*puStartSlot] + BUFFER_REGISTER_L);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+		else
+		{
+			m_pcContextCurrent->DSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcDSActiveConstantBuffers11[(*puStartSlot) + BUFFER_REGISTER_R]);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::GSSetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::GSSetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::GSSetConstantBuffers]);
+	D3D11_MTH_PARAM(UINT, puStartSlot, 0, *);
+	D3D11_MTH_PARAM(UINT, puNumBuffers, 1, *);
+	D3D11_MTH_PARAM(ID3D11Buffer, pppcConstantBuffers, 2, ***);
+
+	if (!puStartSlot) return;
+	if (!puNumBuffers) return;
+	if (!pppcConstantBuffers) return;
+	if (!*pppcConstantBuffers) return;
+	if (!**pppcConstantBuffers) return;
+	{
+		// call base method
+		XSSetConstantBuffers(m_pcContextCurrent, m_apcGSActiveConstantBuffers11, *puStartSlot, *puNumBuffers, *pppcConstantBuffers, Vireio_Supported_Shaders::GeometryShader);
+
+		// call super method
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			m_pcContextCurrent->GSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcGSActiveConstantBuffers11[*puStartSlot] + BUFFER_REGISTER_L);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+		else
+		{
+			m_pcContextCurrent->GSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcGSActiveConstantBuffers11[(*puStartSlot) + BUFFER_REGISTER_R]);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::HSSetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::HSSetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::HSSetConstantBuffers]);
+	D3D11_MTH_PARAM(UINT, puStartSlot, 0, *);
+	D3D11_MTH_PARAM(UINT, puNumBuffers, 1, *);
+	D3D11_MTH_PARAM(ID3D11Buffer, pppcConstantBuffers, 2, ***);
+
+	if (!puStartSlot) return;
+	if (!puNumBuffers) return;
+	if (!pppcConstantBuffers) return;
+	if (!*pppcConstantBuffers) return;
+	if (!**pppcConstantBuffers) return;
+	{
+		// call base method
+		XSSetConstantBuffers(m_pcContextCurrent, m_apcHSActiveConstantBuffers11, *puStartSlot, *puNumBuffers, *pppcConstantBuffers, Vireio_Supported_Shaders::HullShader);
+
+		// call super method
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			m_pcContextCurrent->HSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcHSActiveConstantBuffers11[*puStartSlot] + BUFFER_REGISTER_L);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+		else
+		{
+			m_pcContextCurrent->HSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcHSActiveConstantBuffers11[(*puStartSlot) + BUFFER_REGISTER_R]);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+HRESULT MatrixModifier::Map(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::Map]) return E_FAIL;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::Map]);
+	D3D11_MTH_PARAM_HR(ID3D11Resource, ppcResource, 0, **);
+	D3D11_MTH_PARAM_HR(UINT, puSubresource, 1, *);
+	D3D11_MTH_PARAM_HR(D3D11_MAP, psMapType, 2, *);
+	D3D11_MTH_PARAM_HR(UINT, puMapFlags, 3, *);
+	D3D11_MTH_PARAM_HR(D3D11_MAPPED_SUBRESOURCE, ppsMappedResource, 4, **);
+
+	HRESULT nHr = S_OK;
+	if (!*ppcResource) return E_FAIL;
+	if (!*ppsMappedResource) return E_FAIL;
+	{
+		// get destination resource type
+		D3D11_RESOURCE_DIMENSION eDimension;
+		(*ppcResource)->GetType(&eDimension);
+
+		// if buffer, get desc
+		if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+		{
+			D3D11_BUFFER_DESC sDescDst;
+			((ID3D11Buffer*)*ppcResource)->GetDesc(&sDescDst);
+
+			// if constant buffer, continue
+			if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+			{
+				// get an index which is zero
+				UINT dwIndex = m_dwMappedBuffers;
+				bool bFound = false;
+				for (UINT dwI = 0; dwI < (UINT)m_asMappedBuffers.size(); dwI++)
+				{
+					// empty resource index ?
+					if ((!m_asMappedBuffers[dwI].m_pcMappedResource) && (!bFound))
+					{
+						dwIndex = dwI;
+						bFound = true;
+					}
+				}
+
+				// get private data rule index from buffer
+				Vireio_Buffer_Rules_Index sRulesIndex;
+				sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+				sRulesIndex.m_dwUpdateCounter = 0;
+				UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+				((ID3D11Buffer*)*ppcResource)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+
+				// no private data ? rules not addressed
+				if (!dwDataSizeRulesIndex) sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+
+				// do the map call..
+				nHr = m_pcContextCurrent->Map(*ppcResource, *puSubresource, *psMapType, *puMapFlags, *ppsMappedResource);
+
+				// succeeded ?
+				if (nHr == S_OK)
+				{
+					// resize the vector if necessary
+					if (m_dwMappedBuffers >= (UINT)m_asMappedBuffers.size())
+						m_asMappedBuffers.resize(m_dwMappedBuffers + 1);
+
+					// set the mapped fields
+					m_asMappedBuffers[dwIndex].m_pcMappedResource = *ppcResource;
+					m_asMappedBuffers[dwIndex].m_psMappedResource = *ppsMappedResource;
+					m_asMappedBuffers[dwIndex].m_pMappedResourceData = (**ppsMappedResource).pData;
+					m_asMappedBuffers[dwIndex].m_dwMappedResourceDataSize = sDescDst.ByteWidth;
+					m_asMappedBuffers[dwIndex].m_eMapType = *psMapType;
+					m_asMappedBuffers[dwIndex].m_dwMapFlags = *puMapFlags;
+					m_asMappedBuffers[dwIndex].m_nMapRulesIndex = sRulesIndex.m_nRulesIndex;
+
+					// make buffer address homogenous
+					UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwIndex].m_pchBuffer11;
+					dwAddress |= 0xff; dwAddress++;
+					(**ppsMappedResource).pData = (LPVOID)dwAddress;
+
+					// update number of mapped Buffers
+					m_dwMappedBuffers++;
+				}
+
+				// method replaced, immediately return
+				nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+			}
+		}
+	}
+	return nHr;
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::PSGetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::PSGetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::PSGetConstantBuffers]);
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::PSSetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::PSSetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::PSSetConstantBuffers]);
+	D3D11_MTH_PARAM(UINT, puStartSlot, 0, *);
+	D3D11_MTH_PARAM(UINT, puNumBuffers, 1, *);
+	D3D11_MTH_PARAM(ID3D11Buffer, pppcConstantBuffers, 2, ***);
+
+	if (!puStartSlot) return;
+	if (!puNumBuffers) return;
+	if (!pppcConstantBuffers) return;
+	if (!*pppcConstantBuffers) return;
+	if (!**pppcConstantBuffers) return;
+	{
+		// call base method
+		XSSetConstantBuffers(m_pcContextCurrent, m_apcPSActiveConstantBuffers11, *puStartSlot, *puNumBuffers, *pppcConstantBuffers, Vireio_Supported_Shaders::PixelShader);
+
+		// call super method
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			m_pcContextCurrent->PSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[*puStartSlot] + BUFFER_REGISTER_L);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+		else
+		{
+			m_pcContextCurrent->PSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[(*puStartSlot) + BUFFER_REGISTER_R]);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::PSSetShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::PSSetShader]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::PSSetShader]);
+	D3D11_MTH_PARAM(ID3D11PixelShader, ppcPixelShader, 0, **);
+	D3D11_MTH_PARAM(ID3D11ClassInstance, pppcClassInstances, 1, ***);
+	D3D11_MTH_PARAM(UINT, puNumClassInstances, 2, *);
+
+	if (!ppcPixelShader)
+	{
+		//m_pcActivePixelShader11 = nullptr;
+		return;
+	}
+	if (!*ppcPixelShader)
+	{
+		//m_pcActivePixelShader11 = nullptr;
+		return;
+	}
+	else
+	{
+		// loop through active constant buffers, get private data and update them accordingly to the new shader... TODO !! VERIFY ALL SHADERS
+		//for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+		//if (m_apcPSActiveConstantBuffers11[dwIndex])
+		//{
+		//// verify buffer
+		//VerifyConstantBuffer(m_apcPSActiveConstantBuffers11[dwIndex], dwIndex);
+		//}
+
+		// currently chosen ?
+		if (m_dwCurrentChosenShaderHashCode)
+		{
+			// get the current shader hash
+			Vireio_Shader_Private_Data sPrivateData;
+			UINT dwDataSize = sizeof(sPrivateData);
+			(*ppcPixelShader)->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+			// set null shader if hash matches
+			if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
+			{
+				// call super method
+				m_pcContextCurrent->PSSetShader(nullptr, nullptr, NULL);
+
+				// method replaced, immediately return
+				nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+			}
+		}
+
+		// sort shader list ?
+		if (m_bSortShaderList)
+		{
+			// get the current shader hash
+			Vireio_Shader_Private_Data sPrivateData;
+			UINT dwDataSize = sizeof(sPrivateData);
+			(*ppcPixelShader)->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+			// get shader index
+			for (UINT dwI = 1; dwI < (UINT)m_adwPShaderHashCodes.size(); dwI++)
+			{
+				if (sPrivateData.dwHash == m_adwPShaderHashCodes[dwI])
+				{
+					// move one forward
+					std::string szBuf = m_aszPShaderHashCodes[dwI - 1];
+					m_aszPShaderHashCodes[dwI - 1] = m_aszPShaderHashCodes[dwI];
+					m_aszPShaderHashCodes[dwI] = szBuf;
+
+					UINT dwBuf = m_adwPShaderHashCodes[dwI - 1];
+					m_adwPShaderHashCodes[dwI - 1] = m_adwPShaderHashCodes[dwI];
+					m_adwPShaderHashCodes[dwI] = dwBuf;
+
+					// end search;
+					dwI = (UINT)m_adwPShaderHashCodes.size();
+				}
+			}
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::Unmap(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::Unmap]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::Unmap]);
+	D3D11_MTH_PARAM(ID3D11Resource, ppcResource, 0, **);
+	D3D11_MTH_PARAM(UINT, puSubresource, 1, *);
+
+	if (!ppcResource) return;
+	if (!puSubresource) return;
+	if (!*ppcResource) return;
+	{
+		// buffers mapped actually ?
+		if (m_dwMappedBuffers)
+		{
+			// loop through all possibly mapped constant buffers
+			for (UINT dwI = 0; dwI < (UINT)m_asMappedBuffers.size(); dwI++)
+			{
+				// continue only if mapped resource data present and the resource pointer matches the stored pointer
+				if ((m_asMappedBuffers[dwI].m_pcMappedResource) && (*ppcResource == m_asMappedBuffers[dwI].m_pcMappedResource))
+				{
+					// get homogenous address
+					UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwI].m_pchBuffer11;
+					dwAddress |= 0xff; dwAddress++;
+
+					// do modification only if shader rule assigned !!
+					if ((m_asMappedBuffers[dwI].m_nMapRulesIndex >= 0))
+					{
+						// do modification, first copy to right buffer
+						memcpy(m_pchBuffer11Right, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
+						DoBufferModification(m_asMappedBuffers[dwI].m_nMapRulesIndex, dwAddress, (UINT_PTR)m_pchBuffer11Right, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
+					}
+
+					// copy the stored data...
+					memcpy(m_asMappedBuffers[dwI].m_pMappedResourceData, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
+
+					// do the unmap call..
+					m_pcContextCurrent->Unmap(*ppcResource, *puSubresource);
+
+					// update right buffer only if shader rule assigned !!
+					if ((m_asMappedBuffers[dwI].m_nMapRulesIndex >= 0))
+					{
+						// get the private data interface
+						ID3D11Buffer* pcBuffer = nullptr;
+						UINT dwSize = sizeof(pcBuffer);
+						(*ppcResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+						if (pcBuffer)
+						{
+							// update right buffer
+							D3D11_MAPPED_SUBRESOURCE sMapped;
+							if (SUCCEEDED(m_pcContextCurrent->Map((ID3D11Resource*)pcBuffer, *puSubresource, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, NULL, &sMapped)))
+							{
+								memcpy(sMapped.pData, (LPVOID)m_pchBuffer11Right, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
+								m_pcContextCurrent->Unmap((ID3D11Resource*)pcBuffer, *puSubresource);
+							}
+
+							pcBuffer->Release();
+						}
+					}
+
+					// set mapped resource data to zero
+					m_asMappedBuffers[dwI].m_pcMappedResource = nullptr;
+					m_asMappedBuffers[dwI].m_pMappedResourceData = nullptr;
+					m_asMappedBuffers[dwI].m_dwMappedResourceDataSize = 0;
+					m_asMappedBuffers[dwI].m_psMappedResource = nullptr;
+
+					// update number of mapped Buffers
+					m_dwMappedBuffers--;
+
+					// method replaced, immediately return
+					nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+					return;
+				}
+			}
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::UpdateSubresource(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::UpdateSubresource]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::UpdateSubresource]);
+	D3D11_MTH_PARAM(ID3D11Resource, ppcDstResource, 0, **);
+	D3D11_MTH_PARAM(UINT, puDstSubresource, 1, *);
+	D3D11_MTH_PARAM(D3D11_BOX, ppsDstBox, 2, **);
+	D3D11_MTH_PARAM(void, ppvSrcData, 3, **);
+	D3D11_MTH_PARAM(UINT, puSrcRowPitch, 4, *);
+	D3D11_MTH_PARAM(UINT, puSrcDepthPitch, 5, *);
+	if (!*ppcDstResource) return;
+	if (!*ppvSrcData) return;
+
+	// is this a buffer ?
+	D3D11_RESOURCE_DIMENSION eDimension;
+	(*ppcDstResource)->GetType(&eDimension);
+	if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+	{
+		// is this a constant buffer ?
+		D3D11_BUFFER_DESC sDesc;
+		((ID3D11Buffer*)*ppcDstResource)->GetDesc(&sDesc);
+		if ((sDesc.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+		{
+			// get shader rules index
+			Vireio_Buffer_Rules_Index sRulesIndex;
+			sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+			sRulesIndex.m_dwUpdateCounter = 0;
+			UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+			((ID3D11Buffer*)*ppcDstResource)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+
+			// do modification and update right buffer only if shader rule assigned !!
+			if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
+			{
+				// get the private data interface
+				ID3D11Buffer* pcBuffer = nullptr;
+				UINT dwSize = sizeof(pcBuffer);
+				((ID3D11Buffer*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+				if (pcBuffer)
+				{
+					// do the modification, first copy to buffers
+					memcpy(m_pchBuffer11Left, *ppvSrcData, sDesc.ByteWidth);
+					memcpy(m_pchBuffer11Right, *ppvSrcData, sDesc.ByteWidth);
+					DoBufferModification(sRulesIndex.m_nRulesIndex, (UINT_PTR)m_pchBuffer11Left, (UINT_PTR)m_pchBuffer11Right, sDesc.ByteWidth);
+
+					// update left + right buffer
+					m_pcContextCurrent->UpdateSubresource(*ppcDstResource, *puDstSubresource, *ppsDstBox, m_pchBuffer11Left, *puSrcRowPitch, *puSrcDepthPitch);
+					m_pcContextCurrent->UpdateSubresource((ID3D11Resource*)pcBuffer, *puDstSubresource, *ppsDstBox, m_pchBuffer11Right, *puSrcRowPitch, *puSrcDepthPitch);
+
+					pcBuffer->Release();
+
+					// method replaced, immediately return
+					nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+				}
+			}
+		}
+		else
+		{
+			// get the private data interface
+			ID3D11Buffer* pcBuffer = nullptr;
+			UINT dwSize = sizeof(pcBuffer);
+			((ID3D11Buffer*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+			if (pcBuffer)
+			{
+				// update right buffer
+				m_pcContextCurrent->UpdateSubresource((ID3D11Resource*)pcBuffer, *puDstSubresource, *ppsDstBox, *ppvSrcData, *puSrcRowPitch, *puSrcDepthPitch);
+				pcBuffer->Release();
+			}
+
+		}
+	}
+	else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
+	{
+		// get the stereo twin of the resource (texture)
+		ID3D11Resource* pcResourceTwin = nullptr;
+		UINT dwSize = sizeof(pcResourceTwin);
+		((ID3D11Resource*)*ppcDstResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+		if (pcResourceTwin)
+		{
+			// update stereo twin
+			m_pcContextCurrent->UpdateSubresource(pcResourceTwin, *puDstSubresource, *ppsDstBox, *ppvSrcData, *puSrcRowPitch, *puSrcDepthPitch);
+			pcResourceTwin->Release();
+		}
+
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::VSGetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::VSGetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::VSGetConstantBuffers]);
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::VSSetConstantBuffers(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::VSSetConstantBuffers]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::VSSetConstantBuffers]);
+	D3D11_MTH_PARAM(UINT, puStartSlot, 0, *);
+	D3D11_MTH_PARAM(UINT, puNumBuffers, 1, *);
+	D3D11_MTH_PARAM(ID3D11Buffer, pppcConstantBuffers, 2, ***);
+
+	if (!puStartSlot) return;
+	if (!puNumBuffers) return;
+	if (!pppcConstantBuffers) return;
+	if (!*pppcConstantBuffers) return;
+	if (!**pppcConstantBuffers) return;
+	{
+		// get current shader hash code if there is a shader chosen
+		static Vireio_Shader_Private_Data sPrivateData = { 0 };
+		static UINT dwChosenOld = 0;
+		if ((m_dwCurrentChosenShaderHashCode) || (m_bBufferIndexDebug))
+		{
+			if (m_dwCurrentChosenShaderHashCode)
+			{
+				// get the current shader hash
+				UINT dwDataSize = sizeof(sPrivateData);
+				if (m_pcActiveVertexShader11)
+					m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+				else ZeroMemory(&sPrivateData, sizeof(Vireio_Shader_Private_Data));
+
+				// output shader debug data as long as the chosen shader is set
+				if (dwChosenOld == 0) dwChosenOld = m_dwCurrentChosenShaderHashCode;
+				if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
+				{
+					std::stringstream strStream = std::stringstream();
+					strStream << L"VSSetConstantBuffers : " << sPrivateData.dwHash;
+					m_aszDebugTrace.push_back(strStream.str().c_str());
+				}
+			}
+			if (m_bBufferIndexDebug)
+			{
+				// get buffer index
+				UINT dwBufferIndex = 0;
+				std::stringstream sz = std::stringstream(m_sPageGameShaderRules.m_szBufferIndex);
+				sz >> dwBufferIndex;
+
+				// is this index set ?
+				if ((dwBufferIndex >= *puStartSlot) && (dwBufferIndex < (*puStartSlot + *puNumBuffers)))
+				{
+					UINT dwIndex = dwBufferIndex - *puStartSlot;
+					if ((*pppcConstantBuffers)[dwIndex])
+					{
+						// get the buffer description
+						D3D11_BUFFER_DESC sDesc;
+						((*pppcConstantBuffers)[dwIndex])->GetDesc(&sDesc);
+
+						// already enlisted ? else enlist and output on debug trace
+						auto it = std::find(m_aunBufferIndexSizesDebug.begin(), m_aunBufferIndexSizesDebug.end(), sDesc.ByteWidth);
+						if (it == m_aunBufferIndexSizesDebug.end())
+						{
+							// output to debug trace
+							std::stringstream strStream = std::stringstream();
+							strStream << L"Buffer Index: " << dwBufferIndex << " Size:" << sDesc.ByteWidth;
+							m_aszDebugTrace.push_back(strStream.str().c_str());
+
+							// add to vector
+							m_aunBufferIndexSizesDebug.push_back(sDesc.ByteWidth);
+						}
+					}
+				}
+			}
+		}
+		else dwChosenOld = 0;
+
+		// call base method
+		XSSetConstantBuffers(m_pcContextCurrent, m_apcVSActiveConstantBuffers11, *puStartSlot, *puNumBuffers, *pppcConstantBuffers, Vireio_Supported_Shaders::VertexShader);
+
+		// call super method
+		if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+		{
+			m_pcContextCurrent->VSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[*puStartSlot + BUFFER_REGISTER_L]);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+		else
+		{
+			m_pcContextCurrent->VSSetConstantBuffers(*puStartSlot,
+				*puNumBuffers,
+				(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[(*puStartSlot) + BUFFER_REGISTER_R]);
+
+			// method replaced, immediately return
+			nFlags = (int)AQU_PluginFlags::ImmediateReturnFlag;
+		}
+	}
+}
+
+/// <summary>D3D11 method call</summary>
+void MatrixModifier::VSSetShader(int& nFlags)
+{
+	if (!m_ppInput[(int)STS_Decommanders::VSSetShader]) return;
+	void** ppIn = (void**)(m_ppInput[(int)STS_Decommanders::VSSetShader]);
+	D3D11_MTH_PARAM(ID3D11VertexShader, ppcVertexShader, 0, **);
+	D3D11_MTH_PARAM(ID3D11ClassInstance, pppcClassInstances, 1, ***);
+	D3D11_MTH_PARAM(UINT, puNumClassInstances, 2, *);
+
+	if (!ppcVertexShader)
+	{
+		m_pcActiveVertexShader11 = nullptr;
+		return;
+	}
+	if (!*ppcVertexShader)
+	{
+		m_pcActiveVertexShader11 = nullptr;
+		return;
+	}
+	else
+	{
+		// set the active vertex shader
+		m_pcActiveVertexShader11 = *ppcVertexShader;
+
+		// loop through active constant buffers, get private data and update them accordingly to the new shader
+		for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+			if (m_apcVSActiveConstantBuffers11[dwIndex])
+			{
+				// verify buffer
+				VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex, Vireio_Supported_Shaders::VertexShader);
+			}
+
+		// get the current shader hash
+		Vireio_Shader_Private_Data sPrivateData;
+		UINT dwDataSize = sizeof(sPrivateData);
+		if (m_pcActiveVertexShader11)
+			m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+		// set secondary render target if hash matches .. to be verified !!
+		/*if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
+		{
+			// output shader debug data
+			static UINT dwChosenOld = 0;
+			if (dwChosenOld != m_dwCurrentChosenShaderHashCode)
+			{
+				std::stringstream strStream;
+				strStream << "Hash:" << sPrivateData.dwHash;
+				m_aszDebugTrace.push_back(strStream.str().c_str());
+				for (UINT dwI = 0; dwI < (UINT)m_asVShaders[sPrivateData.dwIndex].asBuffers.size(); dwI++)
+				{
+					strStream = std::stringstream();
+					strStream << "Name:" << m_asVShaders[sPrivateData.dwIndex].asBuffers[dwI].szName << "::Size:" << m_asVShaders[sPrivateData.dwIndex].asBuffers[dwI].dwSize;
+					m_aszDebugTrace.push_back(strStream.str().c_str());
+				}
+				for (UINT dwI = 0; dwI < (UINT)m_asVShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size(); dwI++)
+				{
+					strStream = std::stringstream();
+					strStream <<L"Reg:" << m_asVShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwRegister << "::Size:" << m_asVShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwSize;
+					m_aszDebugTrace.push_back(strStream.str().c_str());
+				}
+
+				dwChosenOld = m_dwCurrentChosenShaderHashCode;
+
+				for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
+					if (m_apcVSActiveConstantBuffers11[dwI])
+					{
+						// get shader rules index
+						Vireio_Buffer_Rules_Index sRulesIndex;
+						sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+						sRulesIndex.m_dwUpdateCounter = 0;
+						UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+						m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+
+						D3D11_BUFFER_DESC sDesc;
+						m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
+						strStream = std::stringstream();
+						strStream << "Buffer Size [" << dwI << "]:" << sDesc.ByteWidth << " RuleInd:" << sRulesIndex.m_nRulesIndex;
+						m_aszDebugTrace.push_back(strStream.str().c_str());
+					}
+			}
+
+			// secondary render target present ?
+			if (!m_pcSecondaryRenderTarget11)
+			{
+				// get device
+				ID3D11Device* pcDevice = nullptr;
+				m_pcContextCurrent->GetDevice(&pcDevice);
+				if (pcDevice)
+				{
+					// get the viewport
+					UINT unNumViewports = 1;
+					D3D11_VIEWPORT sViewport;
+					m_pcContextCurrent->RSGetViewports(&unNumViewports, &sViewport);
+
+					if (unNumViewports)
+					{
+						// fill the description
+						D3D11_TEXTURE2D_DESC sDescTex;
+						sDescTex.Width = (UINT)sViewport.Width;
+						sDescTex.Height = (UINT)sViewport.Height;
+						sDescTex.MipLevels = 1;
+						sDescTex.ArraySize = 1;
+						sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+						sDescTex.SampleDesc.Count = 1;
+						sDescTex.SampleDesc.Quality = 0;
+						sDescTex.Usage = D3D11_USAGE_DEFAULT;
+						sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+						sDescTex.CPUAccessFlags = 0;
+						sDescTex.MiscFlags = 0;
+
+						// create secondary render target
+						pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
+						if (m_pcSecondaryRenderTarget11)
+						{
+							// create render target view
+							if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
+								OutputDebugString(L"[MAM] Failed to create secondary render target view.");
+
+							// create shader resource view
+							if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
+								OutputDebugString(L"[MAM] Failed to create secondary render target shader resource view.");
+						}
+						else OutputDebugString(L"[MAM] Failed to create secondary render target !");
+					}
+					else OutputDebugString(L"[MAM] No Viewport present !");
+
+					pcDevice->Release();
+				}
+			}
+
+			// set secondary render target
+			m_pcContextCurrent->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
+		}*/
+
+		// loop through fetched hash codes .. to be verified !!
+		/*for (UINT unI = 0; unI < (UINT)m_aunFetchedHashCodes.size(); unI++)
+		{
+			// switch render targets
+			if ((sPrivateData.dwHash == m_aunFetchedHashCodes[unI]))
+			{
+				// secondary render target present ?
+				if (!m_pcSecondaryRenderTarget11)
+				{
+					// get device
+					ID3D11Device* pcDevice = nullptr;
+					m_pcContextCurrent->GetDevice(&pcDevice);
+					if (pcDevice)
+					{
+						// get the viewport
+						UINT unNumViewports = 1;
+						D3D11_VIEWPORT sViewport;
+						m_pcContextCurrent->RSGetViewports(&unNumViewports, &sViewport);
+
+						if (unNumViewports)
+						{
+							// fill the description
+							D3D11_TEXTURE2D_DESC sDescTex;
+							sDescTex.Width = (UINT)sViewport.Width;
+							sDescTex.Height = (UINT)sViewport.Height;
+							sDescTex.MipLevels = 1;
+							sDescTex.ArraySize = 1;
+							sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+							sDescTex.SampleDesc.Count = 1;
+							sDescTex.SampleDesc.Quality = 0;
+							sDescTex.Usage = D3D11_USAGE_DEFAULT;
+							sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+							sDescTex.CPUAccessFlags = 0;
+							sDescTex.MiscFlags = 0;
+
+							// create secondary render target
+							pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
+							if (m_pcSecondaryRenderTarget11)
+							{
+								// create render target view
+								if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
+									OutputDebugString(L"[MAM] Failed to create secondary render target view.");
+
+								// create shader resource view
+								if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
+									OutputDebugString(L"[MAM] Failed to create secondary render target shader resource view.");
+							}
+							else OutputDebugString(L"[MAM] Failed to create secondary render target !");
+						}
+						else OutputDebugString(L"[MAM] No Viewport present !");
+
+						pcDevice->Release();
+					}
+				}
+
+				// set secondary render target
+				if (m_sModifierData.eCurrentRenderingSide == RenderPosition::Left)
+					m_pcContextCurrent->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+				else
+					m_pcContextCurrent->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
+			}
+		}*/
+
+		// sort shader list ?
+		if (m_bSortShaderList)
+		{
+			// get the current shader hash
+			Vireio_Shader_Private_Data sPrivateData;
+			UINT dwDataSize = sizeof(sPrivateData);
+			if (m_pcActiveVertexShader11)
+				m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+			// get shader index
+			for (UINT dwI = 1; dwI < (UINT)m_adwVShaderHashCodes.size(); dwI++)
+			{
+				if (sPrivateData.dwHash == m_adwVShaderHashCodes[dwI])
+				{
+					// move one forward
+					std::string szBuf = m_aszVShaderHashCodes[dwI - 1];
+					m_aszVShaderHashCodes[dwI - 1] = m_aszVShaderHashCodes[dwI];
+					m_aszVShaderHashCodes[dwI] = szBuf;
+
+					UINT dwBuf = m_adwVShaderHashCodes[dwI - 1];
+					m_adwVShaderHashCodes[dwI - 1] = m_adwVShaderHashCodes[dwI];
+					m_adwVShaderHashCodes[dwI] = dwBuf;
+
+					// end search;
+					dwI = (UINT)m_adwVShaderHashCodes.size();
+				}
+			}
+		}
+	}
+}
+
+#pragma endregion
+#elif defined(VIREIO_D3D10)
 #pragma region /// => D3D10 methods
 #pragma endregion
 #else
@@ -4461,7 +4973,7 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	{
 		Vireio_D3D9_Shader sShaderDesc = {};
 		sShaderDesc.uHash = (UINT)uHash;
-		sShaderDesc.acCreator = std::string((char*)&acFunction[uCreatorIx]);
+		sShaderDesc.atCreator = std::string((char*)&acFunction[uCreatorIx]);
 
 		// get the constant descriptions from that shader
 		sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(asConstantDesc.begin(), asConstantDesc.end());
@@ -4499,8 +5011,8 @@ HRESULT MatrixModifier::CreateVertexShader(int& nFlags)
 	{ wchar_t buf[128]; wsprintf(buf, L"Hash %x:Size %u:CrIx %u", uHash, uSizeOfData, uCreatorIx); OutputDebugString(buf); }
 	if (uCreatorIx)
 	{
-		std::string acCreator = std::string((char*)&acFunction[uCreatorIx]);
-		OutputDebugStringA(acCreator.c_str());
+		std::string atCreator = std::string((char*)&acFunction[uCreatorIx]);
+		OutputDebugStringA(atCreator.c_str());
 	}
 #endif		
 
@@ -4591,7 +5103,7 @@ HRESULT MatrixModifier::CreatePixelShader(int& nFlags)
 	{
 		Vireio_D3D9_Shader sShaderDesc = {};
 		sShaderDesc.uHash = (UINT)uHash;
-		sShaderDesc.acCreator = std::string((char*)&acFunction[uCreatorIx]);
+		sShaderDesc.atCreator = std::string((char*)&acFunction[uCreatorIx]);
 
 		// get the constant descriptions from that shader
 		sShaderDesc.asConstantDescriptions = std::vector<SAFE_D3DXCONSTANT_DESC>(asConstantDesc.begin(), asConstantDesc.end());
@@ -4629,8 +5141,8 @@ HRESULT MatrixModifier::CreatePixelShader(int& nFlags)
 	{ wchar_t buf[128]; wsprintf(buf, L"Hash %x:Size %u:CrIx %u", uHash, uSizeOfData, uCreatorIx); OutputDebugString(buf); }
 	if (uCreatorIx)
 	{
-		std::string acCreator = std::string((char*)&acFunction[uCreatorIx]);
-		OutputDebugStringA(acCreator.c_str());
+		std::string atCreator = std::string((char*)&acFunction[uCreatorIx]);
+		OutputDebugStringA(atCreator.c_str());
 	}
 #endif		
 

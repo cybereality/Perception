@@ -169,10 +169,10 @@ inline HRESULT ParseShaderFunction(uint32_t* acFunc, uint32_t& uSizeOfData, uint
 					return E_ABORT;
 
 				// get creator name
-				std::string acCreator = (const char*)acCTAB + sCTable->uCreator;
+				std::string atCreator = (const char*)acCTAB + sCTable->uCreator;
 
 				// only provide creator string if size min 16
-				if (acCreator.length() >= 16)
+				if (atCreator.length() >= 16)
 					uCreatorIx = sCTable->uCreator + (uint32_t)UINT_PTR(acCTAB) - (uint32_t)UINT_PTR(acFunc);
 
 				// get constants
@@ -271,10 +271,10 @@ inline uint32_t GetCreatorIndex(uint32_t* acFunc)
 					return E_ABORT;
 
 				// get creator name
-				std::string acCreator = (const char*)acCTAB + sCTable->uCreator;
+				std::string atCreator = (const char*)acCTAB + sCTable->uCreator;
 
 				// only provide creator string if size min 16
-				if (acCreator.length() >= 16)
+				if (atCreator.length() >= 16)
 					return sCTable->uCreator + (uint32_t)((UINT_PTR)acCTAB - (UINT_PTR)acFunc);
 			}
 			break;

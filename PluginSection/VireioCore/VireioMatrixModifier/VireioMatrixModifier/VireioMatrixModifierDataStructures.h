@@ -227,7 +227,7 @@ struct CreatorMod
 			char acHash[8];
 			char acIndex[4];
 		};
-		char acCreator[16];
+		char atCreator[16];
 	};
 };
 
@@ -336,7 +336,7 @@ struct Vireio_D3D11_Constant_Buffer_Unaccounted
 struct Vireio_Shader
 {
 	uint32_t    uVersion;   /**< Shader version ***/
-	std::string acCreator;  /**< Creator string (unmodified) ***/
+	std::string atCreator;  /**< Creator string (unmodified) ***/
 	uint32_t    uHash;      /**< This shaders hash code. ***/
 };
 
@@ -361,12 +361,12 @@ struct Vireio_D3D9_Shader : public Vireio_Shader
 /// </summary>
 struct Vireio_D3D11_Shader : public Vireio_Shader
 {
-	UINT                                                  dwConstantBuffers;                            /**< Number of constant buffers ***/
-	UINT                                                  dwBoundResources;                             /**< Number of bound resources ***/
-	UINT                                                  dwInputParameters;                            /**< Number of parameters in the input signature ***/
-	UINT                                                  dwOutputParameters;                           /**< Number of parameters in the output signature ***/
-	std::vector<Vireio_D3D11_Constant_Buffer>             asBuffers;                                    /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
-	std::vector<Vireio_D3D11_Constant_Buffer_Unaccounted> asBuffersUnaccounted;                         /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
+	UINT                                                  uConstantBuffers;                            /**< Number of constant buffers ***/
+	UINT                                                  uBoundResources;                             /**< Number of bound resources ***/
+	UINT                                                  uInputParameters;                            /**< Number of parameters in the input signature ***/
+	UINT                                                  uOutputParameters;                           /**< Number of parameters in the output signature ***/
+	std::vector<Vireio_D3D11_Constant_Buffer>             asBuffers;                                   /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
+	std::vector<Vireio_D3D11_Constant_Buffer_Unaccounted> asBuffersUnaccounted;                        /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
 };
 
 /// <summary>

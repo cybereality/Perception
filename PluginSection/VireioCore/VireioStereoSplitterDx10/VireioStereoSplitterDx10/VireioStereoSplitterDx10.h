@@ -333,10 +333,6 @@ private:
 		IDXGISwapChain* m_pcSwapChainCurrent;
 	};
 	/// <summary>
-	/// The used Direct3D version.
-	/// </summary>
-	D3DVersion m_eD3DVersion;
-	/// <summary>
 	/// The number of frames the constant buffers are to be verified.
 	/// </summary>
 	UINT m_dwVerifyConstantBuffers;
