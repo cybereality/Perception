@@ -147,13 +147,40 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\dependecies\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\dependecies\imgui\ImNodes.cpp" />
     <ClCompile Include="..\..\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\app.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\dependecies\imgui\imconfig.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_helpers.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\..\dependecies\imgui\ImNodes.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\..\dependecies\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\..\loadjpg.h" />
     <ClInclude Include="..\..\Resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\dependecies\imgui\imgui.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\dependecies\imgui\LICENSE" />
+    <None Include="..\..\dependecies\imgui\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\dependecies\imgui\LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

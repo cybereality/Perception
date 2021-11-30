@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include "Resource.h"
 #include "dependecies/json/json.hpp"
 #include ".\dependecies\imgui\imgui.h"
@@ -45,6 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include ".\dependecies\imgui\imgui_helpers.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "loadjpg.h"
 
 #define TRACE_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%u", L#a, a); OutputDebugString(buf); }
 #define TRACE_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%s:%x", L#a, a); OutputDebugString(buf); }
@@ -258,6 +260,23 @@ string StringToLower(const string& str)
 	return result;
 }
 
+/// <summary>bind raw texture data as texture in OpenGl (RGB => RGBA)</summary>
+void bindTexture(GLuint& uTxId, GLsizei uW, GLsizei uH, unsigned char* rgbpix)
+{
+	if (rgbpix == NULL)
+		return;
+
+	glGenTextures(1, &uTxId);
+	glBindTexture(GL_TEXTURE_2D, uTxId);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, uW, uH, 0, GL_RGB, GL_UNSIGNED_BYTE, rgbpix);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, uW, uH, GL_RGB, GL_UNSIGNED_BYTE, rgbpix);
+}
+
 #pragma endregion 
 
 #pragma region /// => main class / windows entry
@@ -269,7 +288,7 @@ private:
 	const LPCWSTR    m_atWindow_class_name{ L"perception" };
 	HINSTANCE        m_pvInstance_handle;
 	HCURSOR          m_pvCursor_arrow;
-	HWND             m_pvWindow_handle;
+	GLFWwindow* m_psWindow;
 	HWND             m_pvHeader_handle;
 	RECT             m_sClient_rectangle;
 	RECT             m_sExtended_profile_rectangle;
@@ -284,49 +303,78 @@ private:
 	static UINT        m_uLoadAquilinusProfile;   /**< The Load Profile Button. (184x69 - same as 'Steam' thumbnails)  ***/
 	static UINT        m_uMinimize;               /**< Minimize button. ***/
 	static UINT        m_uExit;                   /**< Exit button. ***/
-	static std::vector<std::wstring> m_aatGames;  /**< Game profiles strings ***/
+	static std::vector<std::string> m_aatGames;   /**< Game profiles strings ***/
 	static string      m_atAppVersion;            /**< Version string for the main app ***/
+	static int         m_nCpX, m_nCpY;
+	static int         m_nOffsetCpX, m_nOffsetCpY;
+	static int         m_nButtonEvent;
+	static GLuint      m_uLogoTexId;
+	static unsigned    m_uLogoW, m_uLogoH;
+	static int         m_nProfile_index, m_nHMD_index;
 
 public:
 	/// <summary>Window Constructor.</summary>
 	Vireio_Perception_Main_Window(HINSTANCE pvHinst)
 	{
+		// zero static members
+		m_nCpX = 0;
+		m_nCpY = 0;
+		m_nOffsetCpX = 0;
+		m_nOffsetCpY = 0;
+		m_nButtonEvent = 0;
+
 		// get screen and module handle
 		int nScreen_width = GetSystemMetrics(SM_CXFULLSCREEN);
 		int nScreen_height = GetSystemMetrics(SM_CYFULLSCREEN);
 		m_pvInstance_handle = pvHinst;
 
-		// register window class
-		WNDCLASS sWindow_class = { CS_OWNDC, main_window_proc, 0, 0,
-			m_pvInstance_handle, NULL,
-			NULL, NULL, NULL,
-			m_atWindow_class_name };
+		// glfw: initialize and configure
+		if (!glfwInit()) { OutputDebugString(L"[Perception] GLFW Init fail !"); return; }
+		const char* glsl_version = "#version 130";
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		sWindow_class.hIcon = LoadIcon(m_pvInstance_handle, MAKEINTRESOURCE(IDI_ICON_BIG));
-		if (!RegisterClass(&sWindow_class))
+		// glfw window creation
+		glfwWindowHint(GLFW_DECORATED, 0);
+		m_psWindow = glfwCreateWindow(APP_SIZE_WIDTH, APP_SIZE_HEIGHT, "Vireio Perception", NULL, NULL);
+		if (m_psWindow == NULL)
 		{
-			OutputDebugStringA("[Perception] Failed to create main window !");
+			OutputDebugString(L"[Perception] GLFW window creation failed !");
+			glfwTerminate();
 			return;
 		}
 
-		// create the window
-		m_pvWindow_handle = CreateWindowEx(WS_EX_COMPOSITED,
-			m_atWindow_class_name,
-			L"Vireio Perception",
-			WS_POPUP | WS_BORDER,
-			(nScreen_width - 585) / 2, (nScreen_height - 240) / 2,
-			APP_SIZE_WIDTH, APP_SIZE_HEIGHT,
-			NULL, NULL, m_pvInstance_handle, NULL);
+		// set size, position, callback methods, enable vsync
+		glfwSetWindowSizeLimits(m_psWindow, APP_SIZE_WIDTH, APP_SIZE_HEIGHT, APP_SIZE_WIDTH, APP_SIZE_HEIGHT);
+		glfwSetWindowPos(m_psWindow, (nScreen_width / 2) - (APP_SIZE_WIDTH), (nScreen_height / 8));
+		glfwMakeContextCurrent(m_psWindow);
+		glfwSetErrorCallback(Error_callback);
 
-		if (!m_pvWindow_handle)
+		// and init glew
+		bool err = glewInit() != GLEW_OK;
+		if (err)
 		{
-			OutputDebugStringA("[Perception] Failed to create main window !");
+			OutputDebugString(L"[Perception] Failed to initialize OpenGL loader!\n");
 			return;
 		}
 
-		GetClientRect(m_pvWindow_handle, &m_sClient_rectangle);
-		int width = m_sClient_rectangle.right - m_sClient_rectangle.left;
-		int height = m_sClient_rectangle.bottom - m_sClient_rectangle.top;
+		// setup ImGui
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui::ColorSchemeHex sScheme = { 0x4A4059,
+			0xA18093,
+			0xEC979A,
+			0xFDCAC9,
+			0xE8E8DE };
+		ImGui::StyleColorsByScheme(sScheme);
+		ImGui_ImplGlfw_InitForOpenGL(m_psWindow, true);
+		ImGui_ImplOpenGL3_Init(glsl_version);
+
+		// set callbacks
+		glfwSetFramebufferSizeCallback(m_psWindow, Viewport_callback);
+		glfwSetCursorPosCallback(m_psWindow, CursorPosition_callback);
+		glfwSetMouseButtonCallback(m_psWindow, MouseButton_callback);
 
 		// read json config file
 		json cConfig_json;
@@ -349,12 +397,9 @@ public:
 			return;
 		}
 #endif
-		UINT uProfile_index = 0;
-		UINT uHMD_index = 0;
-
 		// user settings
-		uProfile_index = cConfig_json.value("profile_index", 0);
-		uHMD_index = cConfig_json.value("hmd_index", 0);
+		m_nProfile_index = cConfig_json.value("profile_index", 0);
+		m_nHMD_index = cConfig_json.value("hmd_index", 0);
 
 		// game selection
 		m_asVireioGameProfiles = std::vector<VireioGameProfile>();
@@ -434,355 +479,107 @@ public:
 
 				// and add to list
 				m_asVireioGameProfiles.push_back(sProfile);
-				std::wstring szName = std::wstring(sProfile.atGameName.begin(), sProfile.atGameName.end());
-				m_aatGames.push_back(szName);
+				m_aatGames.push_back(sProfile.atGameName);
 			}
 		}
 
-		/*// Game selection
-		sControl.m_eControlType = Vireio_Control_Type::ListBox;
-		sControl.m_sPosition.x = 16;
-		sControl.m_sPosition.y = 168;
-		sControl.m_sSize.cx = 400;
-		sControl.m_sSize.cy = APP_SIZE_FONT * 7;
-		sControl.m_sListBox.m_bSelectable = true;
-		sControl.m_sListBox.m_nCurrentSelection = uProfileIndex;
-		sControl.m_sListBox.m_paszEntries = &m_aatGames;
-		m_uListGameProfiles = m_pcVireioGUI->AddControl(dwPage, sControl);
-
-		// spin control - HMD selection
-		static std::vector<std::wstring> m_aszHMD_Options;
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		m_aszHMD_Options.push_back(L"No HMD");
-		m_aszHMD_Options.push_back(L"LibOVR");
-		m_aszHMD_Options.push_back(L"OpenVR");
-		// OSVR deprecated -> m_aszHMD_Options.push_back(L"OSVR");
-		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
-		sControl.m_sPosition.x = 16;
-		sControl.m_sPosition.y = 128;
-		sControl.m_sSize.cx = 100;
-		sControl.m_sSize.cy = APP_SIZE_FONT + 12;
-		sControl.m_sSpinControl.m_dwCurrentSelection = uHMDIndex;
-		sControl.m_sSpinControl.m_paszEntries = &m_aszHMD_Options;
-		m_uSpinHMD = m_pcVireioGUI->AddControl(dwPage, sControl);
-
-		// create the main entries
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		static std::vector<std::wstring> sEntriesVersion;
-		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
-		sControl.m_sPosition.x = APP_SIZE_WIDTH - 270;
-		sControl.m_sPosition.y = APP_SIZE_HEIGHT - APP_SIZE_FONT - 6;
-		sControl.m_sSize.cx = APP_SIZE_WIDTH;
-		sControl.m_sSize.cy = APP_SIZE_HEIGHT - 100;
-		sControl.m_sStaticListBox.m_bSelectable = false;
-		sControl.m_sStaticListBox.m_paszEntries = &sEntriesVersion;
-		UINT dwVersion = m_pcVireioGUI->AddControl(dwPage, sControl);*/
-
+		// set version string
 		std::string atDate(__DATE__);
 		std::string atBuildDate = atDate.substr(4, 2) + "-" + atDate.substr(0, 3) + "-" + atDate.substr(7, 4);
-
-		// and add all entries
-		std::wstringstream szStream = std::wstringstream();
-		szStream << L"v" << APP_VERSION << " " << atBuildDate.c_str();
+		std::stringstream atStream = std::stringstream();
+		atStream << "v" << APP_VERSION << " " << atBuildDate.c_str();
 #ifdef _WIN64
-		szStream << L" 64bit";
+		atStream << " 64bit";
 #else
-		szStream << L" 32bit";
+		szStream << " 32bit";
 #endif
+		m_atAppVersion = atStream.str();
+		OutputDebugStringA(m_atAppVersion.c_str());
 
-		/*
-		#ifdef _VIREIO_3
-				// oculus entry... only for v3
-				ZeroMemory(&sControl, sizeof(Vireio_Control));
-				static std::vector<std::wstring> sEntriesOculus;
-				sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
-				sControl.m_sPosition.x = 16;
-				sControl.m_sPosition.y = 300;
-				sControl.m_sSize.cx = APP_SIZE_WIDTH;
-				sControl.m_sSize.cy = APP_SIZE_HEIGHT - 100;
-				sControl.m_sStaticListBox.m_bSelectable = false;
-				sControl.m_sStaticListBox.m_paszEntries = &sEntriesOculus;
-				UINT dwOculus = m_pcVireioGUI->AddControl(dwPage, sControl);
-				szStream = std::wstringstream();
-				if (oculusProfile.Name.size())
-				{
-					szStream << "Oculus Profile : " << oculusProfile.Name.c_str();
-					m_pcVireioGUI->AddEntry(dwOculus, szStream.str().c_str());
-				}
-		#else
-				// create the 'Load Aquilinus Profile' button
-				ZeroMemory(&sControl, sizeof(Vireio_Control));
-				static std::wstring szLoadProfile = std::wstring(L"   Vireio Profile");
-				sControl.m_eControlType = Vireio_Control_Type::Button;
-				sControl.m_sPosition.x = 452;
-				sControl.m_sPosition.y = 128;
-				sControl.m_sSize.cx = 184 + 12;
-				sControl.m_sSize.cy = 69 + 12;
-				sControl.m_sButton.m_pszText = &szLoadProfile;
-				m_uLoadAquilinusProfile = m_pcVireioGUI->AddControl(dwPage, sControl);
-		#endif
-				// create the 'x'(=exit) button
-				ZeroMemory(&sControl, sizeof(Vireio_Control));
-				static std::wstring szX = std::wstring(L"x");
-				sControl.m_eControlType = Vireio_Control_Type::Button;
-				sControl.m_sPosition.x = APP_SIZE_WIDTH - 18;
-				sControl.m_sPosition.y = 97;
-				sControl.m_sSize.cx = 17;
-				sControl.m_sSize.cy = 17;
-				sControl.m_sButton.m_pszText = &szX;
-				m_uExit = m_pcVireioGUI->AddControl(dwPage, sControl);
+		// load logo file (jpg)
+		FILE* fp;
+		unsigned int lengthOfFile = 0;
+		unsigned char* buf;
+		unsigned char* rgbpix = NULL;
+		fopen_s(&fp, "..//..//img//logo.jpg", "rb");
+		if (fp == NULL)
+		{
+			OutputDebugStringA("[Perception] Failed to open img//logo.jpg");
+			return;
+		}
+		lengthOfFile = FileSize(fp);
+		buf = new unsigned char[lengthOfFile + 4];
+		if (buf == NULL)
+		{
+			OutputDebugStringA("[Perception] Not enough memory for loading file\n");
+			return;
+		}
+		fread(buf, lengthOfFile, 1, fp);
+		fclose(fp);
+		DecodeJpgFileData(buf, lengthOfFile, &rgbpix, &m_uLogoW, &m_uLogoH);
 
-				// create the '_'(=minimize) button
-				ZeroMemory(&sControl, sizeof(Vireio_Control));
-				static std::wstring szMin = std::wstring(L"~");
-				sControl.m_eControlType = Vireio_Control_Type::Button;
-				sControl.m_sPosition.x = APP_SIZE_WIDTH - 36;
-				sControl.m_sPosition.y = 97;
-				sControl.m_sSize.cx = 17;
-				sControl.m_sSize.cy = 17;
-				sControl.m_sButton.m_pszText = &szMin;
-				m_uMinimize = m_pcVireioGUI->AddControl(dwPage, sControl);
-				*/
-
-				// load the logo
-		m_pvLogo_bitmap = (HBITMAP)LoadImage(NULL, L"..//img//logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		OutputDebugStringA("Load the bitmap\n");
-
-		SetCursor(LoadCursor(NULL, IDC_ARROW));
-		ShowWindow(m_pvWindow_handle, SW_SHOW);
-		UpdateWindow(m_pvWindow_handle);
+		// bind raw bitmap data to texture id
+		bindTexture(m_uLogoTexId, (GLsizei)m_uLogoW, (GLsizei)m_uLogoH, rgbpix);
 	}
 	~Vireio_Perception_Main_Window() { UnregisterClass(m_atWindow_class_name, m_pvInstance_handle); }
 
-	/*** Vireio_Perception_Main_Window public members ***/
-	static LRESULT WINAPI main_window_proc(HWND pvWindow_handle, UINT uMessage, WPARAM uWparam, LPARAM uLparam)
+	/// <summary>
+	/// Viewport callback.
+	/// </summary>
+	static void Viewport_callback(GLFWwindow * psWindow, int width, int height)
 	{
-		switch (uMessage)
+		glViewport(0, 0, width, height);
+	}
+
+	/// <summary>
+	/// Cursor position callback.
+	/// </summary>
+	static void CursorPosition_callback(GLFWwindow * psWindow, double x, double y)
+	{
+		if ((m_nButtonEvent == 1) && ((y < (double)m_uLogoH) || (m_nButtonEvent == 1)))
 		{
-		case WM_LBUTTONDOWN:
-		{
-			// get the mouse cursor position
-			m_psMouseCursor.x = (LONG)GET_X_LPARAM(uLparam);
-			m_psMouseCursor.y = (LONG)GET_Y_LPARAM(uLparam);
-			break;
+			m_nOffsetCpX = (int)x - m_nCpX;
+			m_nOffsetCpY = (int)y - m_nCpY;
 		}
-		case WM_MOUSEMOVE:
-			// move the window ?
-			if (uWparam & MK_LBUTTON)
-			{
-				// get new mouse cursor point
-				LONG nX = (LONG)GET_X_LPARAM(uLparam);
-				LONG nY = (LONG)GET_Y_LPARAM(uLparam);
-
-				if (m_psMouseCursor.y < 94)
-				{
-					// get the difference to the old position set only in WM_LBUTTONDOWN
-					nX -= m_psMouseCursor.x;
-					nY -= m_psMouseCursor.y;
-
-					// get the old window position
-					RECT rcWnd;
-					GetWindowRect(pvWindow_handle, &rcWnd);
-
-					// set the new window position
-					SetWindowPos(pvWindow_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
-				}
-			}
-			UpdateWindow(pvWindow_handle);
-			return 0;
-		case WM_CLOSE:
-			PostQuitMessage(0);
-			break;
-		default:
-			return DefWindowProc(pvWindow_handle, uMessage, uWparam, uLparam);
-		}
-		return 0;
 	}
-	void run()
+
+	/// <summary>
+	/// Mouse button callback.
+	/// </summary>
+	static void MouseButton_callback(GLFWwindow * psWindow, int button, int action, int mods)
 	{
-		MSG window_message;
-		while (GetMessage(&window_message, NULL, 0, 0)) { TranslateMessage(&window_message); DispatchMessage(&window_message); }
-	}
-};
-
-/*** Vireio_Perception_Main_Window static fields ***/
-POINT       Vireio_Perception_Main_Window::m_psMouseCursor;
-HBITMAP     Vireio_Perception_Main_Window::m_pvLogo_bitmap;
-HBITMAP     Vireio_Perception_Main_Window::m_apvButton_bitmap[6];
-UINT        Vireio_Perception_Main_Window::m_uListGameProfiles;
-UINT        Vireio_Perception_Main_Window::m_uSpinHMD;
-UINT        Vireio_Perception_Main_Window::m_uSpinStereoView;
-UINT        Vireio_Perception_Main_Window::m_uSpinTracker;
-UINT        Vireio_Perception_Main_Window::m_uSpinMonitor;
-UINT        Vireio_Perception_Main_Window::m_uLoadAquilinusProfile;
-UINT        Vireio_Perception_Main_Window::m_uExit;
-UINT        Vireio_Perception_Main_Window::m_uMinimize;
-std::vector<std::wstring> Vireio_Perception_Main_Window::m_aatGames;
-string      Vireio_Perception_Main_Window::m_atAppVersion;
-
-/**
-* Main window procedure.
-***/
-LRESULT WINAPI ___main_window_proc(HWND pvWindow_handle, UINT uMessage, WPARAM uWparam, LPARAM uLparam)
-{
-	switch (uMessage)
-	{
-	case WM_CLOSE:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(pvWindow_handle, uMessage, uWparam, uLparam);
-	}
-	return 0;
-
-	/*switch (uMessage)
-	{
-	case WM_DESTROY: PostQuitMessage(0); return 0;
-	case WM_PAINT: { return 0; }
-	default: return 0;
-	}
-	return DefWindowProc(pvWindow_handle, uMessage, uWparam, uLparam);*/
-
-	// call vireio gui class for all mouse actions
-	/*if ((message == WM_KEYDOWN) || (message == WM_KEYUP) || (message == WM_LBUTTONDOWN) || (message == WM_LBUTTONUP) || (message == WM_MOUSEMOVE))
-	{
-		Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(message, wparam, lparam, 1);
-
-		switch (sEvent.eType)
-		{
-		case ChangedToNext:
-		case ChangedToPrevious:
-		case ChangedToValue:
-#ifdef _VIREIO_3
-			if (sEvent.dwIndexOfControl == m_dwSpinStereoView)
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			double x, y;
+			glfwGetCursorPos(psWindow, &x, &y);
+			if (y < (double)m_uLogoH)
 			{
-				ProxyHelper helper = ProxyHelper();
-				helper.SaveUserConfig(anStereoModes[sEvent.dwNewValue]);
-			}
-			else if (sEvent.dwIndexOfControl == m_dwSpinTracker)
-			{
-				ProxyHelper helper = ProxyHelper();
-				helper.SaveTrackerMode(anTrackerModes[sEvent.dwNewValue]);
-			}
-			else if (sEvent.dwIndexOfControl == m_dwSpinMonitor)
-			{
-				ProxyHelper helper = ProxyHelper();
-				helper.SaveDisplayAdapter(anMonitors[sEvent.dwNewValue]);
-			}
-#else
-			if (sEvent.dwIndexOfControl == m_uListGameProfiles)
-			{
-				// get global config
-#ifdef _WIN64
-				string configPath = string("..\\cfg_v4\\config_64bit.xml");
-#else
-				string configPath = string("..\\cfg_v4\\config_32bit.xml");
-#endif
-				xml_document docConfig;
-				xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
-
-				if (resultConfig.status == status_ok)
-				{
-					xml_node xml_config = docConfig.child("config");
-
-					if (sEvent.dwNewValue < (UINT)m_asVireioGameProfiles.size())
-						xml_config.attribute("profile_index") = sEvent.dwNewValue;
-
-					docConfig.save_file(configPath.c_str());
-				}
-			}
-			if (sEvent.dwIndexOfControl == m_uSpinHMD)
-			{
-				// get global config
-#ifdef _WIN64
-				string configPath = string("..\\cfg_v4\\config_64bit.xml");
-#else
-				string configPath = string("..\\cfg_v4\\config_32bit.xml");
-#endif
-				xml_document docConfig;
-				xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
-
-				if (resultConfig.status == status_ok)
-				{
-					xml_node xml_config = docConfig.child("config");
-
-					if (sEvent.dwNewValue < 4)
-						xml_config.attribute("hmd_index") = sEvent.dwNewValue;
-
-					docConfig.save_file(configPath.c_str());
-				}
-				}
-#endif
-			break;
-		case Pressed:
-			if (sEvent.dwIndexOfControl == m_uExit)
-				SendMessage(window_handle, WM_CLOSE, 0, 0);
-			if (sEvent.dwIndexOfControl == m_uMinimize)
-				ShowWindow(window_handle, SW_MINIMIZE);
-#ifndef _VIREIO_3
-			else if (sEvent.dwIndexOfControl == m_uLoadAquilinusProfile)
-			{
-				g_bLoadAquilinusProfile = true;
-			}
-#endif
-			break;
-		default:
-			break;
-		}
-
-		// send WM_PAINT
-		if (message != WM_MOUSEMOVE)
-			UpdateWindow(window_handle);
-			}
-
-	switch (message)
-	{
-	case WM_MOUSEMOVE:
-		// move the window ?
-		if (wparam & MK_LBUTTON)
-		{
-			// get new mouse cursor point
-			LONG nX = (LONG)GET_X_LPARAM(lparam);
-			LONG nY = (LONG)GET_Y_LPARAM(lparam);
-
-			if (m_psMouseCursor.y < 94)
-			{
-				// get the difference to the old position set only in WM_LBUTTONDOWN
-				nX -= m_psMouseCursor.x;
-				nY -= m_psMouseCursor.y;
-
-				// get the old window position
-				RECT rcWnd;
-				GetWindowRect(window_handle, &rcWnd);
-
-				// set the new window position
-				SetWindowPos(window_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
+				m_nCpX = (int)floor(x);
+				m_nCpY = (int)floor(y);
+				m_nButtonEvent = 1;
 			}
 		}
-		UpdateWindow(window_handle);
-		return 0;
-	case WM_CREATE:
-	{
-		OutputDebugString("Create Window\n");
-		break;
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+			m_nButtonEvent = 0;
+			m_nCpX = 0;
+			m_nCpY = 0;
+		}
 	}
-	case WM_TIMER:
+
+	/// <summary>
+	/// GLFW error callback
+	/// </summary>
+	static void Error_callback(int nError, const char* atDescription)
 	{
-		RECT client_rect;
-		GetClientRect(window_handle, &client_rect);
-		InvalidateRect(window_handle, &client_rect, FALSE);
-		return 0;
+		TRACE_UINT(nError);
+		OutputDebugStringA(atDescription);
 	}
-	case WM_LBUTTONDOWN:
+
+	/// <summary>handle aquilinus profile loading and injecting</summary>
+	void hook_handler()
 	{
-		// get the mouse cursor position
-		m_psMouseCursor.x = (LONG)GET_X_LPARAM(lparam);
-		m_psMouseCursor.y = (LONG)GET_Y_LPARAM(lparam);
-		break;
-	}
-	case WM_LBUTTONUP:
-	{
-#ifndef _VIREIO_3
+		// constant number of HMD profiles present
+		const UINT uHMD_N = 3;
+
 		if (g_hmAquilinusRTE)
 		{
 			InjectionState eIS = (InjectionState)g_pAquilinus_GetInjectionState();
@@ -790,14 +587,14 @@ LRESULT WINAPI ___main_window_proc(HWND pvWindow_handle, UINT uMessage, WPARAM u
 			{
 				if ((eIS == InjectionState::Idle) || (eIS == InjectionState::Injecting))
 				{
-					OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
+					OutputDebugStringA("[Perception] Load Aquilinus Profile !");
 
 					// get current selections
-					UINT unSelectionGame = (UINT)m_pcVireioGUI->GetCurrentSelection(m_uListGameProfiles);
+					UINT unSelectionGame = (UINT)m_nProfile_index;
 					if (unSelectionGame >= (UINT)m_asVireioGameProfiles.size()) unSelectionGame = 0;
-					UINT unSelectionHMD = (UINT)m_pcVireioGUI->GetCurrentSelection(m_uSpinHMD);
-					if (unSelectionHMD >= 4) unSelectionHMD = 0;
-					OutputDebugString(m_asVireioGameProfiles[unSelectionGame].atGameName.c_str());
+					UINT unSelectionHMD = (UINT)m_nHMD_index;
+					if (unSelectionHMD >= uHMD_N) unSelectionHMD = 0;
+					OutputDebugStringA(m_asVireioGameProfiles[unSelectionGame].atGameName.c_str());
 
 					// get profile path and set HMD string
 					std::wstring szProfilePath = std::wstring(m_asVireioGameProfiles[unSelectionGame].atProfileFilePath.begin(), m_asVireioGameProfiles[unSelectionGame].atProfileFilePath.end());
@@ -842,152 +639,166 @@ LRESULT WINAPI ___main_window_proc(HWND pvWindow_handle, UINT uMessage, WPARAM u
 				g_bLoadAquilinusProfile = false;
 			}
 		}
-#endif
-		break;
 	}
-	case WM_RBUTTONUP:
+
+	/// <summary>Vireio Perception glfw main loop</summary>
+	void run()
 	{
-#ifndef _VIREIO_3
-		if (g_hmAquilinusRTE)
+		ImVec4 clear_color = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+		static std::vector<std::string> s_aatHMDs = { "No HMD (Monitor)", "LibOVR", "OpenVR" };
+
+		// => <main> render loop
+		while (!glfwWindowShouldClose(m_psWindow))
 		{
-			g_pAquilinus_ForceIdle();
-			g_bLoadAquilinusProfile = false;
+			glfwPollEvents();
+			int nWPosX, nWPosY;
+			glfwGetWindowPos(m_psWindow, &nWPosX, &nWPosY);
+			glfwSetWindowPos(m_psWindow, nWPosX + m_nOffsetCpX, nWPosY + m_nOffsetCpY);
+			m_nOffsetCpX = 0;
+			m_nOffsetCpY = 0;
+
+			// Start the Dear ImGui frame
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+			// main window set flags and zero pos
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
+				| ImGuiWindowFlags_NoMove
+				| ImGuiWindowFlags_NoResize
+				| ImGuiWindowFlags_NoCollapse
+				| ImGuiWindowFlags_NoBackground
+				| ImGuiWindowFlags_NoBringToFrontOnFocus
+				| ImGuiWindowFlags_NoTitleBar;
+			ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2((float)APP_SIZE_WIDTH, (float)APP_SIZE_HEIGHT), ImGuiCond_FirstUseEver);
+
+			static bool s_bOpen = true;
+			if (ImGui::Begin("Vireio Perception", &s_bOpen, window_flags))
+			{
+				// logo image
+				ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
+				ImGui::Image((void*)(intptr_t)m_uLogoTexId, ImVec2((float)m_uLogoW, (float)m_uLogoH),
+					ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0), ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+
+				// combos
+				int nCIx = 0; int nCIxSelected = -1;
+				ImGui::SetCursorPosY((float)m_uLogoH * 1.4f);
+				for (std::string atCombo : { "HMD", "Game" })
+				{
+					ImGui::SetCursorPosX(32.0f);
+					std::vector<std::string>* paatItems = nullptr;
+					int* pnIx = nullptr;
+					switch (nCIx)
+					{
+					case 0:paatItems = &s_aatHMDs; pnIx = &m_nHMD_index; break;
+					case 1:paatItems = &m_aatGames; pnIx = &m_nProfile_index; break;
+					default:paatItems = &m_aatGames; pnIx = &m_nProfile_index; break;
+					}
+					if (ImGui::BeginCombo(atCombo.c_str(), (*pnIx < (int)paatItems->size()) ? (*paatItems)[*pnIx].c_str() : "", 0))
+					{
+						int n = 0;
+						for (std::string& at : (*paatItems))
+						{
+							const bool is_selected = (*pnIx == n);
+							if (ImGui::Selectable(at.c_str(), is_selected)) *pnIx = n;
+							if (is_selected) {
+								ImGui::SetItemDefaultFocus(); nCIxSelected = nCIx;
+							}
+							n++;
+						}
+						ImGui::EndCombo();
+					}
+					nCIx++;
+				}
+
+				// combo box selected ?
+				if (nCIxSelected == 0)
+				{
+
+				}
+				else if (nCIxSelected == 1)
+				{
+					// new game selected, load profile new
+					g_bLoadAquilinusProfile = true;
+				}
+
+				// Exit button
+				ImVec2 sTextSize = ImGui::CalcTextSize("Exit");
+				ImGui::SetCursorPos(ImVec2((float)APP_SIZE_WIDTH - (sTextSize.x * 2.0f), (float)APP_SIZE_HEIGHT - (sTextSize.y * 4.0f)));
+				if (ImGui::Button("Exit")) glfwSetWindowShouldClose(m_psWindow, GL_TRUE);
+
+				// version string + injection state (one line)
+				sTextSize = ImGui::CalcTextSize(m_atAppVersion.c_str());
+				ImGui::SetCursorPosY((float)APP_SIZE_HEIGHT - (sTextSize.y * 1.2f));
+				g_eInjectionState = (InjectionState)g_pAquilinus_GetInjectionState();
+				switch (g_eInjectionState)
+				{
+				case Initial:
+					ImGui::TextUnformatted("Initial"); break;
+				case Idle:
+					ImGui::TextUnformatted("Idle"); break;
+				case Injecting:
+					ImGui::TextUnformatted("Injecting"); break;
+				case ToInject:
+					ImGui::TextUnformatted("ToInject"); break;
+				case Injected:
+					ImGui::TextUnformatted("Injected"); break;
+				case Closed:
+					ImGui::TextUnformatted("Closed"); break;
+				default: break;
+				}
+				ImGui::SetCursorPos(ImVec2((float)APP_SIZE_WIDTH - sTextSize.x - (sTextSize.y * 0.2f), (float)APP_SIZE_HEIGHT - (sTextSize.y * 1.2f)));
+				ImGui::TextUnformatted(m_atAppVersion.c_str());
+
+				ImGui::End();
+			}
+
+			// Rendering
+			ImGui::Render();
+			int display_w, display_h;
+			glfwGetFramebufferSize(m_psWindow, &display_w, &display_h);
+			glViewport(0, 0, display_w, display_h);
+			glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+			glClear(GL_COLOR_BUFFER_BIT);
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+			glfwSwapBuffers(m_psWindow);
+
+			// handle injection
+			hook_handler();
 		}
-#endif
-		break;
+
+		// Cleanup ImGui + GL
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+
+		glfwDestroyWindow(m_psWindow);
+		glfwTerminate();
 	}
-	case WM_PAINT:
-	{
-		PAINTSTRUCT 	ps;
-		HDC 			hdc;
-		BITMAP 		bitmap;
-		HDC 			hdcMem;
-
-		hdc = BeginPaint(window_handle, &ps);
-
-		// draw GUI
-		hdcMem = CreateCompatibleDC(hdc);
-		HBITMAP hGUI = m_pcVireioGUI->GetGUI(true, false, true, true);
-		SelectObject(hdcMem, hGUI);
-		GetObject(hGUI, sizeof(bitmap), &bitmap);
-		BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-
-		// draw logo
-		SelectObject(hdcMem, m_pvLogo_bitmap);
-		GetObject(m_pvLogo_bitmap, sizeof(bitmap), &bitmap);
-		BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-		DeleteDC(hdcMem);
-
-#ifndef _VIREIO_3
-		// draw profile button + close icon + minimize icon
-		SelectObject(hdc, GetStockObject(DC_PEN));
-		SelectObject(hdc, GetStockObject(DC_BRUSH));
-		g_eInjectionState = (InjectionState)g_pAquilinus_GetInjectionState();
-		switch (g_eInjectionState)
-		{
-		case Initial:
-			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INIT);
-			break;
-		case Idle:
-			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_IDLE);
-			break;
-		case Injecting:
-			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTING);
-			break;
-		case ToInject:
-			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_TOINJECT);
-			break;
-		case Injected:
-			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTED);
-			break;
-		case Closed:
-			SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_CLOSED);
-			break;
-		default:
-			break;
-		}
-		SetDCBrushColor(hdc, APP_BUTTON_BRUSHCOLOR);
-		Rectangle(hdc, 456, 132, 456 + 188, 132 + 73);
-		SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
-		Rectangle(hdc, APP_SIZE_WIDTH - 18, bitmap.bmHeight, APP_SIZE_WIDTH - 1, bitmap.bmHeight + 19);
-		Rectangle(hdc, APP_SIZE_WIDTH - 36, bitmap.bmHeight, APP_SIZE_WIDTH - 19, bitmap.bmHeight + 19);
-		SetDCBrushColor(hdc, APP_BUTTON_PENCOLOR);
-		Rectangle(hdc, APP_SIZE_WIDTH - 12, bitmap.bmHeight + 7, APP_SIZE_WIDTH - 7, bitmap.bmHeight + 12);
-		Rectangle(hdc, APP_SIZE_WIDTH - 32, bitmap.bmHeight + 14, APP_SIZE_WIDTH - 23, bitmap.bmHeight + 16);
-
-		//// draw game logo
-		//if (game_bitmap)
-		//{
-		//	hdcMem = CreateCompatibleDC(hdc);
-		//	SelectObject(hdcMem, game_bitmap);
-		//	GetObject(game_bitmap, sizeof(bitmap), &bitmap);
-		//	BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
-		//	DeleteDC(hdcMem);
-		//}
-		// draw game logo
-		if (m_apvButton_bitmap[(int)g_eInjectionState])
-		{
-			hdcMem = CreateCompatibleDC(hdc);
-			SelectObject(hdcMem, m_apvButton_bitmap[(int)g_eInjectionState]);
-			GetObject(m_apvButton_bitmap[(int)g_eInjectionState], sizeof(bitmap), &bitmap);
-			BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
-			DeleteDC(hdcMem);
-		}
-#endif
-
-		EndPaint(window_handle, &ps);
-
-		/*
-		// Now get FPS from the registry
-		HKEY hKey;
-		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
-		if (openRes == ERROR_SUCCESS)
-		{
-		char fpsBuffer[10];
-		memset(fpsBuffer, 0, 10);
-		DWORD dwDataSize = 10;
-		LONG lResult = RegGetValue(hKey, NULL, "FPS", RRF_RT_REG_SZ, NULL, (LPVOID)&fpsBuffer, &dwDataSize);
-		if (lResult == ERROR_SUCCESS)
-		{
-		TextOut(paint_device_context, 420, 183, fpsBuffer, (int)strlen(fpsBuffer));
-		//Now delete, if this isn't refreshed, then we'll report blank next time round
-		RegDeleteValue(hKey, "FPS");
-		RegCloseKey(hKey);
-		}
-		else
-		TextOut(paint_device_context, 420, 183, "--", 2);
-		}
-
-		// output extended profile data if aquilinus runtime environment present
-		if (g_hmAquilinusRTE)
-		{
-		SetRect(&This->extended_profile_rectangle, 16, 190, 272, 254);
-		}
-
-
-		return 0;
-	}
-	case WM_SIZE:
-	{
-		InvalidateRect(window_handle, NULL, TRUE);
-		break;
-	}
-	case WM_CLOSE:
-	{
-		PostQuitMessage(0);
-#ifndef _VIREIO_3
-		if (g_hmAquilinusRTE)
-		{
-			g_pAquilinus_Close();
-			FreeLibrary(g_hmAquilinusRTE);
-		}
-#endif
-		break;
-	}
-	}
-	return DefWindowProc(window_handle, message, wparam, lparam);*/
 };
 
+/*** Vireio_Perception_Main_Window static fields ***/
+POINT       Vireio_Perception_Main_Window::m_psMouseCursor;
+HBITMAP     Vireio_Perception_Main_Window::m_pvLogo_bitmap;
+HBITMAP     Vireio_Perception_Main_Window::m_apvButton_bitmap[6];
+UINT        Vireio_Perception_Main_Window::m_uListGameProfiles;
+UINT        Vireio_Perception_Main_Window::m_uSpinHMD;
+UINT        Vireio_Perception_Main_Window::m_uSpinStereoView;
+UINT        Vireio_Perception_Main_Window::m_uSpinTracker;
+UINT        Vireio_Perception_Main_Window::m_uSpinMonitor;
+UINT        Vireio_Perception_Main_Window::m_uLoadAquilinusProfile;
+UINT        Vireio_Perception_Main_Window::m_uExit;
+UINT        Vireio_Perception_Main_Window::m_uMinimize;
+std::vector<std::string> Vireio_Perception_Main_Window::m_aatGames;
+string      Vireio_Perception_Main_Window::m_atAppVersion;
+int         Vireio_Perception_Main_Window::m_nCpX, Vireio_Perception_Main_Window::m_nCpY;
+int         Vireio_Perception_Main_Window::m_nOffsetCpX, Vireio_Perception_Main_Window::m_nOffsetCpY;
+int         Vireio_Perception_Main_Window::m_nButtonEvent;
+GLuint      Vireio_Perception_Main_Window::m_uLogoTexId;
+unsigned    Vireio_Perception_Main_Window::m_uLogoW, Vireio_Perception_Main_Window::m_uLogoH;
+int         Vireio_Perception_Main_Window::m_nProfile_index, Vireio_Perception_Main_Window::m_nHMD_index;
 
 /// <summary>Windows entry point</summary>
 int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
