@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioMatrixModifierDx11", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitterDx11", "..\PluginSection\VireioCore\VireioStereoSplitterDx10\VireioStereoSplitterDx10\VS2019\VireioStereoSplitterDx11.vcxproj", "{1927D2CC-B50D-4706-8AA7-17BD229F5987}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perception", "..\Perception\VS2019\Perception\Perception.vcxproj", "{16F92FCD-5E89-45F4-A728-4F7AE6408896}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -139,6 +141,18 @@ Global
 		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x64.Build.0 = Release|x64
 		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x86.ActiveCfg = Release|Win32
 		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|x86.Build.0 = Release|Win32
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Debug|x64.ActiveCfg = Debug|x64
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Debug|x64.Build.0 = Debug|x64
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Debug|x86.ActiveCfg = Debug|Win32
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Debug|x86.Build.0 = Debug|Win32
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Developer|x64.ActiveCfg = Debug|x64
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Developer|x64.Build.0 = Debug|x64
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Developer|x86.ActiveCfg = Debug|Win32
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Developer|x86.Build.0 = Debug|Win32
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Release|x64.ActiveCfg = Release|x64
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Release|x64.Build.0 = Release|x64
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Release|x86.ActiveCfg = Release|Win32
+		{16F92FCD-5E89-45F4-A728-4F7AE6408896}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

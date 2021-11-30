@@ -2709,44 +2709,6 @@ void StereoSplitter::Unmap(int& nFlags)
 	if (!ppcResource) return;
 	if (!puSubresource) return;
 	{
-		// first, do the ->Unmap() call
-		m_pcContextCurrent->Unmap(*ppcResource, *puSubresource);
-
-		// get the resource type
-		D3D11_RESOURCE_DIMENSION eResourceDimension;
-		(*ppcResource)->GetType(&eResourceDimension);
-
-		// handle textures and buffers
-		ID3D11Resource* pcResourceTwin = nullptr;
-		UINT dwSize = sizeof(pcResourceTwin);
-		switch (eResourceDimension)
-		{
-		case D3D11_RESOURCE_DIMENSION_UNKNOWN:
-			break;
-		case D3D11_RESOURCE_DIMENSION_BUFFER:
-			break;
-		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
-		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
-		case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
-			// get the stereo twin of the resource (texture)
-			(*ppcResource)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
-
-			// if stereo twin is present, copy the whole texture... TODO ! HANDLE BY SUBRESOURCE INDEX
-			if (dwSize)
-			{
-				// copy the whole texture
-				m_pcContextCurrent->CopyResource(pcResourceTwin, *ppcResource);
-
-				// and release
-				pcResourceTwin->Release();
-			}
-			break;
-		default:
-			break;
-		}
-
-		// method replaced, immediately return
-		nFlags = AQU_PluginFlags::ImmediateReturnFlag;
 	}
 }
 HRESULT StereoSplitter::VSSetShader(int& nFlags) { return E_NOTIMPL; }
